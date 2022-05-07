@@ -19,7 +19,7 @@
         <exclude>com.io7m.eigion:com.io7m.eigion.gui:*</exclude>
       </excludes>
       <outputDirectory>launcher/modules</outputDirectory>
-      <useProjectArtifact>true</useProjectArtifact>
+      <useProjectArtifact>false</useProjectArtifact>
       <useTransitiveFiltering>true</useTransitiveFiltering>
     </dependencySet>
 
@@ -28,7 +28,7 @@
         <exclude>com.io7m.eigion:com.io7m.eigion.launcher.main:*</exclude>
       </excludes>
       <outputDirectory>workbench/modules</outputDirectory>
-      <useProjectArtifact>false</useProjectArtifact>
+      <useProjectArtifact>true</useProjectArtifact>
       <useTransitiveFiltering>true</useTransitiveFiltering>
     </dependencySet>
   </dependencySets>
