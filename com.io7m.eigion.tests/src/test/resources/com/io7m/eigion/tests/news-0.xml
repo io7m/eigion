@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<NewsItem xmlns="urn:com.io7m.eigion:news:1:0">
+
+  <Paragraph>
+    The punched tape from Operator No. 7's machine slid along the line. It entered a coupling machine and was stripped
+    from the tape and repunched upon a tape that was operating at better than a thousand words per minute. Operator 7's
+    tape then left the machine to be rolled into a file roll and placed in the vaults below the city. It was of no use
+    save as a reference from now on.
+  </Paragraph>
+
+  <Paragraph>
+    The coupling machine worked furiously. It accepted the tapes from seventy operators as fast as they could write
+    them. It selected the messages as they entered the machine, placing a mechanical preference upon whichever message
+    happened to be ahead of the others on the moving tapes. The master tape moved continuously at eleven hundred words
+    per minute, taking teletype messages from everywhere in the Northern Hemisphere of Venus to any of the other planets
+    in the Solar System. It was a busy machine, for even at eleven hundred words per minute, it often got hours behind.
+  </Paragraph>
+
+  <Paragraph>
+    The synchronous-keyed signal from the coupling machine left the operating room and went to the transmission room. It
+    was amplified and hurled out of the city to a small, squat building at the outskirts of Northern Landing.
+  </Paragraph>
+
+  <Paragraph>
+    Here it was impressed upon a carrier wave and flung at the sky.
+  </Paragraph>
+
+  <Paragraph>
+    But not alone. Not unguarded. The upper half of the building carried a monstrous parabolic reflector, mounted on
+    gimbals. The signal was focused into a beam. The beam was made of two components. The center component was a
+    circularly polarized, ultra-high frequency wave of five centimeter waves, modulated with the keying signals of the
+    teletype coupling machine. The outer component was a radially polarized wave of one centimeter waves. A radio
+    frequency armor.
+  </Paragraph>
+
+</NewsItem>
