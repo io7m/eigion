@@ -14,17 +14,18 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+
+package com.io7m.eigion.gui.internal.client;
+
 /**
- * Application runtime management (News XML format)
+ * News is in the initial state.
  */
 
-module com.io7m.eigion.news.xml
+public enum EIGNewsStatusInitial implements EIGClientNewsStatusType
 {
-  requires static org.osgi.annotation.bundle;
-  requires static org.osgi.annotation.versioning;
+  /**
+   * News is in the initial state.
+   */
 
-  requires org.slf4j;
-  requires java.xml;
-
-  exports com.io7m.eigion.news.xml;
+  NEWS_STATUS_INITIAL
 }

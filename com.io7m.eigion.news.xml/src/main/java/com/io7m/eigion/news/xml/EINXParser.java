@@ -17,8 +17,13 @@
 
 package com.io7m.eigion.news.xml;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Element;
 import org.w3c.dom.Text;
+import org.xml.sax.ErrorHandler;
+import org.xml.sax.SAXException;
+import org.xml.sax.SAXParseException;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.IOException;
@@ -36,6 +41,9 @@ import java.util.regex.Pattern;
 
 public final class EINXParser
 {
+  private static final Logger LOG =
+    LoggerFactory.getLogger(EINXParser.class);
+
   private static final Pattern NEWLINES =
     Pattern.compile("\n");
   private static final Pattern WHITESPACE =
@@ -73,9 +81,11 @@ public final class EINXParser
   {
     final var documentBuilder =
       this.documents.newDocumentBuilder();
+
+    documentBuilder.setErrorHandler(new EINXLoggingErrorHandler());
+
     final var document =
       documentBuilder.parse(stream);
-
     final var root =
       document.getDocumentElement();
 
@@ -149,5 +159,52 @@ public final class EINXParser
       }
     }
     return new EINXParagraph(List.copyOf(inlines));
+  }
+
+  private static final class EINXLoggingErrorHandler
+    implements ErrorHandler
+  {
+    EINXLoggingErrorHandler()
+    {
+
+    }
+
+    @Override
+    public void warning(
+      final SAXParseException exception)
+    {
+      LOG.warn(
+        "{}:{}: {}",
+        Integer.valueOf(exception.getLineNumber()),
+        Integer.valueOf(exception.getColumnNumber()),
+        exception.getMessage()
+      );
+    }
+
+    @Override
+    public void error(
+      final SAXParseException exception)
+    {
+      LOG.error(
+        "{}:{}: {}",
+        Integer.valueOf(exception.getLineNumber()),
+        Integer.valueOf(exception.getColumnNumber()),
+        exception.getMessage()
+      );
+    }
+
+    @Override
+    public void fatalError(
+      final SAXParseException exception)
+      throws SAXException
+    {
+      LOG.error(
+        "{}:{}: {}",
+        Integer.valueOf(exception.getLineNumber()),
+        Integer.valueOf(exception.getColumnNumber()),
+        exception.getMessage()
+      );
+      throw exception;
+    }
   }
 }

@@ -11,9 +11,9 @@
              AnchorPane.rightAnchor="0.0"
              AnchorPane.topAnchor="0.0">
     <children>
-      <fx:include source="dashboard.fxml"/>
-      <fx:include source="login.fxml"/>
-      <fx:include source="logo.fxml"/>
+      <fx:include source="dashboard.fxml" fx:id="dashboardLayout"/>
+      <fx:include source="login.fxml" fx:id="loginLayout"/>
+      <fx:include source="logo.fxml" fx:id="logoLayout"/>
     </children>
   </StackPane>
 </AnchorPane>

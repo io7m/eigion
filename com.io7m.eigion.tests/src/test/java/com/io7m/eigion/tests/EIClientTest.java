@@ -31,8 +31,8 @@ import java.net.InetSocketAddress;
 import java.net.URI;
 import java.nio.file.Path;
 
-import static com.io7m.eigion.client.api.EIClientStatusType.EIClientStatusInitial.CLIENT_STATUS_INITIAL;
-import static com.io7m.eigion.client.api.EIClientStatusType.EIClientStatusLoggedIn.CLIENT_STATUS_LOGGED_IN;
+import static com.io7m.eigion.client.api.EIClientLoggedIn.CLIENT_LOGGED_IN;
+import static com.io7m.eigion.client.api.EIClientLoggedOut.CLIENT_LOGGED_OUT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -100,6 +100,7 @@ public final class EIClientTest
 
   /**
    * Logging in works.
+   *
    * @throws Exception On errors
    */
 
@@ -110,9 +111,9 @@ public final class EIClientTest
     this.servlets.addServlet(EIV1LoginOK.class, "/v1/login");
     this.server.start();
 
-    assertEquals(CLIENT_STATUS_INITIAL, this.client.statusNow());
+    assertEquals(CLIENT_LOGGED_OUT, this.client.loginStatus().get());
     this.client.login("user", "pass");
-    assertEquals(CLIENT_STATUS_LOGGED_IN, this.client.statusNow());
+    assertEquals(CLIENT_LOGGED_IN, this.client.loginStatus().get());
   }
 
   /**

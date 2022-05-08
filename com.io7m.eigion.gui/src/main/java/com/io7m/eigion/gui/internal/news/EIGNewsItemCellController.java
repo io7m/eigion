@@ -77,6 +77,9 @@ public final class EIGNewsItemCellController implements Initializable
     this.newsImage.setImage(this.icons.news24());
     this.newsTitle.setText(item.title());
 
+    final var childNodes = this.newsText.getChildren();
+    childNodes.clear();
+
     switch (item.format()) {
       case "application/xml+eigion_news" -> {
         this.setItemXMLNews(item.text());
@@ -91,21 +94,23 @@ public final class EIGNewsItemCellController implements Initializable
     final EIClientNewsItem item)
   {
     final var childNodes = this.newsText.getChildren();
-    childNodes.clear();
-    childNodes.add(new Text(this.strings.format("news.formatUnrecognized", item.format())));
+    childNodes.add(new Text(this.strings.format(
+      "news.formatUnrecognized",
+      item.format())));
   }
 
   private void setItemXMLNews(
     final String text)
   {
     final var childNodes = this.newsText.getChildren();
-    childNodes.clear();
+    childNodes.add(new Text(this.strings.format("news.loading")));
 
     try {
       final var parser = this.parsers.newsParser();
       final var input = new ByteArrayInputStream(text.getBytes(UTF_8));
       final var document = parser.parse(input);
 
+      childNodes.clear();
       for (final var element : document.elements()) {
         if (element instanceof EINXParagraph paragraph) {
           for (final var inline : paragraph.elements()) {
@@ -118,10 +123,9 @@ public final class EIGNewsItemCellController implements Initializable
       }
     } catch (final Exception e) {
       childNodes.clear();
-      childNodes.setAll(List.of(new Text(this.strings.format(
-        "news.error",
-        e.getClass(),
-        e.getMessage()))));
+      final var errorText =
+        this.strings.format("news.error", e.getClass(), e.getMessage());
+      childNodes.setAll(List.of(new Text(errorText)));
     }
   }
 

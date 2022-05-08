@@ -14,31 +14,48 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+
 package com.io7m.eigion.tests;
 
-import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.servlet.ServletContextHandler;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
-import java.net.InetSocketAddress;
+import java.io.IOException;
 
-public final class EIFakeServer
+import static java.nio.charset.StandardCharsets.UTF_8;
+
+public final class EIV1LoginSlowOK extends HttpServlet
 {
-  private EIFakeServer()
+  public EIV1LoginSlowOK()
   {
 
   }
 
-  public static void main(
-    final String[] args)
-    throws Exception
+  @Override
+  protected void service(
+    final HttpServletRequest req,
+    final HttpServletResponse resp)
+    throws IOException
   {
-    final var server =
-      new Server(new InetSocketAddress("localhost", 40000));
+    final var text = """
+{
+  "%type": "loginResponse",
+  "message": "OK"
+}
+    """.getBytes(UTF_8);
 
-    final var servlets = new ServletContextHandler();
-    servlets.addServlet(EIV1LoginSlowOK.class, "/v1/login");
-    servlets.addServlet(EIV1NewsSlowOK.class, "/v1/news");
-    server.setHandler(servlets);
-    server.start();
+    try {
+      Thread.sleep(2_000L);
+    } catch (final InterruptedException e) {
+      Thread.currentThread().interrupt();
+    }
+
+    resp.setContentLength(text.length);
+    resp.setStatus(200);
+
+    try (var output = resp.getOutputStream()) {
+      output.write(text);
+    }
   }
 }

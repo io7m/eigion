@@ -23,8 +23,9 @@ module com.io7m.eigion.client.api
   requires static org.osgi.annotation.bundle;
   requires static org.osgi.annotation.versioning;
 
-  requires transitive com.io7m.jade.api;
   requires transitive com.io7m.eigion.taskrecorder;
+  requires transitive com.io7m.jade.api;
+  requires transitive com.io7m.jattribute.core;
 
   exports com.io7m.eigion.client.api;
 }

@@ -41,7 +41,7 @@ public final class EIGBackgroundSchedulerService
       thread.setDaemon(true);
       thread.setName(
         String.format(
-          "com.io7m.eigion.gui.[%d]",
+          "com.io7m.eigion.gui[%d]",
           Long.valueOf(thread.getId()))
       );
       return thread;

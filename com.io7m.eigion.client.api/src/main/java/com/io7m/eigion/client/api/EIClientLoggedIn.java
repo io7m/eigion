@@ -14,17 +14,18 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+
+package com.io7m.eigion.client.api;
+
 /**
- * Application runtime management (News XML format)
+ * The client is now logged in.
  */
 
-module com.io7m.eigion.news.xml
+public enum EIClientLoggedIn implements EIClientLoginStatusType
 {
-  requires static org.osgi.annotation.bundle;
-  requires static org.osgi.annotation.versioning;
+  /**
+   * The client is now logged in.
+   */
 
-  requires org.slf4j;
-  requires java.xml;
-
-  exports com.io7m.eigion.news.xml;
+  CLIENT_LOGGED_IN
 }

@@ -16,29 +16,29 @@
 
 package com.io7m.eigion.gui.internal.client;
 
-import com.io7m.eigion.client.api.EIClientStatusType;
-import com.io7m.eigion.gui.internal.EIGEventType;
+import com.io7m.eigion.client.api.EIClientNewsItem;
 
+import java.util.List;
 import java.util.Objects;
 
 /**
- * An event indicating that the status of the client changed.
+ * News is available.
  *
- * @param status The status
+ * @param newsItems The news item
  */
 
-public record EIGClientStatusChanged(
-  EIClientStatusType status)
-  implements EIGEventType
+public record EIGNewsStatusAvailable(
+  List<EIClientNewsItem> newsItems)
+  implements EIGClientNewsStatusType
 {
   /**
-   * An event indicating that the status of the client changed.
+   * News is available.
    *
-   * @param status The status
+   * @param newsItems The news item
    */
 
-  public EIGClientStatusChanged
+  public EIGNewsStatusAvailable
   {
-    Objects.requireNonNull(status, "status");
+    Objects.requireNonNull(newsItems, "newsItems");
   }
 }

@@ -1,14 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.Label?>
 <?import javafx.scene.control.Menu?>
 <?import javafx.scene.control.MenuBar?>
 <?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.Separator?>
 <?import javafx.scene.control.Tab?>
 <?import javafx.scene.control.TabPane?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox xmlns="http://javafx.com/javafx/18" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.io7m.eigion.gui.internal.dashboard.EIGDashboardController">
+<VBox fx:id="dashboardLayout" xmlns="http://javafx.com/javafx/18" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.io7m.eigion.gui.internal.dashboard.EIGDashboardController">
    <children>
       <MenuBar VBox.vgrow="NEVER">
         <menus>
@@ -31,6 +37,26 @@
         </Tab>
       </tabs>
     </TabPane>
-      <HBox prefHeight="32.0" VBox.vgrow="NEVER" />
+      <Separator prefWidth="200.0" />
+      <HBox prefHeight="32.0" VBox.vgrow="NEVER">
+         <children>
+            <Region HBox.hgrow="ALWAYS" />
+            <HBox alignment="CENTER">
+               <children>
+                  <Label fx:id="onlineText" text="%online.online" />
+                  <StackPane>
+                     <children>
+                        <CheckBox fx:id="onlineToggle" mnemonicParsing="false" onAction="#onOnlineToggleSelected" />
+                     </children>
+                     <HBox.margin>
+                        <Insets left="8.0" />
+                     </HBox.margin>
+                  </StackPane>
+               </children>
+               <HBox.margin>
+                  <Insets right="8.0" />
+               </HBox.margin>
+            </HBox>
+         </children></HBox>
    </children>
 </VBox>

@@ -21,15 +21,19 @@ import com.fasterxml.jackson.databind.module.SimpleDeserializers;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.io7m.dixmont.core.DmJsonRestrictedDeserializers;
 import com.io7m.eigion.client.api.EIClientConfiguration;
+import com.io7m.eigion.client.api.EIClientLoginFailed;
+import com.io7m.eigion.client.api.EIClientLoginStatusType;
 import com.io7m.eigion.client.api.EIClientNewsItem;
-import com.io7m.eigion.client.api.EIClientStatusType;
-import com.io7m.eigion.client.api.EIClientStatusType.EIClientStatusLoginFailed;
+import com.io7m.eigion.client.api.EIClientOnline;
 import com.io7m.eigion.client.api.EIClientType;
 import com.io7m.eigion.client.vanilla.internal.EIClientStrings;
 import com.io7m.eigion.client.vanilla.v1.EIV1ClientMessagesType.EIV1LoginResponse;
 import com.io7m.eigion.client.vanilla.v1.EIV1ClientMessagesType.EIV1News;
 import com.io7m.eigion.client.vanilla.v1.EIV1ClientMessagesType.EIV1NewsItem;
 import com.io7m.eigion.taskrecorder.EITask;
+import com.io7m.jattribute.core.AttributeReadableType;
+import com.io7m.jattribute.core.AttributeType;
+import com.io7m.jattribute.core.Attributes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,12 +46,14 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.Flow;
-import java.util.concurrent.SubmissionPublisher;
+import java.util.concurrent.Semaphore;
 
-import static com.io7m.eigion.client.api.EIClientStatusType.EIClientStatusInitial.CLIENT_STATUS_INITIAL;
-import static com.io7m.eigion.client.api.EIClientStatusType.EIClientStatusLoggedIn.CLIENT_STATUS_LOGGED_IN;
-import static com.io7m.eigion.client.api.EIClientStatusType.EIClientStatusLoggingIn.CLIENT_STATUS_LOGGING_IN;
+import static com.io7m.eigion.client.api.EIClientLoggedIn.CLIENT_LOGGED_IN;
+import static com.io7m.eigion.client.api.EIClientLoggedOut.CLIENT_LOGGED_OUT;
+import static com.io7m.eigion.client.api.EIClientLoginInProcess.CLIENT_LOGIN_IN_PROCESS;
+import static com.io7m.eigion.client.api.EIClientLoginNotRequired.CLIENT_LOGIN_NOT_REQUIRED;
+import static com.io7m.eigion.client.api.EIClientLoginWentOffline.CLIENT_LOGIN_WENT_OFFLINE;
+import static com.io7m.eigion.client.api.EIClientOnline.CLIENT_ONLINE;
 import static java.net.http.HttpRequest.BodyPublishers.ofByteArray;
 
 /**
@@ -64,15 +70,16 @@ public final class EIV1Client implements EIClientType
   private final HttpClient client;
   private final JsonMapper mapper;
   private final SimpleDeserializers serializers;
-  private final SubmissionPublisher<EIClientStatusType> statusEvents;
-  private volatile EIClientStatusType statusNow;
+  private final AttributeType<EIClientOnline> online;
+  private final AttributeType<EIClientLoginStatusType> loginStatus;
+  private final Semaphore loginSemaphore;
 
   /**
    * The default client implementation.
    *
-   * @param inStrings The client strings
+   * @param inStrings       The client strings
    * @param inConfiguration The client configuration
-   * @param inClient The HTTP client
+   * @param inClient        The HTTP client
    */
 
   public EIV1Client(
@@ -86,10 +93,18 @@ public final class EIV1Client implements EIClientType
       Objects.requireNonNull(inConfiguration, "configuration");
     this.client =
       Objects.requireNonNull(inClient, "inClient");
-    this.statusNow =
-      CLIENT_STATUS_INITIAL;
-    this.statusEvents =
-      new SubmissionPublisher<>();
+
+    final var attributes =
+      Attributes.create(e -> LOG.error("listener raised exception: ", e));
+
+    this.online =
+      attributes.create(CLIENT_ONLINE);
+    this.loginStatus =
+      attributes.create(
+        inConfiguration.isLoginRequired()
+          ? CLIENT_LOGGED_OUT
+          : CLIENT_LOGIN_NOT_REQUIRED
+      );
 
     this.serializers =
       DmJsonRestrictedDeserializers.builder()
@@ -98,7 +113,8 @@ public final class EIV1Client implements EIClientType
         .allowClass(EIV1LoginResponse.class)
         .allowClass(EIV1News.class)
         .allowClass(EIV1NewsItem.class)
-        .allowClassName("java.util.List<com.io7m.eigion.client.vanilla.v1.EIV1ClientMessagesType$EIV1NewsItem>")
+        .allowClassName(
+          "java.util.List<com.io7m.eigion.client.vanilla.v1.EIV1ClientMessagesType$EIV1NewsItem>")
         .build();
 
     this.mapper =
@@ -109,26 +125,52 @@ public final class EIV1Client implements EIClientType
     simpleModule.setDeserializers(this.serializers);
     this.mapper.registerModule(simpleModule);
 
-    this.setStatus(CLIENT_STATUS_INITIAL);
+    this.loginSemaphore =
+      new Semaphore(1);
   }
 
-  private void setStatus(
-    final EIClientStatusType status)
+  private static List<EIClientNewsItem> mapNews(
+    final EIV1News responseMessage)
   {
-    this.statusNow = status;
-    this.statusEvents.submit(status);
+    return responseMessage.items.stream().map(item -> {
+      return new EIClientNewsItem(
+        LocalDateTime.parse(item.date, DateTimeFormatter.ISO_OFFSET_DATE_TIME),
+        item.format,
+        item.title,
+        item.text
+      );
+    }).toList();
   }
 
   @Override
-  public Flow.Publisher<EIClientStatusType> status()
+  public AttributeReadableType<EIClientLoginStatusType> loginStatus()
   {
-    return this.statusEvents;
+    return this.loginStatus;
   }
 
   @Override
-  public EIClientStatusType statusNow()
+  public AttributeReadableType<EIClientOnline> onlineStatus()
   {
-    return this.statusNow;
+    return this.online;
+  }
+
+  @Override
+  public void onlineSet(
+    final EIClientOnline mode)
+  {
+    this.online.set(Objects.requireNonNull(mode, "online"));
+
+    this.loginStatus.set(
+      switch (mode) {
+        case CLIENT_ONLINE -> {
+          if (this.configuration.isLoginRequired()) {
+            yield CLIENT_LOGGED_OUT;
+          }
+          yield CLIENT_LOGIN_NOT_REQUIRED;
+        }
+        case CLIENT_OFFLINE -> CLIENT_LOGIN_WENT_OFFLINE;
+      }
+    );
   }
 
   @Override
@@ -139,48 +181,56 @@ public final class EIV1Client implements EIClientType
     Objects.requireNonNull(username, "username");
     Objects.requireNonNull(password, "password");
 
-    final var task =
-      EITask.<Void>create(LOG, this.strings.format("loginTask"));
-
-    final var loginURI =
-      this.configuration.baseURI().resolve("/v1/login");
-
-    task.beginStep(this.strings.format("loginConnectingTo", loginURI));
-    this.setStatus(CLIENT_STATUS_LOGGING_IN);
-
-    final var message =
-      new EIV1ClientMessagesType.EIV1Login("login", username, password);
-
-
     try {
-      final var request =
-        HttpRequest.newBuilder(loginURI)
-          .POST(ofByteArray(this.mapper.writeValueAsBytes(message)))
-          .build();
+      final var task =
+        EITask.<Void>create(LOG, this.strings.format("loginTask"));
 
-      final var response =
-        this.client.send(request, HttpResponse.BodyHandlers.ofInputStream());
-      final var responseMessage =
-        this.mapper.readValue(response.body(), EIV1LoginResponse.class);
+      try {
+        this.loginSemaphore.acquire();
 
-      if (response.statusCode() >= 400) {
-        task.setFailed(this.strings.format("login.serverFailed", response.statusCode()));
-        this.setStatus(new EIClientStatusLoginFailed(task));
-      } else {
-        task.setSucceeded();
-        this.setStatus(CLIENT_STATUS_LOGGED_IN);
+        final var loginURI =
+          this.configuration.baseURI().resolve("/v1/login");
+
+        task.beginStep(this.strings.format("loginConnectingTo", loginURI));
+        this.loginStatus.set(CLIENT_LOGIN_IN_PROCESS);
+
+        final var message =
+          new EIV1ClientMessagesType.EIV1Login("login", username, password);
+
+
+        final var request =
+          HttpRequest.newBuilder(loginURI)
+            .POST(ofByteArray(this.mapper.writeValueAsBytes(message)))
+            .build();
+
+        final var response =
+          this.client.send(request, HttpResponse.BodyHandlers.ofInputStream());
+        final var responseMessage =
+          this.mapper.readValue(response.body(), EIV1LoginResponse.class);
+
+        if (response.statusCode() >= 400) {
+          task.setFailed(this.strings.format(
+            "login.serverFailed",
+            response.statusCode()));
+          this.loginStatus.set(new EIClientLoginFailed(task));
+        } else {
+          task.setSucceeded();
+          this.loginStatus.set(CLIENT_LOGGED_IN);
+        }
+      } catch (final ConnectException e) {
+        final var em = this.strings.format("login.connectFailed");
+        task.setFailed(em, e);
+        this.loginStatus.set(new EIClientLoginFailed(task));
+      } catch (IOException | InterruptedException e) {
+        final var em = e.getMessage();
+        task.setFailed(em, e);
+        this.loginStatus.set(new EIClientLoginFailed(task));
       }
-    } catch (final ConnectException e) {
-      final var em = this.strings.format("login.connectFailed");
-      task.setFailed(em, e);
-      this.setStatus(new EIClientStatusLoginFailed(task));
-    } catch (IOException | InterruptedException e) {
-      final var em = e.getMessage();
-      task.setFailed(em, e);
-      this.setStatus(new EIClientStatusLoginFailed(task));
-    }
 
-    return task;
+      return task;
+    } finally {
+      this.loginSemaphore.release();
+    }
   }
 
   @Override
@@ -207,9 +257,13 @@ public final class EIV1Client implements EIClientType
         this.mapper.readValue(response.body(), EIV1News.class);
 
       if (response.statusCode() >= 400) {
-        task.setFailed(this.strings.format("news.fetchFailed", response.statusCode()));
+        task.setFailed(this.strings.format(
+          "news.fetchFailed",
+          response.statusCode()));
       } else {
-        task.setSucceeded(this.strings.format("news.received", responseMessage.items.size()));
+        task.setSucceeded(this.strings.format(
+          "news.received",
+          responseMessage.items.size()));
         task.setResult(mapNews(responseMessage));
       }
     } catch (IOException | InterruptedException e) {
@@ -217,19 +271,6 @@ public final class EIV1Client implements EIClientType
     }
 
     return task;
-  }
-
-  private static List<EIClientNewsItem> mapNews(
-    final EIV1News responseMessage)
-  {
-    return responseMessage.items.stream().map(item -> {
-      return new EIClientNewsItem(
-        LocalDateTime.parse(item.date, DateTimeFormatter.ISO_OFFSET_DATE_TIME),
-        item.format,
-        item.title,
-        item.text
-      );
-    }).toList();
   }
 
   @Override

@@ -26,14 +26,20 @@ import com.io7m.eigion.gui.internal.EIGEventType;
 public enum EIGLogoEvent implements EIGEventType
 {
   /**
-   * The logo screen appeared.
+   * The logo screen wants to open.
    */
 
-  LOGO_APPEARED,
+  LOGO_SCREEN_WANT_OPEN,
 
   /**
-   * The logo screen disappeared.
+   * The logo screen wants to close.
    */
 
-  LOGO_DISAPPEARED
+  LOGO_SCREEN_WANT_CLOSE,
+
+  /**
+   * The logo screen wants to close immediately
+   */
+
+  LOGO_SCREEN_WANT_CLOSE_IMMEDIATE
 }

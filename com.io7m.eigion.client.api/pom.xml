@@ -40,6 +40,10 @@
       <groupId>com.io7m.jade</groupId>
       <artifactId>com.io7m.jade.api</artifactId>
     </dependency>
+    <dependency>
+      <groupId>com.io7m.jattribute</groupId>
+      <artifactId>com.io7m.jattribute.core</artifactId>
+    </dependency>
   </dependencies>
 
 </project>

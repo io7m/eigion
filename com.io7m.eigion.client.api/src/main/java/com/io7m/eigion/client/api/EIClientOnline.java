@@ -14,17 +14,23 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+package com.io7m.eigion.client.api;
+
 /**
- * Application runtime management (News XML format)
+ * The client's online/offline mode.
  */
 
-module com.io7m.eigion.news.xml
+public enum EIClientOnline
 {
-  requires static org.osgi.annotation.bundle;
-  requires static org.osgi.annotation.versioning;
+  /**
+   * The client is running in online mode.
+   */
 
-  requires org.slf4j;
-  requires java.xml;
+  CLIENT_ONLINE,
 
-  exports com.io7m.eigion.news.xml;
+  /**
+   * The client is running in offline mode.
+   */
+
+  CLIENT_OFFLINE
 }

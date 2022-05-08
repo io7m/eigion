@@ -14,17 +14,18 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+
+package com.io7m.eigion.client.api;
+
 /**
- * Application runtime management (News XML format)
+ * The client is currently in the process of logging in.
  */
 
-module com.io7m.eigion.news.xml
+public enum EIClientLoginInProcess implements EIClientLoginStatusType
 {
-  requires static org.osgi.annotation.bundle;
-  requires static org.osgi.annotation.versioning;
+  /**
+   * The client is currently in the process of logging in.
+   */
 
-  requires org.slf4j;
-  requires java.xml;
-
-  exports com.io7m.eigion.news.xml;
+  CLIENT_LOGIN_IN_PROCESS
 }

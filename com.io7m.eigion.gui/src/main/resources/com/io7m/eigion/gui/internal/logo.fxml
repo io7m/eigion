@@ -1,20 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.image.ImageView?><?import javafx.scene.layout.StackPane?>
-<StackPane xmlns:fx="http://javafx.com/fxml/1"
-           fx:id="logoBackdrop"
-           prefHeight="600.0"
-           prefWidth="800.0"
-           styleClass="logoBackdrop"
-           xmlns="http://javafx.com/javafx/18"
-           fx:controller="com.io7m.eigion.gui.internal.logo.EIGLogoController">
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.StackPane?>
+
+<StackPane fx:id="logoLayout" prefHeight="600.0" prefWidth="800.0" styleClass="logoBackdrop" xmlns="http://javafx.com/javafx/18" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.io7m.eigion.gui.internal.logo.EIGLogoController">
   <children>
-    <ImageView fx:id="logoImage"
-               fitHeight="150.0"
-               fitWidth="200.0"
-               onMouseClicked="#onLogoClicked"
-               pickOnBounds="true"
-               styleClass="logoImage"
-               StackPane.alignment="CENTER"/>
+    <ImageView fx:id="logoImage" fitHeight="150.0" fitWidth="200.0" onMouseClicked="#onLogoClicked" pickOnBounds="true" styleClass="logoImage" StackPane.alignment="CENTER" />
   </children>
 </StackPane>

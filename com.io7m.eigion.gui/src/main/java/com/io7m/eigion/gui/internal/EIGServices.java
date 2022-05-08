@@ -70,7 +70,7 @@ public final class EIGServices
     services.register(EIGNewsParsers.class, newsParsers);
     final var events = new EIGEventBus();
     services.register(EIGEventBus.class, events);
-    final var client = new EIGClient(configuration, events);
+    final var client = new EIGClient(configuration);
     services.register(EIGClient.class, client);
     final var strings = new EIGStrings(configuration.locale());
     services.register(EIGStrings.class, strings);

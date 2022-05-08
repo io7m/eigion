@@ -14,17 +14,18 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+
+package com.io7m.eigion.gui.internal.client;
+
 /**
- * Application runtime management (News XML format)
+ * The type of news status values.
  */
 
-module com.io7m.eigion.news.xml
+public sealed interface EIGClientNewsStatusType
+  permits EIGNewsStatusAvailable,
+  EIGNewsStatusInitial,
+  EIGNewsStatusFetching,
+  EIGNewsStatusOffline
 {
-  requires static org.osgi.annotation.bundle;
-  requires static org.osgi.annotation.versioning;
 
-  requires org.slf4j;
-  requires java.xml;
-
-  exports com.io7m.eigion.news.xml;
 }

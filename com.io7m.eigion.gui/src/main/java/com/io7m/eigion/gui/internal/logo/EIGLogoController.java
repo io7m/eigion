@@ -23,7 +23,6 @@ import com.io7m.eigion.gui.internal.EIGEventBus;
 import com.io7m.eigion.gui.internal.EIGEventType;
 import com.io7m.eigion.gui.internal.EIGPerpetualSubscriber;
 import com.io7m.eigion.services.api.EIServiceDirectoryType;
-import javafx.animation.FadeTransition;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -33,18 +32,16 @@ import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
-import javafx.util.Duration;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.net.URL;
 import java.util.Objects;
 import java.util.ResourceBundle;
 import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
 
-import static com.io7m.eigion.gui.internal.logo.EIGLogoEvent.LOGO_APPEARED;
-import static com.io7m.eigion.gui.internal.logo.EIGLogoEvent.LOGO_DISAPPEARED;
+import static com.io7m.eigion.gui.internal.logo.EIGLogoEvent.LOGO_SCREEN_WANT_CLOSE;
+import static com.io7m.eigion.gui.internal.logo.EIGLogoEvent.LOGO_SCREEN_WANT_CLOSE_IMMEDIATE;
+import static com.io7m.eigion.gui.internal.logo.EIGLogoEvent.LOGO_SCREEN_WANT_OPEN;
+import static java.util.concurrent.TimeUnit.SECONDS;
 
 /**
  * The controller for the logo screen.
@@ -52,15 +49,12 @@ import static com.io7m.eigion.gui.internal.logo.EIGLogoEvent.LOGO_DISAPPEARED;
 
 public final class EIGLogoController implements Initializable
 {
-  private static final Logger LOG =
-    LoggerFactory.getLogger(EIGLogoController.class);
-
   private final EIGEventBus eventBus;
   private final EIGBackgroundSchedulerService executor;
   private final EIGConfiguration configuration;
-  private ScheduledFuture<?> fadeTimer;
+  private ScheduledFuture<?> delayFuture;
 
-  @FXML private Pane logoBackdrop;
+  @FXML private Pane logoLayout;
   @FXML private ImageView logoImage;
 
   /**
@@ -88,25 +82,21 @@ public final class EIGLogoController implements Initializable
   {
     if (event instanceof EIGLogoEvent logoEvent) {
       switch (logoEvent) {
-        case LOGO_APPEARED -> Platform.runLater(this::onLogoAppeared);
-        case LOGO_DISAPPEARED -> Platform.runLater(this::onLogoDisappeared);
+        case LOGO_SCREEN_WANT_OPEN -> Platform.runLater(this::onLogoWantOpen);
+        case LOGO_SCREEN_WANT_CLOSE, LOGO_SCREEN_WANT_CLOSE_IMMEDIATE -> {
+
+        }
       }
-      return;
     }
   }
 
-  private void onLogoDisappeared()
-  {
-    this.logoBackdrop.setVisible(false);
-  }
-
-  private void onLogoAppeared()
+  private void onLogoWantOpen()
   {
     final var logoOpt =
       this.configuration.logoConfiguration();
 
     if (logoOpt.isEmpty()) {
-      this.eventBus.submit(LOGO_DISAPPEARED);
+      this.eventBus.submit(LOGO_SCREEN_WANT_CLOSE);
       return;
     }
 
@@ -118,7 +108,7 @@ public final class EIGLogoController implements Initializable
       logo.logoBackgroundColor().z()
     );
 
-    this.logoBackdrop.setBackground(
+    this.logoLayout.setBackground(
       new Background(new BackgroundFill(bgColor, null, null))
     );
     this.logoImage.setFitWidth(logo.logoWidth());
@@ -127,13 +117,10 @@ public final class EIGLogoController implements Initializable
       new Image(logo.logoURI().toString(), true)
     );
 
-    this.fadeTimer =
+    final var seconds = logo.logoDuration().toSeconds();
+    this.delayFuture =
       this.executor.executor()
-        .schedule(
-          () -> Platform.runLater(this::closeLogo),
-          logo.logoDuration().toSeconds(),
-          TimeUnit.SECONDS
-        );
+        .schedule(() -> Platform.runLater(this::closeLogo), seconds, SECONDS);
   }
 
   @Override
@@ -141,22 +128,20 @@ public final class EIGLogoController implements Initializable
     final URL location,
     final ResourceBundle resources)
   {
-    LOG.debug("init");
-
     final var logoOpt =
       this.configuration.logoConfiguration();
 
     if (logoOpt.isPresent()) {
-      this.eventBus.submit(LOGO_APPEARED);
+      this.eventBus.submit(LOGO_SCREEN_WANT_OPEN);
     } else {
-      this.eventBus.submit(LOGO_DISAPPEARED);
+      this.eventBus.submit(LOGO_SCREEN_WANT_CLOSE_IMMEDIATE);
     }
   }
 
   @FXML
   private void onLogoClicked()
   {
-    final var f = this.fadeTimer;
+    final var f = this.delayFuture;
     if (f != null) {
       f.cancel(true);
     }
@@ -166,13 +151,6 @@ public final class EIGLogoController implements Initializable
 
   private void closeLogo()
   {
-    final var fadeOut =
-      new FadeTransition(Duration.millis(250.0), this.logoBackdrop);
-    fadeOut.setFromValue(1.0);
-    fadeOut.setToValue(0.0);
-    fadeOut.play();
-    fadeOut.setOnFinished(event -> {
-      this.eventBus.submit(LOGO_DISAPPEARED);
-    });
+    this.eventBus.submit(LOGO_SCREEN_WANT_CLOSE);
   }
 }

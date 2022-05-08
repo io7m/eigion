@@ -82,6 +82,14 @@
       <groupId>com.io7m.jtensors</groupId>
       <artifactId>com.io7m.jtensors.core</artifactId>
     </dependency>
+    <dependency>
+      <groupId>com.io7m.jmulticlose</groupId>
+      <artifactId>com.io7m.jmulticlose.core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.io7m.jattribute</groupId>
+      <artifactId>com.io7m.jattribute.core</artifactId>
+    </dependency>
   </dependencies>
 
   <build>

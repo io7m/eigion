@@ -63,10 +63,10 @@ public final class EIGControllerFactory
         yield new EIGLogoController(this.services, this.configuration);
       }
       case "com.io7m.eigion.gui.internal.EIGMainController" -> {
-        yield new EIGMainController();
+        yield new EIGMainController(this.services, this.configuration);
       }
       case "com.io7m.eigion.gui.internal.login.EIGLoginScreenController" -> {
-        yield new EIGLoginScreenController(this.services, this.configuration);
+        yield new EIGLoginScreenController(this.services);
       }
       case "com.io7m.eigion.gui.internal.news.EIGNewsController" -> {
         yield new EIGNewsController(this.services);

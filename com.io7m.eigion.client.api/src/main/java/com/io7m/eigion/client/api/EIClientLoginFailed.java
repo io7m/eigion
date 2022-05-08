@@ -15,25 +15,29 @@
  */
 
 
-package com.io7m.eigion.gui.internal.login;
+package com.io7m.eigion.client.api;
 
-import com.io7m.eigion.gui.internal.EIGEventType;
+import com.io7m.eigion.taskrecorder.EITask;
+
+import java.util.Objects;
 
 /**
- * A login screen event.
+ * The client failed to log in.
+ *
+ * @param task The failed task
  */
 
-public enum EIGLoginScreenEvent implements EIGEventType
+public record EIClientLoginFailed(EITask<Void> task)
+  implements EIClientLoginStatusType
 {
   /**
-   * Logging in is required and so the login screen should be shown.
+   * The client failed to log in.
+   *
+   * @param task The failed task
    */
 
-  LOGIN_REQUIRED,
-
-  /**
-   * Logging in has completed and so the login screen should be hidden.
-   */
-
-  LOGIN_FINISHED
+  public EIClientLoginFailed
+  {
+    Objects.requireNonNull(task, "task");
+  }
 }

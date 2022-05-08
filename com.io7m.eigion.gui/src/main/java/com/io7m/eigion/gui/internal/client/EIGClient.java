@@ -18,47 +18,63 @@
 package com.io7m.eigion.gui.internal.client;
 
 import com.io7m.eigion.client.api.EIClientConfiguration;
+import com.io7m.eigion.client.api.EIClientLoginStatusType;
 import com.io7m.eigion.client.api.EIClientNewsItem;
-import com.io7m.eigion.client.api.EIClientStatusType;
+import com.io7m.eigion.client.api.EIClientOnline;
 import com.io7m.eigion.client.api.EIClientType;
 import com.io7m.eigion.client.vanilla.EIClients;
 import com.io7m.eigion.gui.EIGConfiguration;
-import com.io7m.eigion.gui.internal.EIGEventBus;
-import com.io7m.eigion.gui.internal.EIGPerpetualSubscriber;
 import com.io7m.eigion.services.api.EIServiceType;
 import com.io7m.eigion.taskrecorder.EITask;
+import com.io7m.jattribute.core.AttributeReadableType;
+import com.io7m.jattribute.core.AttributeSubscriptionType;
+import com.io7m.jattribute.core.AttributeType;
+import com.io7m.jattribute.core.Attributes;
+import com.io7m.jmulticlose.core.CloseableCollection;
+import com.io7m.jmulticlose.core.CloseableCollectionType;
+import com.io7m.jmulticlose.core.ClosingResourceFailedException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.io.Closeable;
-import java.io.IOException;
 import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
+import static com.io7m.eigion.client.api.EIClientLoggedIn.CLIENT_LOGGED_IN;
+import static com.io7m.eigion.client.api.EIClientOnline.CLIENT_OFFLINE;
+import static com.io7m.eigion.client.api.EIClientOnline.CLIENT_ONLINE;
+import static com.io7m.eigion.gui.internal.client.EIGNewsStatusFetching.NEWS_STATUS_FETCHING;
+import static com.io7m.eigion.gui.internal.client.EIGNewsStatusInitial.NEWS_STATUS_INITIAL;
+import static com.io7m.eigion.gui.internal.client.EIGNewsStatusOffline.NEWS_STATUS_OFFLINE;
 
 /**
  * An asynchronous client service.
  */
 
-public final class EIGClient implements EIServiceType, Closeable
+public final class EIGClient implements EIServiceType, AutoCloseable
 {
+  private static final Logger LOG =
+    LoggerFactory.getLogger(EIGClient.class);
+
   private final EIClientType client;
-  private final EIGEventBus eventBus;
   private final ExecutorService executor;
+  private final AttributeSubscriptionType onlineSubscription;
+  private final CloseableCollectionType<ClosingResourceFailedException> resources;
+  private final AttributeType<EIGClientNewsStatusType> newsStatus;
+  private final AttributeSubscriptionType loginSubscription;
 
   /**
    * An asynchronous client service.
    *
-   * @param configuration The UI configuration
-   * @param inEventBus    The event bus service
+   * @param inConfiguration The UI configuration
    */
 
   public EIGClient(
-    final EIGConfiguration configuration,
-    final EIGEventBus inEventBus)
+    final EIGConfiguration inConfiguration)
   {
-    this.eventBus =
-      Objects.requireNonNull(inEventBus, "eventBus");
+
+    this.resources = CloseableCollection.create();
 
     this.executor =
       Executors.newCachedThreadPool(r -> {
@@ -66,27 +82,61 @@ public final class EIGClient implements EIServiceType, Closeable
         thread.setDaemon(true);
         thread.setName(String.format(
           "com.io7m.eigion.client[%d]",
-          thread.getId()));
+          thread.getId())
+        );
         return thread;
       });
+
+    this.resources.add(this.executor::shutdown);
 
     this.client =
       new EIClients()
         .create(
           EIClientConfiguration.builder(
-            configuration.directories(),
-            configuration.serverConfiguration().baseURI()
+            inConfiguration.directories(),
+            inConfiguration.serverConfiguration().baseURI()
           ).build()
         );
 
-    this.client.status()
-      .subscribe(new EIGPerpetualSubscriber<>(this::onStatus));
+    this.resources.add(this.client);
+
+    final var attributes =
+      Attributes.create(e -> LOG.error("subscriber exception: ", e));
+
+    this.newsStatus =
+      attributes.create(NEWS_STATUS_INITIAL);
+
+    this.onlineSubscription =
+      this.client.onlineStatus()
+        .subscribe(this::onOnlineStatusChanged);
+
+    this.resources.add(this.onlineSubscription);
+
+    this.loginSubscription =
+      this.client.loginStatus()
+        .subscribe(this::onLoginStatusChanged);
+
+    this.resources.add(this.loginSubscription);
   }
 
-  private void onStatus(
-    final EIClientStatusType status)
+  private void onLoginStatusChanged(
+    final EIClientLoginStatusType oldValue,
+    final EIClientLoginStatusType newValue)
   {
-    this.eventBus.submit(new EIGClientStatusChanged(status));
+    if (newValue == CLIENT_LOGGED_IN) {
+      this.news();
+      return;
+    }
+  }
+
+  private void onOnlineStatusChanged(
+    final EIClientOnline oldValue,
+    final EIClientOnline newValue)
+  {
+    if (oldValue == CLIENT_ONLINE && newValue == CLIENT_OFFLINE) {
+      this.newsStatus.set(NEWS_STATUS_OFFLINE);
+      return;
+    }
   }
 
   /**
@@ -105,7 +155,8 @@ public final class EIGClient implements EIServiceType, Closeable
     final var future = new CompletableFuture<EITask<Void>>();
     this.executor.execute(() -> {
       try {
-        future.complete(this.client.login(name, password));
+        final var task = this.client.login(name, password);
+        future.complete(task);
       } catch (final Exception e) {
         future.completeExceptionally(e);
       }
@@ -115,10 +166,9 @@ public final class EIGClient implements EIServiceType, Closeable
 
   @Override
   public void close()
-    throws IOException
+    throws Exception
   {
-    this.executor.shutdown();
-    this.client.close();
+    this.resources.close();
   }
 
   /**
@@ -129,10 +179,15 @@ public final class EIGClient implements EIServiceType, Closeable
 
   public CompletableFuture<EITask<List<EIClientNewsItem>>> news()
   {
+    this.newsStatus.set(NEWS_STATUS_FETCHING);
+
     final var future = new CompletableFuture<EITask<List<EIClientNewsItem>>>();
     this.executor.execute(() -> {
       try {
-        future.complete(this.client.news());
+        final var news = this.client.news();
+        this.newsStatus.set(
+          new EIGNewsStatusAvailable(news.result().orElseThrow()));
+        future.complete(news);
       } catch (final Exception e) {
         future.completeExceptionally(e);
       }
@@ -147,5 +202,46 @@ public final class EIGClient implements EIServiceType, Closeable
       "[EIGClient 0x%08x]",
       Integer.valueOf(this.hashCode())
     );
+  }
+
+  /**
+   * @return The online/offline status
+   *
+   * @see EIClientType#onlineStatus()
+   */
+
+  public AttributeReadableType<EIClientOnline> onlineStatus()
+  {
+    return this.client.onlineStatus();
+  }
+
+  /**
+   * @return The news status
+   */
+
+  public AttributeReadableType<EIGClientNewsStatusType> newsStatus()
+  {
+    return this.newsStatus;
+  }
+
+  /**
+   * @return The login status
+   */
+
+  public AttributeReadableType<EIClientLoginStatusType> loginStatus()
+  {
+    return this.client.loginStatus();
+  }
+
+  /**
+   * @param mode The online/offline mode
+   *
+   * @see EIClientType#onlineSet(EIClientOnline)
+   */
+
+  public void onlineSet(
+    final EIClientOnline mode)
+  {
+    this.client.onlineSet(mode);
   }
 }

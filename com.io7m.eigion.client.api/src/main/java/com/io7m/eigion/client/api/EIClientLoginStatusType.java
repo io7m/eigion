@@ -14,17 +14,20 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+
+package com.io7m.eigion.client.api;
+
 /**
- * Application runtime management (News XML format)
+ * The different login status values.
  */
 
-module com.io7m.eigion.news.xml
+public sealed interface EIClientLoginStatusType
+  permits EIClientLoggedIn,
+  EIClientLoggedOut,
+  EIClientLoginFailed,
+  EIClientLoginInProcess,
+  EIClientLoginNotRequired,
+  EIClientLoginWentOffline
 {
-  requires static org.osgi.annotation.bundle;
-  requires static org.osgi.annotation.versioning;
 
-  requires org.slf4j;
-  requires java.xml;
-
-  exports com.io7m.eigion.news.xml;
 }

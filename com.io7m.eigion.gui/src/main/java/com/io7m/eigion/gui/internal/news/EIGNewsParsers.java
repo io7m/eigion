@@ -29,21 +29,21 @@ public final class EIGNewsParsers implements EIServiceType
   private final EINXParser newsParser;
 
   /**
-   * @return The XML news parser
-   */
-
-  public EINXParser newsParser()
-  {
-    return this.newsParser;
-  }
-
-  /**
    * A news parser service.
    */
 
   public EIGNewsParsers()
   {
     this.newsParser = new EINXParser();
+  }
+
+  /**
+   * @return The XML news parser
+   */
+
+  public EINXParser newsParser()
+  {
+    return this.newsParser;
   }
 
   @Override

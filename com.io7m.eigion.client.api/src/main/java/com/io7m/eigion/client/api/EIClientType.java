@@ -18,10 +18,10 @@
 package com.io7m.eigion.client.api;
 
 import com.io7m.eigion.taskrecorder.EITask;
+import com.io7m.jattribute.core.AttributeReadableType;
 
 import java.io.Closeable;
 import java.util.List;
-import java.util.concurrent.Flow;
 
 /**
  * The type of clients.
@@ -33,13 +33,21 @@ public interface EIClientType extends Closeable
    * @return A stream of status events
    */
 
-  Flow.Publisher<EIClientStatusType> status();
+  AttributeReadableType<EIClientLoginStatusType> loginStatus();
 
   /**
-   * @return The current status
+   * @return The client's online/offline mode
    */
 
-  EIClientStatusType statusNow();
+  AttributeReadableType<EIClientOnline> onlineStatus();
+
+  /**
+   * Set the online/offline mode.
+   *
+   * @param mode The mode
+   */
+
+  void onlineSet(EIClientOnline mode);
 
   /**
    * Attempt to log into the server.

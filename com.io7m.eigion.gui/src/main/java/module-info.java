@@ -24,6 +24,7 @@ module com.io7m.eigion.gui
   requires com.io7m.eigion.client.vanilla;
   requires com.io7m.eigion.news.xml;
   requires com.io7m.eigion.preferences;
+  requires com.io7m.jmulticlose.core;
   requires com.io7m.jxtrand.api;
   requires java.xml;
   requires javafx.base;

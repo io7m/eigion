@@ -28,16 +28,36 @@ import java.util.Objects;
 public final class EIClientConfiguration
 {
   private final ApplicationDirectoriesType directories;
+  private final boolean isLoginRequired;
   private final URI baseURI;
 
   private EIClientConfiguration(
     final ApplicationDirectoriesType inDirectories,
+    final boolean inIsLoginRequired,
     final URI inBaseURI)
   {
     this.directories =
       Objects.requireNonNull(inDirectories, "directories");
+    this.isLoginRequired =
+      inIsLoginRequired;
     this.baseURI =
       Objects.requireNonNull(inBaseURI, "baseURI");
+  }
+
+  /**
+   * Create a new client configuration builder.
+   *
+   * @param directories The application directories
+   * @param baseURI     The server base URI
+   *
+   * @return A new client configuration builder.
+   */
+
+  public static Builder builder(
+    final ApplicationDirectoriesType directories,
+    final URI baseURI)
+  {
+    return new Builder(directories, baseURI);
   }
 
   /**
@@ -59,19 +79,12 @@ public final class EIClientConfiguration
   }
 
   /**
-   * Create a new client configuration builder.
-   *
-   * @param directories The application directories
-   * @param baseURI     The server base URI
-   *
-   * @return A new client configuration builder.
+   * @return {@code true} if the server requires a login
    */
 
-  public static Builder builder(
-    final ApplicationDirectoriesType directories,
-    final URI baseURI)
+  public boolean isLoginRequired()
   {
-    return new Builder(directories, baseURI);
+    return this.isLoginRequired;
   }
 
   /**
@@ -99,7 +112,7 @@ public final class EIClientConfiguration
 
     public EIClientConfiguration build()
     {
-      return new EIClientConfiguration(this.directories, this.baseURI);
+      return new EIClientConfiguration(this.directories, true, this.baseURI);
     }
   }
 }

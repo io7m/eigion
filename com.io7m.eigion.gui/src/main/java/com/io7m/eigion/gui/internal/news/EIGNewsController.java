@@ -17,23 +17,23 @@
 package com.io7m.eigion.gui.internal.news;
 
 import com.io7m.eigion.client.api.EIClientNewsItem;
-import com.io7m.eigion.client.api.EIClientStatusType.EIClientStatusLoggedIn;
-import com.io7m.eigion.gui.internal.EIGEventBus;
-import com.io7m.eigion.gui.internal.EIGEventType;
-import com.io7m.eigion.gui.internal.EIGPerpetualSubscriber;
 import com.io7m.eigion.gui.internal.EIGStrings;
 import com.io7m.eigion.gui.internal.client.EIGClient;
-import com.io7m.eigion.gui.internal.client.EIGClientStatusChanged;
+import com.io7m.eigion.gui.internal.client.EIGClientNewsStatusType;
+import com.io7m.eigion.gui.internal.client.EIGNewsStatusAvailable;
+import com.io7m.eigion.gui.internal.client.EIGNewsStatusFetching;
+import com.io7m.eigion.gui.internal.client.EIGNewsStatusInitial;
+import com.io7m.eigion.gui.internal.client.EIGNewsStatusOffline;
 import com.io7m.eigion.gui.internal.views.EIGNoSelectionModel;
 import com.io7m.eigion.services.api.EIServiceDirectoryType;
-import com.io7m.eigion.taskrecorder.EITask;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
+import javafx.scene.layout.Pane;
 
 import java.net.URL;
-import java.util.List;
 import java.util.Objects;
 import java.util.ResourceBundle;
 
@@ -45,10 +45,11 @@ public final class EIGNewsController implements Initializable
 {
   private final EIServiceDirectoryType services;
   private final EIGStrings strings;
-  private final EIGEventBus eventBus;
   private final EIGClient client;
 
   @FXML private ListView<EIClientNewsItem> newsList;
+  @FXML private Label newsOfflineText;
+  @FXML private Pane newsProgress;
 
   /**
    * The controller for the news view.
@@ -63,31 +64,8 @@ public final class EIGNewsController implements Initializable
       Objects.requireNonNull(inServices, "services");
     this.strings =
       inServices.requireService(EIGStrings.class);
-
     this.client =
-      this.services.requireService(EIGClient.class);
-    this.eventBus =
-      this.services.requireService(EIGEventBus.class);
-  }
-
-  private void onEvent(
-    final EIGEventType event)
-  {
-    if (event instanceof EIGClientStatusChanged status) {
-      if (status.status() instanceof EIClientStatusLoggedIn) {
-        this.client.news()
-          .thenAccept(newsItems -> {
-            Platform.runLater(() -> this.onNewsReceived(newsItems));
-          });
-      }
-    }
-  }
-
-  private void onNewsReceived(
-    final EITask<List<EIClientNewsItem>> newsItems)
-  {
-    this.newsList.getItems()
-      .setAll(newsItems.result().orElse(List.of()));
+      inServices.requireService(EIGClient.class);
   }
 
   @Override
@@ -95,12 +73,54 @@ public final class EIGNewsController implements Initializable
     final URL location,
     final ResourceBundle resources)
   {
+    this.newsList.setVisible(false);
+    this.newsOfflineText.setVisible(false);
+    this.newsProgress.setVisible(false);
+
+    this.client.newsStatus()
+      .subscribe((oldValue, newValue) -> {
+        Platform.runLater(() -> {
+          this.clientNewsChanged(newValue);
+        });
+      });
+
     this.newsList.setSelectionModel(new EIGNoSelectionModel<>());
     this.newsList.setFocusTraversable(false);
     this.newsList.setCellFactory(param -> {
       return new EIGNewsItemCell(this.services, this.strings);
     });
+  }
 
-    this.eventBus.subscribe(new EIGPerpetualSubscriber<>(this::onEvent));
+  private void clientNewsChanged(
+    final EIGClientNewsStatusType status)
+  {
+    if (status instanceof EIGNewsStatusAvailable available) {
+      this.newsList.getItems().setAll(available.newsItems());
+      this.newsList.setVisible(true);
+      this.newsOfflineText.setVisible(false);
+      this.newsProgress.setVisible(false);
+      return;
+    }
+
+    if (status instanceof EIGNewsStatusFetching) {
+      this.newsList.setVisible(false);
+      this.newsOfflineText.setVisible(false);
+      this.newsProgress.setVisible(true);
+      return;
+    }
+
+    if (status instanceof EIGNewsStatusInitial) {
+      this.newsList.setVisible(false);
+      this.newsOfflineText.setVisible(false);
+      this.newsProgress.setVisible(false);
+      return;
+    }
+
+    if (status instanceof EIGNewsStatusOffline) {
+      this.newsList.setVisible(false);
+      this.newsOfflineText.setVisible(true);
+      this.newsProgress.setVisible(false);
+      return;
+    }
   }
 }

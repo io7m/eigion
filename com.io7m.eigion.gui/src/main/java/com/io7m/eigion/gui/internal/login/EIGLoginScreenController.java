@@ -16,16 +16,15 @@
 
 package com.io7m.eigion.gui.internal.login;
 
-import com.io7m.eigion.client.api.EIClientStatusType.EIClientStatusLoggedIn;
-import com.io7m.eigion.client.api.EIClientStatusType.EIClientStatusLoggingIn;
-import com.io7m.eigion.client.api.EIClientStatusType.EIClientStatusLoginFailed;
-import com.io7m.eigion.gui.EIGConfiguration;
-import com.io7m.eigion.gui.internal.EIGEventBus;
-import com.io7m.eigion.gui.internal.EIGEventType;
+import com.io7m.eigion.client.api.EIClientLoggedIn;
+import com.io7m.eigion.client.api.EIClientLoggedOut;
+import com.io7m.eigion.client.api.EIClientLoginFailed;
+import com.io7m.eigion.client.api.EIClientLoginInProcess;
+import com.io7m.eigion.client.api.EIClientLoginNotRequired;
+import com.io7m.eigion.client.api.EIClientLoginStatusType;
+import com.io7m.eigion.client.api.EIClientLoginWentOffline;
 import com.io7m.eigion.gui.internal.EIGIcons;
-import com.io7m.eigion.gui.internal.EIGPerpetualSubscriber;
 import com.io7m.eigion.gui.internal.client.EIGClient;
-import com.io7m.eigion.gui.internal.client.EIGClientStatusChanged;
 import com.io7m.eigion.gui.internal.errors.EIGErrorDialogs;
 import com.io7m.eigion.services.api.EIServiceDirectoryType;
 import com.io7m.eigion.taskrecorder.EITask;
@@ -40,15 +39,11 @@ import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.net.URL;
-import java.util.Objects;
 import java.util.ResourceBundle;
 
-import static com.io7m.eigion.gui.internal.login.EIGLoginScreenEvent.LOGIN_FINISHED;
-import static com.io7m.eigion.gui.internal.login.EIGLoginScreenEvent.LOGIN_REQUIRED;
+import static com.io7m.eigion.client.api.EIClientOnline.CLIENT_OFFLINE;
 
 /**
  * The controller for the login screen.
@@ -56,11 +51,6 @@ import static com.io7m.eigion.gui.internal.login.EIGLoginScreenEvent.LOGIN_REQUI
 
 public final class EIGLoginScreenController implements Initializable
 {
-  private static final Logger LOG =
-    LoggerFactory.getLogger(EIGLoginScreenController.class);
-
-  private final EIGConfiguration configuration;
-  private final EIGEventBus eventBus;
   private final EIGClient client;
   private final EIGErrorDialogs errors;
   private final EIGIcons icons;
@@ -72,68 +62,25 @@ public final class EIGLoginScreenController implements Initializable
   @FXML private ProgressBar progress;
   @FXML private Pane errorLayout;
   @FXML private ImageView errorIcon;
+  @FXML private Button offline;
 
   private EITask<?> task;
 
   /**
    * The controller for the login screen.
    *
-   * @param services        The service directory
-   * @param inConfiguration The UI configuration
+   * @param services The service directory
    */
 
   public EIGLoginScreenController(
-    final EIServiceDirectoryType services,
-    final EIGConfiguration inConfiguration)
+    final EIServiceDirectoryType services)
   {
-    this.configuration =
-      Objects.requireNonNull(inConfiguration, "configuration");
-
-    this.errors = services.requireService(EIGErrorDialogs.class);
-    this.client = services.requireService(EIGClient.class);
-    this.icons = services.requireService(EIGIcons.class);
-    this.eventBus = services.requireService(EIGEventBus.class);
-    this.eventBus.subscribe(new EIGPerpetualSubscriber<>(this::onEvent));
-  }
-
-  private void onEvent(
-    final EIGEventType event)
-  {
-    if (event instanceof EIGLoginScreenEvent loginScreenEvent) {
-      switch (loginScreenEvent) {
-        case LOGIN_REQUIRED -> Platform.runLater(this::onLoginRequired);
-        case LOGIN_FINISHED -> Platform.runLater(this::onLoginFinished);
-      }
-      return;
-    }
-    if (event instanceof EIGClientStatusChanged status) {
-      Platform.runLater(() -> this.onClientStatusChanged(status));
-      return;
-    }
-  }
-
-  private void onClientStatusChanged(
-    final EIGClientStatusChanged changed)
-  {
-    final var status = changed.status();
-
-    if (status instanceof EIClientStatusLoggingIn) {
-      this.formLock();
-      this.progress.setVisible(true);
-      return;
-    }
-
-    if (status instanceof EIClientStatusLoginFailed failed) {
-      this.formUnlock();
-      this.progress.setVisible(false);
-      this.errorLayout.setVisible(true);
-      this.task = failed.task();
-      return;
-    }
-
-    if (status instanceof EIClientStatusLoggedIn) {
-      this.eventBus.submit(LOGIN_FINISHED);
-    }
+    this.errors =
+      services.requireService(EIGErrorDialogs.class);
+    this.client =
+      services.requireService(EIGClient.class);
+    this.icons =
+      services.requireService(EIGIcons.class);
   }
 
   private void formUnlock()
@@ -148,23 +95,6 @@ public final class EIGLoginScreenController implements Initializable
     this.username.setDisable(true);
     this.password.setDisable(true);
     this.login.setDisable(true);
-  }
-
-  private void onLoginFinished()
-  {
-    this.loginLayout.setVisible(false);
-  }
-
-  private void onLoginRequired()
-  {
-    this.loginLayout.setVisible(true);
-    this.username.setText("");
-    this.username.setDisable(false);
-    this.password.setText("");
-    this.password.setDisable(false);
-    this.login.setDisable(true);
-    this.progress.setVisible(false);
-    this.errorLayout.setVisible(false);
   }
 
   @FXML
@@ -191,8 +121,13 @@ public final class EIGLoginScreenController implements Initializable
   {
     this.formLock();
     this.progress.setVisible(true);
-
     this.client.login(this.username.getText(), this.password.getText());
+  }
+
+  @FXML
+  private void onOfflineSelected()
+  {
+    this.client.onlineSet(CLIENT_OFFLINE);
   }
 
   @Override
@@ -200,7 +135,6 @@ public final class EIGLoginScreenController implements Initializable
     final URL location,
     final ResourceBundle resources)
   {
-    LOG.debug("init");
     this.progress.setVisible(false);
 
     this.errorIcon.setImage(this.icons.error24());
@@ -208,10 +142,74 @@ public final class EIGLoginScreenController implements Initializable
       new Background(new BackgroundFill(Color.WHEAT, null, null))
     );
 
-    if (this.configuration.serverConfiguration().requiresLogin()) {
-      this.eventBus.submit(LOGIN_REQUIRED);
-    } else {
-      this.eventBus.submit(LOGIN_FINISHED);
+    this.client.loginStatus()
+      .subscribe((oldValue, newValue) -> {
+        Platform.runLater(() -> {
+          this.onLoginStatusChanged(newValue);
+        });
+      });
+
+    this.onLoginStatusChanged(this.client.loginStatus().get());
+  }
+
+  private void onLoginStatusChanged(
+    final EIClientLoginStatusType status)
+  {
+    if (status instanceof EIClientLoginNotRequired) {
+      return;
     }
+
+    if (status instanceof EIClientLoginWentOffline) {
+      return;
+    }
+
+    if (status instanceof EIClientLoggedIn) {
+      return;
+    }
+
+    if (status instanceof EIClientLoggedOut) {
+      this.onClientLoginInitial();
+      return;
+    }
+
+    if (status instanceof EIClientLoginInProcess) {
+      this.onClientLoginInProcess();
+      return;
+    }
+
+    if (status instanceof EIClientLoginFailed failed) {
+      this.onClientLoginFailed(failed.task());
+      return;
+    }
+
+    throw new IllegalStateException();
+  }
+
+  private void onClientLoginFailed(
+    final EITask<Void> newTask)
+  {
+    this.formUnlock();
+    this.progress.setVisible(false);
+    this.errorLayout.setVisible(true);
+    this.task = newTask;
+    return;
+  }
+
+  private void onClientLoginInProcess()
+  {
+    this.formLock();
+    this.progress.setVisible(true);
+  }
+
+  private void onClientLoginInitial()
+  {
+    this.loginLayout.setVisible(true);
+    this.username.setText("");
+    this.username.setDisable(false);
+    this.password.setText("");
+    this.password.setDisable(false);
+    this.login.setDisable(true);
+    this.progress.setVisible(false);
+    this.errorLayout.setVisible(false);
   }
 }

@@ -14,17 +14,18 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+
+package com.io7m.eigion.client.api;
+
 /**
- * Application runtime management (News XML format)
+ * The client switched to offline mode.
  */
 
-module com.io7m.eigion.news.xml
+public enum EIClientLoginWentOffline implements EIClientLoginStatusType
 {
-  requires static org.osgi.annotation.bundle;
-  requires static org.osgi.annotation.versioning;
+  /**
+   * The client switched to offline mode.
+   */
 
-  requires org.slf4j;
-  requires java.xml;
-
-  exports com.io7m.eigion.news.xml;
+  CLIENT_LOGIN_WENT_OFFLINE
 }

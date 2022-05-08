@@ -71,6 +71,24 @@ public final class EIGErrorController implements Initializable
       Objects.requireNonNull(inStage, "stage");
   }
 
+  private static TreeItem<EIStepType> buildTree(
+    final EIStepType node)
+  {
+    if (node instanceof EIStep step) {
+      return new TreeItem<>(step);
+    }
+
+    if (node instanceof EITask<?> task) {
+      final var taskNode = new TreeItem<EIStepType>(task);
+      for (final var step : task.steps()) {
+        taskNode.getChildren().add(buildTree(step));
+      }
+      return taskNode;
+    }
+
+    throw new IllegalStateException();
+  }
+
   @Override
   public void initialize(
     final URL location,
@@ -96,23 +114,5 @@ public final class EIGErrorController implements Initializable
   private void onReportSelected()
   {
 
-  }
-
-  private static TreeItem<EIStepType> buildTree(
-    final EIStepType node)
-  {
-    if (node instanceof EIStep step) {
-      return new TreeItem<>(step);
-    }
-
-    if (node instanceof EITask<?> task) {
-      final var taskNode = new TreeItem<EIStepType>(task);
-      for (final var step : task.steps()) {
-        taskNode.getChildren().add(buildTree(step));
-      }
-      return taskNode;
-    }
-
-    throw new IllegalStateException();
   }
 }
