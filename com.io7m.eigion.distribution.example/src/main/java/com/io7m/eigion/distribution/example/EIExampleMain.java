@@ -14,7 +14,6 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-
 package com.io7m.eigion.distribution.example;
 
 import com.io7m.eigion.gui.EIGConfiguration;

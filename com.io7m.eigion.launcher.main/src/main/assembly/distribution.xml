@@ -7,7 +7,7 @@
 
   <id>distribution</id>
 
-  <baseDirectory>${project.artifactId}-${project.version}</baseDirectory>
+  <baseDirectory>/</baseDirectory>
 
   <formats>
     <format>zip</format>
@@ -15,25 +15,15 @@
 
   <dependencySets>
     <dependencySet>
-      <includes>
-        <include>com.io7m.eigion:com.io7m.eigion.launcher.main:zip:distribution</include>
-      </includes>
-      <useTransitiveDependencies>false</useTransitiveDependencies>
-      <unpack>true</unpack>
-    </dependencySet>
-
-    <dependencySet>
-      <excludes>
-        <exclude>com.io7m.eigion:com.io7m.eigion.launcher.main:zip:distribution</exclude>
-      </excludes>
+      <outputDirectory>launcher/boot</outputDirectory>
+      <useProjectArtifact>true</useProjectArtifact>
       <useTransitiveDependencies>true</useTransitiveDependencies>
-      <outputDirectory>shell/boot</outputDirectory>
     </dependencySet>
   </dependencySets>
 
   <files>
     <file>
-      <source>src/main/sh/shell.sh</source>
+      <source>src/main/sh/launcher.sh</source>
       <outputDirectory>/bin</outputDirectory>
       <fileMode>0755</fileMode>
     </file>
