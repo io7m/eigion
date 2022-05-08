@@ -28,10 +28,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.Pane;
-import javafx.scene.paint.Color;
 
 import java.net.URL;
 import java.util.Objects;
@@ -101,16 +98,6 @@ public final class EIGLogoController implements Initializable
     }
 
     final var logo = logoOpt.get();
-
-    final var bgColor = Color.color(
-      logo.logoBackgroundColor().x(),
-      logo.logoBackgroundColor().y(),
-      logo.logoBackgroundColor().z()
-    );
-
-    this.logoLayout.setBackground(
-      new Background(new BackgroundFill(bgColor, null, null))
-    );
     this.logoImage.setFitWidth(logo.logoWidth());
     this.logoImage.setFitHeight(logo.logoHeight());
     this.logoImage.setImage(

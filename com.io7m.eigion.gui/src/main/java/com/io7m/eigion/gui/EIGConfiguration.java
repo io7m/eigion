@@ -18,6 +18,7 @@ package com.io7m.eigion.gui;
 
 import com.io7m.jade.api.ApplicationDirectoriesType;
 
+import java.net.URI;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
@@ -25,30 +26,33 @@ import java.util.Optional;
 /**
  * The UI configuration.
  *
- * @param directories         The application directories
  * @param locale              The application locale
- * @param iconsConfiguration  The icon configuration
+ * @param directories         The application directories
  * @param logoConfiguration   The logo screen configuration, if one is to be
  *                            shown
+ * @param customCSS           The URI of a custom CSS file
  * @param serverConfiguration The server configuration
+ * @param iconsConfiguration  The icon configuration
  */
 
 public record EIGConfiguration(
-  ApplicationDirectoriesType directories,
   Locale locale,
+  ApplicationDirectoriesType directories,
   Optional<EIGLogoScreenConfiguration> logoConfiguration,
+  Optional<URI> customCSS,
   EIGServerConfiguration serverConfiguration,
   EIGIconsConfiguration iconsConfiguration)
 {
   /**
    * The UI configuration.
    *
-   * @param directories         The application directories
    * @param locale              The application locale
-   * @param iconsConfiguration  The icon configuration
+   * @param directories         The application directories
    * @param logoConfiguration   The logo screen configuration, if one is to be
    *                            shown
+   * @param customCSS           The URI of a custom CSS file
    * @param serverConfiguration The server configuration
+   * @param iconsConfiguration  The icon configuration
    */
 
   public EIGConfiguration

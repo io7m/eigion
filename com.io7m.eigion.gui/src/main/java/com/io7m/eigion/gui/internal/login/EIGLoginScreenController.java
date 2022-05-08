@@ -35,10 +35,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.TextField;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.Pane;
-import javafx.scene.paint.Color;
 
 import java.net.URL;
 import java.util.ResourceBundle;
@@ -138,10 +135,6 @@ public final class EIGLoginScreenController implements Initializable
     this.progress.setVisible(false);
 
     this.errorIcon.setImage(this.icons.error24());
-    this.loginLayout.setBackground(
-      new Background(new BackgroundFill(Color.WHEAT, null, null))
-    );
-
     this.client.loginStatus()
       .subscribe((oldValue, newValue) -> {
         Platform.runLater(() -> {

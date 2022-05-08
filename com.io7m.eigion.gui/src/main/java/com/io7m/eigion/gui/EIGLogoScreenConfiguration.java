@@ -17,8 +17,6 @@
 
 package com.io7m.eigion.gui;
 
-import com.io7m.jtensors.core.unparameterized.vectors.Vector3D;
-
 import java.net.URI;
 import java.time.Duration;
 import java.util.Objects;
@@ -26,17 +24,15 @@ import java.util.Objects;
 /**
  * The logo screen configuration.
  *
- * @param logoURI             The URI of the logo resource
- * @param logoBackgroundColor The background color of the logo screen
- * @param logoDuration        The duration of the logo screen
- * @param logoHeight          The height of the logo image
- * @param logoWidth           The width of the logo image
+ * @param logoURI      The URI of the logo resource
+ * @param logoDuration The duration of the logo screen
+ * @param logoHeight   The height of the logo image
+ * @param logoWidth    The width of the logo image
  */
 
 public record EIGLogoScreenConfiguration(
   URI logoURI,
   Duration logoDuration,
-  Vector3D logoBackgroundColor,
   double logoWidth,
   double logoHeight)
 {
@@ -48,6 +44,5 @@ public record EIGLogoScreenConfiguration(
   {
     Objects.requireNonNull(logoURI, "logoConfiguration");
     Objects.requireNonNull(logoDuration, "logoDuration");
-    Objects.requireNonNull(logoBackgroundColor, "logoBackgroundColor");
   }
 }

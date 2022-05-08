@@ -35,7 +35,6 @@ module com.io7m.eigion.gui
 
   requires transitive com.io7m.eigion.services.api;
   requires transitive com.io7m.jade.api;
-  requires transitive com.io7m.jtensors.core;
 
   opens com.io7m.eigion.gui.internal
     to javafx.fxml;

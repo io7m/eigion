@@ -1,0 +1,274 @@
+/*
+ * Copyright © 2022 Mark Raynsford <code@io7m.com> https://www.io7m.com
+ *
+ * Permission to use, copy, modify, and/or distribute this software for any
+ * purpose with or without fee is hereby granted, provided that the above
+ * copyright notice and this permission notice appear in all copies.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+ * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
+ * SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+ * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+ * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR
+ * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ */
+
+.root
+{
+  -fx-font-size:   10pt;
+  -fx-font-family: "sans-serif";
+
+  -fx-base:              #324644;
+  -fx-accent:            #45615e;
+  -fx-default-button:    #436763;
+
+  -eig-outline:          derive(-fx-base, -60%);
+  -eig-neon:             #2fd9c7;
+
+  -fx-focus-color:       #89a8a450;
+  -fx-faint-focus-color: #89a8a450;
+
+  -fx-dark-text-color:  black;
+  -fx-mid-text-color:   #333;
+  -fx-light-text-color: white;
+}
+
+/* ----------------------------------------------------------------- */
+
+.separator:horizontal .line
+{
+  -fx-border-color: -eig-outline transparent transparent transparent,
+                    transparent  transparent transparent transparent;
+  -fx-border-insets: 0, 1 0 0 0;
+}
+
+/* ----------------------------------------------------------------- */
+
+.tab-header-background
+{
+  -fx-background-color:  derive(-fx-base, -20%), derive(-fx-base, -10%);
+  -fx-background-insets: 0 0 0 0, 3 3 0 0;
+  -fx-border-color:      derive(-fx-base, -20%);
+}
+
+.tab
+ {
+  -fx-background-insets: 0;
+  -fx-background-radius: 0;
+  -fx-background-color:  -fx-base;
+  -fx-padding:           2 4 2 4;
+  -fx-border-color:      -eig-outline -eig-outline transparent -eig-outline;
+}
+
+.tab:selected
+ {
+  -fx-background-insets: 0;
+  -fx-background-radius: 0;
+  -fx-background-color:  derive(-fx-base, 20%);
+  -fx-padding:           2 4 2 4;
+  -fx-border-color:      -eig-outline -eig-outline transparent -eig-outline;
+}
+
+.tab .tab-label
+{
+  -fx-pref-width: 128;
+  -fx-alignment: center;
+}
+
+.tab:selected .tab-label
+{
+  -fx-alignment: center;
+}
+
+/* ----------------------------------------------------------------- */
+
+.progress-bar > .track
+{
+  -fx-background-insets: 0;
+  -fx-background-radius: 0;
+  -fx-border-insets:     0;
+  -fx-padding:           0;
+  -fx-border-color:      -eig-outline;
+  -fx-background-color:  #324644;
+}
+
+.progress-bar > .bar
+{
+  -fx-background-insets: 1;
+  -fx-background-radius: 0;
+  -fx-border-insets:     0;
+  -fx-padding:           0;
+  -fx-background-color:  #2fd9c7;
+}
+
+/* ----------------------------------------------------------------- */
+
+.button
+{
+  -fx-background-color:  derive(-fx-base, -50%), derive(-fx-base, 50%), -fx-base;
+  -fx-background-insets: 2 2 0 0, 0 0 2 2, 2;
+  -fx-border-color:      -eig-outline;
+}
+
+.button:hover
+{
+  -fx-background-color:  derive(-fx-base, -50%), derive(-fx-base, 50%), derive(-fx-base, 10%);
+  -fx-background-insets: 2 2 0 0, 0 0 2 2, 2;
+  -fx-border-color:      -eig-outline;
+}
+
+.button:focused
+{
+  -fx-background-color:  -fx-focus-color, derive(-fx-base, -50%), derive(-fx-base, 50%), -fx-base;
+  -fx-background-insets: -2, 2 2 0 0, 0 0 2 2, 2;
+  -fx-border-color:      -eig-outline;
+}
+
+.button:pressed
+{
+  -fx-background-color:  derive(-fx-base, 20%), derive(-fx-base, -20%), derive(-fx-base, -10%);
+  -fx-background-insets: 2 2 0 0, 0 0 2 2, 2;
+  -fx-border-color:      -eig-outline;
+}
+
+/* ----------------------------------------------------------------- */
+
+.check-box > .box
+{
+  -fx-background-color:  derive(-fx-base, -50%), derive(-fx-base, 50%), -fx-base;
+  -fx-background-insets: 2 2 0 0, 0 0 2 2, 2;
+  -fx-border-color:      -eig-outline;
+}
+
+.check-box:hover > .box
+{
+  -fx-background-color:  derive(-fx-base, -50%), derive(-fx-base, 50%), derive(-fx-base, 10%);
+  -fx-background-insets: 2 2 0 0, 0 0 2 2, 2;
+  -fx-border-color:      -eig-outline;
+}
+
+.check-box:focused > .box
+{
+  -fx-background-color:  -fx-focus-color, derive(-fx-base, -50%), derive(-fx-base, 50%), -fx-base;
+  -fx-background-insets: -2, 2 2 0 0, 0 0 2 2, 2;
+  -fx-border-color:      -eig-outline;
+}
+
+.check-box:pressed > .box
+{
+  -fx-background-color:  derive(-fx-base, 20%), derive(-fx-base, -20%), derive(-fx-base, -10%);
+  -fx-background-insets: 2 2 0 0, 0 0 2 2, 2;
+  -fx-border-color:      -eig-outline;
+}
+
+.check-box > .box > .mark
+{
+  -fx-background-color: null;
+  -fx-shape: "M 0,0 H1 L 4,3 7,0 H8 V1 L 5,4 8,7 V8 H7 L 4,5 1,8 H0 V7 L 3,4 0,1 Z";
+  -fx-scale-shape: false;
+}
+
+.check-box:indeterminate  > .box > .mark
+{
+  -fx-background-color: -eig-neon;
+  -fx-shape: "M0,0H10V2H0Z";
+  -fx-scale-shape: false;
+  -fx-padding: 0.666667em;
+}
+
+.check-box:selected > .box > .mark
+{
+  -fx-background-color: -eig-neon;
+}
+
+/* ----------------------------------------------------------------- */
+
+.scroll-bar:horizontal
+{
+  -fx-background-color:  derive(-fx-base, 20%), derive(-fx-base, -20%), derive(-fx-base, -10%);
+  -fx-background-insets: 2 2 0 0, 0 0 2 2, 2;
+  -fx-border-color:      derive(-fx-base, -20%);
+}
+
+.scroll-bar:vertical
+{
+  -fx-background-color:  derive(-fx-base, 20%), derive(-fx-base, -20%), derive(-fx-base, -10%);
+  -fx-background-insets: 2 2 0 0, 0 0 2 2, 2;
+  -fx-border-color:      derive(-fx-base, -20%);
+}
+
+.scroll-bar > .thumb
+{
+  -fx-background-color:  derive(-fx-base, -50%), derive(-fx-base, 50%), -fx-base;
+  -fx-background-insets: 2 2 0 0, 0 0 2 2, 2;
+  -fx-border-color:      derive(-fx-base, -20%);
+}
+
+.scroll-bar > .thumb:hover
+{
+  -fx-background-color:  derive(-fx-base, -50%), derive(-fx-base, 50%), derive(-fx-base, 10%);
+  -fx-background-insets: 2 2 0 0, 0 0 2 2, 2;
+  -fx-border-color:      derive(-fx-base, -20%);
+}
+
+.scroll-bar > .increment-button,
+.scroll-bar > .decrement-button
+{
+  -fx-background-color:  derive(-fx-base, -50%), derive(-fx-base, 50%), -fx-base;
+  -fx-background-insets: 2 2 0 0, 0 0 2 2, 2;
+  -fx-border-color:      derive(-fx-base, -20%);
+}
+
+.scroll-bar > .increment-button > .increment-arrow,
+.scroll-bar > .decrement-button > .decrement-arrow
+{
+  -fx-background-color: -eig-neon, -eig-neon;
+}
+
+/* ----------------------------------------------------------------- */
+
+.menu-bar
+{
+  -fx-background-color:  derive(-fx-base, -50%), derive(-fx-base, 50%), -fx-base;
+  -fx-background-insets: 2 2 0 0, 0 0 2 2, 2;
+  -fx-border-color:      -eig-outline;
+}
+
+/* ----------------------------------------------------------------- */
+
+.button,
+.box,
+.check-box,
+.choice-box,
+.color-picker,
+.color-picker.split-button,
+.combo-box-base,
+.container,
+.control-buttons-tab,
+.menu-button,
+.progress-bar,
+.radio-button,
+.text-field,
+.text-area,
+.tab,
+.tab-down-button,
+.tab-header-area,
+.tab-pane,
+.toggle-button,
+.scroll-bar,
+.thumb
+{
+  -fx-background-radius: 0 0 0 0;
+  -fx-border-radius:     0 0 0 0;
+}
+
+.eigionLogoBackdrop
+{
+  -fx-background-color: #324644;
+}
+
+.eigionLoginBackdrop
+{
+  -fx-background-color: #324644;
+}

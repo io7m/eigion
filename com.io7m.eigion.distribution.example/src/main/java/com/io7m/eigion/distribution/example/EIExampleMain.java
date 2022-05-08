@@ -23,7 +23,6 @@ import com.io7m.eigion.gui.EIGServerConfiguration;
 import com.io7m.eigion.gui.EIGUI;
 import com.io7m.jade.api.ApplicationDirectories;
 import com.io7m.jade.api.ApplicationDirectoryConfiguration;
-import com.io7m.jtensors.core.unparameterized.vectors.Vector3D;
 import javafx.application.Platform;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -74,7 +73,6 @@ public final class EIExampleMain
             "/com/io7m/eigion/distribution/example/io7m.png")
           .toURI(),
         Duration.ofSeconds(3L),
-        Vector3D.of(1.0, 1.0, 1.0),
         300.0,
         100.0
       );
@@ -84,9 +82,13 @@ public final class EIExampleMain
 
     final var configuration =
       new EIGConfiguration(
-        directories,
         Locale.getDefault(),
+        directories,
         Optional.of(logoConfiguration),
+        Optional.of(
+          EIExampleMain.class.getResource(
+              "/com/io7m/eigion/distribution/example/example.css")
+            .toURI()),
         serverConfiguration,
         EIGIconsConfiguration.defaults()
       );

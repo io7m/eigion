@@ -67,6 +67,11 @@ public final class EIGApplication extends Application
     );
 
     final AnchorPane pane = loader.load();
+    this.configuration.customCSS()
+      .ifPresent(customCSS -> {
+        pane.getStylesheets().add(customCSS.toString());
+      });
+
     stage.setTitle("Eigion");
     stage.setWidth(800.0);
     stage.setHeight(600.0);
