@@ -71,4 +71,10 @@ public final class EIGEventBus implements EIServiceType
       Integer.valueOf(this.hashCode())
     );
   }
+
+  @Override
+  public String description()
+  {
+    return "Event bus service";
+  }
 }

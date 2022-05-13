@@ -14,8 +14,34 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/**
- * Application runtime management (GUI [internal logo])
- */
+package com.io7m.eigion.gui.internal.services;
 
-package com.io7m.eigion.gui.internal.logo;
+import com.io7m.eigion.services.api.EIServiceType;
+import javafx.scene.control.TableCell;
+
+final class EIServiceTableNameCell
+  extends TableCell<EIServiceType, EIServiceType>
+{
+  EIServiceTableNameCell()
+  {
+
+  }
+
+  @Override
+  protected void updateItem(
+    final EIServiceType item,
+    final boolean empty)
+  {
+    super.updateItem(item, empty);
+
+    if (empty || item == null) {
+      this.setGraphic(null);
+      this.setText(null);
+      this.setTooltip(null);
+      return;
+    }
+
+    this.setGraphic(null);
+    this.setText(item.getClass().getCanonicalName());
+  }
+}

@@ -67,4 +67,10 @@ public interface EIServiceDirectoryType extends Closeable
   <T extends EIServiceType> List<? extends T> optionalServices(
     Class<T> clazz)
     throws EIServiceException;
+
+  /**
+   * @return A read-only list of all the services present
+   */
+
+  List<EIServiceType> services();
 }

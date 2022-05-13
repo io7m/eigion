@@ -16,6 +16,7 @@
 
 package com.io7m.eigion.gui;
 
+import com.io7m.eigion.icons.EIIconSetType;
 import com.io7m.jade.api.ApplicationDirectoriesType;
 
 import java.net.URI;
@@ -26,41 +27,43 @@ import java.util.Optional;
 /**
  * The UI configuration.
  *
- * @param locale              The application locale
- * @param directories         The application directories
- * @param logoConfiguration   The logo screen configuration, if one is to be
- *                            shown
+ * @param applicationTitle    The application title
  * @param customCSS           The URI of a custom CSS file
- * @param serverConfiguration The server configuration
+ * @param directories         The application directories
  * @param iconsConfiguration  The icon configuration
+ * @param locale              The application locale
+ * @param logoConfiguration   The logo screen configuration
+ * @param serverConfiguration The server configuration
  */
 
 public record EIGConfiguration(
   Locale locale,
   ApplicationDirectoriesType directories,
-  Optional<EIGLogoScreenConfiguration> logoConfiguration,
+  String applicationTitle,
+  EIGLogoScreenConfiguration logoConfiguration,
   Optional<URI> customCSS,
   EIGServerConfiguration serverConfiguration,
-  EIGIconsConfiguration iconsConfiguration)
+  EIIconSetType iconsConfiguration)
 {
   /**
    * The UI configuration.
    *
-   * @param locale              The application locale
-   * @param directories         The application directories
-   * @param logoConfiguration   The logo screen configuration, if one is to be
-   *                            shown
+   * @param applicationTitle    The application title
    * @param customCSS           The URI of a custom CSS file
-   * @param serverConfiguration The server configuration
+   * @param directories         The application directories
    * @param iconsConfiguration  The icon configuration
+   * @param locale              The application locale
+   * @param logoConfiguration   The logo screen configuration
+   * @param serverConfiguration The server configuration
    */
 
   public EIGConfiguration
   {
+    Objects.requireNonNull(applicationTitle, "applicationTitle");
     Objects.requireNonNull(directories, "directories");
+    Objects.requireNonNull(iconsConfiguration, "iconsConfiguration");
     Objects.requireNonNull(locale, "locale");
     Objects.requireNonNull(logoConfiguration, "logoConfiguration");
     Objects.requireNonNull(serverConfiguration, "serverConfiguration");
-    Objects.requireNonNull(iconsConfiguration, "iconsConfiguration");
   }
 }

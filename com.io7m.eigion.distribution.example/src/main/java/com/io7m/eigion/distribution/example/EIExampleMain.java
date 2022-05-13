@@ -17,10 +17,10 @@
 package com.io7m.eigion.distribution.example;
 
 import com.io7m.eigion.gui.EIGConfiguration;
-import com.io7m.eigion.gui.EIGIconsConfiguration;
 import com.io7m.eigion.gui.EIGLogoScreenConfiguration;
 import com.io7m.eigion.gui.EIGServerConfiguration;
 import com.io7m.eigion.gui.EIGUI;
+import com.io7m.eigion.icons.vanilla.EIIconsVanilla;
 import com.io7m.jade.api.ApplicationDirectories;
 import com.io7m.jade.api.ApplicationDirectoryConfiguration;
 import javafx.application.Platform;
@@ -84,13 +84,14 @@ public final class EIExampleMain
       new EIGConfiguration(
         Locale.getDefault(),
         directories,
-        Optional.of(logoConfiguration),
+        "Eigion Example",
+        logoConfiguration,
         Optional.of(
           EIExampleMain.class.getResource(
               "/com/io7m/eigion/distribution/example/example.css")
             .toURI()),
         serverConfiguration,
-        EIGIconsConfiguration.defaults()
+        new EIIconsVanilla()
       );
 
     Platform.startup(() -> {

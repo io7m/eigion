@@ -15,13 +15,13 @@
  */
 
 
-package com.io7m.eigion.gui.internal;
+package com.io7m.eigion.gui.internal.main;
 
 import com.io7m.eigion.gui.EIGConfiguration;
 import com.io7m.eigion.gui.internal.dashboard.EIGDashboardController;
 import com.io7m.eigion.gui.internal.login.EIGLoginScreenController;
-import com.io7m.eigion.gui.internal.logo.EIGLogoController;
 import com.io7m.eigion.gui.internal.news.EIGNewsController;
+import com.io7m.eigion.gui.internal.services.EIGServicesScreenController;
 import com.io7m.eigion.services.api.EIServiceDirectoryType;
 import javafx.util.Callback;
 
@@ -31,23 +31,28 @@ import java.util.Objects;
  * The main factory of controllers for the UI.
  */
 
-public final class EIGControllerFactory
+public final class EIGMainControllerFactory
   implements Callback<Class<?>, Object>
 {
+  private final EIGMainScreenController mainScreenController;
   private final EIServiceDirectoryType services;
   private final EIGConfiguration configuration;
 
   /**
    * The main factory of controllers for the UI.
    *
-   * @param inServices      The service directory
-   * @param inConfiguration The UI configuration
+   * @param inMainScreenController The main screen controller
+   * @param inServices             The service directory
+   * @param inConfiguration        The UI configuration
    */
 
-  public EIGControllerFactory(
+  public EIGMainControllerFactory(
+    final EIGMainScreenController inMainScreenController,
     final EIServiceDirectoryType inServices,
     final EIGConfiguration inConfiguration)
   {
+    this.mainScreenController =
+      Objects.requireNonNull(inMainScreenController, "inMainScreenController");
     this.services =
       Objects.requireNonNull(inServices, "services");
     this.configuration =
@@ -59,20 +64,26 @@ public final class EIGControllerFactory
     final Class<?> param)
   {
     return switch (param.getCanonicalName()) {
-      case "com.io7m.eigion.gui.internal.logo.EIGLogoController" -> {
-        yield new EIGLogoController(this.services, this.configuration);
-      }
-      case "com.io7m.eigion.gui.internal.EIGMainController" -> {
-        yield new EIGMainController(this.services, this.configuration);
-      }
       case "com.io7m.eigion.gui.internal.login.EIGLoginScreenController" -> {
-        yield new EIGLoginScreenController(this.services);
+        yield new EIGLoginScreenController(
+          this.mainScreenController,
+          this.configuration,
+          this.services);
       }
       case "com.io7m.eigion.gui.internal.news.EIGNewsController" -> {
-        yield new EIGNewsController(this.services);
+        yield new EIGNewsController(
+          this.configuration,
+          this.services
+        );
       }
       case "com.io7m.eigion.gui.internal.dashboard.EIGDashboardController" -> {
-        yield new EIGDashboardController(this.services, this.configuration);
+        yield new EIGDashboardController(
+          this.mainScreenController,
+          this.services,
+          this.configuration);
+      }
+      case "com.io7m.eigion.gui.internal.services.EIGServicesScreenController" -> {
+        yield new EIGServicesScreenController(this.services);
       }
       default -> {
         throw new IllegalStateException(

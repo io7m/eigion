@@ -19,7 +19,6 @@ package com.io7m.eigion.gui.internal.errors;
 
 import com.io7m.eigion.gui.EIGConfiguration;
 import com.io7m.eigion.gui.internal.EIGStrings;
-import com.io7m.eigion.services.api.EIServiceDirectoryType;
 import com.io7m.eigion.services.api.EIServiceType;
 import com.io7m.eigion.taskrecorder.EITask;
 import javafx.fxml.FXMLLoader;
@@ -40,24 +39,21 @@ import static javafx.stage.Modality.APPLICATION_MODAL;
 public final class EIGErrorDialogs implements EIServiceType
 {
   private final EIGStrings strings;
-  private final EIServiceDirectoryType services;
   private final EIGConfiguration configuration;
 
   /**
    * A service for creating error dialogs.
    *
-   * @param inServices      The service directory
+   * @param inStrings       The string resources
    * @param inConfiguration The configuration
    */
 
   public EIGErrorDialogs(
-    final EIServiceDirectoryType inServices,
+    final EIGStrings inStrings,
     final EIGConfiguration inConfiguration)
   {
-    this.services =
-      Objects.requireNonNull(inServices, "services");
     this.strings =
-      inServices.requireService(EIGStrings.class);
+      Objects.requireNonNull(inStrings, "inStrings");
     this.configuration =
       Objects.requireNonNull(inConfiguration, "inConfiguration");
   }
@@ -85,14 +81,21 @@ public final class EIGErrorDialogs implements EIServiceType
 
       loader.setControllerFactory(param -> {
         return new EIGErrorController(
-          this.services,
+          this.configuration,
+          this.strings,
           task,
           stage);
       });
 
       final Pane pane = loader.load();
+      this.configuration.customCSS()
+        .ifPresent(customCSS -> {
+          pane.getStylesheets()
+            .add(customCSS.toString());
+        });
+
       stage.initModality(APPLICATION_MODAL);
-      stage.setTitle("Eigion");
+      stage.setTitle(this.strings.format("error.header"));
       stage.setWidth(640.0);
       stage.setHeight(480.0);
       stage.setScene(new Scene(pane));
@@ -109,5 +112,11 @@ public final class EIGErrorDialogs implements EIServiceType
       "[EIGErrorDialogs 0x%08x]",
       Integer.valueOf(this.hashCode())
     );
+  }
+
+  @Override
+  public String description()
+  {
+    return "Error dialog service";
   }
 }

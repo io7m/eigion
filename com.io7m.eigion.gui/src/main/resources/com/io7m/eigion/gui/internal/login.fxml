@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.geometry.Insets?><?import javafx.scene.control.Button?><?import javafx.scene.control.Label?><?import javafx.scene.control.PasswordField?><?import javafx.scene.control.ProgressBar?><?import javafx.scene.control.TextField?><?import javafx.scene.image.Image?><?import javafx.scene.image.ImageView?><?import javafx.scene.layout.ColumnConstraints?><?import javafx.scene.layout.GridPane?><?import javafx.scene.layout.HBox?><?import javafx.scene.layout.Region?><?import javafx.scene.layout.RowConstraints?><?import javafx.scene.layout.StackPane?><?import javafx.scene.layout.VBox?><?import javafx.scene.text.Font?>
-<StackPane fx:id="loginLayout"
+<StackPane xmlns:fx="http://javafx.com/fxml/1"
+           fx:id="loginLayout"
            prefHeight="480.0"
            prefWidth="640.0"
            styleClass="eigionLoginBackdrop"
            xmlns="http://javafx.com/javafx/18"
-           xmlns:fx="http://javafx.com/fxml/1"
            fx:controller="com.io7m.eigion.gui.internal.login.EIGLoginScreenController">
   <children>
     <VBox maxHeight="-Infinity"

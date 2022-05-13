@@ -18,7 +18,7 @@
 package com.io7m.eigion.gui.internal.news;
 
 import com.io7m.eigion.client.api.EIClientNewsItem;
-import com.io7m.eigion.gui.internal.EIGIcons;
+import com.io7m.eigion.gui.EIGConfiguration;
 import com.io7m.eigion.gui.internal.EIGStrings;
 import com.io7m.eigion.news.xml.EINXParagraph;
 import com.io7m.eigion.news.xml.EINXText;
@@ -33,8 +33,10 @@ import javafx.scene.text.TextFlow;
 import java.io.ByteArrayInputStream;
 import java.net.URL;
 import java.util.List;
+import java.util.Objects;
 import java.util.ResourceBundle;
 
+import static com.io7m.eigion.icons.EIIconSemantic.NEWS_24;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 /**
@@ -43,9 +45,9 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 public final class EIGNewsItemCellController implements Initializable
 {
+  private final EIGConfiguration configuration;
   private final EIGNewsParsers parsers;
   private final EIGStrings strings;
-  private final EIGIcons icons;
 
   @FXML private Label newsTitle;
   @FXML private TextFlow newsText;
@@ -54,15 +56,20 @@ public final class EIGNewsItemCellController implements Initializable
   /**
    * A controller for a news item.
    *
-   * @param services The service directory
+   * @param inConfiguration The application configuration
+   * @param services        The service directory
    */
 
   public EIGNewsItemCellController(
+    final EIGConfiguration inConfiguration,
     final EIServiceDirectoryType services)
   {
-    this.parsers = services.requireService(EIGNewsParsers.class);
+    this.configuration =
+      Objects.requireNonNull(inConfiguration, "configuration");
+    this.parsers =
+      Objects.requireNonNull(services, "services")
+        .requireService(EIGNewsParsers.class);
     this.strings = services.requireService(EIGStrings.class);
-    this.icons = services.requireService(EIGIcons.class);
   }
 
   /**
@@ -74,7 +81,9 @@ public final class EIGNewsItemCellController implements Initializable
   public void setItem(
     final EIClientNewsItem item)
   {
-    this.newsImage.setImage(this.icons.news24());
+    this.newsImage.setImage(
+      this.configuration.iconsConfiguration()
+        .icon(NEWS_24));
     this.newsTitle.setText(item.title());
 
     final var childNodes = this.newsText.getChildren();

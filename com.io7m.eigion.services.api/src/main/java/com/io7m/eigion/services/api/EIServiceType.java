@@ -22,5 +22,9 @@ package com.io7m.eigion.services.api;
 
 public interface EIServiceType
 {
+  /**
+   * @return The service description
+   */
 
+  String description();
 }

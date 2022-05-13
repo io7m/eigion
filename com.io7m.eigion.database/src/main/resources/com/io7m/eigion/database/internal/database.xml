@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<Schemas xmlns="urn:com.io7m.trasco.database.statements:1:0">
+  <Schema versionCurrent="0">
+    <Comment>
+      The schema version table stores the current version of the database schema. Implementations are expected to query
+      this table on connecting to the database in order to ensure that the calling code is compatible with the tables in
+      the database.
+    </Comment>
+    <Statement><![CDATA[
+create table schema_version (
+  version_lock   char(1) not null default 'X',
+  version_number bigint  not null,
+
+  constraint check_lock_primary primary key (version_lock),
+  constraint check_lock_locked check (version_lock = 'X')
+)
+]]></Statement>
+  </Schema>
+</Schemas>

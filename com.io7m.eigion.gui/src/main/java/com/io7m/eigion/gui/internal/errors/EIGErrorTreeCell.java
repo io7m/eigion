@@ -17,8 +17,8 @@
 
 package com.io7m.eigion.gui.internal.errors;
 
+import com.io7m.eigion.gui.EIGConfiguration;
 import com.io7m.eigion.gui.internal.EIGStrings;
-import com.io7m.eigion.services.api.EIServiceDirectoryType;
 import com.io7m.eigion.taskrecorder.EIStepType;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.TreeCell;
@@ -42,12 +42,12 @@ public final class EIGErrorTreeCell extends TreeCell<EIStepType>
   /**
    * A cell within an error tree.
    *
-   * @param services The service directory
-   * @param strings  The strings
+   * @param configuration The application configuration
+   * @param strings       The strings
    */
 
   public EIGErrorTreeCell(
-    final EIServiceDirectoryType services,
+    final EIGConfiguration configuration,
     final EIGStrings strings)
   {
     try {
@@ -56,8 +56,8 @@ public final class EIGErrorTreeCell extends TreeCell<EIStepType>
           EIGErrorTreeCell.class.getResource(
             "/com/io7m/eigion/gui/internal/errorCell.fxml"));
       loader.setResources(strings.resources());
-      loader.setControllerFactory(param -> new EIGErrorTreeCellController(
-        services));
+      loader.setControllerFactory(
+        param -> new EIGErrorTreeCellController(configuration.iconsConfiguration()));
       this.root = loader.load();
       this.controller = loader.getController();
       Objects.requireNonNull(this.root, "this.root");
@@ -65,7 +65,6 @@ public final class EIGErrorTreeCell extends TreeCell<EIStepType>
     } catch (final IOException e) {
       throw new UncheckedIOException(e);
     }
-
   }
 
   @Override

@@ -59,7 +59,7 @@ public final class EIStep implements EIStepType
   @Override
   public void setFailed(
     final String message,
-    final Optional<Exception> exception)
+    final Optional<Throwable> exception)
   {
     this.logger.debug("failure: {}: {}: ", this.name, message, exception.orElse(null));
     this.resolution = new EIFailed(message, exception);

@@ -22,6 +22,8 @@ module com.io7m.eigion.gui
 {
   requires com.io7m.eigion.client.api;
   requires com.io7m.eigion.client.vanilla;
+  requires com.io7m.eigion.database;
+  requires com.io7m.eigion.icons;
   requires com.io7m.eigion.news.xml;
   requires com.io7m.eigion.preferences;
   requires com.io7m.jmulticlose.core;
@@ -36,18 +38,15 @@ module com.io7m.eigion.gui
   requires transitive com.io7m.eigion.services.api;
   requires transitive com.io7m.jade.api;
 
-  opens com.io7m.eigion.gui.internal
-    to javafx.fxml;
-  opens com.io7m.eigion.gui.internal.errors
-    to javafx.fxml;
-  opens com.io7m.eigion.gui.internal.login
-    to javafx.fxml;
-  opens com.io7m.eigion.gui.internal.news
-    to javafx.fxml;
-  opens com.io7m.eigion.gui.internal.dashboard
-    to javafx.fxml;
+  opens com.io7m.eigion.gui.internal to javafx.fxml;
+  opens com.io7m.eigion.gui.internal.client to javafx.fxml;
+  opens com.io7m.eigion.gui.internal.dashboard to javafx.fxml;
+  opens com.io7m.eigion.gui.internal.errors to javafx.fxml;
+  opens com.io7m.eigion.gui.internal.login to javafx.fxml;
+  opens com.io7m.eigion.gui.internal.main to javafx.fxml;
+  opens com.io7m.eigion.gui.internal.news to javafx.fxml;
+  opens com.io7m.eigion.gui.internal.services to javafx.fxml;
+  opens com.io7m.eigion.gui.internal.splash to javafx.fxml;
 
   exports com.io7m.eigion.gui;
-  opens com.io7m.eigion.gui.internal.client to javafx.fxml;
-  opens com.io7m.eigion.gui.internal.logo to javafx.fxml;
 }

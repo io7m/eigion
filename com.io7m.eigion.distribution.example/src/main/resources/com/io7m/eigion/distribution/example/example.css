@@ -116,6 +116,7 @@
   -fx-background-color:  derive(-fx-base, -50%), derive(-fx-base, 50%), derive(-fx-base, 10%);
   -fx-background-insets: 2 2 0 0, 0 0 2 2, 2;
   -fx-border-color:      -eig-outline;
+  -fx-text-fill:         -eig-neon;
 }
 
 .button:focused
@@ -263,6 +264,8 @@
   -fx-border-radius:     0 0 0 0;
 }
 
+/* ----------------------------------------------------------------- */
+
 .eigionLogoBackdrop
 {
   -fx-background-color: #324644;
@@ -271,4 +274,10 @@
 .eigionLoginBackdrop
 {
   -fx-background-color: #324644;
+}
+
+.eigionServices
+{
+  -fx-font-size:   8pt;
+  -fx-font-family: "Monospaced";
 }

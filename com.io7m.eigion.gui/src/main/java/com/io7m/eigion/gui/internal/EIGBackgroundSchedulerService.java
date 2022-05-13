@@ -71,4 +71,10 @@ public final class EIGBackgroundSchedulerService
       Integer.valueOf(this.hashCode())
     );
   }
+
+  @Override
+  public String description()
+  {
+    return "UI background scheduler";
+  }
 }

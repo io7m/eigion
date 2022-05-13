@@ -14,36 +14,40 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-
 package com.io7m.eigion.gui.internal.errors;
 
+import com.io7m.eigion.gui.EIGConfiguration;
 import com.io7m.eigion.gui.internal.EIGStrings;
-import com.io7m.eigion.services.api.EIServiceDirectoryType;
+import com.io7m.eigion.gui.internal.main.EIScreenControllerWithoutServicesType;
 import com.io7m.eigion.taskrecorder.EIStep;
 import com.io7m.eigion.taskrecorder.EIStepType;
 import com.io7m.eigion.taskrecorder.EITask;
 import javafx.fxml.FXML;
-import javafx.fxml.Initializable;
 import javafx.scene.control.Label;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
+import javafx.scene.image.ImageView;
 import javafx.stage.Stage;
 
 import java.net.URL;
 import java.util.Objects;
 import java.util.ResourceBundle;
 
+import static com.io7m.eigion.icons.EIIconSemantic.ERROR_24;
+
 /**
  * A controller for the error screen.
  */
 
-public final class EIGErrorController implements Initializable
+public final class EIGErrorController
+  implements EIScreenControllerWithoutServicesType
 {
-  private final EIServiceDirectoryType services;
   private final EITask<?> task;
   private final Stage stage;
+  private final EIGConfiguration configuration;
   private final EIGStrings strings;
 
+  @FXML private ImageView errorIcon;
   @FXML private Label errorTaskTitle;
   @FXML private Label errorTaskMessage;
   @FXML private TreeView<EIStepType> errorDetails;
@@ -51,20 +55,22 @@ public final class EIGErrorController implements Initializable
   /**
    * A controller for the error screen.
    *
-   * @param inServices The service directory
-   * @param inTask     The failed task
-   * @param inStage    The containing window
+   * @param inStrings       The strings
+   * @param inConfiguration The application configuration
+   * @param inTask          The failed task
+   * @param inStage         The containing window
    */
 
   public EIGErrorController(
-    final EIServiceDirectoryType inServices,
+    final EIGConfiguration inConfiguration,
+    final EIGStrings inStrings,
     final EITask<?> inTask,
     final Stage inStage)
   {
-    this.services =
-      Objects.requireNonNull(inServices, "services");
+    this.configuration =
+      Objects.requireNonNull(inConfiguration, "inConfiguration");
     this.strings =
-      inServices.requireService(EIGStrings.class);
+      Objects.requireNonNull(inStrings, "strings");
     this.task =
       Objects.requireNonNull(inTask, "task");
     this.stage =
@@ -94,11 +100,16 @@ public final class EIGErrorController implements Initializable
     final URL location,
     final ResourceBundle resources)
   {
+    this.errorIcon.setImage(
+      this.configuration.iconsConfiguration()
+        .icon(ERROR_24)
+    );
+
     this.errorTaskTitle.setText(this.task.name());
     this.errorTaskMessage.setText(this.task.resolution().message());
 
     this.errorDetails.setCellFactory(param -> {
-      return new EIGErrorTreeCell(this.services, this.strings);
+      return new EIGErrorTreeCell(this.configuration, this.strings);
     });
     this.errorDetails.setRoot(buildTree(this.task));
     this.errorDetails.setShowRoot(false);

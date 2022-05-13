@@ -23,14 +23,16 @@ import com.io7m.eigion.client.api.EIClientLoginInProcess;
 import com.io7m.eigion.client.api.EIClientLoginNotRequired;
 import com.io7m.eigion.client.api.EIClientLoginStatusType;
 import com.io7m.eigion.client.api.EIClientLoginWentOffline;
-import com.io7m.eigion.gui.internal.EIGIcons;
+import com.io7m.eigion.gui.EIGConfiguration;
 import com.io7m.eigion.gui.internal.client.EIGClient;
 import com.io7m.eigion.gui.internal.errors.EIGErrorDialogs;
+import com.io7m.eigion.gui.internal.main.EIGMainScreenController;
+import com.io7m.eigion.gui.internal.main.EIScreenControllerWithServicesType;
+import com.io7m.eigion.icons.EIIconSemantic;
 import com.io7m.eigion.services.api.EIServiceDirectoryType;
 import com.io7m.eigion.taskrecorder.EITask;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
-import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.TextField;
@@ -38,19 +40,24 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.Pane;
 
 import java.net.URL;
+import java.util.Objects;
 import java.util.ResourceBundle;
 
 import static com.io7m.eigion.client.api.EIClientOnline.CLIENT_OFFLINE;
+import static com.io7m.eigion.gui.internal.main.EIGScreenTransition.WIPE;
 
 /**
  * The controller for the login screen.
  */
 
-public final class EIGLoginScreenController implements Initializable
+public final class EIGLoginScreenController
+  implements EIScreenControllerWithServicesType
 {
   private final EIGClient client;
+  private final EIGMainScreenController mainScreenController;
+  private final EIGConfiguration configuration;
   private final EIGErrorDialogs errors;
-  private final EIGIcons icons;
+  private final EIServiceDirectoryType services;
 
   @FXML private Pane loginLayout;
   @FXML private TextField username;
@@ -66,18 +73,26 @@ public final class EIGLoginScreenController implements Initializable
   /**
    * The controller for the login screen.
    *
-   * @param services The service directory
+   * @param inMainScreenController The main screen controller
+   * @param inConfiguration        The application configuration
+   * @param inServices             The service directory
    */
 
   public EIGLoginScreenController(
-    final EIServiceDirectoryType services)
+    final EIGMainScreenController inMainScreenController,
+    final EIGConfiguration inConfiguration,
+    final EIServiceDirectoryType inServices)
   {
+    this.mainScreenController =
+      Objects.requireNonNull(inMainScreenController, "mainScreenController");
+    this.configuration =
+      Objects.requireNonNull(inConfiguration, "inConfiguration");
     this.errors =
-      services.requireService(EIGErrorDialogs.class);
+      inServices.requireService(EIGErrorDialogs.class);
     this.client =
-      services.requireService(EIGClient.class);
-    this.icons =
-      services.requireService(EIGIcons.class);
+      inServices.requireService(EIGClient.class);
+    this.services =
+      inServices;
   }
 
   private void formUnlock()
@@ -125,6 +140,7 @@ public final class EIGLoginScreenController implements Initializable
   private void onOfflineSelected()
   {
     this.client.onlineSet(CLIENT_OFFLINE);
+    this.mainScreenController.openDashboard(this.services, WIPE);
   }
 
   @Override
@@ -134,7 +150,10 @@ public final class EIGLoginScreenController implements Initializable
   {
     this.progress.setVisible(false);
 
-    this.errorIcon.setImage(this.icons.error24());
+    this.errorIcon.setImage(
+      this.configuration.iconsConfiguration()
+        .icon(EIIconSemantic.ERROR_24));
+
     this.client.loginStatus()
       .subscribe((oldValue, newValue) -> {
         Platform.runLater(() -> {
@@ -157,6 +176,7 @@ public final class EIGLoginScreenController implements Initializable
     }
 
     if (status instanceof EIClientLoggedIn) {
+      this.mainScreenController.openDashboard(this.services, WIPE);
       return;
     }
 

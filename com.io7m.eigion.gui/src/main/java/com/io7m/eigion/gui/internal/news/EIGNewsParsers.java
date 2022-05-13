@@ -54,4 +54,10 @@ public final class EIGNewsParsers implements EIServiceType
       Integer.valueOf(this.hashCode())
     );
   }
+
+  @Override
+  public String description()
+  {
+    return "News data parser service";
+  }
 }

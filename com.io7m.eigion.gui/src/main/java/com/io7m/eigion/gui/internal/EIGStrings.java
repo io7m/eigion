@@ -61,4 +61,10 @@ public final class EIGStrings implements JXTStringsType, EIServiceType
       Integer.valueOf(this.hashCode())
     );
   }
+
+  @Override
+  public String description()
+  {
+    return "String resource service";
+  }
 }

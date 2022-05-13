@@ -18,13 +18,16 @@
 package com.io7m.eigion.gui.internal;
 
 import com.io7m.eigion.gui.EIGConfiguration;
+import com.io7m.eigion.gui.internal.main.EIGMainScreenController;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
-import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
 
 import java.util.Objects;
+
+import static com.io7m.eigion.gui.internal.main.EIGScreenTransition.IMMEDIATE;
 
 /**
  * The main application class responsible for starting up the "main" view.
@@ -53,29 +56,35 @@ public final class EIGApplication extends Application
     throws Exception
   {
     final var mainXML =
-      EIGApplication.class.getResource("/com/io7m/eigion/gui/internal/main.fxml");
+      EIGApplication.class.getResource(
+        "/com/io7m/eigion/gui/internal/main.fxml");
     Objects.requireNonNull(mainXML, "mainXML");
 
-    final var services =
-      EIGServices.create(this.configuration);
     final var strings =
-      services.requireService(EIGStrings.class);
+      new EIGStrings(this.configuration.locale());
+    final var mainLoader =
+      new FXMLLoader(mainXML, strings.resources());
 
-    final var loader = new FXMLLoader(mainXML, strings.resources());
-    loader.setControllerFactory(
-      new EIGControllerFactory(services, this.configuration)
-    );
+    mainLoader.setControllerFactory(ignored -> {
+      return new EIGMainScreenController(this.configuration, strings);
+    });
 
-    final AnchorPane pane = loader.load();
+    final Pane pane = mainLoader.load();
     this.configuration.customCSS()
       .ifPresent(customCSS -> {
-        pane.getStylesheets().add(customCSS.toString());
+        pane.getStylesheets()
+          .add(customCSS.toString());
       });
 
-    stage.setTitle("Eigion");
+    final EIGMainScreenController mainController =
+      mainLoader.getController();
+
+    stage.setTitle(this.configuration.applicationTitle());
     stage.setWidth(800.0);
     stage.setHeight(600.0);
     stage.setScene(new Scene(pane));
     stage.show();
+
+    mainController.openSplashScreen(IMMEDIATE);
   }
 }

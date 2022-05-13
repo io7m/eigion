@@ -73,7 +73,6 @@ public final class EIGClient implements EIServiceType, AutoCloseable
   public EIGClient(
     final EIGConfiguration inConfiguration)
   {
-
     this.resources = CloseableCollection.create();
 
     this.executor =
@@ -243,5 +242,11 @@ public final class EIGClient implements EIServiceType, AutoCloseable
     final EIClientOnline mode)
   {
     this.client.onlineSet(mode);
+  }
+
+  @Override
+  public String description()
+  {
+    return "Eigion network client";
   }
 }

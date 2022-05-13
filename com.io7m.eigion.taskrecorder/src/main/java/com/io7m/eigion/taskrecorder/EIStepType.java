@@ -54,7 +54,7 @@ public sealed interface EIStepType permits EIStep, EITask
 
   void setFailed(
     String message,
-    Optional<Exception> exception);
+    Optional<Throwable> exception);
 
   /**
    * Set the step as having failed.
@@ -65,7 +65,7 @@ public sealed interface EIStepType permits EIStep, EITask
 
   default void setFailed(
     final String message,
-    final Exception exception)
+    final Throwable exception)
   {
     this.setFailed(message, Optional.of(exception));
   }

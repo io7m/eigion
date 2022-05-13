@@ -17,8 +17,7 @@
 
 package com.io7m.eigion.gui.internal.errors;
 
-import com.io7m.eigion.gui.internal.EIGIcons;
-import com.io7m.eigion.services.api.EIServiceDirectoryType;
+import com.io7m.eigion.icons.EIIconSetType;
 import com.io7m.eigion.taskrecorder.EIFailed;
 import com.io7m.eigion.taskrecorder.EIStep;
 import com.io7m.eigion.taskrecorder.EIStepType;
@@ -32,8 +31,11 @@ import javafx.scene.image.ImageView;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.net.URL;
+import java.util.Objects;
 import java.util.ResourceBundle;
 
+import static com.io7m.eigion.icons.EIIconSemantic.ERROR_16;
+import static com.io7m.eigion.icons.EIIconSemantic.TASK_16;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 /**
@@ -42,8 +44,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 public final class EIGErrorTreeCellController implements Initializable
 {
-  private final EIGIcons icons;
-
+  private final EIIconSetType icons;
   @FXML private ImageView stepIcon;
   @FXML private Label stepTitle;
   @FXML private Label stepResolution;
@@ -52,14 +53,13 @@ public final class EIGErrorTreeCellController implements Initializable
   /**
    * A controller for a cell within an error tree view.
    *
-   * @param services The service directory
+   * @param inIcons The icon set
    */
 
   public EIGErrorTreeCellController(
-    final EIServiceDirectoryType services)
+    final EIIconSetType inIcons)
   {
-    this.icons =
-      services.requireService(EIGIcons.class);
+    this.icons = Objects.requireNonNull(inIcons, "icons");
   }
 
   /**
@@ -72,9 +72,9 @@ public final class EIGErrorTreeCellController implements Initializable
     final EIStepType item)
   {
     if (item.resolution() instanceof EIFailed) {
-      this.stepIcon.setImage(this.icons.error16());
+      this.stepIcon.setImage(this.icons.icon(ERROR_16));
     } else {
-      this.stepIcon.setImage(this.icons.task16());
+      this.stepIcon.setImage(this.icons.icon(TASK_16));
     }
 
     if (item instanceof EITask task) {

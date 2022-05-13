@@ -41,6 +41,11 @@
       <artifactId>com.io7m.eigion.gui</artifactId>
       <version>${project.version}</version>
     </dependency>
+    <dependency>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>com.io7m.eigion.icons.vanilla</artifactId>
+      <version>${project.version}</version>
+    </dependency>
   </dependencies>
 
   <build>

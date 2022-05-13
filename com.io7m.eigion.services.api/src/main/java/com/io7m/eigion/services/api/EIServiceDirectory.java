@@ -128,6 +128,18 @@ public final class EIServiceDirectory implements EIServiceDirectoryType
   }
 
   @Override
+  public List<EIServiceType> services()
+  {
+    synchronized (this.serviceLock) {
+      return this.services.values()
+        .stream()
+        .flatMap(Collection::stream)
+        .map(EIServiceType.class::cast)
+        .collect(Collectors.toList());
+    }
+  }
+
+  @Override
   public void close()
     throws IOException
   {

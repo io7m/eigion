@@ -21,6 +21,7 @@
 module com.io7m.eigion.distribution.example
 {
   requires com.io7m.eigion.gui;
+  requires com.io7m.eigion.icons.vanilla;
   requires com.io7m.jade.vanilla;
   requires javafx.base;
   requires javafx.controls;

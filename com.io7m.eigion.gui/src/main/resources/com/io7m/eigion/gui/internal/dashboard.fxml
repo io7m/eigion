@@ -19,6 +19,9 @@
               text="Help">
           <items>
             <MenuItem mnemonicParsing="false"
+                      onAction="#onMenuHelpServicesSelected"
+                      text="%menu.help.services"/>
+            <MenuItem mnemonicParsing="false"
                       text="About"/>
           </items>
         </Menu>

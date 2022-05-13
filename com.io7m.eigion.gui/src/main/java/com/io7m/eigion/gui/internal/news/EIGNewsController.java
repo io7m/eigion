@@ -17,6 +17,7 @@
 package com.io7m.eigion.gui.internal.news;
 
 import com.io7m.eigion.client.api.EIClientNewsItem;
+import com.io7m.eigion.gui.EIGConfiguration;
 import com.io7m.eigion.gui.internal.EIGStrings;
 import com.io7m.eigion.gui.internal.client.EIGClient;
 import com.io7m.eigion.gui.internal.client.EIGClientNewsStatusType;
@@ -24,11 +25,11 @@ import com.io7m.eigion.gui.internal.client.EIGNewsStatusAvailable;
 import com.io7m.eigion.gui.internal.client.EIGNewsStatusFetching;
 import com.io7m.eigion.gui.internal.client.EIGNewsStatusInitial;
 import com.io7m.eigion.gui.internal.client.EIGNewsStatusOffline;
+import com.io7m.eigion.gui.internal.main.EIScreenControllerWithServicesType;
 import com.io7m.eigion.gui.internal.views.EIGNoSelectionModel;
 import com.io7m.eigion.services.api.EIServiceDirectoryType;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
-import javafx.fxml.Initializable;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.layout.Pane;
@@ -41,8 +42,10 @@ import java.util.ResourceBundle;
  * The controller for the news view.
  */
 
-public final class EIGNewsController implements Initializable
+public final class EIGNewsController
+  implements EIScreenControllerWithServicesType
 {
+  private final EIGConfiguration configuration;
   private final EIServiceDirectoryType services;
   private final EIGStrings strings;
   private final EIGClient client;
@@ -54,12 +57,16 @@ public final class EIGNewsController implements Initializable
   /**
    * The controller for the news view.
    *
-   * @param inServices The service directory
+   * @param inConfiguration The application configuration
+   * @param inServices      The service directory
    */
 
   public EIGNewsController(
+    final EIGConfiguration inConfiguration,
     final EIServiceDirectoryType inServices)
   {
+    this.configuration =
+      Objects.requireNonNull(inConfiguration, "configuration");
     this.services =
       Objects.requireNonNull(inServices, "services");
     this.strings =
@@ -87,7 +94,11 @@ public final class EIGNewsController implements Initializable
     this.newsList.setSelectionModel(new EIGNoSelectionModel<>());
     this.newsList.setFocusTraversable(false);
     this.newsList.setCellFactory(param -> {
-      return new EIGNewsItemCell(this.services, this.strings);
+      return new EIGNewsItemCell(
+        this.services,
+        this.configuration,
+        this.strings
+      );
     });
   }
 

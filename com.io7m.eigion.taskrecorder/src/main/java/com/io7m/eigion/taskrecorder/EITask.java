@@ -117,7 +117,7 @@ public final class EITask<T> implements EIStepType
   @Override
   public void setFailed(
     final String message,
-    final Optional<Exception> exception)
+    final Optional<Throwable> exception)
   {
     this.steps.peekLast().setFailed(message, exception);
   }

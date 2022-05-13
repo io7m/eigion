@@ -117,4 +117,10 @@ public final class EIPreferencesService implements EIPreferencesServiceType
       "[CAPreferencesService 0x%08x]",
       Integer.valueOf(this.hashCode()));
   }
+
+  @Override
+  public String description()
+  {
+    return "Preferences service";
+  }
 }

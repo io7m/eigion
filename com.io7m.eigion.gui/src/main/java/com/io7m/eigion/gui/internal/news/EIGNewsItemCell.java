@@ -18,6 +18,7 @@
 package com.io7m.eigion.gui.internal.news;
 
 import com.io7m.eigion.client.api.EIClientNewsItem;
+import com.io7m.eigion.gui.EIGConfiguration;
 import com.io7m.eigion.gui.internal.EIGStrings;
 import com.io7m.eigion.services.api.EIServiceDirectoryType;
 import javafx.fxml.FXMLLoader;
@@ -42,12 +43,14 @@ public final class EIGNewsItemCell extends ListCell<EIClientNewsItem>
   /**
    * A cell containing a news item.
    *
-   * @param services The service directory
-   * @param strings  The strings
+   * @param services      The service directory
+   * @param configuration The application configuration
+   * @param strings       The strings
    */
 
   public EIGNewsItemCell(
     final EIServiceDirectoryType services,
+    final EIGConfiguration configuration,
     final EIGStrings strings)
   {
     try {
@@ -56,8 +59,9 @@ public final class EIGNewsItemCell extends ListCell<EIClientNewsItem>
           EIGNewsItemCell.class.getResource(
             "/com/io7m/eigion/gui/internal/newsItem.fxml"));
       loader.setResources(strings.resources());
-      loader.setControllerFactory(param -> new EIGNewsItemCellController(
-        services));
+      loader.setControllerFactory(param -> {
+        return new EIGNewsItemCellController(configuration, services);
+      });
       this.root = loader.load();
       this.controller = loader.getController();
       Objects.requireNonNull(this.root, "this.root");

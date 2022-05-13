@@ -28,7 +28,7 @@ import java.util.Optional;
 
 public record EIFailed(
   String message,
-  Optional<Exception> exception)
+  Optional<Throwable> exception)
   implements EIResolutionType
 {
   /**
