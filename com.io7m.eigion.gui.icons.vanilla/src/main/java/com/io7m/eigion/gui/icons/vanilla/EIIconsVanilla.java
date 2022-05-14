@@ -57,7 +57,7 @@ public final class EIIconsVanilla implements EIIconSetType
     return new Image(
       EIIconsVanilla.class.getResource(
         new StringBuilder(64)
-          .append("/com/io7m/eigion/icons/vanilla/")
+          .append("/com/io7m/eigion/gui/icons/vanilla/")
           .append(name)
           .append(".png")
           .toString()
