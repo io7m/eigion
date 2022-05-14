@@ -15,19 +15,13 @@
  */
 
 /**
- * Application runtime management (Distribution example)
+ * Application runtime management (Product API)
  */
 
-module com.io7m.eigion.distribution.example
+module com.io7m.eigion.product.api
 {
-  requires com.io7m.eigion.gui;
-  requires com.io7m.eigion.gui.icons.vanilla;
-  requires com.io7m.jade.vanilla;
-  requires javafx.base;
-  requires javafx.controls;
-  requires javafx.fxml;
-  requires javafx.graphics;
-  requires org.slf4j;
+  requires static org.osgi.annotation.bundle;
+  requires static org.osgi.annotation.versioning;
 
-  exports com.io7m.eigion.distribution.example;
+  exports com.io7m.eigion.product.api;
 }

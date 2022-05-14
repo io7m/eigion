@@ -1,0 +1,13 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="All in com.io7m.eigion.tests" type="JUnit" factoryName="JUnit" nameIsGenerated="true">
+    <module name="com.io7m.eigion.tests" />
+    <option name="PACKAGE_NAME" value="" />
+    <option name="MAIN_CLASS_NAME" value="" />
+    <option name="METHOD_NAME" value="" />
+    <option name="TEST_OBJECT" value="package" />
+    <option name="VM_PARAMETERS" value="-ea --add-opens org.junit.platform.commons/org.junit.platform.commons.logging=ALL-UNNAMED --add-opens org.junit.platform.commons/org.junit.platform.commons.util=ALL-UNNAMED" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

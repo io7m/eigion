@@ -14,20 +14,23 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+package com.io7m.eigion.gui.icons;
+
+import javafx.scene.image.Image;
+
 /**
- * Application runtime management (Distribution example)
+ * A set of icons.
  */
 
-module com.io7m.eigion.distribution.example
+public interface EIIconSetType
 {
-  requires com.io7m.eigion.gui;
-  requires com.io7m.eigion.gui.icons.vanilla;
-  requires com.io7m.jade.vanilla;
-  requires javafx.base;
-  requires javafx.controls;
-  requires javafx.fxml;
-  requires javafx.graphics;
-  requires org.slf4j;
+  /**
+   * Retrieve an image for the given icon semantic.
+   *
+   * @param semantic The icon semantic
+   *
+   * @return An image
+   */
 
-  exports com.io7m.eigion.distribution.example;
+  Image icon(EIIconSemantic semantic);
 }

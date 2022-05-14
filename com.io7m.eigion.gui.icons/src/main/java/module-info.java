@@ -15,19 +15,15 @@
  */
 
 /**
- * Application runtime management (Distribution example)
+ * Application runtime management (Icon theme API)
  */
 
-module com.io7m.eigion.distribution.example
+module com.io7m.eigion.gui.icons
 {
-  requires com.io7m.eigion.gui;
-  requires com.io7m.eigion.gui.icons.vanilla;
-  requires com.io7m.jade.vanilla;
-  requires javafx.base;
-  requires javafx.controls;
-  requires javafx.fxml;
-  requires javafx.graphics;
-  requires org.slf4j;
+  requires static org.osgi.annotation.bundle;
+  requires static org.osgi.annotation.versioning;
 
-  exports com.io7m.eigion.distribution.example;
+  requires transitive javafx.graphics;
+
+  exports com.io7m.eigion.gui.icons;
 }

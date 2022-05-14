@@ -14,20 +14,31 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+package com.io7m.eigion.product.api;
+
+import java.util.Objects;
+
 /**
- * Application runtime management (Distribution example)
+ * A dependency.
+ *
+ * @param identifier The identifier of the target
+ * @param hash       The hash of the target
  */
 
-module com.io7m.eigion.distribution.example
+public record EIProductDependency(
+  EIProductIdentifier identifier,
+  EIProductHash hash)
 {
-  requires com.io7m.eigion.gui;
-  requires com.io7m.eigion.gui.icons.vanilla;
-  requires com.io7m.jade.vanilla;
-  requires javafx.base;
-  requires javafx.controls;
-  requires javafx.fxml;
-  requires javafx.graphics;
-  requires org.slf4j;
+  /**
+   * A dependency.
+   *
+   * @param identifier The identifier of the target
+   * @param hash       The hash of the target
+   */
 
-  exports com.io7m.eigion.distribution.example;
+  public EIProductDependency
+  {
+    Objects.requireNonNull(identifier, "identifier");
+    Objects.requireNonNull(hash, "hash");
+  }
 }

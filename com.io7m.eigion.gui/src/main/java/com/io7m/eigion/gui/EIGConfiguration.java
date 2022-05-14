@@ -16,7 +16,7 @@
 
 package com.io7m.eigion.gui;
 
-import com.io7m.eigion.icons.EIIconSetType;
+import com.io7m.eigion.gui.icons.EIIconSetType;
 import com.io7m.jade.api.ApplicationDirectoriesType;
 
 import java.net.URI;

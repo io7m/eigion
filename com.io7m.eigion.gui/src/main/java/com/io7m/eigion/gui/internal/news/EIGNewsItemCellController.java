@@ -36,7 +36,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.ResourceBundle;
 
-import static com.io7m.eigion.icons.EIIconSemantic.NEWS_24;
+import static com.io7m.eigion.gui.icons.EIIconSemantic.NEWS_24;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 /**

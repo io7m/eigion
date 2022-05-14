@@ -43,7 +43,7 @@
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
-      <artifactId>com.io7m.eigion.icons.vanilla</artifactId>
+      <artifactId>com.io7m.eigion.gui.icons.vanilla</artifactId>
       <version>${project.version}</version>
     </dependency>
   </dependencies>

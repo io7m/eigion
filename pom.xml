@@ -21,22 +21,23 @@
   <url>https://www.io7m.com/software/eigion</url>
 
   <modules>
+    <module>com.io7m.eigion.client.api</module>
+    <module>com.io7m.eigion.client.vanilla</module>
+    <module>com.io7m.eigion.database.api</module>
+    <module>com.io7m.eigion.database</module>
     <module>com.io7m.eigion.distribution.example</module>
+    <module>com.io7m.eigion.gui.icons.vanilla</module>
+    <module>com.io7m.eigion.gui.icons</module>
     <module>com.io7m.eigion.gui</module>
     <module>com.io7m.eigion.launcher.api</module>
     <module>com.io7m.eigion.launcher.felix</module>
     <module>com.io7m.eigion.launcher.main</module>
-    <module>com.io7m.eigion.services.api</module>
-    <module>com.io7m.eigion.tests</module>
-    <module>com.io7m.eigion.client.api</module>
-    <module>com.io7m.eigion.client.vanilla</module>
-    <module>com.io7m.eigion.taskrecorder</module>
     <module>com.io7m.eigion.news.xml</module>
     <module>com.io7m.eigion.preferences</module>
-    <module>com.io7m.eigion.database</module>
-    <module>com.io7m.eigion.database.api</module>
-    <module>com.io7m.eigion.icons</module>
-    <module>com.io7m.eigion.icons.vanilla</module>
+    <module>com.io7m.eigion.product.api</module>
+    <module>com.io7m.eigion.services.api</module>
+    <module>com.io7m.eigion.taskrecorder</module>
+    <module>com.io7m.eigion.tests</module>
   </modules>
 
   <properties>

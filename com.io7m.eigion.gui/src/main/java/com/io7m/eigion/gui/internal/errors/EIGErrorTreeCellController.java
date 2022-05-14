@@ -17,7 +17,7 @@
 
 package com.io7m.eigion.gui.internal.errors;
 
-import com.io7m.eigion.icons.EIIconSetType;
+import com.io7m.eigion.gui.icons.EIIconSetType;
 import com.io7m.eigion.taskrecorder.EIFailed;
 import com.io7m.eigion.taskrecorder.EIStep;
 import com.io7m.eigion.taskrecorder.EIStepType;
@@ -34,8 +34,8 @@ import java.net.URL;
 import java.util.Objects;
 import java.util.ResourceBundle;
 
-import static com.io7m.eigion.icons.EIIconSemantic.ERROR_16;
-import static com.io7m.eigion.icons.EIIconSemantic.TASK_16;
+import static com.io7m.eigion.gui.icons.EIIconSemantic.ERROR_16;
+import static com.io7m.eigion.gui.icons.EIIconSemantic.TASK_16;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 /**

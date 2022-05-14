@@ -14,20 +14,41 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+package com.io7m.eigion.gui.icons;
+
 /**
- * Application runtime management (Distribution example)
+ * The available icon semantics.
  */
 
-module com.io7m.eigion.distribution.example
+public enum EIIconSemantic
 {
-  requires com.io7m.eigion.gui;
-  requires com.io7m.eigion.gui.icons.vanilla;
-  requires com.io7m.jade.vanilla;
-  requires javafx.base;
-  requires javafx.controls;
-  requires javafx.fxml;
-  requires javafx.graphics;
-  requires org.slf4j;
+  /**
+   * A 16x16 error icon.
+   */
 
-  exports com.io7m.eigion.distribution.example;
+  ERROR_16,
+
+  /**
+   * A 24x24 error icon.
+   */
+
+  ERROR_24,
+
+  /**
+   * A 24x24 news icon.
+   */
+
+  NEWS_24,
+
+  /**
+   * A 16x16 task icon.
+   */
+
+  TASK_16,
+
+  /**
+   * A 24x24 service icon.
+   */
+
+  SERVICE_24
 }

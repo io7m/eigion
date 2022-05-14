@@ -33,7 +33,7 @@ import java.net.URL;
 import java.util.Objects;
 import java.util.ResourceBundle;
 
-import static com.io7m.eigion.icons.EIIconSemantic.ERROR_24;
+import static com.io7m.eigion.gui.icons.EIIconSemantic.ERROR_24;
 
 /**
  * A controller for the error screen.

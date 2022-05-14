@@ -20,7 +20,7 @@ import com.io7m.eigion.gui.EIGConfiguration;
 import com.io7m.eigion.gui.EIGLogoScreenConfiguration;
 import com.io7m.eigion.gui.EIGServerConfiguration;
 import com.io7m.eigion.gui.EIGUI;
-import com.io7m.eigion.icons.vanilla.EIIconsVanilla;
+import com.io7m.eigion.gui.icons.vanilla.EIIconsVanilla;
 import com.io7m.jade.api.ApplicationDirectories;
 import com.io7m.jade.api.ApplicationDirectoryConfiguration;
 import javafx.application.Platform;

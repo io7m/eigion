@@ -23,7 +23,7 @@ module com.io7m.eigion.gui
   requires com.io7m.eigion.client.api;
   requires com.io7m.eigion.client.vanilla;
   requires com.io7m.eigion.database;
-  requires com.io7m.eigion.icons;
+  requires com.io7m.eigion.gui.icons;
   requires com.io7m.eigion.news.xml;
   requires com.io7m.eigion.preferences;
   requires com.io7m.jmulticlose.core;
