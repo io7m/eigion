@@ -1,0 +1,73 @@
+{
+  "$id": "https://www.io7m.com/eigion/products-1.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$defs": {
+    "products": {
+      "type": "object",
+      "properties": {
+        "%id": {
+          "type": "string",
+          "const": "https://www.io7m.com/eigion/products-1.json"
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/product"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "%id",
+        "items"
+      ]
+    },
+    "product": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/product-id"
+        },
+        "categories": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/category"
+          }
+        }
+      },
+      "required": [
+        "id",
+        "categories"
+      ]
+    },
+    "category": {
+      "type": "string",
+      "pattern": "[A-Z][a-zA-Z0-9 ]{0,64}"
+    },
+    "product-id": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "group": {
+          "type": "string",
+          "pattern": "([a-zA-Z][a-zA-Z0-9_-]{0,64})(\\.[a-zA-Z][a-zA-Z0-9_-]{0,64}){0,8}"
+        },
+        "name": {
+          "type": "string",
+          "pattern": "([a-zA-Z][a-zA-Z0-9_-]{0,64})(\\.[a-zA-Z][a-zA-Z0-9_-]{0,64}){0,8}"
+        },
+        "version": {
+          "type": "string",
+          "pattern": "[0-9]+\\.[0-9]+\\.[0-9]+(-[a-zA-Z0-9]+)?"
+        }
+      },
+      "required": [
+        "group",
+        "name",
+        "version"
+      ]
+    }
+  },
+  "$ref": "#/$defs/products"
+}

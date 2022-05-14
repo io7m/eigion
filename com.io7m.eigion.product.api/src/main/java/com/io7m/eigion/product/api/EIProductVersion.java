@@ -46,7 +46,7 @@ public record EIProductVersion(
 
   public static final Pattern VALID_VERSION =
     Pattern.compile(
-      "\\p{Digit}+\\.\\p{Digit}+\\.\\p{Digit}+(-[\\p{Alnum}]+)?",
+      "(\\p{Digit}{1,20})\\.(\\p{Digit}{1,20})\\.(\\p{Digit}{1,20})(-[\\p{Alnum}]{1,64})?",
       UNICODE_CHARACTER_CLASS
     );
 
@@ -150,5 +150,51 @@ public record EIProductVersion(
       return cpat;
     }
     return compareQualifiers(this.qualifier, other.qualifier);
+  }
+
+  private static final Pattern LEADING_HYPHEN =
+    Pattern.compile("^-");
+
+  /**
+   * Parse a version string.
+   *
+   * @param text The version string
+   *
+   * @return A parsed version
+   *
+   * @throws IllegalArgumentException On parse errors
+   */
+
+  public static EIProductVersion parse(
+    final String text)
+    throws IllegalArgumentException
+  {
+    Objects.requireNonNull(text, "text");
+
+    final var versionMatcher = VALID_VERSION.matcher(text);
+    if (!versionMatcher.matches()) {
+      throw new IllegalArgumentException(
+        String.format("Version '%s' must match %s", text, VALID_VERSION));
+    }
+
+    final var newMajor =
+      new BigInteger(versionMatcher.group(1));
+    final var newMinor =
+      new BigInteger(versionMatcher.group(2));
+    final var newPatch =
+      new BigInteger(versionMatcher.group(3));
+
+    final var qualRaw = versionMatcher.group(4);
+    final Optional<String> newQualifier;
+    if (qualRaw != null) {
+      newQualifier = Optional.of(
+        LEADING_HYPHEN.matcher(qualRaw)
+          .replaceFirst("")
+      );
+    } else {
+      newQualifier = Optional.empty();
+    }
+
+    return new EIProductVersion(newMajor, newMinor, newPatch, newQualifier);
   }
 }

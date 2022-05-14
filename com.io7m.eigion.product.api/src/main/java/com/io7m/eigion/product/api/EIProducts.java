@@ -16,48 +16,25 @@
 
 package com.io7m.eigion.product.api;
 
+import java.util.List;
 import java.util.Objects;
-import java.util.regex.Pattern;
 
 /**
- * A product category.
+ * A list of products.
  *
- * @param value The category name
+ * @param products The products
  */
 
-public record EIProductCategory(String value)
+public record EIProducts(List<EIProduct> products)
 {
-  private static final Pattern VALID_CATEGORY =
-    Pattern.compile("\\p{Upper}[\\p{Alpha}\\p{Digit} ]{0,64}");
-
   /**
-   * A product category.
+   * A list of products.
    *
-   * @param value The category name
+   * @param products The products
    */
 
-  public EIProductCategory
+  public EIProducts
   {
-    Objects.requireNonNull(value, "value");
-
-    final var matcher = VALID_CATEGORY.matcher(value);
-    if (!matcher.matches()) {
-      throw new IllegalArgumentException(
-        String.format("Category '%s' must match %s", value, VALID_CATEGORY));
-    }
-  }
-
-  /**
-   * Create a category.
-   *
-   * @param text The category name
-   *
-   * @return A category
-   */
-
-  public static EIProductCategory category(
-    final String text)
-  {
-    return new EIProductCategory(text);
+    Objects.requireNonNull(products, "products");
   }
 }

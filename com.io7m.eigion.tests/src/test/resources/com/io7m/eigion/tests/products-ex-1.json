@@ -1,0 +1,17 @@
+{
+  "%id": "https://www.io7m.com/eigion/products-1.json",
+  "items": [
+    {
+      "id": {
+        "group": "com.io7m.eigion",
+        "name": "com.io7m.eigion.api",
+        "version": "1.0.0-SNAPSHOT"
+      },
+      "categories": [
+        "Category 0",
+        "Category 1",
+        "Category 2"
+      ]
+    }
+  ]
+}

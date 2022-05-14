@@ -24,14 +24,14 @@ import static java.util.regex.Pattern.UNICODE_CHARACTER_CLASS;
 /**
  * A product identifier.
  *
- * @param artifactName The artifact name
- * @param groupName    The group name
- * @param version      The version
+ * @param name    The artifact name
+ * @param group   The group name
+ * @param version The version
  */
 
 public record EIProductIdentifier(
-  String groupName,
-  String artifactName,
+  String group,
+  String name,
   EIProductVersion version)
 {
   /**
@@ -56,26 +56,26 @@ public record EIProductIdentifier(
   /**
    * A product identifier.
    *
-   * @param artifactName The artifact name
-   * @param groupName    The group name
-   * @param version      The version
+   * @param name    The artifact name
+   * @param group   The group name
+   * @param version The version
    */
 
   public EIProductIdentifier
   {
-    Objects.requireNonNull(groupName, "groupName");
-    Objects.requireNonNull(artifactName, "artifactName");
+    Objects.requireNonNull(group, "groupName");
+    Objects.requireNonNull(name, "artifactName");
     Objects.requireNonNull(version, "version");
 
-    if (!VALID_GROUP_NAME.matcher(groupName).matches()) {
+    if (!VALID_GROUP_NAME.matcher(group).matches()) {
       throw new IllegalArgumentException(
         String.format(
-          "Group name '%s' must match %s", groupName, VALID_GROUP_NAME));
+          "Group name '%s' must match %s", group, VALID_GROUP_NAME));
     }
-    if (!VALID_ARTIFACT_NAME.matcher(groupName).matches()) {
+    if (!VALID_ARTIFACT_NAME.matcher(group).matches()) {
       throw new IllegalArgumentException(
         String.format(
-          "Artifact name '%s' must match %s", groupName, VALID_ARTIFACT_NAME));
+          "Artifact name '%s' must match %s", group, VALID_ARTIFACT_NAME));
     }
   }
 

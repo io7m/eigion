@@ -38,6 +38,8 @@
     <module>com.io7m.eigion.services.api</module>
     <module>com.io7m.eigion.taskrecorder</module>
     <module>com.io7m.eigion.tests</module>
+    <module>com.io7m.eigion.product.parser.api</module>
+    <module>com.io7m.eigion.product.parser</module>
   </modules>
 
   <properties>
@@ -49,6 +51,7 @@
     <jetty.version>11.0.9</jetty.version>
     <jooq.version>3.16.6</jooq.version>
     <org.apache.derby.version>10.15.2.0</org.apache.derby.version>
+    <com.io7m.anethum.version>0.0.2</com.io7m.anethum.version>
   </properties>
 
   <licenses>
@@ -325,7 +328,22 @@
       <dependency>
         <groupId>com.io7m.anethum</groupId>
         <artifactId>com.io7m.anethum.common</artifactId>
-        <version>0.0.2</version>
+        <version>${com.io7m.anethum.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.io7m.anethum</groupId>
+        <artifactId>com.io7m.anethum.api</artifactId>
+        <version>${com.io7m.anethum.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.mockito</groupId>
+        <artifactId>mockito-core</artifactId>
+        <version>4.4.0</version>
+      </dependency>
+      <dependency>
+        <groupId>com.io7m.jlexing</groupId>
+        <artifactId>com.io7m.jlexing.core</artifactId>
+        <version>3.0.0</version>
       </dependency>
     </dependencies>
   </dependencyManagement>
