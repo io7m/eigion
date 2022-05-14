@@ -7,7 +7,9 @@
         "name": "com.io7m.eigion.api",
         "version": "1.0.0"
       },
-      "categories": ["_"]
+      "categories": ["_"],
+      "bundle-dependencies": [],
+      "product-dependencies": []
     }
   ]
 }

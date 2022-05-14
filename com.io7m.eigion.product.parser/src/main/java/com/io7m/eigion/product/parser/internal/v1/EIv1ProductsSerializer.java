@@ -23,6 +23,8 @@ import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.io7m.anethum.common.SerializeException;
 import com.io7m.eigion.product.api.EIProduct;
 import com.io7m.eigion.product.api.EIProductCategory;
+import com.io7m.eigion.product.api.EIProductDependency;
+import com.io7m.eigion.product.api.EIProductHash;
 import com.io7m.eigion.product.api.EIProductIdentifier;
 import com.io7m.eigion.product.api.EIProductVersion;
 import com.io7m.eigion.product.api.EIProducts;
@@ -73,8 +75,26 @@ public final class EIv1ProductsSerializer implements EIProductsSerializerType
   {
     return new EIv1Product(
       convertProductId(product.id()),
+      convertDependencies(product.productDependencies()),
+      convertDependencies(product.bundleDependencies()),
       convertCategories(product.categories())
     );
+  }
+
+  private static List<EIv1ProductDependency> convertDependencies(
+    final List<EIProductDependency> productDependencies)
+  {
+    return productDependencies.stream()
+      .map(k -> new EIv1ProductDependency(
+        convertProductId(k.identifier()),
+        convertHash(k.hash())
+      )).toList();
+  }
+
+  private static EIv1ProductHash convertHash(
+    final EIProductHash hash)
+  {
+    return new EIv1ProductHash(hash.algorithm(), hash.hash());
   }
 
   private static List<String> convertCategories(
@@ -119,9 +139,7 @@ public final class EIv1ProductsSerializer implements EIProductsSerializerType
           .map(EIv1ProductsSerializer::convertProduct)
           .toList();
 
-      final var v1Products =
-        new EIv1Products(v1ProductList);
-
+      final var v1Products = new EIv1Products(v1ProductList);
       this.mapper.writeValue(this.stream, v1Products);
     } catch (final IOException e) {
       throw new SerializeException(e.getMessage(), e);

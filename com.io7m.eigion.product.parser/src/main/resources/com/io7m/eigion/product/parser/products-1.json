@@ -34,16 +34,63 @@
           "items": {
             "$ref": "#/$defs/category"
           }
+        },
+        "product-dependencies": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/dependency"
+          }
+        },
+        "bundle-dependencies": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/dependency"
+          }
         }
       },
       "required": [
         "id",
-        "categories"
+        "categories",
+        "product-dependencies",
+        "bundle-dependencies"
       ]
     },
     "category": {
       "type": "string",
       "pattern": "[A-Z][a-zA-Z0-9 ]{0,64}"
+    },
+    "hash": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "algorithm": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string",
+          "pattern": "[A-F0-9]{1,256}"
+        }
+      },
+      "required": [
+        "algorithm",
+        "value"
+      ]
+    },
+    "dependency": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/product-id"
+        },
+        "hash": {
+          "$ref": "#/$defs/hash"
+        }
+      },
+      "required": [
+        "id",
+        "hash"
+      ]
     },
     "product-id": {
       "type": "object",

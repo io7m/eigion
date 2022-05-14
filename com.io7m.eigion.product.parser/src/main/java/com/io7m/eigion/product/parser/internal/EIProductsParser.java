@@ -27,6 +27,8 @@ import com.io7m.eigion.product.api.EIProduct;
 import com.io7m.eigion.product.api.EIProducts;
 import com.io7m.eigion.product.parser.api.EIProductsParserType;
 import com.io7m.eigion.product.parser.internal.v1.EIv1Product;
+import com.io7m.eigion.product.parser.internal.v1.EIv1ProductDependency;
+import com.io7m.eigion.product.parser.internal.v1.EIv1ProductHash;
 import com.io7m.eigion.product.parser.internal.v1.EIv1ProductId;
 import com.io7m.eigion.product.parser.internal.v1.EIv1Products;
 import com.io7m.jlexing.core.LexicalPosition;
@@ -78,13 +80,17 @@ public final class EIProductsParser implements EIProductsParserType
     this.serializers =
       DmJsonRestrictedDeserializers.builder()
         .allowClass(EIv1Product.class)
+        .allowClass(EIv1ProductDependency.class)
+        .allowClass(EIv1ProductHash.class)
         .allowClass(EIv1ProductId.class)
         .allowClass(EIv1Products.class)
         .allowClass(EIvNProductsType.class)
         .allowClass(String.class)
-        .allowClassName("java.util.List<java.lang.String>")
+        .allowClassName(
+          "java.util.List<com.io7m.eigion.product.parser.internal.v1.EIv1ProductDependency>")
         .allowClassName(
           "java.util.List<com.io7m.eigion.product.parser.internal.v1.EIv1Product>")
+        .allowClassName("java.util.List<java.lang.String>")
         .build();
 
     this.mapper =

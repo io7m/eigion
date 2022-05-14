@@ -20,11 +20,8 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.io7m.anethum.common.ParseSeverity;
 import com.io7m.anethum.common.ParseStatus;
-import com.io7m.eigion.product.api.EIProductIdentifier;
-import com.io7m.eigion.product.api.EIProductVersion;
-import com.io7m.jlexing.core.LexicalPositions;
+import com.io7m.eigion.product.api.EIProductDependency;
 
 import java.net.URI;
 import java.util.Objects;
@@ -39,51 +36,38 @@ import java.util.function.Consumer;
 
 @JsonSerialize
 @JsonDeserialize
-public final class EIv1ProductId
-  implements EIv1FromV1Type<EIProductIdentifier>
+public final class EIv1ProductDependency
+  implements EIv1FromV1Type<EIProductDependency>
 {
-  @JsonProperty(value = "name", required = true)
-  public final String name;
-  @JsonProperty(value = "group", required = true)
-  public final String group;
-  @JsonProperty(value = "version", required = true)
-  public final String version;
+  @JsonProperty(value = "id", required = true)
+  public final EIv1ProductId id;
+  @JsonProperty(value = "hash", required = true)
+  public final EIv1ProductHash hash;
 
   @JsonCreator
-  public EIv1ProductId(
-    @JsonProperty(value = "name", required = true) final String name,
-    @JsonProperty(value = "group", required = true) final String group,
-    @JsonProperty(value = "version", required = true) final String version)
+  public EIv1ProductDependency(
+    @JsonProperty(value = "id", required = true) final EIv1ProductId inId,
+    @JsonProperty(value = "hash", required = true) final EIv1ProductHash inHash)
   {
-    this.name =
-      Objects.requireNonNull(name, "name");
-    this.group =
-      Objects.requireNonNull(group, "group");
-    this.version =
-      Objects.requireNonNull(version, "version");
+    this.id =
+      Objects.requireNonNull(inId, "id");
+    this.hash =
+      Objects.requireNonNull(inHash, "hash");
   }
 
   @Override
-  public Optional<EIProductIdentifier> toProduct(
+  public Optional<EIProductDependency> toProduct(
     final URI source,
     final Consumer<ParseStatus> errorConsumer)
   {
-    try {
-      return Optional.of(new EIProductIdentifier(
-        this.group,
-        this.name,
-        EIProductVersion.parse(this.version)
-      ));
-    } catch (final Exception e) {
-      errorConsumer.accept(
-        ParseStatus.builder()
-          .setSeverity(ParseSeverity.PARSE_ERROR)
-          .setErrorCode("invalid-identifier")
-          .setLexical(LexicalPositions.zeroWithFile(source))
-          .setMessage(e.getMessage())
-          .build()
-      );
-      return Optional.empty();
+    final var pId =
+      this.id.toProduct(source, errorConsumer);
+    final var pHash =
+      this.hash.toProduct(source, errorConsumer);
+
+    if (pId.isPresent() && pHash.isPresent()) {
+      return Optional.of(new EIProductDependency(pId.get(), pHash.get()));
     }
+    return Optional.empty();
   }
 }

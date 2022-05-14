@@ -11,6 +11,32 @@
         "Category 0",
         "Category 1",
         "Category 2"
+      ],
+      "bundle-dependencies": [
+        {
+          "id": {
+            "group": "com.io7m.ex",
+            "name": "com.io7m.ex",
+            "version": "1.0.0"
+          },
+          "hash": {
+            "algorithm": "SHA-256",
+            "hash": "5891B5B522D5DF086D0FF0B110FBD9D21BB4FC7163AF34D08286A2E846F6BE03"
+          }
+        }
+      ],
+      "product-dependencies": [
+        {
+          "id": {
+            "group": "com.io7m.zed",
+            "name": "com.io7m.zed",
+            "version": "2.0.0"
+          },
+          "hash": {
+            "algorithm": "SHA-256",
+            "hash": "167112362ADB3B2041C11F7337437872F9D821E57E8C3EDD68D87A1D0BABD0F5"
+          }
+        }
       ]
     }
   ]

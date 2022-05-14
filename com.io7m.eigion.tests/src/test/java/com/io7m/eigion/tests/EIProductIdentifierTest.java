@@ -17,15 +17,21 @@
 
 package com.io7m.eigion.tests;
 
+import com.io7m.eigion.product.api.EIProduct;
+import com.io7m.eigion.product.api.EIProductIdentifier;
+import com.io7m.eigion.product.api.EIProductVersion;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
 
+import java.util.Optional;
 import java.util.stream.Stream;
 
 import static com.io7m.eigion.product.api.EIProductIdentifier.VALID_ARTIFACT_NAME;
 import static com.io7m.eigion.product.api.EIProductIdentifier.VALID_GROUP_NAME;
 import static com.io7m.eigion.product.api.EIProductVersion.VALID_VERSION;
+import static java.math.BigInteger.ONE;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public final class EIProductIdentifierTest
@@ -75,6 +81,13 @@ public final class EIProductIdentifierTest
       () -> {
         final var matcher = VALID_GROUP_NAME.matcher(text);
         assertFalse(matcher.matches());
+
+        assertThrows(IllegalArgumentException.class, () -> {
+          new EIProductIdentifier(
+            text,
+            "x",
+            new EIProductVersion(ONE, ONE, ONE, Optional.empty()));
+        });
       });
   }
 
@@ -123,6 +136,13 @@ public final class EIProductIdentifierTest
       () -> {
         final var matcher = VALID_ARTIFACT_NAME.matcher(text);
         assertFalse(matcher.matches());
+
+        assertThrows(IllegalArgumentException.class, () -> {
+          new EIProductIdentifier(
+            "x",
+            text,
+            new EIProductVersion(ONE, ONE, ONE, Optional.empty()));
+        });
       });
   }
 
@@ -166,6 +186,10 @@ public final class EIProductIdentifierTest
       () -> {
         final var matcher = VALID_VERSION.matcher(text);
         assertFalse(matcher.matches());
+
+        assertThrows(IllegalArgumentException.class, () -> {
+          EIProductVersion.parse(text);
+        });
       });
   }
 }

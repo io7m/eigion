@@ -22,8 +22,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.io7m.anethum.common.ParseSeverity;
 import com.io7m.anethum.common.ParseStatus;
-import com.io7m.eigion.product.api.EIProductIdentifier;
-import com.io7m.eigion.product.api.EIProductVersion;
+import com.io7m.eigion.product.api.EIProductHash;
 import com.io7m.jlexing.core.LexicalPositions;
 
 import java.net.URI;
@@ -39,46 +38,40 @@ import java.util.function.Consumer;
 
 @JsonSerialize
 @JsonDeserialize
-public final class EIv1ProductId
-  implements EIv1FromV1Type<EIProductIdentifier>
+public final class EIv1ProductHash
+  implements EIv1FromV1Type<EIProductHash>
 {
-  @JsonProperty(value = "name", required = true)
-  public final String name;
-  @JsonProperty(value = "group", required = true)
-  public final String group;
-  @JsonProperty(value = "version", required = true)
-  public final String version;
+  @JsonProperty(value = "algorithm", required = true)
+  public final String algorithm;
+  @JsonProperty(value = "hash", required = true)
+  public final String hash;
 
   @JsonCreator
-  public EIv1ProductId(
-    @JsonProperty(value = "name", required = true) final String name,
-    @JsonProperty(value = "group", required = true) final String group,
-    @JsonProperty(value = "version", required = true) final String version)
+  public EIv1ProductHash(
+    @JsonProperty(value = "algorithm", required = true) final String inAlgorithm,
+    @JsonProperty(value = "hash", required = true) final String inHash)
   {
-    this.name =
-      Objects.requireNonNull(name, "name");
-    this.group =
-      Objects.requireNonNull(group, "group");
-    this.version =
-      Objects.requireNonNull(version, "version");
+    this.algorithm =
+      Objects.requireNonNull(inAlgorithm, "algorithm");
+    this.hash =
+      Objects.requireNonNull(inHash, "hash");
   }
 
   @Override
-  public Optional<EIProductIdentifier> toProduct(
+  public Optional<EIProductHash> toProduct(
     final URI source,
     final Consumer<ParseStatus> errorConsumer)
   {
     try {
-      return Optional.of(new EIProductIdentifier(
-        this.group,
-        this.name,
-        EIProductVersion.parse(this.version)
+      return Optional.of(new EIProductHash(
+        this.algorithm,
+        this.hash
       ));
-    } catch (final Exception e) {
+    } catch (final IllegalArgumentException e) {
       errorConsumer.accept(
         ParseStatus.builder()
           .setSeverity(ParseSeverity.PARSE_ERROR)
-          .setErrorCode("invalid-identifier")
+          .setErrorCode("invalid-hash")
           .setLexical(LexicalPositions.zeroWithFile(source))
           .setMessage(e.getMessage())
           .build()

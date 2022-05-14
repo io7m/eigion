@@ -72,7 +72,7 @@ public record EIProductIdentifier(
         String.format(
           "Group name '%s' must match %s", group, VALID_GROUP_NAME));
     }
-    if (!VALID_ARTIFACT_NAME.matcher(group).matches()) {
+    if (!VALID_ARTIFACT_NAME.matcher(name).matches()) {
       throw new IllegalArgumentException(
         String.format(
           "Artifact name '%s' must match %s", group, VALID_ARTIFACT_NAME));
