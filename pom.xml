@@ -22,9 +22,9 @@
 
   <modules>
     <module>com.io7m.eigion.client.api</module>
+    <module>com.io7m.eigion.client.database.api</module>
+    <module>com.io7m.eigion.client.database</module>
     <module>com.io7m.eigion.client.vanilla</module>
-    <module>com.io7m.eigion.database.api</module>
-    <module>com.io7m.eigion.database</module>
     <module>com.io7m.eigion.distribution.example</module>
     <module>com.io7m.eigion.gui.icons.vanilla</module>
     <module>com.io7m.eigion.gui.icons</module>

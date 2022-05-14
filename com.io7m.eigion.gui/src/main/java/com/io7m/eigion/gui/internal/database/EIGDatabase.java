@@ -17,9 +17,9 @@
 
 package com.io7m.eigion.gui.internal.database;
 
-import com.io7m.eigion.database.EIDatabases;
-import com.io7m.eigion.database.api.EIDatabaseConfiguration;
-import com.io7m.eigion.database.api.EIDatabaseType;
+import com.io7m.eigion.client.database.EIDatabases;
+import com.io7m.eigion.client.database.api.EIDatabaseConfiguration;
+import com.io7m.eigion.client.database.api.EIDatabaseType;
 import com.io7m.eigion.gui.EIGConfiguration;
 import com.io7m.eigion.services.api.EIServiceType;
 
@@ -27,8 +27,8 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.Objects;
 
-import static com.io7m.eigion.database.api.EIDatabaseCreate.CREATE_DATABASE;
-import static com.io7m.eigion.database.api.EIDatabaseUpgrade.UPGRADE_DATABASE;
+import static com.io7m.eigion.client.database.api.EIDatabaseCreate.CREATE_DATABASE;
+import static com.io7m.eigion.client.database.api.EIDatabaseUpgrade.UPGRADE_DATABASE;
 
 /**
  * The database service.

@@ -51,12 +51,12 @@
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
-      <artifactId>com.io7m.eigion.database</artifactId>
+      <artifactId>com.io7m.eigion.client.database</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
-      <artifactId>com.io7m.eigion.database.api</artifactId>
+      <artifactId>com.io7m.eigion.client.database.api</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
