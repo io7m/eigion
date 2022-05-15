@@ -16,6 +16,7 @@
 
 package com.io7m.eigion.server.database.api;
 
+import java.time.Clock;
 import java.util.Objects;
 
 /**
@@ -28,6 +29,7 @@ import java.util.Objects;
  * @param create       The creation specification
  * @param address      The database address
  * @param databaseName The database name
+ * @param clock        A clock for time retrievals
  */
 
 public record EIServerDatabaseConfiguration(
@@ -37,7 +39,8 @@ public record EIServerDatabaseConfiguration(
   int port,
   String databaseName,
   EIServerDatabaseCreate create,
-  EIServerDatabaseUpgrade upgrade)
+  EIServerDatabaseUpgrade upgrade,
+  Clock clock)
 {
   /**
    * The server database configuration.
@@ -49,6 +52,7 @@ public record EIServerDatabaseConfiguration(
    * @param create       The creation specification
    * @param address      The database address
    * @param databaseName The database name
+   * @param clock        A clock for time retrievals
    */
 
   public EIServerDatabaseConfiguration
@@ -59,5 +63,6 @@ public record EIServerDatabaseConfiguration(
     Objects.requireNonNull(databaseName, "databaseName");
     Objects.requireNonNull(create, "create");
     Objects.requireNonNull(upgrade, "upgrade");
+    Objects.requireNonNull(clock, "clock");
   }
 }

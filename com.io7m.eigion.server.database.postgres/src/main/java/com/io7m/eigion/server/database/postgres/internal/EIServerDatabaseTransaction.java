@@ -25,6 +25,7 @@ import org.jooq.DSLContext;
 import org.jooq.impl.DSL;
 
 import java.sql.SQLException;
+import java.time.Clock;
 import java.util.Objects;
 
 import static org.jooq.SQLDialect.POSTGRES;
@@ -57,6 +58,11 @@ record EIServerDatabaseTransaction(
     final var settings =
       trConnection.settings();
     return DSL.using(sqlConnection, POSTGRES, settings);
+  }
+
+  public Clock clock()
+  {
+    return this.connection.clock();
   }
 
   @Override

@@ -14,31 +14,33 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-package com.io7m.eigion.server.database.postgres.internal;
+package com.io7m.eigion.server.api;
 
-import com.io7m.eigion.server.database.api.EIServerDatabaseConnectionType;
-import com.io7m.eigion.server.database.api.EIServerDatabaseTransactionType;
-import org.jooq.conf.Settings;
+import java.time.OffsetDateTime;
+import java.util.Objects;
+import java.util.Optional;
 
-import java.sql.Connection;
-import java.time.Clock;
+/**
+ * The reason a user is banned.
+ *
+ * @param expires The expiration date of the ban, if any
+ * @param reason  The ban reason
+ */
 
-record EIServerDatabaseConnection(
-  Clock clock,
-  Connection connection,
-  Settings settings)
-  implements EIServerDatabaseConnectionType
+public record EIUserBan(
+  Optional<OffsetDateTime> expires,
+  String reason)
 {
-  @Override
-  public EIServerDatabaseTransactionType openTransaction()
-  {
-    return new EIServerDatabaseTransaction(this);
-  }
+  /**
+   * The reason a user is banned.
+   *
+   * @param expires The expiration date of the ban, if any
+   * @param reason  The ban reason
+   */
 
-  @Override
-  public void close()
-    throws Exception
+  public EIUserBan
   {
-    this.connection.close();
+    Objects.requireNonNull(expires, "expires");
+    Objects.requireNonNull(reason, "reason");
   }
 }

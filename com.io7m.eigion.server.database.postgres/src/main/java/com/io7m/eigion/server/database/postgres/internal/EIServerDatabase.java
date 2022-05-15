@@ -25,6 +25,7 @@ import org.jooq.conf.RenderNameCase;
 import org.jooq.conf.Settings;
 
 import java.sql.SQLException;
+import java.time.Clock;
 import java.util.Objects;
 
 /**
@@ -33,18 +34,23 @@ import java.util.Objects;
 
 public final class EIServerDatabase implements EIServerDatabaseType
 {
+  private final Clock clock;
   private final HikariDataSource dataSource;
   private final Settings settings;
 
   /**
    * The default postgres server database implementation.
    *
+   * @param inClock The clock
    * @param inDataSource A pooled data source
    */
 
   public EIServerDatabase(
+    final Clock inClock,
     final HikariDataSource inDataSource)
   {
+    this.clock =
+      Objects.requireNonNull(inClock, "clock");
     this.dataSource =
       Objects.requireNonNull(inDataSource, "dataSource");
     this.settings =
@@ -77,7 +83,7 @@ public final class EIServerDatabase implements EIServerDatabaseType
         }
       }
 
-      return new EIServerDatabaseConnection(conn, this.settings);
+      return new EIServerDatabaseConnection(this.clock, conn, this.settings);
     } catch (final SQLException e) {
       throw new EIServerDatabaseException(e.getMessage(), e, "sql-error");
     }

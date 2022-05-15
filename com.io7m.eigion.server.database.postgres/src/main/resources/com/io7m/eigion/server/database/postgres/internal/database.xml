@@ -57,11 +57,99 @@ create table users (
   last_login     timestamp with time zone not null,
   password_algo  varchar(64)              not null,
   password_hash  varchar(256)             not null,
-  password_salt  varchar(64)              not null,
-  locked         boolean                  not null
+  password_salt  varchar(64)              not null
 )
 ]]></Statement>
 
     <Statement>grant select, insert, update on users to eigion</Statement>
+
+    <Comment>
+      The user_bans table stores the set of users that might be banned for any reason.
+    </Comment>
+
+    <Statement><![CDATA[
+create table user_bans (
+  id       bigint                    not null primary key generated always as identity,
+  user_id  uuid                      not null unique,
+  expires  timestamp with time zone,
+  reason   varchar(256)              not null,
+
+  foreign key (user_id) references users (id)
+)
+]]></Statement>
+
+    <Statement>grant select, insert, update, delete on user_bans to eigion</Statement>
   </Schema>
+
+  <Schema versionCurrent="2">
+    <Comment>
+      The categories table holds the set of categories that can be applied to products.
+    </Comment>
+
+    <Statement><![CDATA[
+create table categories (
+  id       bigint       not null primary key generated always as identity,
+  name     varchar(64)  not null unique,
+  redacted boolean      not null
+)
+]]></Statement>
+
+    <Statement>grant select, insert, update on categories to eigion</Statement>
+
+    <Comment>
+      The products table holds product definitions.
+    </Comment>
+
+    <Statement><![CDATA[
+create table products (
+  id             bigint        not null primary key generated always as identity,
+  product_group  varchar(1024) not null,
+  product_name   varchar(1024) not null,
+
+  unique (product_group, product_name)
+)
+]]></Statement>
+
+    <Statement>grant select, insert on products to eigion</Statement>
+
+    <Comment>
+      The product_releases table holds product releases.
+    </Comment>
+
+    <Statement><![CDATA[
+create table product_releases (
+  id                  bigint       not null primary key generated always as identity,
+  product_id          bigint       not null,
+  version_major       bigint       not null,
+  version_minor       bigint       not null,
+  version_patch       bigint       not null,
+  version_qualifier   varchar(64),
+  manifest            bytea        not null,
+  manifest_type       varchar(256) not null,
+
+  unique (product_id, version_major, version_minor, version_patch, version_qualifier),
+  foreign key (product_id) references products (id)
+)
+]]></Statement>
+
+    <Statement>grant select, insert on product_releases to eigion</Statement>
+
+    <Comment>
+      The product_categories table associates products with categories.
+    </Comment>
+
+    <Statement><![CDATA[
+create table product_categories (
+  category_id      bigint not null,
+  category_product bigint not null,
+
+  primary key (category_id, category_product),
+  foreign key (category_id)      references categories (id),
+  foreign key (category_product) references products (id)
+)
+]]></Statement>
+
+    <Statement>grant select, insert, delete on product_categories to eigion</Statement>
+  </Schema>
+
 </Schemas>

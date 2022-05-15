@@ -183,7 +183,7 @@ public final class EIServerDatabases implements EIServerDatabaseFactoryType
         connection.commit();
       }
 
-      return new EIServerDatabase(dataSource);
+      return new EIServerDatabase(configuration.clock(), dataSource);
     } catch (final IOException e) {
       throw new EIServerDatabaseException(e.getMessage(), e, "resource");
     } catch (final TrException e) {

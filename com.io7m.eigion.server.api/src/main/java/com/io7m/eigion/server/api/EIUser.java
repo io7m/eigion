@@ -18,6 +18,7 @@ package com.io7m.eigion.server.api;
 
 import java.time.OffsetDateTime;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -29,7 +30,7 @@ import java.util.UUID;
  * @param password  The user's password
  * @param created   The date the user was created
  * @param lastLogin The date the user last logged in
- * @param locked    {@code true} if the user is prevented from logging in
+ * @param ban       The user's ban, if one exists
  */
 
 public record EIUser(
@@ -39,7 +40,7 @@ public record EIUser(
   OffsetDateTime created,
   OffsetDateTime lastLogin,
   EIPassword password,
-  boolean locked)
+  Optional<EIUserBan> ban)
 {
   /**
    * Information for a single user.
@@ -50,7 +51,7 @@ public record EIUser(
    * @param password  The user's password
    * @param created   The date the user was created
    * @param lastLogin The date the user last logged in
-   * @param locked    {@code true} if the user is prevented from logging in
+   * @param ban       The user's ban, if one exists
    */
 
   public EIUser
@@ -61,5 +62,6 @@ public record EIUser(
     Objects.requireNonNull(created, "created");
     Objects.requireNonNull(lastLogin, "lastLogin");
     Objects.requireNonNull(password, "password");
+    Objects.requireNonNull(ban, "ban");
   }
 }

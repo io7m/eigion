@@ -19,9 +19,13 @@ package com.io7m.eigion.server.database.postgres.internal;
 
 import com.io7m.eigion.server.api.EIPassword;
 import com.io7m.eigion.server.api.EIUser;
+import com.io7m.eigion.server.api.EIUserBan;
 import com.io7m.eigion.server.database.api.EIServerDatabaseException;
 import com.io7m.eigion.server.database.api.EIServerDatabaseUsersQueriesType;
+import com.io7m.eigion.server.database.postgres.internal.tables.records.UserBansRecord;
 import com.io7m.eigion.server.database.postgres.internal.tables.records.UsersRecord;
+import org.jooq.DSLContext;
+import org.jooq.exception.DataAccessException;
 
 import java.time.OffsetDateTime;
 import java.util.Locale;
@@ -29,6 +33,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
+import static com.io7m.eigion.server.database.postgres.internal.Tables.USER_BANS;
 import static com.io7m.eigion.server.database.postgres.internal.tables.Audit.AUDIT;
 import static com.io7m.eigion.server.database.postgres.internal.tables.Users.USERS;
 
@@ -37,21 +42,44 @@ record EIServerDatabaseUsersQueries(
   implements EIServerDatabaseUsersQueriesType
 {
   private static EIUser userRecordToUser(
-    final UsersRecord rec)
+    final UsersRecord userRecord,
+    final Optional<UserBansRecord> banOpt)
   {
     return new EIUser(
-      rec.getId(),
-      rec.getName(),
-      rec.getEmail(),
-      rec.getCreated(),
-      rec.getLastLogin(),
+      userRecord.getId(),
+      userRecord.getName(),
+      userRecord.getEmail(),
+      userRecord.getCreated(),
+      userRecord.getLastLogin(),
       new EIPassword(
-        rec.getPasswordAlgo(),
-        rec.getPasswordHash().toUpperCase(Locale.ROOT),
-        rec.getPasswordSalt().toUpperCase(Locale.ROOT)
+        userRecord.getPasswordAlgo(),
+        userRecord.getPasswordHash().toUpperCase(Locale.ROOT),
+        userRecord.getPasswordSalt().toUpperCase(Locale.ROOT)
       ),
-      rec.getLocked().booleanValue()
+      banOpt.map(userBansRecord -> {
+        return new EIUserBan(
+          Optional.ofNullable(userBansRecord.getExpires()),
+          userBansRecord.getReason()
+        );
+      })
     );
+  }
+
+  private static Optional<EIUser> userMap(
+    final DSLContext context,
+    final Optional<UsersRecord> recordOpt)
+  {
+    if (recordOpt.isPresent()) {
+      final var userRecord =
+        recordOpt.get();
+      final var banOpt =
+        context.fetchOptional(
+          USER_BANS,
+          USER_BANS.USER_ID.eq(userRecord.getId()));
+      return Optional.of(userRecordToUser(userRecord, banOpt));
+    }
+
+    return Optional.empty();
   }
 
   @Override
@@ -106,60 +134,146 @@ record EIServerDatabaseUsersQueries(
       }
     }
 
-    final var insert =
-      context.insertInto(USERS)
-        .set(USERS.ID, id)
-        .set(USERS.NAME, userName)
-        .set(USERS.EMAIL, email)
-        .set(USERS.CREATED, created)
-        .set(USERS.LAST_LOGIN, created)
-        .set(USERS.PASSWORD_ALGO, password.algorithm())
-        .set(USERS.PASSWORD_HASH, password.hash())
-        .set(USERS.PASSWORD_SALT, password.salt())
-        .set(USERS.LOCKED, Boolean.FALSE);
+    try {
+      final var insert =
+        context.insertInto(USERS)
+          .set(USERS.ID, id)
+          .set(USERS.NAME, userName)
+          .set(USERS.EMAIL, email)
+          .set(USERS.CREATED, created)
+          .set(USERS.LAST_LOGIN, created)
+          .set(USERS.PASSWORD_ALGO, password.algorithm())
+          .set(USERS.PASSWORD_HASH, password.hash())
+          .set(USERS.PASSWORD_SALT, password.salt());
 
-    insert.execute();
+      insert.execute();
 
-    final var audit =
-      context.insertInto(AUDIT)
-        .set(AUDIT.TIME, created)
-        .set(AUDIT.TYPE, "USER_CREATED")
-        .set(AUDIT.MESSAGE, id.toString());
+      final var audit =
+        context.insertInto(AUDIT)
+          .set(AUDIT.TIME, OffsetDateTime.now(this.transaction.clock()))
+          .set(AUDIT.TYPE, "USER_CREATED")
+          .set(AUDIT.MESSAGE, id.toString());
 
-    audit.execute();
-    return this.userGet(id).orElseThrow();
+      audit.execute();
+      return this.userGet(id).orElseThrow();
+    } catch (final DataAccessException e) {
+      throw new EIServerDatabaseException(e.getMessage(), e, "sql-error");
+    }
   }
 
   @Override
   public Optional<EIUser> userGet(
     final UUID id)
+    throws EIServerDatabaseException
   {
     Objects.requireNonNull(id, "id");
 
     final var context = this.transaction.createContext();
-    return context.fetchOptional(USERS, USERS.ID.eq(id))
-      .map(EIServerDatabaseUsersQueries::userRecordToUser);
+    try {
+      return userMap(context, context.fetchOptional(USERS, USERS.ID.eq(id)));
+    } catch (final DataAccessException e) {
+      throw new EIServerDatabaseException(e.getMessage(), e, "sql-error");
+    }
   }
 
   @Override
   public Optional<EIUser> userGetForName(
     final String name)
+    throws EIServerDatabaseException
   {
     Objects.requireNonNull(name, "name");
 
     final var context = this.transaction.createContext();
-    return context.fetchOptional(USERS, USERS.NAME.eq(name))
-      .map(EIServerDatabaseUsersQueries::userRecordToUser);
+    try {
+      return userMap(
+        context,
+        context.fetchOptional(USERS, USERS.NAME.eq(name)));
+    } catch (final DataAccessException e) {
+      throw new EIServerDatabaseException(e.getMessage(), e, "sql-error");
+    }
   }
 
   @Override
   public Optional<EIUser> userGetForEmail(
     final String email)
+    throws EIServerDatabaseException
   {
     Objects.requireNonNull(email, "email");
 
     final var context = this.transaction.createContext();
-    return context.fetchOptional(USERS, USERS.EMAIL.eq(email))
-      .map(EIServerDatabaseUsersQueries::userRecordToUser);
+    try {
+      return userMap(
+        context,
+        context.fetchOptional(USERS, USERS.EMAIL.eq(email)));
+    } catch (final DataAccessException e) {
+      throw new EIServerDatabaseException(e.getMessage(), e, "sql-error");
+    }
+  }
+
+  @Override
+  public void userBan(
+    final UUID id,
+    final Optional<OffsetDateTime> expires,
+    final String reason)
+    throws EIServerDatabaseException
+  {
+    Objects.requireNonNull(id, "id");
+    Objects.requireNonNull(expires, "expires");
+    Objects.requireNonNull(reason, "reason");
+
+    final var context = this.transaction.createContext();
+
+    try {
+      final var existingBanOpt =
+        context.fetchOptional(USER_BANS, USER_BANS.USER_ID.eq(id));
+
+      if (existingBanOpt.isPresent()) {
+        final var existingBan = existingBanOpt.get();
+        existingBan.setExpires(expires.orElse(null));
+        existingBan.setReason(reason);
+        existingBan.update();
+      } else {
+        context.insertInto(USER_BANS)
+          .set(USER_BANS.USER_ID, id)
+          .set(USER_BANS.EXPIRES, expires.orElse(null))
+          .set(USER_BANS.REASON, reason)
+          .execute();
+      }
+
+      final var audit =
+        context.insertInto(AUDIT)
+          .set(AUDIT.TIME, OffsetDateTime.now(this.transaction.clock()))
+          .set(AUDIT.TYPE, "USER_BANNED")
+          .set(AUDIT.MESSAGE, id + ": " + reason);
+
+      audit.execute();
+    } catch (final DataAccessException e) {
+      throw new EIServerDatabaseException(e.getMessage(), e, "sql-error");
+    }
+  }
+
+  @Override
+  public void userUnban(final UUID id)
+    throws EIServerDatabaseException
+  {
+    Objects.requireNonNull(id, "id");
+
+    final var context = this.transaction.createContext();
+
+    try {
+      context.deleteFrom(USER_BANS)
+        .where(USER_BANS.USER_ID.eq(id))
+        .execute();
+
+      final var audit =
+        context.insertInto(AUDIT)
+          .set(AUDIT.TIME, OffsetDateTime.now(this.transaction.clock()))
+          .set(AUDIT.TYPE, "USER_UNBANNED")
+          .set(AUDIT.MESSAGE, id.toString());
+
+      audit.execute();
+    } catch (final DataAccessException e) {
+      throw new EIServerDatabaseException(e.getMessage(), e, "sql-error");
+    }
   }
 }

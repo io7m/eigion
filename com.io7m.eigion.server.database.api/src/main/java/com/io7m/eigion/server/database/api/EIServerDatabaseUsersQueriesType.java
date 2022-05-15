@@ -84,23 +84,60 @@ public non-sealed interface EIServerDatabaseUsersQueriesType
    * @param id The user ID
    *
    * @return A user with the given ID
+   *
+   * @throws EIServerDatabaseException On errors
    */
 
-  Optional<EIUser> userGet(UUID id);
+  Optional<EIUser> userGet(UUID id)
+    throws EIServerDatabaseException;
 
   /**
    * @param name The user name
    *
    * @return A user with the given name
+   *
+   * @throws EIServerDatabaseException On errors
    */
 
-  Optional<EIUser> userGetForName(String name);
+  Optional<EIUser> userGetForName(String name)
+    throws EIServerDatabaseException;
 
   /**
    * @param email The user email
    *
    * @return A user with the given email
+   *
+   * @throws EIServerDatabaseException On errors
    */
 
-  Optional<EIUser> userGetForEmail(String email);
+  Optional<EIUser> userGetForEmail(String email)
+    throws EIServerDatabaseException;
+
+  /**
+   * Ban the given user.
+   *
+   * @param id      The user ID
+   * @param expires The expiration date
+   * @param reason  The ban reason
+   *
+   * @throws EIServerDatabaseException On errors
+   */
+
+  void userBan(
+    UUID id,
+    Optional<OffsetDateTime> expires,
+    String reason)
+    throws EIServerDatabaseException;
+
+  /**
+   * Unban the given user.
+   *
+   * @param id The user ID
+   *
+   * @throws EIServerDatabaseException On errors
+   */
+
+  void userUnban(
+    UUID id)
+    throws EIServerDatabaseException;
 }

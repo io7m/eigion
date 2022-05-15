@@ -35,7 +35,9 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import java.time.Clock;
 import java.time.OffsetDateTime;
+import java.util.Optional;
 import java.util.UUID;
 
 import static com.io7m.eigion.server.database.api.EIServerDatabaseCreate.CREATE_DATABASE;
@@ -74,7 +76,8 @@ public final class EIServerDatabaseTest
           container.getFirstMappedPort(),
           "postgres",
           CREATE_DATABASE,
-          UPGRADE_DATABASE
+          UPGRADE_DATABASE,
+          Clock.systemUTC()
         )
       ));
   }
@@ -143,7 +146,7 @@ public final class EIServerDatabaseTest
     assertEquals("someone@example.com", user.email());
     assertEquals(now.toEpochSecond(), user.created().toEpochSecond());
     assertEquals(now.toEpochSecond(), user.lastLogin().toEpochSecond());
-    assertFalse(user.locked());
+    assertFalse(user.ban().isPresent());
 
     user = users.userGet(reqId).orElseThrow();
     assertEquals("someone", user.name());
@@ -151,7 +154,7 @@ public final class EIServerDatabaseTest
     assertEquals("someone@example.com", user.email());
     assertEquals(now.toEpochSecond(), user.created().toEpochSecond());
     assertEquals(now.toEpochSecond(), user.lastLogin().toEpochSecond());
-    assertFalse(user.locked());
+    assertFalse(user.ban().isPresent());
 
     user = users.userGetForEmail("someone@example.com").orElseThrow();
     assertEquals("someone", user.name());
@@ -159,7 +162,7 @@ public final class EIServerDatabaseTest
     assertEquals("someone@example.com", user.email());
     assertEquals(now.toEpochSecond(), user.created().toEpochSecond());
     assertEquals(now.toEpochSecond(), user.lastLogin().toEpochSecond());
-    assertFalse(user.locked());
+    assertFalse(user.ban().isPresent());
 
     user = users.userGetForName("someone").orElseThrow();
     assertEquals("someone", user.name());
@@ -167,7 +170,7 @@ public final class EIServerDatabaseTest
     assertEquals("someone@example.com", user.email());
     assertEquals(now.toEpochSecond(), user.created().toEpochSecond());
     assertEquals(now.toEpochSecond(), user.lastLogin().toEpochSecond());
-    assertFalse(user.locked());
+    assertFalse(user.ban().isPresent());
   }
 
   /**
@@ -312,5 +315,62 @@ public final class EIServerDatabaseTest
       });
 
     assertEquals("user-duplicate-name", ex.errorCode());
+  }
+
+  /**
+   * Banning a user works.
+   *
+   * @throws Exception On errors
+   */
+
+  @Test
+  public void testUserBan()
+    throws Exception
+  {
+    assertTrue(this.container.isRunning());
+
+    final var transaction =
+      this.transactionOf(this.container, EIGION);
+    final var users =
+      transaction.queries(EIServerDatabaseUsersQueriesType.class);
+
+    final var id =
+      UUID.randomUUID();
+    final var now =
+      OffsetDateTime.now();
+
+    final var password =
+      EIPassword.createHashed("12345678");
+
+    var user =
+      users.userCreate(
+        id,
+        "someone",
+        "someone@example.com",
+        now,
+        password
+      );
+
+    final var expires = OffsetDateTime.now().plusDays(1L);
+    users.userBan(id, Optional.of(expires), "Did something bad.");
+
+    user = users.userGet(id).orElseThrow();
+    assertEquals("Did something bad.", user.ban().orElseThrow().reason());
+    assertEquals(
+      expires.toEpochSecond(),
+      user.ban().orElseThrow().expires().orElseThrow().toEpochSecond()
+    );
+
+    users.userBan(id, Optional.of(expires), "Did something else bad.");
+    user = users.userGet(id).orElseThrow();
+    assertEquals("Did something else bad.", user.ban().orElseThrow().reason());
+    assertEquals(
+      expires.toEpochSecond(),
+      user.ban().orElseThrow().expires().orElseThrow().toEpochSecond()
+    );
+
+    users.userUnban(id);
+    user = users.userGet(id).orElseThrow();
+    assertEquals(Optional.empty(), user.ban());
   }
 }

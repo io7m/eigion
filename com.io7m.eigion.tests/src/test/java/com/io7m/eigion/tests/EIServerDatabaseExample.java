@@ -23,6 +23,7 @@ import com.io7m.eigion.server.database.postgres.EIServerDatabases;
 import com.io7m.jmulticlose.core.CloseableCollection;
 
 import java.security.SecureRandom;
+import java.time.Clock;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.util.UUID;
@@ -52,7 +53,8 @@ public final class EIServerDatabaseExample
         5432,
         "postgres",
         CREATE_DATABASE,
-        UPGRADE_DATABASE
+        UPGRADE_DATABASE,
+        Clock.systemUTC()
       );
 
     final var rng =
