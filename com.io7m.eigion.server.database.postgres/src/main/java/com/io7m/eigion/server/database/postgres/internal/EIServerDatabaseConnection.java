@@ -14,26 +14,29 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/**
- * Application runtime management (Product parser)
- */
+package com.io7m.eigion.server.database.postgres.internal;
 
-module com.io7m.eigion.product.parser
+import com.io7m.eigion.server.database.api.EIServerDatabaseConnectionType;
+import com.io7m.eigion.server.database.api.EIServerDatabaseTransactionType;
+import org.jooq.conf.Settings;
+
+import java.sql.Connection;
+
+record EIServerDatabaseConnection(
+  Connection connection,
+  Settings settings)
+  implements EIServerDatabaseConnectionType
 {
-  requires static org.osgi.annotation.bundle;
-  requires static org.osgi.annotation.versioning;
+  @Override
+  public EIServerDatabaseTransactionType openTransaction()
+  {
+    return new EIServerDatabaseTransaction(this);
+  }
 
-  requires transitive com.io7m.anethum.api;
-  requires transitive com.io7m.anethum.common;
-  requires transitive com.io7m.eigion.product.api;
-  requires transitive com.io7m.eigion.product.parser.api;
-
-  requires com.io7m.dixmont.core;
-
-  exports com.io7m.eigion.product.parser;
-
-  exports com.io7m.eigion.product.parser.internal
-    to com.fasterxml.jackson.databind, com.io7m.eigion.tests;
-  exports com.io7m.eigion.product.parser.internal.v1
-    to com.fasterxml.jackson.databind, com.io7m.eigion.tests;
+  @Override
+  public void close()
+    throws Exception
+  {
+    this.connection.close();
+  }
 }

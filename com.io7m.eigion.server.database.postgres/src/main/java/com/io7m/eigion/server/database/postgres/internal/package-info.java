@@ -15,25 +15,11 @@
  */
 
 /**
- * Application runtime management (Product parser)
+ * Application runtime management (Server database Postgresql implementation
+ * [internals])
  */
 
-module com.io7m.eigion.product.parser
-{
-  requires static org.osgi.annotation.bundle;
-  requires static org.osgi.annotation.versioning;
+@Version("1.0.0")
+package com.io7m.eigion.server.database.postgres.internal;
 
-  requires transitive com.io7m.anethum.api;
-  requires transitive com.io7m.anethum.common;
-  requires transitive com.io7m.eigion.product.api;
-  requires transitive com.io7m.eigion.product.parser.api;
-
-  requires com.io7m.dixmont.core;
-
-  exports com.io7m.eigion.product.parser;
-
-  exports com.io7m.eigion.product.parser.internal
-    to com.fasterxml.jackson.databind, com.io7m.eigion.tests;
-  exports com.io7m.eigion.product.parser.internal.v1
-    to com.fasterxml.jackson.databind, com.io7m.eigion.tests;
-}
+import org.osgi.annotation.versioning.Version;

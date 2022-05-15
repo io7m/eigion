@@ -35,17 +35,20 @@
     <module>com.io7m.eigion.news.xml</module>
     <module>com.io7m.eigion.preferences</module>
     <module>com.io7m.eigion.product.api</module>
+    <module>com.io7m.eigion.product.parser.api</module>
+    <module>com.io7m.eigion.product.parser</module>
+    <module>com.io7m.eigion.server.api</module>
+    <module>com.io7m.eigion.server.database.api</module>
+    <module>com.io7m.eigion.server.database.postgres</module>
     <module>com.io7m.eigion.services.api</module>
     <module>com.io7m.eigion.taskrecorder</module>
     <module>com.io7m.eigion.tests</module>
-    <module>com.io7m.eigion.product.parser.api</module>
-    <module>com.io7m.eigion.product.parser</module>
   </modules>
 
   <properties>
     <com.io7m.jade.version>1.0.2</com.io7m.jade.version>
     <com.io7m.jxtrand.version>1.1.0</com.io7m.jxtrand.version>
-    <com.io7m.trasco.version>0.0.1</com.io7m.trasco.version>
+    <com.io7m.trasco.version>0.0.2</com.io7m.trasco.version>
     <io7m.api.previousVersion>0.0.1-SNAPSHOT</io7m.api.previousVersion>
     <javafx.version>18.0.1</javafx.version>
     <jetty.version>11.0.9</jetty.version>
@@ -349,6 +352,26 @@
         <groupId>commons-io</groupId>
         <artifactId>commons-io</artifactId>
         <version>2.11.0</version>
+      </dependency>
+      <dependency>
+        <groupId>org.postgresql</groupId>
+        <artifactId>postgresql</artifactId>
+        <version>42.3.4</version>
+      </dependency>
+      <dependency>
+        <groupId>com.zaxxer</groupId>
+        <artifactId>HikariCP</artifactId>
+        <version>5.0.1</version>
+      </dependency>
+      <dependency>
+        <groupId>org.testcontainers</groupId>
+        <artifactId>junit-jupiter</artifactId>
+        <version>1.16.3</version>
+      </dependency>
+      <dependency>
+        <groupId>org.testcontainers</groupId>
+        <artifactId>postgresql</artifactId>
+        <version>1.16.3</version>
       </dependency>
     </dependencies>
   </dependencyManagement>

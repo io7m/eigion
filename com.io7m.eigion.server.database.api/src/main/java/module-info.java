@@ -15,25 +15,15 @@
  */
 
 /**
- * Application runtime management (Product parser)
+ * Application runtime management (Server database API)
  */
 
-module com.io7m.eigion.product.parser
+module com.io7m.eigion.server.database.api
 {
   requires static org.osgi.annotation.bundle;
   requires static org.osgi.annotation.versioning;
 
-  requires transitive com.io7m.anethum.api;
-  requires transitive com.io7m.anethum.common;
-  requires transitive com.io7m.eigion.product.api;
-  requires transitive com.io7m.eigion.product.parser.api;
+  requires transitive com.io7m.eigion.server.api;
 
-  requires com.io7m.dixmont.core;
-
-  exports com.io7m.eigion.product.parser;
-
-  exports com.io7m.eigion.product.parser.internal
-    to com.fasterxml.jackson.databind, com.io7m.eigion.tests;
-  exports com.io7m.eigion.product.parser.internal.v1
-    to com.fasterxml.jackson.databind, com.io7m.eigion.tests;
+  exports com.io7m.eigion.server.database.api;
 }

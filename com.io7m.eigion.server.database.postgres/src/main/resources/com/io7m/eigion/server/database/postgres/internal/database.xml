@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<Schemas xmlns="urn:com.io7m.trasco.database.statements:1:0">
+  <Schema versionCurrent="0">
+    <Comment>
+      The eigion role is a least-privilege role that can perform only those operations required to run the system
+      and no others.
+    </Comment>
+
+    <Statement><![CDATA[
+create role eigion with nosuperuser nocreatedb nocreaterole noinherit nologin;
+]]></Statement>
+
+    <Comment>
+      The schema version table stores the current version of the database schema. Implementations are expected to query
+      this table on connecting to the database in order to ensure that the calling code is compatible with the tables in
+      the database.
+    </Comment>
+
+    <Statement><![CDATA[
+create table schema_version (
+  version_lock   char(1) not null default 'x',
+  version_number bigint  not null,
+
+  constraint check_lock_primary primary key (version_lock),
+  constraint check_lock_locked check (version_lock = 'x')
+)
+]]></Statement>
+  </Schema>
+
+  <Schema versionCurrent="1">
+    <Comment>
+      The audit table stores a list of auditable events.
+    </Comment>
+
+    <Statement><![CDATA[
+create table audit (
+  id      bigint                   not null primary key generated always as identity,
+  time    timestamp with time zone not null,
+  type    varchar(64)              not null,
+  message varchar(256)             not null
+)
+]]></Statement>
+
+    <Statement>grant insert on audit to eigion</Statement>
+
+    <Comment>
+      The users table stores the current set of users.
+    </Comment>
+
+    <Statement><![CDATA[
+create table users (
+  id             uuid                     not null primary key,
+  name           varchar(64)              not null unique,
+  email          varchar(256)             not null unique,
+  created        timestamp with time zone not null,
+  last_login     timestamp with time zone not null,
+  password_algo  varchar(64)              not null,
+  password_hash  varchar(256)             not null,
+  password_salt  varchar(64)              not null,
+  locked         boolean                  not null
+)
+]]></Statement>
+
+    <Statement>grant select, insert, update on users to eigion</Statement>
+  </Schema>
+</Schemas>

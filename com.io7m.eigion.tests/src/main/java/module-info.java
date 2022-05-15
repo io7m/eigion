@@ -20,7 +20,14 @@
 
 open module com.io7m.eigion.tests
 {
+  requires com.fasterxml.jackson.databind;
   requires com.io7m.eigion.launcher.felix;
+  requires com.io7m.eigion.product.api;
+  requires com.io7m.eigion.product.parser.api;
+  requires com.io7m.eigion.product.parser;
+  requires com.io7m.eigion.server.database.api;
+  requires com.io7m.eigion.server.database.postgres;
+  requires com.io7m.jmulticlose.core;
   requires org.eclipse.jetty.server;
   requires org.junit.jupiter.api;
   requires org.slf4j;

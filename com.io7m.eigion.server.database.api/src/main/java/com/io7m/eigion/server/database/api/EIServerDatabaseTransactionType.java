@@ -14,24 +14,44 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-
-package com.io7m.eigion.client.database.api;
+package com.io7m.eigion.server.database.api;
 
 /**
- * Upgrade or do not upgrade a database.
+ * A database transaction. If the transaction is closed, it is automatically
+ * rolled back.
  */
 
-public enum EIDatabaseUpgrade
+public interface EIServerDatabaseTransactionType extends AutoCloseable
 {
   /**
-   * Upgrade the database.
+   * Obtain queries for the transaction.
+   *
+   * @param queryClass The query type
+   * @param <T>        The query type
+   *
+   * @return Queries
+   *
+   * @throws EIServerDatabaseException On errors
    */
 
-  UPGRADE_DATABASE,
+  <T extends EIServerDatabaseQueriesType> T queries(Class<T> queryClass)
+    throws EIServerDatabaseException;
 
   /**
-   * Do not upgrade the database.
+   * Roll back the transaction.
+   *
+   * @throws EIServerDatabaseException On errors
    */
 
-  DO_NOT_UPGRADE_DATABASE
+  void rollback()
+    throws EIServerDatabaseException;
+
+  /**
+   * Commit the transaction.
+   *
+   * @throws EIServerDatabaseException On errors
+   */
+
+  void commit()
+    throws EIServerDatabaseException;
 }

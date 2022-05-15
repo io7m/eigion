@@ -14,26 +14,23 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+
+package com.io7m.eigion.server.database.api;
+
 /**
- * Application runtime management (Product parser)
+ * The type of database connections.
  */
 
-module com.io7m.eigion.product.parser
+public interface EIServerDatabaseConnectionType extends AutoCloseable
 {
-  requires static org.osgi.annotation.bundle;
-  requires static org.osgi.annotation.versioning;
+  /**
+   * Begin a new transaction.
+   *
+   * @return The transaction
+   *
+   * @throws EIServerDatabaseException On errors
+   */
 
-  requires transitive com.io7m.anethum.api;
-  requires transitive com.io7m.anethum.common;
-  requires transitive com.io7m.eigion.product.api;
-  requires transitive com.io7m.eigion.product.parser.api;
-
-  requires com.io7m.dixmont.core;
-
-  exports com.io7m.eigion.product.parser;
-
-  exports com.io7m.eigion.product.parser.internal
-    to com.fasterxml.jackson.databind, com.io7m.eigion.tests;
-  exports com.io7m.eigion.product.parser.internal.v1
-    to com.fasterxml.jackson.databind, com.io7m.eigion.tests;
+  EIServerDatabaseTransactionType openTransaction()
+    throws EIServerDatabaseException;
 }

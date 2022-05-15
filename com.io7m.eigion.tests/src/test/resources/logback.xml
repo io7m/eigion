@@ -19,6 +19,11 @@
   <logger name="com.io7m.jxe.core"
           level="ERROR"/>
 
+  <logger name="com.github.dockerjava"
+          level="ERROR"/>
+
+  <logger name="org.testcontainers" level="INFO"/>
+
   <root level="TRACE">
     <appender-ref ref="STDERR"/>
   </root>

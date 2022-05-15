@@ -14,26 +14,24 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+
+package com.io7m.eigion.server.database.api;
+
 /**
- * Application runtime management (Product parser)
+ * Create or do not create a database.
  */
 
-module com.io7m.eigion.product.parser
+public enum EIServerDatabaseCreate
 {
-  requires static org.osgi.annotation.bundle;
-  requires static org.osgi.annotation.versioning;
+  /**
+   * Create the database.
+   */
 
-  requires transitive com.io7m.anethum.api;
-  requires transitive com.io7m.anethum.common;
-  requires transitive com.io7m.eigion.product.api;
-  requires transitive com.io7m.eigion.product.parser.api;
+  CREATE_DATABASE,
 
-  requires com.io7m.dixmont.core;
+  /**
+   * Do not create the database.
+   */
 
-  exports com.io7m.eigion.product.parser;
-
-  exports com.io7m.eigion.product.parser.internal
-    to com.fasterxml.jackson.databind, com.io7m.eigion.tests;
-  exports com.io7m.eigion.product.parser.internal.v1
-    to com.fasterxml.jackson.databind, com.io7m.eigion.tests;
+  DO_NOT_CREATE_DATABASE
 }
