@@ -15,12 +15,13 @@
  */
 
 /**
- * Application runtime management (Product API)
+ * Application runtime management (Data model)
  */
 
-@Export
-@Version("1.0.0")
-package com.io7m.eigion.product.api;
+module com.io7m.eigion.model
+{
+  requires static org.osgi.annotation.bundle;
+  requires static org.osgi.annotation.versioning;
 
-import org.osgi.annotation.bundle.Export;
-import org.osgi.annotation.versioning.Version;
+  exports com.io7m.eigion.model;
+}

@@ -14,40 +14,50 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-package com.io7m.eigion.product.api;
+package com.io7m.eigion.model;
 
 import java.util.Objects;
 import java.util.regex.Pattern;
 
 /**
- * The hash of an object.
+ * A product category.
  *
- * @param hash      The ASCII-encoded hash
- * @param algorithm The JCE hash algorithm name (such as "SHA-256")
+ * @param value The category name
  */
 
-public record EIProductHash(
-  String algorithm,
-  String hash)
+public record EIProductCategory(String value)
 {
-  private static final Pattern VALID_HASH =
-    Pattern.compile("[A-F0-9]{1,256}");
+  private static final Pattern VALID_CATEGORY =
+    Pattern.compile("\\p{Upper}[\\p{Alpha}\\p{Digit} ]{0,64}");
 
   /**
-   * The hash of an object.
+   * A product category.
    *
-   * @param hash      The ASCII-encoded hash
-   * @param algorithm The JCE hash algorithm name (such as "SHA-256")
+   * @param value The category name
    */
 
-  public EIProductHash
+  public EIProductCategory
   {
-    Objects.requireNonNull(algorithm, "algorithm");
-    Objects.requireNonNull(hash, "hash");
+    Objects.requireNonNull(value, "value");
 
-    if (!VALID_HASH.matcher(hash).matches()) {
+    final var matcher = VALID_CATEGORY.matcher(value);
+    if (!matcher.matches()) {
       throw new IllegalArgumentException(
-        String.format("Hash '%s' must match %s", hash, VALID_HASH));
+        String.format("Category '%s' must match %s", value, VALID_CATEGORY));
     }
+  }
+
+  /**
+   * Create a category.
+   *
+   * @param text The category name
+   *
+   * @return A category
+   */
+
+  public static EIProductCategory category(
+    final String text)
+  {
+    return new EIProductCategory(text);
   }
 }

@@ -21,13 +21,14 @@ import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.io7m.anethum.common.SerializeException;
-import com.io7m.eigion.product.api.EIProduct;
-import com.io7m.eigion.product.api.EIProductCategory;
-import com.io7m.eigion.product.api.EIProductDependency;
-import com.io7m.eigion.product.api.EIProductHash;
-import com.io7m.eigion.product.api.EIProductIdentifier;
-import com.io7m.eigion.product.api.EIProductVersion;
-import com.io7m.eigion.product.api.EIProducts;
+import com.io7m.eigion.model.EIProduct;
+import com.io7m.eigion.model.EIProductCategory;
+import com.io7m.eigion.model.EIProductDependency;
+import com.io7m.eigion.model.EIProductHash;
+import com.io7m.eigion.model.EIProductIdentifier;
+import com.io7m.eigion.model.EIProductRelease;
+import com.io7m.eigion.model.EIProductVersion;
+import com.io7m.eigion.model.EIProducts;
 import com.io7m.eigion.product.parser.api.EIProductsSerializerType;
 
 import java.io.IOException;
@@ -75,9 +76,26 @@ public final class EIv1ProductsSerializer implements EIProductsSerializerType
   {
     return new EIv1Product(
       convertProductId(product.id()),
-      convertDependencies(product.productDependencies()),
-      convertDependencies(product.bundleDependencies()),
+      convertReleases(product.releases()),
       convertCategories(product.categories())
+    );
+  }
+
+  private static List<EIv1ProductRelease> convertReleases(
+    final List<EIProductRelease> releases)
+  {
+    return releases.stream()
+      .map(EIv1ProductsSerializer::convertRelease)
+      .toList();
+  }
+
+  private static EIv1ProductRelease convertRelease(
+    final EIProductRelease release)
+  {
+    return new EIv1ProductRelease(
+      convertProductVersion(release.version()),
+      convertDependencies(release.productDependencies()),
+      convertDependencies(release.bundleDependencies())
     );
   }
 
@@ -87,6 +105,7 @@ public final class EIv1ProductsSerializer implements EIProductsSerializerType
     return productDependencies.stream()
       .map(k -> new EIv1ProductDependency(
         convertProductId(k.identifier()),
+        convertProductVersion(k.version()),
         convertHash(k.hash())
       )).toList();
   }
@@ -110,8 +129,7 @@ public final class EIv1ProductsSerializer implements EIProductsSerializerType
   {
     return new EIv1ProductId(
       id.name(),
-      id.group(),
-      convertProductVersion(id.version())
+      id.group()
     );
   }
 

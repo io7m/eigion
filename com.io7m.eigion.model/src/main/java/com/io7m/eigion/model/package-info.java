@@ -14,31 +14,14 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-package com.io7m.eigion.product.api;
-
-import java.util.Objects;
-
 /**
- * A dependency.
- *
- * @param identifier The identifier of the target
- * @param hash       The hash of the target
+ * Application runtime management (Data model)
  */
 
-public record EIProductDependency(
-  EIProductIdentifier identifier,
-  EIProductHash hash)
-{
-  /**
-   * A dependency.
-   *
-   * @param identifier The identifier of the target
-   * @param hash       The hash of the target
-   */
+@Export
+@Version("1.0.0")
+package com.io7m.eigion.model;
 
-  public EIProductDependency
-  {
-    Objects.requireNonNull(identifier, "identifier");
-    Objects.requireNonNull(hash, "hash");
-  }
-}
+import org.osgi.annotation.bundle.Export;
+import org.osgi.annotation.versioning.Version;
+

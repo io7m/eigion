@@ -14,7 +14,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-package com.io7m.eigion.product.api;
+package com.io7m.eigion.model;
 
 import java.util.Objects;
 import java.util.regex.Pattern;
@@ -24,15 +24,13 @@ import static java.util.regex.Pattern.UNICODE_CHARACTER_CLASS;
 /**
  * A product identifier.
  *
- * @param name    The artifact name
- * @param group   The group name
- * @param version The version
+ * @param name  The artifact name
+ * @param group The group name
  */
 
 public record EIProductIdentifier(
   String group,
-  String name,
-  EIProductVersion version)
+  String name)
 {
   /**
    * The pattern that defines a valid group name.
@@ -56,16 +54,14 @@ public record EIProductIdentifier(
   /**
    * A product identifier.
    *
-   * @param name    The artifact name
-   * @param group   The group name
-   * @param version The version
+   * @param name  The artifact name
+   * @param group The group name
    */
 
   public EIProductIdentifier
   {
     Objects.requireNonNull(group, "groupName");
     Objects.requireNonNull(name, "artifactName");
-    Objects.requireNonNull(version, "version");
 
     if (!VALID_GROUP_NAME.matcher(group).matches()) {
       throw new IllegalArgumentException(

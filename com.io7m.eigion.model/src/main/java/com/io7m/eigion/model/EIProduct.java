@@ -14,7 +14,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-package com.io7m.eigion.product.api;
+package com.io7m.eigion.model;
 
 import java.util.List;
 import java.util.Objects;
@@ -23,32 +23,28 @@ import java.util.Set;
 /**
  * A product.
  *
- * @param id                  The product identifier
- * @param bundleDependencies  The bundles upon which the product depends
- * @param productDependencies The products upon which the product depends
- * @param categories          The categories to which the product belongs
+ * @param id         The product identifier
+ * @param releases   The bundles upon which the product depends
+ * @param categories The categories to which the product belongs
  */
 
 public record EIProduct(
   EIProductIdentifier id,
-  List<EIProductDependency> productDependencies,
-  List<EIProductDependency> bundleDependencies,
+  List<EIProductRelease> releases,
   Set<EIProductCategory> categories)
 {
   /**
    * A product.
    *
-   * @param id                  The product identifier
-   * @param bundleDependencies  The bundles upon which the product depends
-   * @param productDependencies The products upon which the product depends
-   * @param categories          The categories to which the product belongs
+   * @param id         The product identifier
+   * @param releases   The bundles upon which the product depends
+   * @param categories The categories to which the product belongs
    */
 
   public EIProduct
   {
     Objects.requireNonNull(id, "id");
-    Objects.requireNonNull(productDependencies, "productDependencies");
-    Objects.requireNonNull(bundleDependencies, "bundleDependencies");
+    Objects.requireNonNull(releases, "releases");
     Objects.requireNonNull(categories, "categories");
   }
 }

@@ -22,9 +22,10 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.io7m.anethum.common.ParseSeverity;
 import com.io7m.anethum.common.ParseStatus;
-import com.io7m.eigion.product.api.EIProduct;
-import com.io7m.eigion.product.api.EIProductCategory;
-import com.io7m.eigion.product.api.EIProductDependency;
+import com.io7m.eigion.model.EIProduct;
+import com.io7m.eigion.model.EIProductCategory;
+import com.io7m.eigion.model.EIProductDependency;
+import com.io7m.eigion.model.EIProductRelease;
 import com.io7m.jlexing.core.LexicalPositions;
 
 import java.net.URI;
@@ -46,31 +47,25 @@ import java.util.function.Consumer;
 @JsonDeserialize
 public final class EIv1Product implements EIv1FromV1Type<EIProduct>
 {
-  @JsonProperty(value = "id", required = true)
+  @JsonProperty(value = "ID", required = true)
   public final EIv1ProductId id;
 
-  @JsonProperty(value = "product-dependencies", required = true)
-  public final List<EIv1ProductDependency> productDependencies;
+  @JsonProperty(value = "Releases", required = true)
+  public final List<EIv1ProductRelease> releases;
 
-  @JsonProperty(value = "bundle-dependencies", required = true)
-  public final List<EIv1ProductDependency> bundleDependencies;
-
-  @JsonProperty(value = "categories", required = true)
+  @JsonProperty(value = "Categories", required = true)
   public final List<String> categories;
 
   @JsonCreator
   public EIv1Product(
-    @JsonProperty(value = "id", required = true) final EIv1ProductId inId,
-    @JsonProperty(value = "product-dependencies", required = true) final List<EIv1ProductDependency> inPd,
-    @JsonProperty(value = "bundle-dependencies", required = true) final List<EIv1ProductDependency> inBd,
-    @JsonProperty(value = "categories", required = true) final List<String> inCategories)
+    @JsonProperty(value = "ID", required = true) final EIv1ProductId inId,
+    @JsonProperty(value = "Releases", required = true) final List<EIv1ProductRelease> inR,
+    @JsonProperty(value = "Categories", required = true) final List<String> inCategories)
   {
     this.id =
       Objects.requireNonNull(inId, "name");
-    this.productDependencies =
-      Objects.requireNonNull(inPd, "productDependencies");
-    this.bundleDependencies =
-      Objects.requireNonNull(inBd, "bundleDependencies");
+    this.releases =
+      Objects.requireNonNull(inR, "releases");
     this.categories =
       Objects.requireNonNull(inCategories, "categories");
   }
@@ -108,26 +103,44 @@ public final class EIv1Product implements EIv1FromV1Type<EIProduct>
       this.id.toProduct(source, errorConsumer);
     final var newCategories =
       this.toProductCategories(source, errorConsumer);
-    final var newProductDependencies =
-      toDependencies(this.productDependencies, source, errorConsumer);
-    final var newBundleDependencies =
-      toDependencies(this.bundleDependencies, source, errorConsumer);
+    final var newReleases =
+      this.toReleases(source, errorConsumer);
 
     if (newId.isPresent()
       && newCategories.isPresent()
-      && newProductDependencies.isPresent()
-      && newBundleDependencies.isPresent()) {
+      && newReleases.isPresent()) {
 
       return Optional.of(
         new EIProduct(
           newId.get(),
-          newProductDependencies.get(),
-          newBundleDependencies.get(),
+          newReleases.get(),
           newCategories.get())
       );
     }
 
     return Optional.empty();
+  }
+
+  private Optional<List<EIProductRelease>> toReleases(
+    final URI source,
+    final Consumer<ParseStatus> errorConsumer)
+  {
+    var anyFailed = false;
+
+    final var releases =
+      new ArrayList<EIProductRelease>(this.releases.size());
+
+    for (final var release : this.releases) {
+      final var releaseOpt =
+        release.toProduct(source, errorConsumer);
+      if (releaseOpt.isEmpty()) {
+        anyFailed = true;
+      } else {
+        releases.add(releaseOpt.get());
+      }
+    }
+
+    return anyFailed ? Optional.empty() : Optional.of(releases);
   }
 
   private Optional<Set<EIProductCategory>> toProductCategories(

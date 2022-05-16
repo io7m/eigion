@@ -18,7 +18,7 @@
 package com.io7m.eigion.product.parser.api;
 
 import com.io7m.anethum.api.SerializerType;
-import com.io7m.eigion.product.api.EIProducts;
+import com.io7m.eigion.model.EIProducts;
 
 /**
  * A products serializer.

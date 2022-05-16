@@ -17,8 +17,8 @@
 
 package com.io7m.eigion.server.database.api;
 
-import com.io7m.eigion.server.api.EIPassword;
-import com.io7m.eigion.server.api.EIUser;
+import com.io7m.eigion.model.EIPassword;
+import com.io7m.eigion.model.EIUser;
 
 import java.time.OffsetDateTime;
 import java.util.Optional;

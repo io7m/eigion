@@ -22,8 +22,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.io7m.anethum.common.ParseSeverity;
 import com.io7m.anethum.common.ParseStatus;
-import com.io7m.eigion.product.api.EIProductIdentifier;
-import com.io7m.eigion.product.api.EIProductVersion;
+import com.io7m.eigion.model.EIProductIdentifier;
 import com.io7m.jlexing.core.LexicalPositions;
 
 import java.net.URI;
@@ -42,25 +41,20 @@ import java.util.function.Consumer;
 public final class EIv1ProductId
   implements EIv1FromV1Type<EIProductIdentifier>
 {
-  @JsonProperty(value = "name", required = true)
+  @JsonProperty(value = "Name", required = true)
   public final String name;
-  @JsonProperty(value = "group", required = true)
+  @JsonProperty(value = "Group", required = true)
   public final String group;
-  @JsonProperty(value = "version", required = true)
-  public final String version;
 
   @JsonCreator
   public EIv1ProductId(
-    @JsonProperty(value = "name", required = true) final String name,
-    @JsonProperty(value = "group", required = true) final String group,
-    @JsonProperty(value = "version", required = true) final String version)
+    @JsonProperty(value = "Name", required = true) final String name,
+    @JsonProperty(value = "Group", required = true) final String group)
   {
     this.name =
       Objects.requireNonNull(name, "name");
     this.group =
       Objects.requireNonNull(group, "group");
-    this.version =
-      Objects.requireNonNull(version, "version");
   }
 
   @Override
@@ -69,11 +63,7 @@ public final class EIv1ProductId
     final Consumer<ParseStatus> errorConsumer)
   {
     try {
-      return Optional.of(new EIProductIdentifier(
-        this.group,
-        this.name,
-        EIProductVersion.parse(this.version)
-      ));
+      return Optional.of(new EIProductIdentifier(this.group, this.name));
     } catch (final Exception e) {
       errorConsumer.accept(
         ParseStatus.builder()

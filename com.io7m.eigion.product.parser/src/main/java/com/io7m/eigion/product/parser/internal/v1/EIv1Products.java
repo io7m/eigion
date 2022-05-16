@@ -35,14 +35,14 @@ import java.util.Objects;
 @JsonDeserialize
 public final class EIv1Products implements EIvNProductsType
 {
-  @JsonProperty(value = "items", required = true)
-  public final List<EIv1Product> items;
+  @JsonProperty(value = "Products", required = true)
+  public final List<EIv1Product> products;
 
   @JsonCreator
   public EIv1Products(
-    @JsonProperty(value = "items", required = true) final List<EIv1Product> items)
+    @JsonProperty(value = "Products", required = true) final List<EIv1Product> inP)
   {
-    this.items =
-      Objects.requireNonNull(items, "items");
+    this.products =
+      Objects.requireNonNull(inP, "products");
   }
 }

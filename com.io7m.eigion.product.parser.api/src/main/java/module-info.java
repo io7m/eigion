@@ -24,7 +24,7 @@ module com.io7m.eigion.product.parser.api
   requires static org.osgi.annotation.versioning;
 
   requires transitive com.io7m.anethum.api;
-  requires transitive com.io7m.eigion.product.api;
+  requires transitive com.io7m.eigion.model;
 
   exports com.io7m.eigion.product.parser.api;
 }

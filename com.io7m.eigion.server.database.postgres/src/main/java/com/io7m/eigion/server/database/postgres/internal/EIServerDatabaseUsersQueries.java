@@ -17,9 +17,9 @@
 
 package com.io7m.eigion.server.database.postgres.internal;
 
-import com.io7m.eigion.server.api.EIPassword;
-import com.io7m.eigion.server.api.EIUser;
-import com.io7m.eigion.server.api.EIUserBan;
+import com.io7m.eigion.model.EIPassword;
+import com.io7m.eigion.model.EIUser;
+import com.io7m.eigion.model.EIUserBan;
 import com.io7m.eigion.server.database.api.EIServerDatabaseException;
 import com.io7m.eigion.server.database.api.EIServerDatabaseUsersQueriesType;
 import com.io7m.eigion.server.database.postgres.internal.tables.records.UserBansRecord;

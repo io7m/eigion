@@ -14,17 +14,16 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-
 package com.io7m.eigion.tests;
 
 import com.io7m.anethum.common.ParseException;
 import com.io7m.anethum.common.SerializeException;
-import com.io7m.eigion.product.api.EIProductCategory;
-import com.io7m.eigion.product.api.EIProductDependency;
-import com.io7m.eigion.product.api.EIProductHash;
-import com.io7m.eigion.product.api.EIProductIdentifier;
-import com.io7m.eigion.product.api.EIProductVersion;
-import com.io7m.eigion.product.api.EIProducts;
+import com.io7m.eigion.model.EIProductCategory;
+import com.io7m.eigion.model.EIProductDependency;
+import com.io7m.eigion.model.EIProductHash;
+import com.io7m.eigion.model.EIProductIdentifier;
+import com.io7m.eigion.model.EIProductVersion;
+import com.io7m.eigion.model.EIProducts;
 import com.io7m.eigion.product.parser.EIProductsParsers;
 import com.io7m.eigion.product.parser.EIProductsSerializers;
 import com.io7m.eigion.product.parser.api.EIProductsSerializerConfiguration;
@@ -44,7 +43,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
-import static com.io7m.eigion.product.api.EIProductCategory.category;
+import static com.io7m.eigion.model.EIProductCategory.category;
 import static java.math.BigInteger.ONE;
 import static java.math.BigInteger.TWO;
 import static java.math.BigInteger.ZERO;
@@ -57,33 +56,45 @@ public final class EIProductsParsersTest
 {
   private static final Logger LOG =
     LoggerFactory.getLogger(EIProductsParsersTest.class);
-  private static final EIProductDependency PRODUCT_DEPENDENCY_0 = new EIProductDependency(
+
+  private static final EIProductIdentifier EXAMPLE_ID =
     new EIProductIdentifier(
-      "com.io7m.zed",
-      "com.io7m.zed",
-      new EIProductVersion(TWO, ZERO, ZERO, empty())
-    ),
-    new EIProductHash(
-      "SHA-256",
-      "167112362ADB3B2041C11F7337437872F9D821E57E8C3EDD68D87A1D0BABD0F5"
-    )
-  );
-  private static final EIProductDependency BUNDLE_DEPENDENCY_0 = new EIProductDependency(
-    new EIProductIdentifier(
-      "com.io7m.ex",
-      "com.io7m.ex",
-      new EIProductVersion(ONE, ZERO, ZERO, empty())
-    ),
-    new EIProductHash(
-      "SHA-256",
-      "5891B5B522D5DF086D0FF0B110FBD9D21BB4FC7163AF34D08286A2E846F6BE03"
-    )
-  );
-  private static final Set<EIProductCategory> EXAMPLE_CATEGORIES = Set.of(
-    category("Category 0"),
-    category("Category 1"),
-    category("Category 2")
-  );
+      "com.io7m.eigion",
+      "com.io7m.eigion.api"
+    );
+
+  private static final EIProductDependency PRODUCT_DEPENDENCY_0 =
+    new EIProductDependency(
+      new EIProductIdentifier(
+        "com.io7m.zed",
+        "com.io7m.zed"
+      ),
+      new EIProductVersion(TWO, ZERO, ZERO, empty()),
+      new EIProductHash(
+        "SHA-256",
+        "167112362ADB3B2041C11F7337437872F9D821E57E8C3EDD68D87A1D0BABD0F5"
+      )
+    );
+
+  private static final EIProductDependency BUNDLE_DEPENDENCY_0 =
+    new EIProductDependency(
+      new EIProductIdentifier(
+        "com.io7m.ex",
+        "com.io7m.ex"
+      ),
+      new EIProductVersion(ONE, ZERO, ZERO, empty()),
+      new EIProductHash(
+        "SHA-256",
+        "5891B5B522D5DF086D0FF0B110FBD9D21BB4FC7163AF34D08286A2E846F6BE03"
+      )
+    );
+
+  private static final Set<EIProductCategory> EXAMPLE_CATEGORIES =
+    Set.of(
+      category("Category 0"),
+      category("Category 1"),
+      category("Category 2")
+    );
 
   private EIProductsParsers parsers;
   private EIProductsSerializers serializers;
@@ -125,13 +136,17 @@ public final class EIProductsParsersTest
 
     {
       final var p = products.products().get(0);
-      assertEquals(ONE, p.id().version().major());
-      assertEquals(ZERO, p.id().version().minor());
-      assertEquals(ZERO, p.id().version().patch());
-      assertEquals(empty(), p.id().version().qualifier());
-      assertEquals(List.of(PRODUCT_DEPENDENCY_0), p.productDependencies());
-      assertEquals(List.of(BUNDLE_DEPENDENCY_0), p.bundleDependencies());
+      assertEquals(EXAMPLE_ID, p.id());
       assertEquals(EXAMPLE_CATEGORIES, p.categories());
+
+      final var r = p.releases().get(0);
+      assertEquals(ONE, r.version().major());
+      assertEquals(ZERO, r.version().minor());
+      assertEquals(ZERO, r.version().patch());
+      assertEquals(empty(), r.version().qualifier());
+      assertEquals(List.of(PRODUCT_DEPENDENCY_0), r.productDependencies());
+      assertEquals(List.of(BUNDLE_DEPENDENCY_0), r.bundleDependencies());
+      assertEquals(1, p.releases().size());
     }
   }
 
@@ -152,34 +167,38 @@ public final class EIProductsParsersTest
 
     {
       final var p = products.products().get(0);
-      assertEquals(ONE, p.id().version().major());
-      assertEquals(ZERO, p.id().version().minor());
-      assertEquals(ZERO, p.id().version().patch());
-      assertEquals(Optional.of("SNAPSHOT"), p.id().version().qualifier());
-      assertEquals(List.of(PRODUCT_DEPENDENCY_0), p.productDependencies());
-      assertEquals(List.of(BUNDLE_DEPENDENCY_0), p.bundleDependencies());
+      assertEquals(EXAMPLE_ID, p.id());
       assertEquals(EXAMPLE_CATEGORIES, p.categories());
+
+      final var r = p.releases().get(0);
+      assertEquals(ONE, r.version().major());
+      assertEquals(ZERO, r.version().minor());
+      assertEquals(ZERO, r.version().patch());
+      assertEquals(Optional.of("SNAPSHOT"), r.version().qualifier());
+      assertEquals(List.of(PRODUCT_DEPENDENCY_0), r.productDependencies());
+      assertEquals(List.of(BUNDLE_DEPENDENCY_0), r.bundleDependencies());
+      assertEquals(1, p.releases().size());
     }
   }
 
   /**
-   * An error case involving an invalid identifier.
+   * An error case involving an invalid version.
    */
 
   @Test
   public void testError0()
   {
-    this.runForError("products-error-0.json", "invalid-identifier");
+    this.runForError("products-error-0.json", "invalid-version");
   }
 
   /**
-   * An error case involving an invalid identifier.
+   * An error case involving an invalid version.
    */
 
   @Test
   public void testError1()
   {
-    this.runForError("products-error-1.json", "invalid-identifier");
+    this.runForError("products-error-1.json", "invalid-version");
   }
 
   /**
@@ -244,13 +263,17 @@ public final class EIProductsParsersTest
 
     {
       final var p = products.products().get(0);
-      assertEquals(ONE, p.id().version().major());
-      assertEquals(ZERO, p.id().version().minor());
-      assertEquals(ZERO, p.id().version().patch());
-      assertEquals(empty(), p.id().version().qualifier());
-      assertEquals(List.of(PRODUCT_DEPENDENCY_0), p.productDependencies());
-      assertEquals(List.of(BUNDLE_DEPENDENCY_0), p.bundleDependencies());
+      assertEquals(EXAMPLE_ID, p.id());
       assertEquals(EXAMPLE_CATEGORIES, p.categories());
+
+      final var r = p.releases().get(0);
+      assertEquals(ONE, r.version().major());
+      assertEquals(ZERO, r.version().minor());
+      assertEquals(ZERO, r.version().patch());
+      assertEquals(empty(), r.version().qualifier());
+      assertEquals(List.of(PRODUCT_DEPENDENCY_0), r.productDependencies());
+      assertEquals(List.of(BUNDLE_DEPENDENCY_0), r.bundleDependencies());
+      assertEquals(1, p.releases().size());
     }
   }
 
@@ -271,13 +294,17 @@ public final class EIProductsParsersTest
 
     {
       final var p = products.products().get(0);
-      assertEquals(ONE, p.id().version().major());
-      assertEquals(ZERO, p.id().version().minor());
-      assertEquals(ZERO, p.id().version().patch());
-      assertEquals(Optional.of("SNAPSHOT"), p.id().version().qualifier());
-      assertEquals(List.of(PRODUCT_DEPENDENCY_0), p.productDependencies());
-      assertEquals(List.of(BUNDLE_DEPENDENCY_0), p.bundleDependencies());
+      assertEquals(EXAMPLE_ID, p.id());
       assertEquals(EXAMPLE_CATEGORIES, p.categories());
+
+      final var r = p.releases().get(0);
+      assertEquals(ONE, r.version().major());
+      assertEquals(ZERO, r.version().minor());
+      assertEquals(ZERO, r.version().patch());
+      assertEquals(Optional.of("SNAPSHOT"), r.version().qualifier());
+      assertEquals(List.of(PRODUCT_DEPENDENCY_0), r.productDependencies());
+      assertEquals(List.of(BUNDLE_DEPENDENCY_0), r.bundleDependencies());
+      assertEquals(1, p.releases().size());
     }
   }
 
@@ -325,7 +352,8 @@ public final class EIProductsParsersTest
         null,
         URI.create("urn:source"),
         new BrokenInputStream(),
-        parseStatus -> {}
+        parseStatus -> {
+        }
       ).execute();
     });
   }

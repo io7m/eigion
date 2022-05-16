@@ -2,119 +2,136 @@
   "$id": "https://www.io7m.com/eigion/products-1.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$defs": {
-    "products": {
+    "Products": {
       "type": "object",
       "properties": {
         "%id": {
           "type": "string",
           "const": "https://www.io7m.com/eigion/products-1.json"
         },
-        "items": {
+        "Products": {
           "type": "array",
           "items": {
-            "$ref": "#/$defs/product"
+            "$ref": "#/$defs/Product"
           }
         }
       },
       "additionalProperties": false,
       "required": [
         "%id",
-        "items"
+        "Products"
       ]
     },
-    "product": {
+    "Product": {
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "id": {
-          "$ref": "#/$defs/product-id"
+        "ID": {
+          "$ref": "#/$defs/ProductID"
         },
-        "categories": {
+        "Categories": {
           "type": "array",
           "items": {
-            "$ref": "#/$defs/category"
+            "$ref": "#/$defs/Category"
           }
         },
-        "product-dependencies": {
+        "Releases": {
           "type": "array",
           "items": {
-            "$ref": "#/$defs/dependency"
-          }
-        },
-        "bundle-dependencies": {
-          "type": "array",
-          "items": {
-            "$ref": "#/$defs/dependency"
+            "$ref": "#/$defs/Release"
           }
         }
       },
       "required": [
-        "id",
-        "categories",
-        "product-dependencies",
-        "bundle-dependencies"
+        "ID",
+        "Categories"
       ]
     },
-    "category": {
+    "Category": {
       "type": "string",
       "pattern": "[A-Z][a-zA-Z0-9 ]{0,64}"
     },
-    "hash": {
+    "Hash": {
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "algorithm": {
+        "Algorithm": {
           "type": "string"
         },
-        "value": {
+        "Value": {
           "type": "string",
           "pattern": "[A-F0-9]{1,256}"
         }
       },
       "required": [
-        "algorithm",
-        "value"
+        "Algorithm",
+        "Value"
       ]
     },
-    "dependency": {
+    "Release": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "Version": {
+          "$ref": "#/$defs/ProductVersion"
+        },
+        "ProductDependencies": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Dependency"
+          }
+        },
+        "BundleDependencies": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Dependency"
+          }
+        }
+      },
+      "required": [
+        "Version",
+        "ProductDependencies",
+        "BundleDependencies"
+      ]
+    },
+    "Dependency": {
       "type": "object",
       "additionalProperties": false,
       "properties": {
         "id": {
-          "$ref": "#/$defs/product-id"
+          "$ref": "#/$defs/ProductID"
         },
-        "hash": {
-          "$ref": "#/$defs/hash"
+        "Hash": {
+          "$ref": "#/$defs/Hash"
         }
       },
       "required": [
-        "id",
-        "hash"
+        "ID",
+        "Hash"
       ]
     },
-    "product-id": {
+    "ProductVersion": {
+      "type": "string",
+      "pattern": "[0-9]+\\.[0-9]+\\.[0-9]+(-[a-zA-Z0-9]+)?"
+    },
+    "ProductID": {
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "group": {
+        "Group": {
           "type": "string",
           "pattern": "([a-zA-Z][a-zA-Z0-9_-]{0,64})(\\.[a-zA-Z][a-zA-Z0-9_-]{0,64}){0,8}"
         },
-        "name": {
+        "Name": {
           "type": "string",
           "pattern": "([a-zA-Z][a-zA-Z0-9_-]{0,64})(\\.[a-zA-Z][a-zA-Z0-9_-]{0,64}){0,8}"
-        },
-        "version": {
-          "type": "string",
-          "pattern": "[0-9]+\\.[0-9]+\\.[0-9]+(-[a-zA-Z0-9]+)?"
         }
       },
       "required": [
-        "group",
-        "name",
-        "version"
+        "Group",
+        "Name"
       ]
     }
   },
-  "$ref": "#/$defs/products"
+  "$ref": "#/$defs/Products"
 }

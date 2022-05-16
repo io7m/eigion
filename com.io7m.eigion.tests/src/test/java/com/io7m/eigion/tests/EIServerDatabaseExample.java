@@ -16,7 +16,7 @@
 
 package com.io7m.eigion.tests;
 
-import com.io7m.eigion.server.api.EIPassword;
+import com.io7m.eigion.model.EIPassword;
 import com.io7m.eigion.server.database.api.EIServerDatabaseConfiguration;
 import com.io7m.eigion.server.database.api.EIServerDatabaseUsersQueriesType;
 import com.io7m.eigion.server.database.postgres.EIServerDatabases;

@@ -16,7 +16,7 @@
 
 package com.io7m.eigion.tests;
 
-import com.io7m.eigion.product.api.EIProductVersion;
+import com.io7m.eigion.model.EIProductVersion;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigInteger;

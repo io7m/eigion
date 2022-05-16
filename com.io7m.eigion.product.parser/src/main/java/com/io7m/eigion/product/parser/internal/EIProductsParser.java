@@ -23,13 +23,14 @@ import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.io7m.anethum.common.ParseException;
 import com.io7m.anethum.common.ParseStatus;
 import com.io7m.dixmont.core.DmJsonRestrictedDeserializers;
-import com.io7m.eigion.product.api.EIProduct;
-import com.io7m.eigion.product.api.EIProducts;
+import com.io7m.eigion.model.EIProduct;
+import com.io7m.eigion.model.EIProducts;
 import com.io7m.eigion.product.parser.api.EIProductsParserType;
 import com.io7m.eigion.product.parser.internal.v1.EIv1Product;
 import com.io7m.eigion.product.parser.internal.v1.EIv1ProductDependency;
 import com.io7m.eigion.product.parser.internal.v1.EIv1ProductHash;
 import com.io7m.eigion.product.parser.internal.v1.EIv1ProductId;
+import com.io7m.eigion.product.parser.internal.v1.EIv1ProductRelease;
 import com.io7m.eigion.product.parser.internal.v1.EIv1Products;
 import com.io7m.jlexing.core.LexicalPosition;
 import com.io7m.jlexing.core.LexicalPositions;
@@ -83,14 +84,18 @@ public final class EIProductsParser implements EIProductsParserType
         .allowClass(EIv1ProductDependency.class)
         .allowClass(EIv1ProductHash.class)
         .allowClass(EIv1ProductId.class)
+        .allowClass(EIv1ProductRelease.class)
         .allowClass(EIv1Products.class)
         .allowClass(EIvNProductsType.class)
         .allowClass(String.class)
         .allowClassName(
+          "java.util.List<com.io7m.eigion.product.parser.internal.v1.EIv1ProductRelease>")
+        .allowClassName(
           "java.util.List<com.io7m.eigion.product.parser.internal.v1.EIv1ProductDependency>")
         .allowClassName(
           "java.util.List<com.io7m.eigion.product.parser.internal.v1.EIv1Product>")
-        .allowClassName("java.util.List<java.lang.String>")
+        .allowClassName(
+          "java.util.List<java.lang.String>")
         .build();
 
     this.mapper =
@@ -169,7 +174,7 @@ public final class EIProductsParser implements EIProductsParserType
   {
     var failedAny = false;
 
-    for (final var v1Product : v1products.items) {
+    for (final var v1Product : v1products.products) {
       final var productOpt =
         v1Product.toProduct(this.source, errorConsumer);
 

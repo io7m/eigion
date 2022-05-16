@@ -14,61 +14,51 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+
 package com.io7m.eigion.product.parser.internal.v1;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.io7m.anethum.common.ParseSeverity;
 import com.io7m.anethum.common.ParseStatus;
-import com.io7m.eigion.model.EIProductHash;
+import com.io7m.eigion.model.EIProductVersion;
 import com.io7m.jlexing.core.LexicalPositions;
 
 import java.net.URI;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
 
-/*
- * These are effectively JSON DTOs and therefore are exempt from the usual style checks.
+/**
+ * Functions over V1 product versions.
  */
 
-// CHECKSTYLE:OFF
-
-@JsonSerialize
-@JsonDeserialize
-public final class EIv1ProductHash
-  implements EIv1FromV1Type<EIProductHash>
+public final class EIv1ProductVersion
 {
-  @JsonProperty(value = "Algorithm", required = true)
-  public final String algorithm;
-  @JsonProperty(value = "Hash", required = true)
-  public final String hash;
-
-  @JsonCreator
-  public EIv1ProductHash(
-    @JsonProperty(value = "Algorithm", required = true) final String inAlgorithm,
-    @JsonProperty(value = "Hash", required = true) final String inHash)
+  private EIv1ProductVersion()
   {
-    this.algorithm =
-      Objects.requireNonNull(inAlgorithm, "algorithm");
-    this.hash =
-      Objects.requireNonNull(inHash, "hash");
+
   }
 
-  @Override
-  public Optional<EIProductHash> toProduct(
+  /**
+   * Parse a version.
+   *
+   * @param source        The source URI
+   * @param errorConsumer An error consumer
+   * @param version       The version text
+   *
+   * @return A parsed version
+   */
+
+  public static Optional<EIProductVersion> toProduct(
     final URI source,
-    final Consumer<ParseStatus> errorConsumer)
+    final Consumer<ParseStatus> errorConsumer,
+    final String version)
   {
     try {
-      return Optional.of(new EIProductHash(this.algorithm, this.hash));
+      return Optional.of(EIProductVersion.parse(version));
     } catch (final IllegalArgumentException e) {
       errorConsumer.accept(
         ParseStatus.builder()
           .setSeverity(ParseSeverity.PARSE_ERROR)
-          .setErrorCode("invalid-hash")
+          .setErrorCode("invalid-version")
           .setLexical(LexicalPositions.zeroWithFile(source))
           .setMessage(e.getMessage())
           .build()

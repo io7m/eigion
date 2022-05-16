@@ -25,7 +25,7 @@ module com.io7m.eigion.product.parser
 
   requires transitive com.io7m.anethum.api;
   requires transitive com.io7m.anethum.common;
-  requires transitive com.io7m.eigion.product.api;
+  requires transitive com.io7m.eigion.model;
   requires transitive com.io7m.eigion.product.parser.api;
 
   requires com.io7m.dixmont.core;

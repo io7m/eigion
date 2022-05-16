@@ -21,7 +21,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.io7m.anethum.common.ParseStatus;
-import com.io7m.eigion.product.api.EIProductDependency;
+import com.io7m.eigion.model.EIProductDependency;
 
 import java.net.URI;
 import java.util.Objects;
@@ -39,18 +39,23 @@ import java.util.function.Consumer;
 public final class EIv1ProductDependency
   implements EIv1FromV1Type<EIProductDependency>
 {
-  @JsonProperty(value = "id", required = true)
+  @JsonProperty(value = "ID", required = true)
   public final EIv1ProductId id;
-  @JsonProperty(value = "hash", required = true)
+  @JsonProperty(value = "Version", required = true)
+  public final String version;
+  @JsonProperty(value = "Hash", required = true)
   public final EIv1ProductHash hash;
 
   @JsonCreator
   public EIv1ProductDependency(
-    @JsonProperty(value = "id", required = true) final EIv1ProductId inId,
-    @JsonProperty(value = "hash", required = true) final EIv1ProductHash inHash)
+    @JsonProperty(value = "ID", required = true) final EIv1ProductId inId,
+    @JsonProperty(value = "Version", required = true) final String inVersion,
+    @JsonProperty(value = "Hash", required = true) final EIv1ProductHash inHash)
   {
     this.id =
       Objects.requireNonNull(inId, "id");
+    this.version =
+      Objects.requireNonNull(inVersion, "version");
     this.hash =
       Objects.requireNonNull(inHash, "hash");
   }
@@ -64,9 +69,16 @@ public final class EIv1ProductDependency
       this.id.toProduct(source, errorConsumer);
     final var pHash =
       this.hash.toProduct(source, errorConsumer);
+    final var pVersion =
+      EIv1ProductVersion.toProduct(source, errorConsumer, this.version);
 
-    if (pId.isPresent() && pHash.isPresent()) {
-      return Optional.of(new EIProductDependency(pId.get(), pHash.get()));
+    if (pId.isPresent() && pHash.isPresent() && pVersion.isPresent()) {
+      return Optional.of(
+        new EIProductDependency(
+          pId.get(),
+          pVersion.get(),
+          pHash.get()
+        ));
     }
     return Optional.empty();
   }

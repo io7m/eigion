@@ -14,7 +14,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-package com.io7m.eigion.product.api;
+package com.io7m.eigion.model;
 
 import java.util.List;
 import java.util.Objects;

@@ -1,15 +1,47 @@
 {
   "%id": "https://www.io7m.com/eigion/products-1.json",
-  "items": [
+  "Products": [
     {
-      "id": {
-        "group": "com.io7m.eigion",
-        "name": "com.io7m.eigion.api",
-        "version": "1"
+      "ID": {
+        "Group": "com.io7m.eigion",
+        "Name": "com.io7m.eigion.api"
       },
-      "categories": [],
-      "bundle-dependencies": [],
-      "product-dependencies": []
+      "Categories": [
+        "Category 0",
+        "Category 1",
+        "Category 2"
+      ],
+      "Releases": [
+        {
+          "Version": "1",
+          "BundleDependencies": [
+            {
+              "ID": {
+                "Group": "com.io7m.ex",
+                "Name": "com.io7m.ex"
+              },
+              "Version": "1.0.0",
+              "Hash": {
+                "Algorithm": "SHA-256",
+                "Hash": "5891B5B522D5DF086D0FF0B110FBD9D21BB4FC7163AF34D08286A2E846F6BE03"
+              }
+            }
+          ],
+          "ProductDependencies": [
+            {
+              "ID": {
+                "Group": "com.io7m.zed",
+                "Name": "com.io7m.zed"
+              },
+              "Version": "2.0.0",
+              "Hash": {
+                "Algorithm": "SHA-256",
+                "Hash": "167112362ADB3B2041C11F7337437872F9D821E57E8C3EDD68D87A1D0BABD0F5"
+              }
+            }
+          ]
+        }
+      ]
     }
   ]
 }

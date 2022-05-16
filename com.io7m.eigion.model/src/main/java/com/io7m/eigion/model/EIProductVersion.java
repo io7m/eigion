@@ -14,7 +14,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-package com.io7m.eigion.product.api;
+package com.io7m.eigion.model;
 
 import java.math.BigInteger;
 import java.util.Objects;
@@ -59,6 +59,9 @@ public record EIProductVersion(
       "[\\p{Alnum}]+",
       UNICODE_CHARACTER_CLASS
     );
+
+  private static final Pattern LEADING_HYPHEN =
+    Pattern.compile("^-");
 
   /**
    * A product (semantic) version.
@@ -133,28 +136,6 @@ public record EIProductVersion(
     return 1;
   }
 
-  @Override
-  public int compareTo(
-    final EIProductVersion other)
-  {
-    final var cmaj = this.major.compareTo(other.major);
-    if (cmaj != 0) {
-      return cmaj;
-    }
-    final var cmin = this.minor.compareTo(other.minor);
-    if (cmin != 0) {
-      return cmin;
-    }
-    final var cpat = this.patch.compareTo(other.patch);
-    if (cpat != 0) {
-      return cpat;
-    }
-    return compareQualifiers(this.qualifier, other.qualifier);
-  }
-
-  private static final Pattern LEADING_HYPHEN =
-    Pattern.compile("^-");
-
   /**
    * Parse a version string.
    *
@@ -196,5 +177,24 @@ public record EIProductVersion(
     }
 
     return new EIProductVersion(newMajor, newMinor, newPatch, newQualifier);
+  }
+
+  @Override
+  public int compareTo(
+    final EIProductVersion other)
+  {
+    final var cmaj = this.major.compareTo(other.major);
+    if (cmaj != 0) {
+      return cmaj;
+    }
+    final var cmin = this.minor.compareTo(other.minor);
+    if (cmin != 0) {
+      return cmin;
+    }
+    final var cpat = this.patch.compareTo(other.patch);
+    if (cpat != 0) {
+      return cpat;
+    }
+    return compareQualifiers(this.qualifier, other.qualifier);
   }
 }

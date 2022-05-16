@@ -14,13 +14,33 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+package com.io7m.eigion.model;
+
+import java.time.OffsetDateTime;
+import java.util.Objects;
+import java.util.Optional;
+
 /**
- * Application runtime management (Server API)
+ * The reason a user is banned.
+ *
+ * @param expires The expiration date of the ban, if any
+ * @param reason  The ban reason
  */
 
-@Export
-@Version("1.0.0")
-package com.io7m.eigion.server.api;
+public record EIUserBan(
+  Optional<OffsetDateTime> expires,
+  String reason)
+{
+  /**
+   * The reason a user is banned.
+   *
+   * @param expires The expiration date of the ban, if any
+   * @param reason  The ban reason
+   */
 
-import org.osgi.annotation.bundle.Export;
-import org.osgi.annotation.versioning.Version;
+  public EIUserBan
+  {
+    Objects.requireNonNull(expires, "expires");
+    Objects.requireNonNull(reason, "reason");
+  }
+}
