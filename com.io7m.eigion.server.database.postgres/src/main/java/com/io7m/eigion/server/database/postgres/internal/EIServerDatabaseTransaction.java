@@ -14,10 +14,10 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-
 package com.io7m.eigion.server.database.postgres.internal;
 
 import com.io7m.eigion.server.database.api.EIServerDatabaseException;
+import com.io7m.eigion.server.database.api.EIServerDatabaseProductsQueriesType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseQueriesType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseTransactionType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseUsersQueriesType;
@@ -36,15 +36,18 @@ record EIServerDatabaseTransaction(
 {
   @Override
   public <T extends EIServerDatabaseQueriesType> T queries(
-    final Class<T> queryClass)
+    final Class<T> qClass)
     throws EIServerDatabaseException
   {
-    if (Objects.equals(queryClass, EIServerDatabaseUsersQueriesType.class)) {
-      return queryClass.cast(new EIServerDatabaseUsersQueries(this));
+    if (Objects.equals(qClass, EIServerDatabaseUsersQueriesType.class)) {
+      return qClass.cast(new EIServerDatabaseUsersQueries(this));
+    }
+    if (Objects.equals(qClass, EIServerDatabaseProductsQueriesType.class)) {
+      return qClass.cast(new EIServerDatabaseProductsQueries(this));
     }
 
     throw new EIServerDatabaseException(
-      "Unsupported query type: %s".formatted(queryClass),
+      "Unsupported query type: %s".formatted(qClass),
       "unsupported-query-class"
     );
   }

@@ -101,40 +101,40 @@ record EIServerDatabaseUsersQueries(
     final var context =
       this.transaction.createContext();
 
-    {
-      final var existing =
-        context.fetchOptional(USERS, USERS.ID.eq(id));
-      if (existing.isPresent()) {
-        throw new EIServerDatabaseException(
-          "User ID already exists",
-          "user-duplicate-id"
-        );
-      }
-    }
-
-    {
-      final var existing =
-        context.fetchOptional(USERS, USERS.NAME.eq(userName));
-      if (existing.isPresent()) {
-        throw new EIServerDatabaseException(
-          "User name already exists",
-          "user-duplicate-name"
-        );
-      }
-    }
-
-    {
-      final var existing =
-        context.fetchOptional(USERS, USERS.EMAIL.eq(email));
-      if (existing.isPresent()) {
-        throw new EIServerDatabaseException(
-          "Email already exists",
-          "user-duplicate-email"
-        );
-      }
-    }
-
     try {
+      {
+        final var existing =
+          context.fetchOptional(USERS, USERS.ID.eq(id));
+        if (existing.isPresent()) {
+          throw new EIServerDatabaseException(
+            "User ID already exists",
+            "user-duplicate-id"
+          );
+        }
+      }
+
+      {
+        final var existing =
+          context.fetchOptional(USERS, USERS.NAME.eq(userName));
+        if (existing.isPresent()) {
+          throw new EIServerDatabaseException(
+            "User name already exists",
+            "user-duplicate-name"
+          );
+        }
+      }
+
+      {
+        final var existing =
+          context.fetchOptional(USERS, USERS.EMAIL.eq(email));
+        if (existing.isPresent()) {
+          throw new EIServerDatabaseException(
+            "Email already exists",
+            "user-duplicate-email"
+          );
+        }
+      }
+
       final var insert =
         context.insertInto(USERS)
           .set(USERS.ID, id)

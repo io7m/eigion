@@ -81,6 +81,11 @@ public final class EIServerDatabase implements EIServerDatabaseType
             st.execute();
           }
         }
+        case NONE -> {
+          try (var st = conn.prepareStatement("set role eigion_none")) {
+            st.execute();
+          }
+        }
       }
 
       return new EIServerDatabaseConnection(this.clock, conn, this.settings);

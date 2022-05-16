@@ -32,5 +32,11 @@ public enum EIServerDatabaseRole
    * The main eigion role.
    */
 
-  EIGION
+  EIGION,
+
+  /**
+   * The null role; has no privileges and cannot do anything.
+   */
+
+  NONE
 }

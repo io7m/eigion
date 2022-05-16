@@ -35,5 +35,6 @@ public interface EIServerDatabaseFactoryType
 
   EIServerDatabaseType open(
     EIServerDatabaseConfiguration configuration)
-    throws EIServerDatabaseException;;
+    throws EIServerDatabaseException;
+
 }

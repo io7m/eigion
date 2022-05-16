@@ -20,6 +20,7 @@ package com.io7m.eigion.tests;
 import com.io7m.eigion.model.EIPassword;
 import com.io7m.eigion.server.database.api.EIServerDatabaseConfiguration;
 import com.io7m.eigion.server.database.api.EIServerDatabaseException;
+import com.io7m.eigion.server.database.api.EIServerDatabaseProductsQueriesType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseRole;
 import com.io7m.eigion.server.database.api.EIServerDatabaseTransactionType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseType;
@@ -38,10 +39,14 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import java.time.Clock;
 import java.time.OffsetDateTime;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 import static com.io7m.eigion.server.database.api.EIServerDatabaseCreate.CREATE_DATABASE;
+import static com.io7m.eigion.server.database.api.EIServerDatabaseProductsQueriesType.IncludeRedacted.EXCLUDE_REDACTED;
+import static com.io7m.eigion.server.database.api.EIServerDatabaseProductsQueriesType.IncludeRedacted.INCLUDE_REDACTED;
 import static com.io7m.eigion.server.database.api.EIServerDatabaseRole.EIGION;
+import static com.io7m.eigion.server.database.api.EIServerDatabaseRole.NONE;
 import static com.io7m.eigion.server.database.api.EIServerDatabaseUpgrade.UPGRADE_DATABASE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -105,6 +110,64 @@ public final class EIServerDatabaseTest
     throws ClosingResourceFailedException
   {
     this.resources.close();
+  }
+
+  /**
+   * The none role cannot manipulate users.
+   *
+   * @throws Exception On errors
+   */
+
+  @Test
+  public void testUserNone()
+    throws Exception
+  {
+    assertTrue(this.container.isRunning());
+
+    final var transaction =
+      this.transactionOf(this.container, NONE);
+    final var users =
+      transaction.queries(EIServerDatabaseUsersQueriesType.class);
+
+    var ex =
+      assertThrows(EIServerDatabaseException.class, () -> {
+        users.userCreate(
+          UUID.randomUUID(),
+          "someone",
+          "someone@example.com",
+          OffsetDateTime.now(),
+          EIPassword.createHashed("12345678")
+        );
+      });
+    assertEquals("sql-error", ex.errorCode());
+
+    ex = assertThrows(EIServerDatabaseException.class, () -> {
+      users.userGet(UUID.randomUUID());
+    });
+    assertEquals("sql-error", ex.errorCode());
+
+    ex = assertThrows(EIServerDatabaseException.class, () -> {
+      users.userGetForEmail("someone@example.com");
+    });
+    assertEquals("sql-error", ex.errorCode());
+
+    ex = assertThrows(EIServerDatabaseException.class, () -> {
+      users.userGetForName("someone");
+    });
+    assertEquals("sql-error", ex.errorCode());
+
+    ex = assertThrows(EIServerDatabaseException.class, () -> {
+      users.userBan(
+        UUID.randomUUID(),
+        Optional.of(OffsetDateTime.now()),
+        "reason");
+    });
+    assertEquals("sql-error", ex.errorCode());
+
+    ex = assertThrows(EIServerDatabaseException.class, () -> {
+      users.userUnban(UUID.randomUUID());
+    });
+    assertEquals("sql-error", ex.errorCode());
   }
 
   /**
@@ -372,5 +435,114 @@ public final class EIServerDatabaseTest
     users.userUnban(id);
     user = users.userGet(id).orElseThrow();
     assertEquals(Optional.empty(), user.ban());
+  }
+
+  /**
+   * The none role cannot manipulate categories.
+   *
+   * @throws Exception On errors
+   */
+
+  @Test
+  public void testCategoriesNone()
+    throws Exception
+  {
+    assertTrue(this.container.isRunning());
+
+    final var transaction =
+      this.transactionOf(this.container, NONE);
+    final var products =
+      transaction.queries(EIServerDatabaseProductsQueriesType.class);
+
+    var ex =
+      assertThrows(EIServerDatabaseException.class, () -> {
+        products.categoryCreate("Category 0");
+      });
+    assertEquals("sql-error", ex.errorCode());
+
+    ex = assertThrows(EIServerDatabaseException.class, () -> {
+      products.categoryRedact("Category 0", true);
+    });
+    assertEquals("sql-error", ex.errorCode());
+
+    ex = assertThrows(EIServerDatabaseException.class, () -> {
+      products.categories(INCLUDE_REDACTED);
+    });
+    assertEquals("sql-error", ex.errorCode());
+  }
+
+  /**
+   * Creating and redacting categories works.
+   *
+   * @throws Exception On errors
+   */
+
+  @Test
+  public void testCategories()
+    throws Exception
+  {
+    assertTrue(this.container.isRunning());
+
+    final var transaction =
+      this.transactionOf(this.container, EIGION);
+    final var products =
+      transaction.queries(EIServerDatabaseProductsQueriesType.class);
+
+    final var category0 =
+      products.categoryCreate("Category 0");
+    final var category1 =
+      products.categoryCreate("Category 1");
+    final var category2 =
+      products.categoryCreate("Category 2");
+
+    assertEquals(
+      Set.of(category0, category1, category2),
+      products.categories(INCLUDE_REDACTED)
+    );
+    assertEquals(
+      Set.of(category0, category1, category2),
+      products.categories(EXCLUDE_REDACTED)
+    );
+
+    products.categoryRedact(category0, true);
+
+    assertEquals(
+      Set.of(category0, category1, category2),
+      products.categories(INCLUDE_REDACTED)
+    );
+    assertEquals(
+      Set.of(category1, category2),
+      products.categories(EXCLUDE_REDACTED)
+    );
+
+    products.categoryRedact(category1, true);
+
+    assertEquals(
+      Set.of(category0, category1, category2),
+      products.categories(INCLUDE_REDACTED)
+    );
+    assertEquals(
+      Set.of(category2),
+      products.categories(EXCLUDE_REDACTED)
+    );
+
+    products.categoryRedact(category0, false);
+
+    assertEquals(
+      Set.of(category0, category1, category2),
+      products.categories(INCLUDE_REDACTED)
+    );
+    assertEquals(
+      Set.of(category0, category2),
+      products.categories(EXCLUDE_REDACTED)
+    );
+
+    {
+      final var ex =
+        assertThrows(EIServerDatabaseException.class, () -> {
+          products.categoryRedact("nonexistent", true);
+        });
+      assertEquals("category-nonexistent", ex.errorCode());
+    }
   }
 }

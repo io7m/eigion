@@ -12,6 +12,14 @@ create role eigion with nosuperuser nocreatedb nocreaterole noinherit nologin;
 ]]></Statement>
 
     <Comment>
+      The eigion_none role is a no-privilege role that cannot perform any actions.
+    </Comment>
+
+    <Statement><![CDATA[
+create role eigion_none with nosuperuser nocreatedb nocreaterole noinherit nologin;
+]]></Statement>
+
+    <Comment>
       The schema version table stores the current version of the database schema. Implementations are expected to query
       this table on connecting to the database in order to ensure that the calling code is compatible with the tables in
       the database.
