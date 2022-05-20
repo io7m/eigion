@@ -16,6 +16,7 @@
 
 package com.io7m.eigion.server.database.postgres.internal;
 
+import com.io7m.eigion.server.database.api.EIServerDatabaseAuditQueriesType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseException;
 import com.io7m.eigion.server.database.api.EIServerDatabaseProductsQueriesType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseQueriesType;
@@ -44,6 +45,9 @@ record EIServerDatabaseTransaction(
     }
     if (Objects.equals(qClass, EIServerDatabaseProductsQueriesType.class)) {
       return qClass.cast(new EIServerDatabaseProductsQueries(this));
+    }
+    if (Objects.equals(qClass, EIServerDatabaseAuditQueriesType.class)) {
+      return qClass.cast(new EIServerDatabaseAuditQueries(this));
     }
 
     throw new EIServerDatabaseException(

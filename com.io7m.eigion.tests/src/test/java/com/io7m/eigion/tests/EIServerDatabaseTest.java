@@ -18,6 +18,7 @@
 package com.io7m.eigion.tests;
 
 import com.io7m.eigion.model.EIPassword;
+import com.io7m.eigion.server.database.api.EIServerDatabaseAuditQueriesType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseConfiguration;
 import com.io7m.eigion.server.database.api.EIServerDatabaseException;
 import com.io7m.eigion.server.database.api.EIServerDatabaseProductsQueriesType;
@@ -37,7 +38,6 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.time.Clock;
-import java.time.OffsetDateTime;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -48,6 +48,7 @@ import static com.io7m.eigion.server.database.api.EIServerDatabaseProductsQuerie
 import static com.io7m.eigion.server.database.api.EIServerDatabaseRole.EIGION;
 import static com.io7m.eigion.server.database.api.EIServerDatabaseRole.NONE;
 import static com.io7m.eigion.server.database.api.EIServerDatabaseUpgrade.UPGRADE_DATABASE;
+import static java.time.OffsetDateTime.now;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -67,6 +68,46 @@ public final class EIServerDatabaseTest
       .withPassword("12345678");
 
   private CloseableCollectionType<ClosingResourceFailedException> resources;
+
+  private static void checkAuditLog(
+    final EIServerDatabaseTransactionType transaction,
+    final ExpectedEvent... expectedEvents)
+    throws EIServerDatabaseException
+  {
+    final var audit =
+      transaction.queries(EIServerDatabaseAuditQueriesType.class);
+    final var events =
+      audit.auditEvents(now().minusYears(1L), now().plusYears(1L));
+
+    for (int index = 0; index < expectedEvents.length; ++index) {
+      final var event =
+        events.get(index);
+      final var expect =
+        expectedEvents[index];
+
+      assertEquals(
+        expect.type,
+        event.type(),
+        String.format(
+          "Event [%d] %s type must be %s",
+          Integer.valueOf(index),
+          event,
+          expect.type)
+      );
+
+      if (expect.message != null) {
+        assertEquals(
+          expect.message,
+          event.message(),
+          String.format(
+            "Event [%d] %s message must be %s",
+            Integer.valueOf(index),
+            event,
+            expect.message)
+        );
+      }
+    }
+  }
 
   private EIServerDatabaseType databaseOf(
     final PostgreSQLContainer<?> container)
@@ -135,7 +176,7 @@ public final class EIServerDatabaseTest
           UUID.randomUUID(),
           "someone",
           "someone@example.com",
-          OffsetDateTime.now(),
+          now(),
           EIPassword.createHashed("12345678")
         );
       });
@@ -159,7 +200,7 @@ public final class EIServerDatabaseTest
     ex = assertThrows(EIServerDatabaseException.class, () -> {
       users.userBan(
         UUID.randomUUID(),
-        Optional.of(OffsetDateTime.now()),
+        Optional.of(now()),
         "reason");
     });
     assertEquals("sql-error", ex.errorCode());
@@ -190,7 +231,7 @@ public final class EIServerDatabaseTest
     final var reqId =
       UUID.randomUUID();
     final var now =
-      OffsetDateTime.now();
+      now();
 
     final var password =
       EIPassword.createHashed("12345678");
@@ -234,6 +275,11 @@ public final class EIServerDatabaseTest
     assertEquals(now.toEpochSecond(), user.created().toEpochSecond());
     assertEquals(now.toEpochSecond(), user.lastLogin().toEpochSecond());
     assertFalse(user.ban().isPresent());
+
+    checkAuditLog(
+      transaction,
+      new ExpectedEvent("USER_CREATED", reqId.toString())
+    );
   }
 
   /**
@@ -256,7 +302,7 @@ public final class EIServerDatabaseTest
     final var reqId =
       UUID.randomUUID();
     final var now =
-      OffsetDateTime.now();
+      now();
 
     final var password =
       EIPassword.createHashed("12345678");
@@ -304,7 +350,7 @@ public final class EIServerDatabaseTest
     final var reqId =
       UUID.randomUUID();
     final var now =
-      OffsetDateTime.now();
+      now();
 
     final var password =
       EIPassword.createHashed("12345678");
@@ -352,7 +398,7 @@ public final class EIServerDatabaseTest
     final var reqId =
       UUID.randomUUID();
     final var now =
-      OffsetDateTime.now();
+      now();
 
     final var password =
       EIPassword.createHashed("12345678");
@@ -400,7 +446,7 @@ public final class EIServerDatabaseTest
     final var id =
       UUID.randomUUID();
     final var now =
-      OffsetDateTime.now();
+      now();
 
     final var password =
       EIPassword.createHashed("12345678");
@@ -414,7 +460,7 @@ public final class EIServerDatabaseTest
         password
       );
 
-    final var expires = OffsetDateTime.now().plusDays(1L);
+    final var expires = now().plusDays(1L);
     users.userBan(id, Optional.of(expires), "Did something bad.");
 
     user = users.userGet(id).orElseThrow();
@@ -435,6 +481,14 @@ public final class EIServerDatabaseTest
     users.userUnban(id);
     user = users.userGet(id).orElseThrow();
     assertEquals(Optional.empty(), user.ban());
+
+    checkAuditLog(
+      transaction,
+      new ExpectedEvent("USER_CREATED", id.toString()),
+      new ExpectedEvent("USER_BANNED", id + ": Did something bad."),
+      new ExpectedEvent("USER_BANNED", id + ": Did something else bad."),
+      new ExpectedEvent("USER_UNBANNED", id.toString())
+    );
   }
 
   /**
@@ -544,5 +598,22 @@ public final class EIServerDatabaseTest
         });
       assertEquals("category-nonexistent", ex.errorCode());
     }
+
+    checkAuditLog(
+      transaction,
+      new ExpectedEvent("CATEGORY_CREATED", "Category 0"),
+      new ExpectedEvent("CATEGORY_CREATED", "Category 1"),
+      new ExpectedEvent("CATEGORY_CREATED", "Category 2"),
+      new ExpectedEvent("CATEGORY_REDACTED", "Category 0"),
+      new ExpectedEvent("CATEGORY_REDACTED", "Category 1"),
+      new ExpectedEvent("CATEGORY_UNREDACTED", "Category 0")
+    );
+  }
+
+  private record ExpectedEvent(
+    String type,
+    String message)
+  {
+
   }
 }

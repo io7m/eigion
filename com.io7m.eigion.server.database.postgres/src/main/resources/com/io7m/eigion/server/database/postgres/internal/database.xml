@@ -50,7 +50,7 @@ create table audit (
 )
 ]]></Statement>
 
-    <Statement>grant insert on audit to eigion</Statement>
+    <Statement>grant insert, select on audit to eigion</Statement>
 
     <Comment>
       The users table stores the current set of users.

@@ -14,17 +14,39 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+package com.io7m.eigion.model;
 
-package com.io7m.eigion.server.database.api;
+import java.time.OffsetDateTime;
+import java.util.Objects;
 
 /**
- * The base type of query interfaces.
+ * An audit event.
+ *
+ * @param id      The unique event ID
+ * @param time    The event time
+ * @param message The event message
+ * @param type    The event type
  */
 
-public sealed interface EIServerDatabaseQueriesType
-  permits EIServerDatabaseAuditQueriesType,
-  EIServerDatabaseProductsQueriesType,
-  EIServerDatabaseUsersQueriesType
+public record EIAuditEvent(
+  long id,
+  OffsetDateTime time,
+  String type,
+  String message)
 {
+  /**
+   * An audit event.
+   *
+   * @param id      The unique event ID
+   * @param time    The event time
+   * @param message The event message
+   * @param type    The event type
+   */
 
+  public EIAuditEvent
+  {
+    Objects.requireNonNull(time, "time");
+    Objects.requireNonNull(type, "type");
+    Objects.requireNonNull(message, "message");
+  }
 }

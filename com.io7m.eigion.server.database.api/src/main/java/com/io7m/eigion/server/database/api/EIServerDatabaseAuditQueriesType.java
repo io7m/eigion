@@ -14,17 +14,34 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-
 package com.io7m.eigion.server.database.api;
 
+import com.io7m.eigion.model.EIAuditEvent;
+
+import java.time.OffsetDateTime;
+import java.util.List;
+
 /**
- * The base type of query interfaces.
+ * The database queries involving the audit log.
  */
 
-public sealed interface EIServerDatabaseQueriesType
-  permits EIServerDatabaseAuditQueriesType,
-  EIServerDatabaseProductsQueriesType,
-  EIServerDatabaseUsersQueriesType
+public non-sealed interface EIServerDatabaseAuditQueriesType
+  extends EIServerDatabaseQueriesType
 {
+  /**
+   * Retrieve all audit events from the database between the given (inclusive)
+   * times.
+   *
+   * @param fromInclusive The inclusive lower bound on the event times
+   * @param toInclusive   The inclusive upper bound on the event times
+   *
+   * @return A series of audit events, sorted by time
+   *
+   * @throws EIServerDatabaseException On errors
+   */
 
+  List<EIAuditEvent> auditEvents(
+    OffsetDateTime fromInclusive,
+    OffsetDateTime toInclusive)
+    throws EIServerDatabaseException;
 }

@@ -23,10 +23,12 @@ import com.io7m.eigion.server.database.api.EIServerDatabaseProductsQueriesType;
 import com.io7m.eigion.server.database.postgres.internal.tables.records.CategoriesRecord;
 import org.jooq.exception.DataAccessException;
 
+import java.time.OffsetDateTime;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static com.io7m.eigion.server.database.postgres.internal.tables.Audit.AUDIT;
 import static com.io7m.eigion.server.database.postgres.internal.tables.Categories.CATEGORIES;
 import static java.lang.Boolean.FALSE;
 
@@ -83,6 +85,13 @@ record EIServerDatabaseProductsQueries(
           .execute();
       }
 
+      final var audit =
+        context.insertInto(AUDIT)
+          .set(AUDIT.TIME, OffsetDateTime.now(this.transaction.clock()))
+          .set(AUDIT.TYPE, "CATEGORY_CREATED")
+          .set(AUDIT.MESSAGE, text);
+
+      audit.execute();
       return new EIProductCategory(text);
     } catch (final DataAccessException e) {
       throw new EIServerDatabaseException(e.getMessage(), e, "sql-error");
@@ -112,6 +121,13 @@ record EIServerDatabaseProductsQueries(
       existing.setRedacted(Boolean.valueOf(redacted));
       existing.store();
 
+      final var audit =
+        context.insertInto(AUDIT)
+          .set(AUDIT.TIME, OffsetDateTime.now(this.transaction.clock()))
+          .set(AUDIT.TYPE, redacted ? "CATEGORY_REDACTED" : "CATEGORY_UNREDACTED")
+          .set(AUDIT.MESSAGE, category);
+
+      audit.execute();
       return new EIProductCategory(category);
     } catch (final DataAccessException e) {
       throw new EIServerDatabaseException(e.getMessage(), e, "sql-error");
