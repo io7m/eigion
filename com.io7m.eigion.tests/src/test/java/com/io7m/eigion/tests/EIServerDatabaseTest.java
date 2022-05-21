@@ -18,6 +18,8 @@
 package com.io7m.eigion.tests;
 
 import com.io7m.eigion.model.EIPassword;
+import com.io7m.eigion.model.EIProductCategory;
+import com.io7m.eigion.model.EIProductIdentifier;
 import com.io7m.eigion.server.database.api.EIServerDatabaseAuditQueriesType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseConfiguration;
 import com.io7m.eigion.server.database.api.EIServerDatabaseException;
@@ -38,10 +40,12 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.time.Clock;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
+import static com.io7m.eigion.model.EIRedaction.redactionOpt;
 import static com.io7m.eigion.server.database.api.EIServerDatabaseCreate.CREATE_DATABASE;
 import static com.io7m.eigion.server.database.api.EIServerDatabaseProductsQueriesType.IncludeRedacted.EXCLUDE_REDACTED;
 import static com.io7m.eigion.server.database.api.EIServerDatabaseProductsQueriesType.IncludeRedacted.INCLUDE_REDACTED;
@@ -515,7 +519,7 @@ public final class EIServerDatabaseTest
     assertEquals("sql-error", ex.errorCode());
 
     ex = assertThrows(EIServerDatabaseException.class, () -> {
-      products.categoryRedact("Category 0", true);
+      products.categoryRedact("Category 0", redactionOpt("X"));
     });
     assertEquals("sql-error", ex.errorCode());
 
@@ -558,7 +562,7 @@ public final class EIServerDatabaseTest
       products.categories(EXCLUDE_REDACTED)
     );
 
-    products.categoryRedact(category0, true);
+    products.categoryRedact(category0, redactionOpt("X"));
 
     assertEquals(
       Set.of(category0, category1, category2),
@@ -569,7 +573,7 @@ public final class EIServerDatabaseTest
       products.categories(EXCLUDE_REDACTED)
     );
 
-    products.categoryRedact(category1, true);
+    products.categoryRedact(category1, redactionOpt("X"));
 
     assertEquals(
       Set.of(category0, category1, category2),
@@ -580,7 +584,7 @@ public final class EIServerDatabaseTest
       products.categories(EXCLUDE_REDACTED)
     );
 
-    products.categoryRedact(category0, false);
+    products.categoryRedact(category0, Optional.empty());
 
     assertEquals(
       Set.of(category0, category1, category2),
@@ -594,7 +598,7 @@ public final class EIServerDatabaseTest
     {
       final var ex =
         assertThrows(EIServerDatabaseException.class, () -> {
-          products.categoryRedact("nonexistent", true);
+          products.categoryRedact("nonexistent", redactionOpt("X"));
         });
       assertEquals("category-nonexistent", ex.errorCode());
     }
@@ -608,6 +612,390 @@ public final class EIServerDatabaseTest
       new ExpectedEvent("CATEGORY_REDACTED", "Category 1"),
       new ExpectedEvent("CATEGORY_UNREDACTED", "Category 0")
     );
+  }
+
+  /**
+   * Creating products works.
+   *
+   * @throws Exception On errors
+   */
+
+  @Test
+  public void testProductCreation()
+    throws Exception
+  {
+    assertTrue(this.container.isRunning());
+
+    final var transaction =
+      this.transactionOf(this.container, EIGION);
+    final var products =
+      transaction.queries(EIServerDatabaseProductsQueriesType.class);
+    final var users =
+      transaction.queries(EIServerDatabaseUsersQueriesType.class);
+
+    final var id =
+      new EIProductIdentifier("com.io7m.ex", "com.q");
+    final var user =
+      users.userCreate(
+        "someone",
+        "someone@example.com",
+        EIPassword.createHashed("12345678"));
+    final var product =
+      products.productCreate(id, user.id());
+
+    assertEquals(id, product.id());
+    assertEquals(List.of(), product.releases());
+    assertEquals(Set.of(), product.categories());
+
+    checkAuditLog(
+      transaction,
+      new ExpectedEvent("USER_CREATED", user.id().toString()),
+      new ExpectedEvent("PRODUCT_CREATED", "com.io7m.ex:com.q")
+    );
+  }
+
+  /**
+   * Duplicate products fail.
+   *
+   * @throws Exception On errors
+   */
+
+  @Test
+  public void testProductCreationDuplicate()
+    throws Exception
+  {
+    assertTrue(this.container.isRunning());
+
+    final var transaction =
+      this.transactionOf(this.container, EIGION);
+    final var products =
+      transaction.queries(EIServerDatabaseProductsQueriesType.class);
+    final var users =
+      transaction.queries(EIServerDatabaseUsersQueriesType.class);
+
+    final var id =
+      new EIProductIdentifier("com.io7m.ex", "com.q");
+    final var user =
+      users.userCreate(
+        "someone",
+        "someone@example.com",
+        EIPassword.createHashed("12345678"));
+    final var product =
+      products.productCreate(id, user.id());
+
+    assertEquals(
+      Set.of(id),
+      products.productsAll(INCLUDE_REDACTED)
+    );
+    assertEquals(
+      Set.of(id),
+      products.productsAll(EXCLUDE_REDACTED)
+    );
+
+    final var ex = assertThrows(EIServerDatabaseException.class, () -> {
+      products.productCreate(id, user.id());
+    });
+
+    assertEquals("product-duplicate", ex.errorCode());
+  }
+
+  /**
+   * Product privileges are required.
+   *
+   * @throws Exception On errors
+   */
+
+  @Test
+  public void testProductCreationUnprivileged()
+    throws Exception
+  {
+    assertTrue(this.container.isRunning());
+
+    final var transaction =
+      this.transactionOf(this.container, NONE);
+    final var products =
+      transaction.queries(EIServerDatabaseProductsQueriesType.class);
+
+    final var id =
+      new EIProductIdentifier("com.io7m.ex", "com.q");
+
+    final var ex = assertThrows(EIServerDatabaseException.class, () -> {
+      products.productCreate(id, UUID.randomUUID());
+    });
+
+    assertEquals("sql-error", ex.errorCode());
+  }
+
+  /**
+   * Redacting nonexistent products fails.
+   *
+   * @throws Exception On errors
+   */
+
+  @Test
+  public void testProductRedactionNonexistent()
+    throws Exception
+  {
+    assertTrue(this.container.isRunning());
+
+    final var transaction =
+      this.transactionOf(this.container, EIGION);
+    final var products =
+      transaction.queries(EIServerDatabaseProductsQueriesType.class);
+
+    var ex = assertThrows(EIServerDatabaseException.class, () -> {
+      products.productRedact(
+        new EIProductIdentifier("com.io7m.ex", "com.q"),
+        Optional.empty()
+      );
+    });
+
+    assertEquals("product-nonexistent", ex.errorCode());
+
+    ex = assertThrows(EIServerDatabaseException.class, () -> {
+      products.productRedact(
+        new EIProductIdentifier("com.io7m.ex", "com.q"),
+        redactionOpt("What?")
+      );
+    });
+
+    assertEquals("product-nonexistent", ex.errorCode());
+  }
+
+  /**
+   * Redacting products works.
+   *
+   * @throws Exception On errors
+   */
+
+  @Test
+  public void testProductRedaction()
+    throws Exception
+  {
+    assertTrue(this.container.isRunning());
+
+    final var transaction =
+      this.transactionOf(this.container, EIGION);
+    final var products =
+      transaction.queries(EIServerDatabaseProductsQueriesType.class);
+    final var users =
+      transaction.queries(EIServerDatabaseUsersQueriesType.class);
+
+    final var id =
+      new EIProductIdentifier("com.io7m.ex", "com.q");
+    final var user =
+      users.userCreate(
+        "someone",
+        "someone@example.com",
+        EIPassword.createHashed("12345678"));
+
+    final var product =
+      products.productCreate(id, user.id());
+
+    assertEquals(
+      Set.of(id),
+      products.productsAll(INCLUDE_REDACTED)
+    );
+    assertEquals(
+      Set.of(id),
+      products.productsAll(EXCLUDE_REDACTED)
+    );
+
+    products.productRedact(id, redactionOpt("Broken!"));
+
+    assertEquals(
+      Set.of(id),
+      products.productsAll(INCLUDE_REDACTED)
+    );
+    assertEquals(
+      Set.of(),
+      products.productsAll(EXCLUDE_REDACTED)
+    );
+
+    products.productRedact(id, Optional.empty());
+
+    assertEquals(
+      Set.of(id),
+      products.productsAll(INCLUDE_REDACTED)
+    );
+    assertEquals(
+      Set.of(id),
+      products.productsAll(EXCLUDE_REDACTED)
+    );
+
+    checkAuditLog(
+      transaction,
+      new ExpectedEvent("USER_CREATED", user.id().toString()),
+      new ExpectedEvent("PRODUCT_CREATED", "com.io7m.ex:com.q"),
+      new ExpectedEvent("PRODUCT_REDACTED", "com.io7m.ex:com.q: Broken!"),
+      new ExpectedEvent("PRODUCT_UNREDACTED", "com.io7m.ex:com.q")
+    );
+  }
+
+  /**
+   * Product privileges are required.
+   *
+   * @throws Exception On errors
+   */
+
+  @Test
+  public void testProductRedactionUnprivileged()
+    throws Exception
+  {
+    assertTrue(this.container.isRunning());
+
+    final var transaction =
+      this.transactionOf(this.container, NONE);
+    final var products =
+      transaction.queries(EIServerDatabaseProductsQueriesType.class);
+
+    final var id =
+      new EIProductIdentifier("com.io7m.ex", "com.q");
+
+    final var ex = assertThrows(EIServerDatabaseException.class, () -> {
+      products.productRedact(id, redactionOpt("Broken!"));
+    });
+
+    assertEquals("sql-error", ex.errorCode());
+  }
+
+  /**
+   * Product privileges are required.
+   *
+   * @throws Exception On errors
+   */
+
+  @Test
+  public void testProductListUnprivileged()
+    throws Exception
+  {
+    assertTrue(this.container.isRunning());
+
+    final var transaction =
+      this.transactionOf(this.container, NONE);
+    final var products =
+      transaction.queries(EIServerDatabaseProductsQueriesType.class);
+
+    final var ex = assertThrows(EIServerDatabaseException.class, () -> {
+      products.productsAll(INCLUDE_REDACTED);
+    });
+
+    assertEquals("sql-error", ex.errorCode());
+  }
+
+  /**
+   * Categorizing products works.
+   *
+   * @throws Exception On errors
+   */
+
+  @Test
+  public void testProductCategories()
+    throws Exception
+  {
+    assertTrue(this.container.isRunning());
+
+    final var transaction =
+      this.transactionOf(this.container, EIGION);
+    final var products =
+      transaction.queries(EIServerDatabaseProductsQueriesType.class);
+    final var users =
+      transaction.queries(EIServerDatabaseUsersQueriesType.class);
+
+    final var id =
+      new EIProductIdentifier("com.io7m.ex", "com.q");
+    final var user =
+      users.userCreate(
+        "someone",
+        "someone@example.com",
+        EIPassword.createHashed("12345678"));
+    final var product =
+      products.productCreate(id, user.id());
+
+    assertEquals(id, product.id());
+    assertEquals(List.of(), product.releases());
+    assertEquals(Set.of(), product.categories());
+
+    final var category0 =
+      products.categoryCreate("Cat0");
+    final var category1 =
+      products.categoryCreate("Cat1");
+
+    products.productCategoryAdd(id, category0);
+    products.productCategoryAdd(id, category1);
+
+    {
+      final var p = products.product(id, INCLUDE_REDACTED);
+      assertEquals(Set.of(category0, category1), p.categories());
+    }
+
+    {
+      final var p = products.product(id, EXCLUDE_REDACTED);
+      assertEquals(Set.of(category0, category1), p.categories());
+    }
+
+    products.categoryRedact(category0, redactionOpt("X"));
+
+    {
+      final var p = products.product(id, EXCLUDE_REDACTED);
+      assertEquals(Set.of(category1), p.categories());
+    }
+
+    products.productCategoryRemove(id, category0);
+    products.productCategoryRemove(id, category1);
+
+    {
+      final var p = products.product(id, INCLUDE_REDACTED);
+      assertEquals(Set.of(), p.categories());
+    }
+
+    checkAuditLog(
+      transaction,
+      new ExpectedEvent("USER_CREATED", user.id().toString()),
+      new ExpectedEvent("PRODUCT_CREATED", "com.io7m.ex:com.q"),
+      new ExpectedEvent("CATEGORY_CREATED", category0.value()),
+      new ExpectedEvent("CATEGORY_CREATED", category1.value()),
+      new ExpectedEvent("PRODUCT_CATEGORY_ADDED", "com.io7m.ex:com.q:Cat0"),
+      new ExpectedEvent("PRODUCT_CATEGORY_ADDED", "com.io7m.ex:com.q:Cat1"),
+      new ExpectedEvent("CATEGORY_REDACTED", null),
+      new ExpectedEvent("PRODUCT_CATEGORY_REMOVED", "com.io7m.ex:com.q:Cat0"),
+      new ExpectedEvent("PRODUCT_CATEGORY_REMOVED", "com.io7m.ex:com.q:Cat1")
+    );
+  }
+
+  /**
+   * Categorizing products requires privileges.
+   *
+   * @throws Exception On errors
+   */
+
+  @Test
+  public void testProductCategoriesUnprivileged()
+    throws Exception
+  {
+    assertTrue(this.container.isRunning());
+
+    final var transaction =
+      this.transactionOf(this.container, NONE);
+    final var products =
+      transaction.queries(EIServerDatabaseProductsQueriesType.class);
+
+    final var id =
+      new EIProductIdentifier("com.io7m.ex", "com.q");
+    final var category0 =
+      new EIProductCategory("Cat0");
+    {
+      final var ex = assertThrows(EIServerDatabaseException.class, () -> {
+        products.productCategoryAdd(id, category0);
+      });
+      assertEquals("sql-error", ex.errorCode());
+    }
+    {
+      final var ex = assertThrows(EIServerDatabaseException.class, () -> {
+        products.productCategoryRemove(id, category0);
+      });
+      assertEquals("sql-error", ex.errorCode());
+    }
   }
 
   private record ExpectedEvent(

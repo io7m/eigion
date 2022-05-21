@@ -75,4 +75,12 @@ public record EIProductIdentifier(
     }
   }
 
+  /**
+   * @return The identifier as a string
+   */
+
+  public String show()
+  {
+    return String.format("%s:%s", this.group, this.name);
+  }
 }

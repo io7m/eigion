@@ -22,6 +22,11 @@
   <logger name="com.github.dockerjava"
           level="ERROR"/>
 
+  <logger name="org.jooq"
+          level="INFO"/>
+
+  <logger name="com.zaxxer.hikari" level="INFO"/>
+
   <logger name="org.testcontainers" level="INFO"/>
 
   <root level="TRACE">

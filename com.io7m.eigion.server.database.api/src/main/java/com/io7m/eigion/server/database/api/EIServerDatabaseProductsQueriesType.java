@@ -16,9 +16,14 @@
 
 package com.io7m.eigion.server.database.api;
 
+import com.io7m.eigion.model.EIProduct;
 import com.io7m.eigion.model.EIProductCategory;
+import com.io7m.eigion.model.EIProductIdentifier;
+import com.io7m.eigion.model.EIRedaction;
 
+import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 
 /**
  * The database queries involving products.
@@ -64,7 +69,7 @@ public non-sealed interface EIServerDatabaseProductsQueriesType
 
   EIProductCategory categoryRedact(
     String category,
-    boolean redacted)
+    Optional<EIRedaction> redacted)
     throws EIServerDatabaseException;
 
   /**
@@ -80,11 +85,100 @@ public non-sealed interface EIServerDatabaseProductsQueriesType
 
   default EIProductCategory categoryRedact(
     final EIProductCategory category,
-    final boolean redacted)
+    final Optional<EIRedaction> redacted)
     throws EIServerDatabaseException
   {
     return this.categoryRedact(category.value(), redacted);
   }
+
+  /**
+   * Create a product.
+   *
+   * @param id     The product ID
+   * @param userId The user that created the product
+   *
+   * @return A new product
+   *
+   * @throws EIServerDatabaseException On errors
+   */
+
+  EIProduct productCreate(
+    EIProductIdentifier id,
+    UUID userId)
+    throws EIServerDatabaseException;
+
+  /**
+   * Redact a product.
+   *
+   * @param id       The product ID
+   * @param redacted The redaction
+   *
+   * @throws EIServerDatabaseException On errors
+   */
+
+  void productRedact(
+    EIProductIdentifier id,
+    Optional<EIRedaction> redacted)
+    throws EIServerDatabaseException;
+
+  /**
+   * Return all product identifiers in the database.
+   *
+   * @param includeRedacted Whether to include redacted content
+   *
+   * @return The database products
+   *
+   * @throws EIServerDatabaseException On errors
+   */
+
+  Set<EIProductIdentifier> productsAll(
+    IncludeRedacted includeRedacted)
+    throws EIServerDatabaseException;
+
+  /**
+   * Return the product with the given identifier.
+   *
+   * @param id              The product identifier
+   * @param includeRedacted Whether to include redacted content
+   *
+   * @return The product
+   *
+   * @throws EIServerDatabaseException On errors
+   */
+
+  EIProduct product(
+    EIProductIdentifier id,
+    IncludeRedacted includeRedacted)
+    throws EIServerDatabaseException;
+
+  /**
+   * Add a category to a product. Both product and category must exist.
+   *
+   * @param id       The product
+   * @param category The category
+   *
+   * @throws EIServerDatabaseException On errors
+   */
+
+  void productCategoryAdd(
+    EIProductIdentifier id,
+    EIProductCategory category)
+    throws EIServerDatabaseException;
+
+  /**
+   * Remove a category from a product. Both product and category must exist.
+   * Does nothing if the product is not already in the category.
+   *
+   * @param id       The product
+   * @param category The category
+   *
+   * @throws EIServerDatabaseException On errors
+   */
+
+  void productCategoryRemove(
+    EIProductIdentifier id,
+    EIProductCategory category)
+    throws EIServerDatabaseException;
 
   /**
    * Whether to include redacted items.

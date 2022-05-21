@@ -23,15 +23,16 @@ module com.io7m.eigion.server.database.postgres
   requires static org.osgi.annotation.bundle;
   requires static org.osgi.annotation.versioning;
 
+  requires transitive com.io7m.eigion.server.database.api;
+
+  requires com.io7m.anethum.common;
+  requires com.io7m.jaffirm.core;
   requires com.io7m.trasco.api;
   requires com.io7m.trasco.vanilla;
   requires com.zaxxer.hikari;
   requires org.jooq;
   requires org.postgresql.jdbc;
-
-  requires transitive com.io7m.eigion.server.database.api;
   requires org.slf4j;
-  requires com.io7m.anethum.common;
 
   exports com.io7m.eigion.server.database.postgres;
   exports com.io7m.eigion.server.database.postgres.internal.tables to org.jooq;
