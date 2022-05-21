@@ -96,8 +96,9 @@ create table user_bans (
 
     <Statement><![CDATA[
 create table categories (
-  id       bigint       not null primary key generated always as identity,
-  name     varchar(64)  not null unique
+  id      bigint                   not null primary key generated always as identity,
+  name    varchar(64)              not null unique,
+  created timestamp with time zone not null
 )
 ]]></Statement>
 
@@ -109,9 +110,10 @@ create table categories (
 
     <Statement><![CDATA[
 create table category_redactions (
-  category  bigint       not null unique,
-  reason    varchar(256) not null,
-  creator   uuid         not null,
+  category  bigint                   not null unique,
+  reason    varchar(256)             not null,
+  creator   uuid                     not null,
+  created   timestamp with time zone not null,
 
   foreign key (creator)  references users (id),
   foreign key (category) references categories (id)
@@ -121,31 +123,45 @@ create table category_redactions (
     <Statement>grant select, delete, insert on category_redactions to eigion</Statement>
 
     <Comment>
-      The products table holds product definitions. The "redacted" column, if set to a non-null value, specifies the
-      reason a product has been redacted (such as having an offensive name). If the "redacted" column is null, the
-      product is not redacted.
+      The products table holds product definitions.
     </Comment>
 
     <Statement><![CDATA[
 create table products (
-  id             bigint        not null primary key generated always as identity,
-  product_group  varchar(1024) not null,
-  product_name   varchar(1024) not null,
-  created_by     uuid          not null,
-  redacted       varchar(256),
+  id             bigint                   not null primary key generated always as identity,
+  product_group  varchar(1024)            not null,
+  product_name   varchar(1024)            not null,
+  created_by     uuid                     not null,
+  created        timestamp with time zone not null,
 
   unique (product_group, product_name),
+
   foreign key (created_by) references users (id)
 )
 ]]></Statement>
 
     <Statement>grant select, insert on products to eigion</Statement>
-    <Statement>grant update (redacted) on products to eigion</Statement>
 
     <Comment>
-      The product_releases table holds product releases. The "redacted" column, if set to a non-null value, specifies the
-      reason a product release has been redacted (such as having an offensive name). If the "redacted" column is null,
-      the product release is not redacted.
+      The product_redactions table holds the set of products that have been redacted.
+    </Comment>
+
+    <Statement><![CDATA[
+create table product_redactions (
+  product  bigint                   not null unique,
+  reason   varchar(256)             not null,
+  creator  uuid                     not null,
+  created  timestamp with time zone not null,
+
+  foreign key (creator) references users (id),
+  foreign key (product) references products (id)
+)
+]]></Statement>
+
+    <Statement>grant select, delete, insert on product_redactions to eigion</Statement>
+
+    <Comment>
+      The product_releases table holds product releases.
     </Comment>
 
     <Statement><![CDATA[
@@ -160,7 +176,6 @@ create table product_releases (
   manifest_type       varchar(256)             not null,
   created_by          uuid                     not null,
   created             timestamp with time zone not null,
-  redacted            varchar(256),
 
   unique (product_id, version_major, version_minor, version_patch, version_qualifier),
 
@@ -170,7 +185,22 @@ create table product_releases (
 ]]></Statement>
 
     <Statement>grant select, insert on product_releases to eigion</Statement>
-    <Statement>grant update (redacted) on product_releases to eigion</Statement>
+
+    <Comment>
+      The product_release_redactions table holds the set of product releases that have been redacted.
+    </Comment>
+
+    <Statement><![CDATA[
+create table product_release_redactions (
+  release  bigint                   not null unique,
+  reason   varchar(256)             not null,
+  creator  uuid                     not null,
+  created  timestamp with time zone not null,
+
+  foreign key (creator) references users (id),
+  foreign key (release) references product_releases (id)
+)
+]]></Statement>
 
     <Comment>
       The product_categories table associates products with categories.

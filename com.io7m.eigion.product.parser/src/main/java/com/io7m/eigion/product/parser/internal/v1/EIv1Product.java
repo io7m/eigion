@@ -114,7 +114,9 @@ public final class EIv1Product implements EIv1FromV1Type<EIProduct>
         new EIProduct(
           newId.get(),
           newReleases.get(),
-          newCategories.get())
+          newCategories.get(),
+          Optional.empty()
+        )
       );
     }
 

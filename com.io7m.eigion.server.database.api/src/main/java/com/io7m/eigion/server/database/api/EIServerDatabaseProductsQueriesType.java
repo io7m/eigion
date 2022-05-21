@@ -115,6 +115,7 @@ public non-sealed interface EIServerDatabaseProductsQueriesType
    * Redact a product.
    *
    * @param id       The product ID
+   * @param userId   The user that is performing the redaction
    * @param redacted The redaction
    *
    * @throws EIServerDatabaseException On errors
@@ -122,6 +123,7 @@ public non-sealed interface EIServerDatabaseProductsQueriesType
 
   void productRedact(
     EIProductIdentifier id,
+    UUID userId,
     Optional<EIRedaction> redacted)
     throws EIServerDatabaseException;
 

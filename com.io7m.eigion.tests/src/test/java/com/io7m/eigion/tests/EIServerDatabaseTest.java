@@ -774,6 +774,7 @@ public final class EIServerDatabaseTest
     var ex = assertThrows(EIServerDatabaseException.class, () -> {
       products.productRedact(
         new EIProductIdentifier("com.io7m.ex", "com.q"),
+        UUID.randomUUID(),
         Optional.empty()
       );
     });
@@ -783,6 +784,7 @@ public final class EIServerDatabaseTest
     ex = assertThrows(EIServerDatabaseException.class, () -> {
       products.productRedact(
         new EIProductIdentifier("com.io7m.ex", "com.q"),
+        UUID.randomUUID(),
         redactionOpt("What?")
       );
     });
@@ -829,7 +831,7 @@ public final class EIServerDatabaseTest
       products.productsAll(EXCLUDE_REDACTED)
     );
 
-    products.productRedact(id, redactionOpt("Broken!"));
+    products.productRedact(id, user.id(), redactionOpt("Broken!"));
 
     assertEquals(
       Set.of(id),
@@ -840,7 +842,7 @@ public final class EIServerDatabaseTest
       products.productsAll(EXCLUDE_REDACTED)
     );
 
-    products.productRedact(id, Optional.empty());
+    products.productRedact(id, user.id(), Optional.empty());
 
     assertEquals(
       Set.of(id),
@@ -881,7 +883,7 @@ public final class EIServerDatabaseTest
       new EIProductIdentifier("com.io7m.ex", "com.q");
 
     final var ex = assertThrows(EIServerDatabaseException.class, () -> {
-      products.productRedact(id, redactionOpt("Broken!"));
+      products.productRedact(id, UUID.randomUUID(), redactionOpt("Broken!"));
     });
 
     assertEquals("sql-error", ex.errorCode());

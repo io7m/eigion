@@ -18,6 +18,7 @@ package com.io7m.eigion.model;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -26,12 +27,15 @@ import java.util.Set;
  * @param id         The product identifier
  * @param releases   The bundles upon which the product depends
  * @param categories The categories to which the product belongs
+ * @param redaction  The product redaction, if any
  */
 
 public record EIProduct(
   EIProductIdentifier id,
   List<EIProductRelease> releases,
-  Set<EIProductCategory> categories)
+  Set<EIProductCategory> categories,
+  Optional<EIRedaction> redaction)
+  implements EIRedactableType
 {
   /**
    * A product.
@@ -39,6 +43,7 @@ public record EIProduct(
    * @param id         The product identifier
    * @param releases   The bundles upon which the product depends
    * @param categories The categories to which the product belongs
+   * @param redaction  The product redaction, if any
    */
 
   public EIProduct
@@ -46,5 +51,6 @@ public record EIProduct(
     Objects.requireNonNull(id, "id");
     Objects.requireNonNull(releases, "releases");
     Objects.requireNonNull(categories, "categories");
+    Objects.requireNonNull(redaction, "redaction");
   }
 }
