@@ -60,6 +60,7 @@ public non-sealed interface EIServerDatabaseProductsQueriesType
    * Redact (or unredact) a category.
    *
    * @param category The category
+   * @param userId   The user that is performing the redaction
    * @param redacted Whether the category should be redacted
    *
    * @return The category
@@ -69,6 +70,7 @@ public non-sealed interface EIServerDatabaseProductsQueriesType
 
   EIProductCategory categoryRedact(
     String category,
+    UUID userId,
     Optional<EIRedaction> redacted)
     throws EIServerDatabaseException;
 
@@ -76,6 +78,7 @@ public non-sealed interface EIServerDatabaseProductsQueriesType
    * Redact (or unredact) a category.
    *
    * @param category The category
+   * @param userId   The user that is performing the redaction
    * @param redacted Whether the category should be redacted
    *
    * @return The category
@@ -85,10 +88,11 @@ public non-sealed interface EIServerDatabaseProductsQueriesType
 
   default EIProductCategory categoryRedact(
     final EIProductCategory category,
+    final UUID userId,
     final Optional<EIRedaction> redacted)
     throws EIServerDatabaseException
   {
-    return this.categoryRedact(category.value(), redacted);
+    return this.categoryRedact(category.value(), userId, redacted);
   }
 
   /**

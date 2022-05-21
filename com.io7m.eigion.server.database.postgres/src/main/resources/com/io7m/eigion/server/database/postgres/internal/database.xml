@@ -91,20 +91,34 @@ create table user_bans (
 
   <Schema versionCurrent="2">
     <Comment>
-      The categories table holds the set of categories that can be applied to products. The "redacted" column, if set to
-      a non-null value, specifies the reason a category has been redacted (such as having an offensive name). If the
-      "redacted" column is null, the category is not redacted.
+      The categories table holds the set of categories that can be applied to products.
     </Comment>
 
     <Statement><![CDATA[
 create table categories (
   id       bigint       not null primary key generated always as identity,
-  name     varchar(64)  not null unique,
-  redacted varchar(256)
+  name     varchar(64)  not null unique
 )
 ]]></Statement>
 
-    <Statement>grant select, insert, update on categories to eigion</Statement>
+    <Statement>grant select, insert on categories to eigion</Statement>
+
+    <Comment>
+      The category_redactions table holds the set of categories that have been redacted.
+    </Comment>
+
+    <Statement><![CDATA[
+create table category_redactions (
+  category  bigint       not null unique,
+  reason    varchar(256) not null,
+  creator   uuid         not null,
+
+  foreign key (creator)  references users (id),
+  foreign key (category) references categories (id)
+)
+]]></Statement>
+
+    <Statement>grant select, delete, insert on category_redactions to eigion</Statement>
 
     <Comment>
       The products table holds product definitions. The "redacted" column, if set to a non-null value, specifies the
@@ -129,26 +143,34 @@ create table products (
     <Statement>grant update (redacted) on products to eigion</Statement>
 
     <Comment>
-      The product_releases table holds product releases.
+      The product_releases table holds product releases. The "redacted" column, if set to a non-null value, specifies the
+      reason a product release has been redacted (such as having an offensive name). If the "redacted" column is null,
+      the product release is not redacted.
     </Comment>
 
     <Statement><![CDATA[
 create table product_releases (
-  id                  bigint       not null primary key generated always as identity,
-  product_id          bigint       not null,
-  version_major       bigint       not null,
-  version_minor       bigint       not null,
-  version_patch       bigint       not null,
+  id                  bigint                   not null primary key generated always as identity,
+  product_id          bigint                   not null,
+  version_major       bigint                   not null,
+  version_minor       bigint                   not null,
+  version_patch       bigint                   not null,
   version_qualifier   varchar(64),
-  manifest            bytea        not null,
-  manifest_type       varchar(256) not null,
+  manifest            bytea                    not null,
+  manifest_type       varchar(256)             not null,
+  created_by          uuid                     not null,
+  created             timestamp with time zone not null,
+  redacted            varchar(256),
 
   unique (product_id, version_major, version_minor, version_patch, version_qualifier),
-  foreign key (product_id) references products (id)
+
+  foreign key (product_id) references products (id),
+  foreign key (created_by) references users (id)
 )
 ]]></Statement>
 
     <Statement>grant select, insert on product_releases to eigion</Statement>
+    <Statement>grant update (redacted) on product_releases to eigion</Statement>
 
     <Comment>
       The product_categories table associates products with categories.

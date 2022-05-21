@@ -20,16 +20,17 @@ package com.io7m.eigion.server.database.postgres.internal;
 import com.io7m.eigion.model.EIProduct;
 import com.io7m.eigion.model.EIProductCategory;
 import com.io7m.eigion.model.EIProductIdentifier;
+import com.io7m.eigion.model.EIRedactableType;
 import com.io7m.eigion.model.EIRedaction;
 import com.io7m.eigion.server.database.api.EIServerDatabaseException;
 import com.io7m.eigion.server.database.api.EIServerDatabaseProductsQueriesType;
 import com.io7m.eigion.server.database.postgres.internal.tables.records.AuditRecord;
-import com.io7m.eigion.server.database.postgres.internal.tables.records.CategoriesRecord;
 import com.io7m.eigion.server.database.postgres.internal.tables.records.ProductsRecord;
 import com.io7m.jaffirm.core.Postconditions;
 import com.io7m.jaffirm.core.Preconditions;
 import org.jooq.DSLContext;
 import org.jooq.InsertSetMoreStep;
+import org.jooq.Record;
 import org.jooq.exception.DataAccessException;
 
 import java.time.OffsetDateTime;
@@ -41,10 +42,12 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static com.io7m.eigion.server.database.api.EIServerDatabaseProductsQueriesType.IncludeRedacted.INCLUDE_REDACTED;
+import static com.io7m.eigion.server.database.postgres.internal.Tables.CATEGORY_REDACTIONS;
 import static com.io7m.eigion.server.database.postgres.internal.Tables.PRODUCTS;
 import static com.io7m.eigion.server.database.postgres.internal.Tables.PRODUCT_CATEGORIES;
 import static com.io7m.eigion.server.database.postgres.internal.tables.Audit.AUDIT;
 import static com.io7m.eigion.server.database.postgres.internal.tables.Categories.CATEGORIES;
+import static java.lang.Long.valueOf;
 
 record EIServerDatabaseProductsQueries(
   EIServerDatabaseTransaction transaction)
@@ -85,37 +88,67 @@ record EIServerDatabaseProductsQueries(
     return productOpt.get();
   }
 
-  private static CategoriesRecord fetchCategoryOrFail(
+  private record EIDatabaseProductCategory(
+    long id,
+    EIProductCategory category)
+    implements EIRedactableType
+  {
+    @Override
+    public Optional<EIRedaction> redaction()
+    {
+      return this.category.redaction();
+    }
+  }
+
+  private static List<EIDatabaseProductCategory> fetchCategories(
+    final IncludeRedacted includeRedacted,
+    final DSLContext context)
+  {
+    final var query =
+      context.select()
+        .from(CATEGORIES)
+        .leftOuterJoin(CATEGORY_REDACTIONS)
+        .on(CATEGORY_REDACTIONS.CATEGORY.eq(CATEGORIES.ID));
+
+    return query.stream()
+      .map(EIServerDatabaseProductsQueries::toCategoryWithRedaction)
+      .filter(c -> filterRedactedIfNecessary(c, includeRedacted))
+      .toList();
+  }
+
+  private static EIDatabaseProductCategory fetchCategoryOrFail(
     final EIProductCategory category,
     final IncludeRedacted includeRedacted,
     final DSLContext context)
     throws EIServerDatabaseException
   {
-    final var categoryOpt =
-      switch (includeRedacted) {
-        case INCLUDE_REDACTED -> {
-          yield context.fetchOptional(
-            CATEGORIES,
-            CATEGORIES.NAME.eq(category.value())
-          );
-        }
-        case EXCLUDE_REDACTED -> {
-          yield context.fetchOptional(
-            CATEGORIES,
-            CATEGORIES.NAME.eq(category.value())
-              .and(CATEGORIES.REDACTED.isNull())
-          );
-        }
-      };
+    final var query =
+      context.select()
+        .from(CATEGORIES)
+        .leftOuterJoin(CATEGORY_REDACTIONS)
+        .on(CATEGORY_REDACTIONS.CATEGORY.eq(CATEGORIES.ID))
+        .where(CATEGORIES.NAME.eq(category.value()));
 
-    if (categoryOpt.isEmpty()) {
+    final var categoryRecOpt =
+      query.fetchOptional()
+        .map(EIServerDatabaseProductsQueries::toCategoryWithRedaction);
+
+    if (categoryRecOpt.isEmpty()) {
       throw new EIServerDatabaseException(
         "Category does not exist",
         "category-nonexistent"
       );
     }
 
-    return categoryOpt.get();
+    final var categoryRec = categoryRecOpt.get();
+    if (!filterRedactedIfNecessary(categoryRec, includeRedacted)) {
+      throw new EIServerDatabaseException(
+        "Category does not exist",
+        "category-nonexistent"
+      );
+    }
+
+    return categoryRec;
   }
 
   private static EIProductIdentifier toProductId(
@@ -130,14 +163,6 @@ record EIServerDatabaseProductsQueries(
   {
     return redacted.map(r -> id.show() + ": " + r.reason())
       .orElseGet(id::show);
-  }
-
-  private static EIProductCategory toCategory(
-    final CategoriesRecord r)
-  {
-    return new EIProductCategory(
-      r.get(CATEGORIES.NAME)
-    );
   }
 
   private static void insertAuditRecord(
@@ -161,20 +186,10 @@ record EIServerDatabaseProductsQueries(
     final var context = this.transaction.createContext();
 
     try {
-      return switch (includeRedacted) {
-        case INCLUDE_REDACTED -> {
-          yield context.fetch(CATEGORIES)
-            .stream()
-            .map(EIServerDatabaseProductsQueries::toCategory)
-            .collect(Collectors.toUnmodifiableSet());
-        }
-        case EXCLUDE_REDACTED -> {
-          yield context.fetch(CATEGORIES, CATEGORIES.REDACTED.isNull())
-            .stream()
-            .map(EIServerDatabaseProductsQueries::toCategory)
-            .collect(Collectors.toUnmodifiableSet());
-        }
-      };
+      return fetchCategories(includeRedacted, context)
+        .stream()
+        .map(EIDatabaseProductCategory::category)
+        .collect(Collectors.toUnmodifiableSet());
     } catch (final DataAccessException e) {
       throw new EIServerDatabaseException(e.getMessage(), e, "sql-error");
     }
@@ -197,7 +212,6 @@ record EIServerDatabaseProductsQueries(
         final var inserted =
           context.insertInto(CATEGORIES)
             .set(CATEGORIES.NAME, text)
-            .set(CATEGORIES.REDACTED, (String) null)
             .execute();
 
         Preconditions.checkPreconditionV(
@@ -214,7 +228,7 @@ record EIServerDatabaseProductsQueries(
           .set(AUDIT.MESSAGE, text);
 
       insertAuditRecord(audit);
-      return new EIProductCategory(text);
+      return new EIProductCategory(text, Optional.empty());
     } catch (final DataAccessException e) {
       throw new EIServerDatabaseException(e.getMessage(), e, "sql-error");
     }
@@ -223,26 +237,57 @@ record EIServerDatabaseProductsQueries(
   @Override
   public EIProductCategory categoryRedact(
     final String category,
+    final UUID userId,
     final Optional<EIRedaction> redacted)
     throws EIServerDatabaseException
   {
     Objects.requireNonNull(category, "category");
+    Objects.requireNonNull(userId, "userId");
     Objects.requireNonNull(redacted, "redacted");
 
     final var context = this.transaction.createContext();
 
     try {
-      final var existingOpt =
-        context.fetchOptional(CATEGORIES, CATEGORIES.NAME.eq(category));
+      final var categoryRec =
+        fetchCategoryOrFail(
+          new EIProductCategory(category, Optional.empty()),
+          INCLUDE_REDACTED,
+          context
+        );
 
-      if (existingOpt.isEmpty()) {
-        throw new EIServerDatabaseException(
-          "No such category: " + category, "category-nonexistent");
+      /*
+       * Delete any existing redaction. If there is one, we're either going
+       * to replace it or completely remove it.
+       */
+
+      context.delete(CATEGORY_REDACTIONS)
+        .where(CATEGORY_REDACTIONS.CATEGORY.eq(valueOf(categoryRec.id())))
+        .execute();
+
+      /*
+       * Create a new redaction if required.
+       */
+
+      if (redacted.isPresent()) {
+        final var redact = redacted.get();
+
+        final var inserted =
+          context.insertInto(CATEGORY_REDACTIONS)
+            .set(CATEGORY_REDACTIONS.CATEGORY, valueOf(categoryRec.id()))
+            .set(CATEGORY_REDACTIONS.REASON, redact.reason())
+            .set(CATEGORY_REDACTIONS.CREATOR, userId)
+            .execute();
+
+        Preconditions.checkPreconditionV(
+          inserted == 1,
+          "Expected to insert 1 record (inserted %d)",
+          Integer.valueOf(inserted)
+        );
       }
 
-      final var existing = existingOpt.get();
-      existing.setRedacted(redacted.map(EIRedaction::reason).orElse(null));
-      existing.store();
+      /*
+       * Log the redaction.
+       */
 
       final var redactType =
         redacted.isPresent() ? "CATEGORY_REDACTED" : "CATEGORY_UNREDACTED";
@@ -253,7 +298,7 @@ record EIServerDatabaseProductsQueries(
           .set(AUDIT.MESSAGE, category);
 
       insertAuditRecord(audit);
-      return new EIProductCategory(category);
+      return new EIProductCategory(category, redacted);
     } catch (final DataAccessException e) {
       throw new EIServerDatabaseException(e.getMessage(), e, "sql-error");
     }
@@ -390,30 +435,21 @@ record EIServerDatabaseProductsQueries(
       final var productRec =
         fetchProductOrFail(id, includeRedacted, context);
 
-      final var categoryRecords =
-        switch (includeRedacted) {
-          case INCLUDE_REDACTED -> {
-            try (var select = context.select()) {
-              yield select.from(CATEGORIES)
-                .join(PRODUCT_CATEGORIES)
-                .on(PRODUCT_CATEGORIES.CATEGORY_PRODUCT.eq(productRec.getId()))
-                .fetch();
-            }
-          }
-          case EXCLUDE_REDACTED -> {
-            try (var select = context.select()) {
-              yield select.from(CATEGORIES)
-                .join(PRODUCT_CATEGORIES)
-                .on(PRODUCT_CATEGORIES.CATEGORY_PRODUCT.eq(productRec.getId()))
-                .where(CATEGORIES.REDACTED.isNull())
-                .fetch();
-            }
-          }
-        };
+      /*
+       * Fetch the categories associated with the product, filtering
+       * redacted categories if requested.
+       */
 
       final var categories =
-        categoryRecords.stream()
-          .map(r -> new EIProductCategory(r.get(CATEGORIES.NAME)))
+        context.select()
+          .from(CATEGORIES)
+          .join(PRODUCT_CATEGORIES)
+          .on(PRODUCT_CATEGORIES.CATEGORY_PRODUCT.eq(productRec.getId()))
+          .leftOuterJoin(CATEGORY_REDACTIONS)
+          .on(CATEGORY_REDACTIONS.CATEGORY.eq(CATEGORIES.ID))
+          .stream()
+          .map(EIServerDatabaseProductsQueries::toCategoryWithRedaction)
+          .filter(c -> filterRedactedIfNecessary(c, includeRedacted))
           .collect(Collectors.toUnmodifiableSet());
 
       return new EIProduct(
@@ -421,11 +457,44 @@ record EIServerDatabaseProductsQueries(
           productRec.getProductGroup(),
           productRec.getProductName()),
         List.of(),
-        categories
+        categories.stream()
+          .map(EIDatabaseProductCategory::category)
+          .collect(Collectors.toUnmodifiableSet())
       );
     } catch (final DataAccessException e) {
       throw new EIServerDatabaseException(e.getMessage(), e, "sql-error");
     }
+  }
+
+  private static boolean filterRedactedIfNecessary(
+    final EIRedactableType r,
+    final IncludeRedacted includeRedacted)
+  {
+    return switch (includeRedacted) {
+      case INCLUDE_REDACTED -> true;
+      case EXCLUDE_REDACTED -> r.redaction().isEmpty();
+    };
+  }
+
+  private static EIDatabaseProductCategory toCategoryWithRedaction(
+    final Record r)
+  {
+    final var reason = r.get(CATEGORY_REDACTIONS.REASON);
+    if (reason != null) {
+      return new EIDatabaseProductCategory(
+        r.<Long>get(CATEGORIES.ID).longValue(),
+        new EIProductCategory(
+          r.get(CATEGORIES.NAME),
+          Optional.of(new EIRedaction(reason)))
+      );
+    }
+
+    return new EIDatabaseProductCategory(
+      r.<Long>get(CATEGORIES.ID).longValue(),
+      new EIProductCategory(
+        r.get(CATEGORIES.NAME),
+        Optional.empty())
+    );
   }
 
   @Override
@@ -450,7 +519,7 @@ record EIServerDatabaseProductsQueries(
         context.fetchOptional(
           PRODUCT_CATEGORIES,
           PRODUCT_CATEGORIES.CATEGORY_PRODUCT.eq(productRec.getId())
-            .and(PRODUCT_CATEGORIES.CATEGORY_ID.eq(categoryRec.getId()))
+            .and(PRODUCT_CATEGORIES.CATEGORY_ID.eq(valueOf(categoryRec.id())))
         );
 
       if (existingOpt.isPresent()) {
@@ -460,7 +529,7 @@ record EIServerDatabaseProductsQueries(
       final var inserted =
         context.insertInto(PRODUCT_CATEGORIES)
           .set(PRODUCT_CATEGORIES.CATEGORY_PRODUCT, productRec.getId())
-          .set(PRODUCT_CATEGORIES.CATEGORY_ID, categoryRec.getId())
+          .set(PRODUCT_CATEGORIES.CATEGORY_ID, valueOf(categoryRec.id()))
           .execute();
 
       Preconditions.checkPreconditionV(
@@ -503,7 +572,7 @@ record EIServerDatabaseProductsQueries(
         context.fetchOptional(
           PRODUCT_CATEGORIES,
           PRODUCT_CATEGORIES.CATEGORY_PRODUCT.eq(productRec.getId())
-            .and(PRODUCT_CATEGORIES.CATEGORY_ID.eq(categoryRec.getId()))
+            .and(PRODUCT_CATEGORIES.CATEGORY_ID.eq(valueOf(categoryRec.id())))
         );
 
       if (existingOpt.isEmpty()) {
@@ -513,7 +582,7 @@ record EIServerDatabaseProductsQueries(
       final var deleted =
         context.delete(PRODUCT_CATEGORIES)
           .where(PRODUCT_CATEGORIES.CATEGORY_PRODUCT.eq(productRec.getId()))
-          .and(PRODUCT_CATEGORIES.CATEGORY_ID.eq(categoryRec.getId()))
+          .and(PRODUCT_CATEGORIES.CATEGORY_ID.eq(valueOf(categoryRec.id())))
           .execute();
 
       Postconditions.checkPostconditionV(

@@ -519,7 +519,10 @@ public final class EIServerDatabaseTest
     assertEquals("sql-error", ex.errorCode());
 
     ex = assertThrows(EIServerDatabaseException.class, () -> {
-      products.categoryRedact("Category 0", redactionOpt("X"));
+      products.categoryRedact(
+        "Category 0",
+        UUID.randomUUID(),
+        redactionOpt("X"));
     });
     assertEquals("sql-error", ex.errorCode());
 
@@ -545,6 +548,15 @@ public final class EIServerDatabaseTest
       this.transactionOf(this.container, EIGION);
     final var products =
       transaction.queries(EIServerDatabaseProductsQueriesType.class);
+    final var users =
+      transaction.queries(EIServerDatabaseUsersQueriesType.class);
+
+    final var user =
+      users.userCreate(
+        "someone",
+        "someone@example.com",
+        EIPassword.createHashed("12345678")
+      );
 
     final var category0 =
       products.categoryCreate("Category 0");
@@ -562,10 +574,13 @@ public final class EIServerDatabaseTest
       products.categories(EXCLUDE_REDACTED)
     );
 
-    products.categoryRedact(category0, redactionOpt("X"));
+    products.categoryRedact(category0, user.id(), redactionOpt("X"));
 
     assertEquals(
-      Set.of(category0, category1, category2),
+      Set.of(
+        new EIProductCategory("Category 0", redactionOpt("X")),
+        category1,
+        category2),
       products.categories(INCLUDE_REDACTED)
     );
     assertEquals(
@@ -573,10 +588,13 @@ public final class EIServerDatabaseTest
       products.categories(EXCLUDE_REDACTED)
     );
 
-    products.categoryRedact(category1, redactionOpt("X"));
+    products.categoryRedact(category1, user.id(), redactionOpt("X"));
 
     assertEquals(
-      Set.of(category0, category1, category2),
+      Set.of(
+        new EIProductCategory("Category 0", redactionOpt("X")),
+        new EIProductCategory("Category 1", redactionOpt("X")),
+        category2),
       products.categories(INCLUDE_REDACTED)
     );
     assertEquals(
@@ -584,27 +602,37 @@ public final class EIServerDatabaseTest
       products.categories(EXCLUDE_REDACTED)
     );
 
-    products.categoryRedact(category0, Optional.empty());
+    products.categoryRedact(category0, user.id(), Optional.empty());
 
     assertEquals(
-      Set.of(category0, category1, category2),
+      Set.of(
+        category0,
+        new EIProductCategory("Category 1", redactionOpt("X")),
+        category2),
       products.categories(INCLUDE_REDACTED)
     );
     assertEquals(
-      Set.of(category0, category2),
+      Set.of(
+        category0,
+        category2),
       products.categories(EXCLUDE_REDACTED)
     );
 
     {
       final var ex =
         assertThrows(EIServerDatabaseException.class, () -> {
-          products.categoryRedact("nonexistent", redactionOpt("X"));
+          products.categoryRedact(
+            "Nonexistent",
+            user.id(),
+            redactionOpt("X")
+          );
         });
       assertEquals("category-nonexistent", ex.errorCode());
     }
 
     checkAuditLog(
       transaction,
+      new ExpectedEvent("USER_CREATED", user.id().toString()),
       new ExpectedEvent("CATEGORY_CREATED", "Category 0"),
       new ExpectedEvent("CATEGORY_CREATED", "Category 1"),
       new ExpectedEvent("CATEGORY_CREATED", "Category 2"),
@@ -934,7 +962,7 @@ public final class EIServerDatabaseTest
       assertEquals(Set.of(category0, category1), p.categories());
     }
 
-    products.categoryRedact(category0, redactionOpt("X"));
+    products.categoryRedact(category0, user.id(), redactionOpt("X"));
 
     {
       final var p = products.product(id, EXCLUDE_REDACTED);
@@ -983,7 +1011,7 @@ public final class EIServerDatabaseTest
     final var id =
       new EIProductIdentifier("com.io7m.ex", "com.q");
     final var category0 =
-      new EIProductCategory("Cat0");
+      new EIProductCategory("Cat0", Optional.empty());
     {
       final var ex = assertThrows(EIServerDatabaseException.class, () -> {
         products.productCategoryAdd(id, category0);

@@ -17,15 +17,20 @@
 package com.io7m.eigion.model;
 
 import java.util.Objects;
+import java.util.Optional;
 import java.util.regex.Pattern;
 
 /**
  * A product category.
  *
- * @param value The category name
+ * @param value     The category name
+ * @param redaction The redaction, if any
  */
 
-public record EIProductCategory(String value)
+public record EIProductCategory(
+  String value,
+  Optional<EIRedaction> redaction)
+  implements EIRedactableType
 {
   private static final Pattern VALID_CATEGORY =
     Pattern.compile("\\p{Upper}[\\p{Alpha}\\p{Digit} ]{0,64}");
@@ -33,12 +38,14 @@ public record EIProductCategory(String value)
   /**
    * A product category.
    *
-   * @param value The category name
+   * @param value     The category name
+   * @param redaction The redaction, if any
    */
 
   public EIProductCategory
   {
     Objects.requireNonNull(value, "value");
+    Objects.requireNonNull(redaction, "redaction");
 
     final var matcher = VALID_CATEGORY.matcher(value);
     if (!matcher.matches()) {
@@ -58,6 +65,6 @@ public record EIProductCategory(String value)
   public static EIProductCategory category(
     final String text)
   {
-    return new EIProductCategory(text);
+    return new EIProductCategory(text, Optional.empty());
   }
 }
