@@ -16,25 +16,36 @@
 
 package com.io7m.eigion.model;
 
+import java.time.OffsetDateTime;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.UUID;
 
 /**
- * The reason an object has been redacted.
+ * A redaction of an object.
  *
- * @param reason The reason
+ * @param creator The ID of the person performing the redaction
+ * @param created The time the redaction was created
+ * @param reason  The reason
  */
 
-public record EIRedaction(String reason)
+public record EIRedaction(
+  UUID creator,
+  OffsetDateTime created,
+  String reason)
 {
   /**
-   * The reason an object has been redacted.
+   * A redaction of an object.
    *
-   * @param reason The reason
+   * @param creator The ID of the person performing the redaction
+   * @param created The time the redaction was created
+   * @param reason  The reason
    */
 
   public EIRedaction
   {
+    Objects.requireNonNull(creator, "creator");
+    Objects.requireNonNull(created, "created");
     Objects.requireNonNull(reason, "reason");
 
     if (reason.length() >= 256) {
@@ -46,28 +57,36 @@ public record EIRedaction(String reason)
   /**
    * Create a redaction.
    *
-   * @param reason The reason
+   * @param creator The ID of the person performing the redaction
+   * @param created The time the redaction was created
+   * @param reason  The reason
    *
    * @return The redaction
    */
 
   public static EIRedaction redaction(
+    final UUID creator,
+    final OffsetDateTime created,
     final String reason)
   {
-    return new EIRedaction(reason);
+    return new EIRedaction(creator, created, reason);
   }
 
   /**
    * Create a redaction.
    *
-   * @param reason The reason
+   * @param creator The ID of the person performing the redaction
+   * @param created The time the redaction was created
+   * @param reason  The reason
    *
    * @return The redaction
    */
 
   public static Optional<EIRedaction> redactionOpt(
+    final UUID creator,
+    final OffsetDateTime created,
     final String reason)
   {
-    return Optional.of(redaction(reason));
+    return Optional.of(redaction(creator, created, reason));
   }
 }

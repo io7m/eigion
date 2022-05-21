@@ -20,6 +20,7 @@ package com.io7m.eigion.tests;
 import com.io7m.eigion.model.EIPassword;
 import com.io7m.eigion.model.EIProductCategory;
 import com.io7m.eigion.model.EIProductIdentifier;
+import com.io7m.eigion.model.EIRedaction;
 import com.io7m.eigion.server.database.api.EIServerDatabaseAuditQueriesType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseConfiguration;
 import com.io7m.eigion.server.database.api.EIServerDatabaseException;
@@ -40,10 +41,10 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.time.Clock;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.UUID;
 
 import static com.io7m.eigion.model.EIRedaction.redactionOpt;
 import static com.io7m.eigion.server.database.api.EIServerDatabaseCreate.CREATE_DATABASE;
@@ -53,6 +54,7 @@ import static com.io7m.eigion.server.database.api.EIServerDatabaseRole.EIGION;
 import static com.io7m.eigion.server.database.api.EIServerDatabaseRole.NONE;
 import static com.io7m.eigion.server.database.api.EIServerDatabaseUpgrade.UPGRADE_DATABASE;
 import static java.time.OffsetDateTime.now;
+import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -81,7 +83,7 @@ public final class EIServerDatabaseTest
     final var audit =
       transaction.queries(EIServerDatabaseAuditQueriesType.class);
     final var events =
-      audit.auditEvents(now().minusYears(1L), now().plusYears(1L));
+      audit.auditEvents(timeNow().minusYears(1L), timeNow().plusYears(1L));
 
     for (int index = 0; index < expectedEvents.length; ++index) {
       final var event =
@@ -177,17 +179,17 @@ public final class EIServerDatabaseTest
     var ex =
       assertThrows(EIServerDatabaseException.class, () -> {
         users.userCreate(
-          UUID.randomUUID(),
+          randomUUID(),
           "someone",
           "someone@example.com",
-          now(),
+          timeNow(),
           EIPassword.createHashed("12345678")
         );
       });
     assertEquals("sql-error", ex.errorCode());
 
     ex = assertThrows(EIServerDatabaseException.class, () -> {
-      users.userGet(UUID.randomUUID());
+      users.userGet(randomUUID());
     });
     assertEquals("sql-error", ex.errorCode());
 
@@ -203,14 +205,14 @@ public final class EIServerDatabaseTest
 
     ex = assertThrows(EIServerDatabaseException.class, () -> {
       users.userBan(
-        UUID.randomUUID(),
+        randomUUID(),
         Optional.of(now()),
         "reason");
     });
     assertEquals("sql-error", ex.errorCode());
 
     ex = assertThrows(EIServerDatabaseException.class, () -> {
-      users.userUnban(UUID.randomUUID());
+      users.userUnban(randomUUID());
     });
     assertEquals("sql-error", ex.errorCode());
   }
@@ -233,7 +235,7 @@ public final class EIServerDatabaseTest
       transaction.queries(EIServerDatabaseUsersQueriesType.class);
 
     final var reqId =
-      UUID.randomUUID();
+      randomUUID();
     final var now =
       now();
 
@@ -304,7 +306,7 @@ public final class EIServerDatabaseTest
       transaction.queries(EIServerDatabaseUsersQueriesType.class);
 
     final var reqId =
-      UUID.randomUUID();
+      randomUUID();
     final var now =
       now();
 
@@ -352,7 +354,7 @@ public final class EIServerDatabaseTest
       transaction.queries(EIServerDatabaseUsersQueriesType.class);
 
     final var reqId =
-      UUID.randomUUID();
+      randomUUID();
     final var now =
       now();
 
@@ -371,7 +373,7 @@ public final class EIServerDatabaseTest
     final var ex =
       assertThrows(EIServerDatabaseException.class, () -> {
         users.userCreate(
-          UUID.randomUUID(),
+          randomUUID(),
           "someoneElse",
           "someone@example.com",
           now,
@@ -400,7 +402,7 @@ public final class EIServerDatabaseTest
       transaction.queries(EIServerDatabaseUsersQueriesType.class);
 
     final var reqId =
-      UUID.randomUUID();
+      randomUUID();
     final var now =
       now();
 
@@ -419,7 +421,7 @@ public final class EIServerDatabaseTest
     final var ex =
       assertThrows(EIServerDatabaseException.class, () -> {
         users.userCreate(
-          UUID.randomUUID(),
+          randomUUID(),
           "someone",
           "someone2@example.com",
           now,
@@ -448,7 +450,7 @@ public final class EIServerDatabaseTest
       transaction.queries(EIServerDatabaseUsersQueriesType.class);
 
     final var id =
-      UUID.randomUUID();
+      randomUUID();
     final var now =
       now();
 
@@ -521,8 +523,7 @@ public final class EIServerDatabaseTest
     ex = assertThrows(EIServerDatabaseException.class, () -> {
       products.categoryRedact(
         "Category 0",
-        UUID.randomUUID(),
-        redactionOpt("X"));
+        redactionOpt(randomUUID(), now(), "X"));
     });
     assertEquals("sql-error", ex.errorCode());
 
@@ -574,11 +575,14 @@ public final class EIServerDatabaseTest
       products.categories(EXCLUDE_REDACTED)
     );
 
-    products.categoryRedact(category0, user.id(), redactionOpt("X"));
+    final var redaction =
+      EIRedaction.redaction(user.id(), timeNow(), "X");
+
+    products.categoryRedact(category0, Optional.of(redaction));
 
     assertEquals(
       Set.of(
-        new EIProductCategory("Category 0", redactionOpt("X")),
+        new EIProductCategory("Category 0", Optional.of(redaction)),
         category1,
         category2),
       products.categories(INCLUDE_REDACTED)
@@ -588,12 +592,12 @@ public final class EIServerDatabaseTest
       products.categories(EXCLUDE_REDACTED)
     );
 
-    products.categoryRedact(category1, user.id(), redactionOpt("X"));
+    products.categoryRedact(category1, Optional.of(redaction));
 
     assertEquals(
       Set.of(
-        new EIProductCategory("Category 0", redactionOpt("X")),
-        new EIProductCategory("Category 1", redactionOpt("X")),
+        new EIProductCategory("Category 0", Optional.of(redaction)),
+        new EIProductCategory("Category 1", Optional.of(redaction)),
         category2),
       products.categories(INCLUDE_REDACTED)
     );
@@ -602,12 +606,12 @@ public final class EIServerDatabaseTest
       products.categories(EXCLUDE_REDACTED)
     );
 
-    products.categoryRedact(category0, user.id(), Optional.empty());
+    products.categoryRedact(category0, Optional.empty());
 
     assertEquals(
       Set.of(
         category0,
-        new EIProductCategory("Category 1", redactionOpt("X")),
+        new EIProductCategory("Category 1", Optional.of(redaction)),
         category2),
       products.categories(INCLUDE_REDACTED)
     );
@@ -623,8 +627,7 @@ public final class EIServerDatabaseTest
         assertThrows(EIServerDatabaseException.class, () -> {
           products.categoryRedact(
             "Nonexistent",
-            user.id(),
-            redactionOpt("X")
+            Optional.of(redaction)
           );
         });
       assertEquals("category-nonexistent", ex.errorCode());
@@ -640,6 +643,17 @@ public final class EIServerDatabaseTest
       new ExpectedEvent("CATEGORY_REDACTED", "Category 1"),
       new ExpectedEvent("CATEGORY_UNREDACTED", "Category 0")
     );
+  }
+
+  private static OffsetDateTime timeNow()
+  {
+    /*
+     * Postgres doesn't store times at as high a resolution as the JVM,
+     * so trim the nanoseconds off in order to ensure we can correctly
+     * compare results returned from the database.
+     */
+
+    return now().withNano(0);
   }
 
   /**
@@ -748,7 +762,7 @@ public final class EIServerDatabaseTest
       new EIProductIdentifier("com.io7m.ex", "com.q");
 
     final var ex = assertThrows(EIServerDatabaseException.class, () -> {
-      products.productCreate(id, UUID.randomUUID());
+      products.productCreate(id, randomUUID());
     });
 
     assertEquals("sql-error", ex.errorCode());
@@ -774,18 +788,19 @@ public final class EIServerDatabaseTest
     var ex = assertThrows(EIServerDatabaseException.class, () -> {
       products.productRedact(
         new EIProductIdentifier("com.io7m.ex", "com.q"),
-        UUID.randomUUID(),
         Optional.empty()
       );
     });
 
     assertEquals("product-nonexistent", ex.errorCode());
 
+    final var redaction =
+      EIRedaction.redaction(randomUUID(), now(), "X");
+
     ex = assertThrows(EIServerDatabaseException.class, () -> {
       products.productRedact(
         new EIProductIdentifier("com.io7m.ex", "com.q"),
-        UUID.randomUUID(),
-        redactionOpt("What?")
+        Optional.of(redaction)
       );
     });
 
@@ -831,7 +846,10 @@ public final class EIServerDatabaseTest
       products.productsAll(EXCLUDE_REDACTED)
     );
 
-    products.productRedact(id, user.id(), redactionOpt("Broken!"));
+    final var redaction =
+      EIRedaction.redaction(user.id(), now(), "X");
+
+    products.productRedact(id, Optional.of(redaction));
 
     assertEquals(
       Set.of(id),
@@ -842,7 +860,7 @@ public final class EIServerDatabaseTest
       products.productsAll(EXCLUDE_REDACTED)
     );
 
-    products.productRedact(id, user.id(), Optional.empty());
+    products.productRedact(id, Optional.empty());
 
     assertEquals(
       Set.of(id),
@@ -857,7 +875,7 @@ public final class EIServerDatabaseTest
       transaction,
       new ExpectedEvent("USER_CREATED", user.id().toString()),
       new ExpectedEvent("PRODUCT_CREATED", "com.io7m.ex:com.q"),
-      new ExpectedEvent("PRODUCT_REDACTED", "com.io7m.ex:com.q: Broken!"),
+      new ExpectedEvent("PRODUCT_REDACTED", "com.io7m.ex:com.q: X"),
       new ExpectedEvent("PRODUCT_UNREDACTED", "com.io7m.ex:com.q")
     );
   }
@@ -882,8 +900,11 @@ public final class EIServerDatabaseTest
     final var id =
       new EIProductIdentifier("com.io7m.ex", "com.q");
 
+    final var redaction =
+      EIRedaction.redaction(randomUUID(), now(), "X");
+
     final var ex = assertThrows(EIServerDatabaseException.class, () -> {
-      products.productRedact(id, UUID.randomUUID(), redactionOpt("Broken!"));
+      products.productRedact(id, Optional.of(redaction));
     });
 
     assertEquals("sql-error", ex.errorCode());
@@ -964,7 +985,10 @@ public final class EIServerDatabaseTest
       assertEquals(Set.of(category0, category1), p.categories());
     }
 
-    products.categoryRedact(category0, user.id(), redactionOpt("X"));
+    final var redaction =
+      EIRedaction.redaction(user.id(), now(), "X");
+
+    products.categoryRedact(category0, Optional.of(redaction));
 
     {
       final var p = products.product(id, EXCLUDE_REDACTED);

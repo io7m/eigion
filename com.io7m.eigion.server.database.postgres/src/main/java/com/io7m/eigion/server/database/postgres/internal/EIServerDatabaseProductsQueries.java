@@ -25,7 +25,6 @@ import com.io7m.eigion.model.EIRedaction;
 import com.io7m.eigion.server.database.api.EIServerDatabaseException;
 import com.io7m.eigion.server.database.api.EIServerDatabaseProductsQueriesType;
 import com.io7m.eigion.server.database.postgres.internal.tables.records.AuditRecord;
-import com.io7m.eigion.server.database.postgres.internal.tables.records.ProductsRecord;
 import com.io7m.jaffirm.core.Postconditions;
 import com.io7m.jaffirm.core.Preconditions;
 import org.jooq.DSLContext;
@@ -154,7 +153,11 @@ final class EIServerDatabaseProductsQueries
   {
     final var reason = r.get(PRODUCT_REDACTIONS.REASON);
     if (reason != null) {
-      return Optional.of(new EIRedaction(reason));
+      return Optional.of(new EIRedaction(
+        r.get(PRODUCT_REDACTIONS.CREATOR),
+        r.get(PRODUCT_REDACTIONS.CREATED),
+        reason
+      ));
     }
     return Optional.empty();
   }
@@ -230,12 +233,6 @@ final class EIServerDatabaseProductsQueries
     return categoryRec;
   }
 
-  private static EIProductIdentifier toProductId(
-    final ProductsRecord r)
-  {
-    return new EIProductIdentifier(r.getProductGroup(), r.getProductName());
-  }
-
   private static String redactionReason(
     final Optional<EIRedaction> redacted,
     final EIProductIdentifier id)
@@ -274,7 +271,11 @@ final class EIServerDatabaseProductsQueries
         r.<Long>get(CATEGORIES.ID).longValue(),
         new EIProductCategory(
           r.get(CATEGORIES.NAME),
-          Optional.of(new EIRedaction(reason)))
+          Optional.of(new EIRedaction(
+            r.get(CATEGORY_REDACTIONS.CREATOR),
+            r.get(CATEGORY_REDACTIONS.CREATED),
+            reason
+          )))
       );
     }
 
@@ -355,12 +356,10 @@ final class EIServerDatabaseProductsQueries
   @Override
   public EIProductCategory categoryRedact(
     final String category,
-    final UUID userId,
     final Optional<EIRedaction> redacted)
     throws EIServerDatabaseException
   {
     Objects.requireNonNull(category, "category");
-    Objects.requireNonNull(userId, "userId");
     Objects.requireNonNull(redacted, "redacted");
 
     final var context = this.transaction.createContext();
@@ -395,8 +394,8 @@ final class EIServerDatabaseProductsQueries
           context.insertInto(CATEGORY_REDACTIONS)
             .set(CATEGORY_REDACTIONS.CATEGORY, valueOf(categoryRec.id()))
             .set(CATEGORY_REDACTIONS.REASON, redact.reason())
-            .set(CATEGORY_REDACTIONS.CREATOR, userId)
-            .set(CATEGORY_REDACTIONS.CREATED, time)
+            .set(CATEGORY_REDACTIONS.CREATOR, redact.creator())
+            .set(CATEGORY_REDACTIONS.CREATED, redact.created())
             .execute();
 
         Preconditions.checkPreconditionV(
@@ -479,12 +478,10 @@ final class EIServerDatabaseProductsQueries
   @Override
   public void productRedact(
     final EIProductIdentifier id,
-    final UUID userId,
     final Optional<EIRedaction> redacted)
     throws EIServerDatabaseException
   {
     Objects.requireNonNull(id, "id");
-    Objects.requireNonNull(userId, "userId");
     Objects.requireNonNull(redacted, "redacted");
 
     final var context = this.transaction.createContext();
@@ -515,8 +512,8 @@ final class EIServerDatabaseProductsQueries
           context.insertInto(PRODUCT_REDACTIONS)
             .set(PRODUCT_REDACTIONS.PRODUCT, valueOf(existing.id()))
             .set(PRODUCT_REDACTIONS.REASON, redact.reason())
-            .set(PRODUCT_REDACTIONS.CREATOR, userId)
-            .set(PRODUCT_REDACTIONS.CREATED, time)
+            .set(PRODUCT_REDACTIONS.CREATOR, redact.creator())
+            .set(PRODUCT_REDACTIONS.CREATED, redact.created())
             .execute();
 
         Preconditions.checkPreconditionV(
