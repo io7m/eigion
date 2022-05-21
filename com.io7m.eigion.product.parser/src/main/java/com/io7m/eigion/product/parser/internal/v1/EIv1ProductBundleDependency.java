@@ -24,6 +24,7 @@ import com.io7m.anethum.common.ParseStatus;
 import com.io7m.eigion.model.EIProductBundleDependency;
 
 import java.net.URI;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -45,12 +46,15 @@ public final class EIv1ProductBundleDependency
   public final String version;
   @JsonProperty(value = "Hash", required = true)
   public final EIv1ProductHash hash;
+  @JsonProperty(value = "Links", required = true)
+  public final List<URI> links;
 
   @JsonCreator
   public EIv1ProductBundleDependency(
     @JsonProperty(value = "ID", required = true) final EIv1ProductId inId,
     @JsonProperty(value = "Version", required = true) final String inVersion,
-    @JsonProperty(value = "Hash", required = true) final EIv1ProductHash inHash)
+    @JsonProperty(value = "Hash", required = true) final EIv1ProductHash inHash,
+    @JsonProperty(value = "Links", required = true) final List<URI> inLinks)
   {
     this.id =
       Objects.requireNonNull(inId, "id");
@@ -58,6 +62,8 @@ public final class EIv1ProductBundleDependency
       Objects.requireNonNull(inVersion, "version");
     this.hash =
       Objects.requireNonNull(inHash, "hash");
+    this.links =
+      Objects.requireNonNull(inLinks, "links");
   }
 
   @Override
@@ -77,7 +83,8 @@ public final class EIv1ProductBundleDependency
         new EIProductBundleDependency(
           pId.get(),
           pVersion.get(),
-          pHash.get()
+          pHash.get(),
+          this.links
         ));
     }
     return Optional.empty();

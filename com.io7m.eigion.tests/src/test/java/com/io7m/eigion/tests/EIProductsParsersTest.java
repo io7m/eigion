@@ -17,6 +17,7 @@
 package com.io7m.eigion.tests;
 
 import com.io7m.anethum.common.ParseException;
+import com.io7m.anethum.common.ParseStatus;
 import com.io7m.anethum.common.SerializeException;
 import com.io7m.eigion.model.EIProductBundleDependency;
 import com.io7m.eigion.model.EIProductCategory;
@@ -32,7 +33,9 @@ import org.apache.commons.io.input.BrokenInputStream;
 import org.apache.commons.io.output.BrokenOutputStream;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,6 +46,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import static com.io7m.eigion.model.EIProductCategory.category;
 import static java.math.BigInteger.ONE;
@@ -83,6 +87,10 @@ public final class EIProductsParsersTest
       new EIProductHash(
         "SHA-256",
         "5891B5B522D5DF086D0FF0B110FBD9D21BB4FC7163AF34D08286A2E846F6BE03"
+      ),
+      List.of(
+        URI.create(
+          "https://www.example.com/bundles/com.io7m.ex/com.io7m.ex/1.0.0")
       )
     );
 
@@ -179,53 +187,33 @@ public final class EIProductsParsersTest
   }
 
   /**
-   * An error case involving an invalid version.
+   * Error cases and their error codes.
+   *
+   * @return A stream of test cases
    */
 
-  @Test
-  public void testError0()
+  @TestFactory
+  public Stream<DynamicTest> testErrorCases()
   {
-    this.runForError("products-error-0.json", "invalid-version");
+    return Stream.of(
+      new ErrorCase("products-error-0.json", "invalid-version"),
+      new ErrorCase("products-error-1.json", "invalid-version"),
+      new ErrorCase("products-error-2.json", "databind"),
+      new ErrorCase("products-error-3.json", "invalid-category"),
+      new ErrorCase("products-error-4.json", "invalid-hash"),
+      new ErrorCase("products-error-5.json", "databind"),
+      new ErrorCase("products-error-6.json", "databind"),
+      new ErrorCase("products-error-7.json", "databind")
+    ).map(this::errorCaseFor);
   }
 
-  /**
-   * An error case involving an invalid version.
-   */
-
-  @Test
-  public void testError1()
+  private DynamicTest errorCaseFor(
+    final ErrorCase e)
   {
-    this.runForError("products-error-1.json", "invalid-version");
-  }
-
-  /**
-   * An error case involving broken JSON.
-   */
-
-  @Test
-  public void testError2()
-  {
-    this.runForError("products-error-2.json", "databind");
-  }
-
-  /**
-   * An error case involving an invalid category.
-   */
-
-  @Test
-  public void testError3()
-  {
-    this.runForError("products-error-3.json", "invalid-category");
-  }
-
-  /**
-   * An error case involving an invalid hash.
-   */
-
-  @Test
-  public void testError4()
-  {
-    this.runForError("products-error-4.json", "invalid-hash");
+    return DynamicTest.dynamicTest(
+      "testErrorCase_" + e.file,
+      () -> this.runForError(e.file, e.errorCode)
+    );
   }
 
   private void runForError(
@@ -239,7 +227,15 @@ public final class EIProductsParsersTest
     assertTrue(
       ex.statusValues()
         .stream()
-        .anyMatch(s -> Objects.equals(s.errorCode(), code))
+        .anyMatch(s -> Objects.equals(s.errorCode(), code)),
+      String.format(
+        "At least one error must be '%s' (received %s)",
+        code,
+        ex.statusValues()
+          .stream()
+          .map(ParseStatus::errorCode)
+          .toList()
+      )
     );
   }
 
@@ -391,5 +387,12 @@ public final class EIProductsParsersTest
       this.directory,
       name
     );
+  }
+
+  private record ErrorCase(
+    String file,
+    String errorCode)
+  {
+
   }
 }

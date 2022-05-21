@@ -21,6 +21,8 @@ import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.io7m.anethum.common.SerializeException;
+import com.io7m.eigion.model.EIChange;
+import com.io7m.eigion.model.EIChangeTicket;
 import com.io7m.eigion.model.EIProduct;
 import com.io7m.eigion.model.EIProductBundleDependency;
 import com.io7m.eigion.model.EIProductCategory;
@@ -96,8 +98,34 @@ public final class EIv1ProductsSerializer implements EIProductsSerializerType
     return new EIv1ProductRelease(
       convertProductVersion(release.version()),
       convertProductDependencies(release.productDependencies()),
-      convertBundleDependencies(release.bundleDependencies())
+      convertBundleDependencies(release.bundleDependencies()),
+      convertChanges(release.changes())
     );
+  }
+
+  private static List<EIv1Change> convertChanges(
+    final List<EIChange> changes)
+  {
+    return changes.stream()
+      .map(EIv1ProductsSerializer::convertChange)
+      .toList();
+  }
+
+  private static EIv1Change convertChange(
+    final EIChange c)
+  {
+    return new EIv1Change(
+      c.description(),
+      c.tickets().stream()
+        .map(EIv1ProductsSerializer::convertChangeTicket)
+        .toList()
+    );
+  }
+
+  private static EIv1ChangeTicket convertChangeTicket(
+    final EIChangeTicket t)
+  {
+    return new EIv1ChangeTicket(t.name(), t.location());
   }
 
   private static List<EIv1ProductBundleDependency> convertBundleDependencies(
@@ -107,7 +135,8 @@ public final class EIv1ProductsSerializer implements EIProductsSerializerType
       .map(k -> new EIv1ProductBundleDependency(
         convertProductId(k.identifier()),
         convertProductVersion(k.version()),
-        convertHash(k.hash())
+        convertHash(k.hash()),
+        k.links()
       )).toList();
   }
 

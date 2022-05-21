@@ -14,42 +14,32 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+package com.io7m.eigion.model;
 
-package com.io7m.eigion.tests;
+import java.net.URI;
+import java.util.Objects;
 
-import jakarta.servlet.http.HttpServlet;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
+/**
+ * A ticket affected by a change.
+ *
+ * @param name     The ticket display name
+ * @param location The ticket location
+ */
 
-import java.io.IOException;
-
-import static java.nio.charset.StandardCharsets.UTF_8;
-
-public final class EIV1LoginOK extends HttpServlet
+public record EIChangeTicket(
+  String name,
+  URI location)
 {
-  public EIV1LoginOK()
+  /**
+   * A ticket affected by a change.
+   *
+   * @param name     The ticket display name
+   * @param location The ticket location
+   */
+
+  public EIChangeTicket
   {
-
-  }
-
-  @Override
-  protected void service(
-    final HttpServletRequest req,
-    final HttpServletResponse resp)
-    throws IOException
-  {
-    final var text = """
-      {
-        "%type": "loginResponse",
-        "message": "OK"
-      }
-          """.getBytes(UTF_8);
-
-    resp.setContentLength(text.length);
-    resp.setStatus(200);
-
-    try (var output = resp.getOutputStream()) {
-      output.write(text);
-    }
+    Objects.requireNonNull(name, "name");
+    Objects.requireNonNull(location, "location");
   }
 }

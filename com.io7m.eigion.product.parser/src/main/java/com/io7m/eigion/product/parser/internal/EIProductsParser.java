@@ -26,6 +26,8 @@ import com.io7m.dixmont.core.DmJsonRestrictedDeserializers;
 import com.io7m.eigion.model.EIProduct;
 import com.io7m.eigion.model.EIProducts;
 import com.io7m.eigion.product.parser.api.EIProductsParserType;
+import com.io7m.eigion.product.parser.internal.v1.EIv1Change;
+import com.io7m.eigion.product.parser.internal.v1.EIv1ChangeTicket;
 import com.io7m.eigion.product.parser.internal.v1.EIv1Product;
 import com.io7m.eigion.product.parser.internal.v1.EIv1ProductBundleDependency;
 import com.io7m.eigion.product.parser.internal.v1.EIv1ProductDependency;
@@ -81,25 +83,32 @@ public final class EIProductsParser implements EIProductsParserType
 
     this.serializers =
       DmJsonRestrictedDeserializers.builder()
+        .allowClass(EIv1Change.class)
+        .allowClass(EIv1ChangeTicket.class)
         .allowClass(EIv1Product.class)
-        .allowClass(EIv1ProductDependency.class)
         .allowClass(EIv1ProductBundleDependency.class)
+        .allowClass(EIv1ProductDependency.class)
         .allowClass(EIv1ProductHash.class)
         .allowClass(EIv1ProductId.class)
         .allowClass(EIv1ProductRelease.class)
         .allowClass(EIv1Products.class)
         .allowClass(EIvNProductsType.class)
         .allowClass(String.class)
+        .allowClass(URI.class)
         .allowClassName(
-          "java.util.List<com.io7m.eigion.product.parser.internal.v1.EIv1ProductRelease>")
+          "java.util.List<com.io7m.eigion.product.parser.internal.v1.EIv1Change>")
         .allowClassName(
-          "java.util.List<com.io7m.eigion.product.parser.internal.v1.EIv1ProductDependency>")
-        .allowClassName(
-          "java.util.List<com.io7m.eigion.product.parser.internal.v1.EIv1ProductBundleDependency>")
+          "java.util.List<com.io7m.eigion.product.parser.internal.v1.EIv1ChangeTicket>")
         .allowClassName(
           "java.util.List<com.io7m.eigion.product.parser.internal.v1.EIv1Product>")
         .allowClassName(
-          "java.util.List<java.lang.String>")
+          "java.util.List<com.io7m.eigion.product.parser.internal.v1.EIv1ProductBundleDependency>")
+        .allowClassName(
+          "java.util.List<com.io7m.eigion.product.parser.internal.v1.EIv1ProductDependency>")
+        .allowClassName(
+          "java.util.List<com.io7m.eigion.product.parser.internal.v1.EIv1ProductRelease>")
+        .allowClassName("java.util.List<java.lang.String>")
+        .allowClassName("java.util.List<java.net.URI>")
         .build();
 
     this.mapper =

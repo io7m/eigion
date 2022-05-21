@@ -21,6 +21,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.io7m.anethum.common.ParseStatus;
+import com.io7m.eigion.model.EIChange;
 import com.io7m.eigion.model.EIProductBundleDependency;
 import com.io7m.eigion.model.EIProductDependency;
 import com.io7m.eigion.model.EIProductRelease;
@@ -52,11 +53,15 @@ public final class EIv1ProductRelease
   @JsonProperty(value = "BundleDependencies", required = true)
   public final List<EIv1ProductBundleDependency> bundleDependencies;
 
+  @JsonProperty(value = "Changes", required = true)
+  public final List<EIv1Change> changes;
+
   @JsonCreator
   public EIv1ProductRelease(
     @JsonProperty(value = "Version", required = true) final String inVersion,
     @JsonProperty(value = "ProductDependencies", required = true) final List<EIv1ProductDependency> inPd,
-    @JsonProperty(value = "BundleDependencies", required = true) final List<EIv1ProductBundleDependency> inBd)
+    @JsonProperty(value = "BundleDependencies", required = true) final List<EIv1ProductBundleDependency> inBd,
+    @JsonProperty(value = "Changes", required = true) final List<EIv1Change> inC)
   {
     this.version =
       Objects.requireNonNull(inVersion, "version");
@@ -64,6 +69,8 @@ public final class EIv1ProductRelease
       Objects.requireNonNull(inPd, "productDependencies");
     this.bundleDependencies =
       Objects.requireNonNull(inBd, "bundleDependencies");
+    this.changes =
+      Objects.requireNonNull(inC, "changes");
   }
 
   private static Optional<List<EIProductDependency>> toDependencies(
@@ -114,6 +121,28 @@ public final class EIv1ProductRelease
     return anyFailed ? Optional.empty() : Optional.of(newDeps);
   }
 
+  private static Optional<List<EIChange>> toChanges(
+    final List<EIv1Change> changes,
+    final URI source,
+    final Consumer<ParseStatus> errorConsumer)
+  {
+    final var newChanges =
+      changes.stream()
+        .map(t -> t.toProduct(source, errorConsumer))
+        .toList();
+
+    for (final var newChange : newChanges) {
+      if (newChange.isEmpty()) {
+        return Optional.empty();
+      }
+    }
+    return Optional.of(
+      newChanges.stream()
+        .map(Optional::orElseThrow)
+        .toList()
+    );
+  }
+
   @Override
   public Optional<EIProductRelease> toProduct(
     final URI source,
@@ -125,16 +154,20 @@ public final class EIv1ProductRelease
       toDependencies(this.productDependencies, source, errorConsumer);
     final var newBundleDependencies =
       toBundleDependencies(this.bundleDependencies, source, errorConsumer);
+    final Optional<List<EIChange>> newChanges =
+      toChanges(this.changes, source, errorConsumer);
 
     if (newVersion.isPresent()
       && newProductDependencies.isPresent()
-      && newBundleDependencies.isPresent()) {
+      && newBundleDependencies.isPresent()
+      && newChanges.isPresent()) {
 
       return Optional.of(
         new EIProductRelease(
           newVersion.get(),
           newProductDependencies.get(),
-          newBundleDependencies.get()
+          newBundleDependencies.get(),
+          newChanges.get()
         )
       );
     }

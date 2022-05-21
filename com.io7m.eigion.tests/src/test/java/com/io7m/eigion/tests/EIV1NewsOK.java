@@ -95,7 +95,13 @@ public final class EIV1NewsOK extends HttpServlet
       );
 
     final var news =
-      new EIV1ClientMessagesType.EIV1News("news", List.of(item0, item1, item2, item3, item4));
+      new EIV1ClientMessagesType.EIV1News(
+        "news",
+        List.of(item0,
+                item1,
+                item2,
+                item3,
+                item4));
 
     final var mapper =
       new ObjectMapper();

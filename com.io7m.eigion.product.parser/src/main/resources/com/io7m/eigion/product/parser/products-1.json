@@ -73,6 +73,44 @@
       ]
     },
 
+    "ChangeTicket": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "Location": {
+          "type": "string",
+          "format": "uri"
+        },
+        "Name": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "Location",
+        "Name"
+      ]
+    },
+
+    "Change": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "Description": {
+          "type": "string"
+        },
+        "Tickets": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ChangeTicket"
+          }
+        }
+      },
+      "required": [
+        "Description",
+        "Tickets"
+      ]
+    },
+
     "Release": {
       "type": "object",
       "additionalProperties": false,
@@ -91,12 +129,19 @@
           "items": {
             "$ref": "#/$defs/BundleDependency"
           }
+        },
+        "Changes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Change"
+          }
         }
       },
       "required": [
         "Version",
         "ProductDependencies",
-        "BundleDependencies"
+        "BundleDependencies",
+        "Changes"
       ]
     },
 
@@ -112,12 +157,20 @@
         },
         "Hash": {
           "$ref": "#/$defs/Hash"
+        },
+        "Links": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "uri"
+          }
         }
       },
       "required": [
         "ID",
         "Version",
-        "Hash"
+        "Hash",
+        "Links"
       ]
     },
 

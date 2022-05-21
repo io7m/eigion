@@ -26,7 +26,7 @@
                 "Hash": "5891B5B522D5DF086D0FF0B110FBD9D21BB4FC7163AF34D08286A2E846F6BE03"
               },
               "Links": [
-                "https://www.example.com/bundles/com.io7m.ex/com.io7m.ex/1.0.0"
+                "not a uri"
               ]
             }
           ],

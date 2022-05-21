@@ -118,6 +118,7 @@ public final class EIClientTest
 
   /**
    * Fetching news works.
+   *
    * @throws Exception On errors
    */
 

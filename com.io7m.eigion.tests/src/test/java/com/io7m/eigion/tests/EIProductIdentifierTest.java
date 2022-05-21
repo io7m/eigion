@@ -33,32 +33,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public final class EIProductIdentifierTest
 {
-  @TestFactory
-  public Stream<DynamicTest> testGroupValid()
-  {
-    return Stream.of(
-      "a",
-      "a9",
-      "a-b",
-      "a_b",
-      "A-B",
-      "A_b",
-      "com.io7m.eigion"
-    ).map(EIProductIdentifierTest::groupValidTest);
-  }
-
-  @TestFactory
-  public Stream<DynamicTest> testGroupInvalid()
-  {
-    return Stream.of(
-      " ",
-      "9",
-      "_",
-      "-",
-      "com._"
-    ).map(EIProductIdentifierTest::groupInvalidTest);
-  }
-
   private static DynamicTest groupValidTest(
     final String text)
   {
@@ -83,32 +57,6 @@ public final class EIProductIdentifierTest
           new EIProductIdentifier(text, "x");
         });
       });
-  }
-
-  @TestFactory
-  public Stream<DynamicTest> testArtifactValid()
-  {
-    return Stream.of(
-      "a",
-      "a9",
-      "a-b",
-      "a_b",
-      "A-B",
-      "A_b",
-      "com.io7m.eigion"
-    ).map(EIProductIdentifierTest::artifactValidTest);
-  }
-
-  @TestFactory
-  public Stream<DynamicTest> testArtifactInvalid()
-  {
-    return Stream.of(
-      " ",
-      "9",
-      "_",
-      "-",
-      "com._"
-    ).map(EIProductIdentifierTest::artifactInvalidTest);
   }
 
   private static DynamicTest artifactValidTest(
@@ -137,27 +85,6 @@ public final class EIProductIdentifierTest
       });
   }
 
-  @TestFactory
-  public Stream<DynamicTest> testVersionValid()
-  {
-    return Stream.of(
-      "1.0.0",
-      "2.0.0-SNAPSHOT"
-    ).map(EIProductIdentifierTest::versionValidTest);
-  }
-
-  @TestFactory
-  public Stream<DynamicTest> testVersionInvalid()
-  {
-    return Stream.of(
-      "0",
-      "1.0",
-      "2.0-SNAPSHOT",
-      "a",
-      "0.2.0a"
-    ).map(EIProductIdentifierTest::versionInvalidTest);
-  }
-
   private static DynamicTest versionValidTest(
     final String text)
   {
@@ -182,5 +109,78 @@ public final class EIProductIdentifierTest
           EIProductVersion.parse(text);
         });
       });
+  }
+
+  @TestFactory
+  public Stream<DynamicTest> testGroupValid()
+  {
+    return Stream.of(
+      "a",
+      "a9",
+      "a-b",
+      "a_b",
+      "A-B",
+      "A_b",
+      "com.io7m.eigion"
+    ).map(EIProductIdentifierTest::groupValidTest);
+  }
+
+  @TestFactory
+  public Stream<DynamicTest> testGroupInvalid()
+  {
+    return Stream.of(
+      " ",
+      "9",
+      "_",
+      "-",
+      "com._"
+    ).map(EIProductIdentifierTest::groupInvalidTest);
+  }
+
+  @TestFactory
+  public Stream<DynamicTest> testArtifactValid()
+  {
+    return Stream.of(
+      "a",
+      "a9",
+      "a-b",
+      "a_b",
+      "A-B",
+      "A_b",
+      "com.io7m.eigion"
+    ).map(EIProductIdentifierTest::artifactValidTest);
+  }
+
+  @TestFactory
+  public Stream<DynamicTest> testArtifactInvalid()
+  {
+    return Stream.of(
+      " ",
+      "9",
+      "_",
+      "-",
+      "com._"
+    ).map(EIProductIdentifierTest::artifactInvalidTest);
+  }
+
+  @TestFactory
+  public Stream<DynamicTest> testVersionValid()
+  {
+    return Stream.of(
+      "1.0.0",
+      "2.0.0-SNAPSHOT"
+    ).map(EIProductIdentifierTest::versionValidTest);
+  }
+
+  @TestFactory
+  public Stream<DynamicTest> testVersionInvalid()
+  {
+    return Stream.of(
+      "0",
+      "1.0",
+      "2.0-SNAPSHOT",
+      "a",
+      "0.2.0a"
+    ).map(EIProductIdentifierTest::versionInvalidTest);
   }
 }

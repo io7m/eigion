@@ -16,6 +16,8 @@
 
 package com.io7m.eigion.model;
 
+import java.net.URI;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -24,12 +26,15 @@ import java.util.Objects;
  * @param identifier The identifier of the target
  * @param version    The version of the target
  * @param hash       The hash of the target
+ * @param links      A list of links describing where this bundle might be
+ *                   found
  */
 
 public record EIProductBundleDependency(
   EIProductIdentifier identifier,
   EIProductVersion version,
-  EIProductHash hash)
+  EIProductHash hash,
+  List<URI> links)
 {
   /**
    * A dependency on a bundle.
@@ -37,6 +42,8 @@ public record EIProductBundleDependency(
    * @param identifier The identifier of the target
    * @param version    The version of the target
    * @param hash       The hash of the target
+   * @param links      A list of links describing where this bundle might be
+   *                   found
    */
 
   public EIProductBundleDependency
@@ -44,5 +51,6 @@ public record EIProductBundleDependency(
     Objects.requireNonNull(identifier, "identifier");
     Objects.requireNonNull(version, "version");
     Objects.requireNonNull(hash, "hash");
+    Objects.requireNonNull(links, "links");
   }
 }

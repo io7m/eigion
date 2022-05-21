@@ -25,12 +25,14 @@ import java.util.Objects;
  * @param version             The version
  * @param bundleDependencies  The bundles upon which the release depends
  * @param productDependencies The products upon which the release depends
+ * @param changes             The list of changes for the release
  */
 
 public record EIProductRelease(
   EIProductVersion version,
   List<EIProductDependency> productDependencies,
-  List<EIProductBundleDependency> bundleDependencies)
+  List<EIProductBundleDependency> bundleDependencies,
+  List<EIChange> changes)
   implements Comparable<EIProductRelease>
 {
   /**
@@ -39,6 +41,7 @@ public record EIProductRelease(
    * @param version             The version
    * @param bundleDependencies  The bundles upon which the release depends
    * @param productDependencies The products upon which the release depends
+   * @param changes             The list of changes for the release
    */
 
   public EIProductRelease
@@ -46,6 +49,7 @@ public record EIProductRelease(
     Objects.requireNonNull(version, "version");
     Objects.requireNonNull(productDependencies, "productDependencies");
     Objects.requireNonNull(bundleDependencies, "bundleDependencies");
+    Objects.requireNonNull(changes, "changes");
   }
 
   @Override

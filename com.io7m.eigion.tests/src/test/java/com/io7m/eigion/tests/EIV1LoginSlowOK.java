@@ -39,11 +39,11 @@ public final class EIV1LoginSlowOK extends HttpServlet
     throws IOException
   {
     final var text = """
-{
-  "%type": "loginResponse",
-  "message": "OK"
-}
-    """.getBytes(UTF_8);
+      {
+        "%type": "loginResponse",
+        "message": "OK"
+      }
+          """.getBytes(UTF_8);
 
     try {
       Thread.sleep(2_000L);

@@ -115,6 +115,17 @@ public final class EIServerDatabaseTest
     }
   }
 
+  private static OffsetDateTime timeNow()
+  {
+    /*
+     * Postgres doesn't store times at as high a resolution as the JVM,
+     * so trim the nanoseconds off in order to ensure we can correctly
+     * compare results returned from the database.
+     */
+
+    return now().withNano(0);
+  }
+
   private EIServerDatabaseType databaseOf(
     final PostgreSQLContainer<?> container)
     throws EIServerDatabaseException
@@ -654,17 +665,6 @@ public final class EIServerDatabaseTest
       new ExpectedEvent("CATEGORY_REDACTED", "Category 1"),
       new ExpectedEvent("CATEGORY_UNREDACTED", "Category 0")
     );
-  }
-
-  private static OffsetDateTime timeNow()
-  {
-    /*
-     * Postgres doesn't store times at as high a resolution as the JVM,
-     * so trim the nanoseconds off in order to ensure we can correctly
-     * compare results returned from the database.
-     */
-
-    return now().withNano(0);
   }
 
   /**
