@@ -377,6 +377,11 @@
         <artifactId>com.io7m.jaffirm.core</artifactId>
         <version>4.0.0</version>
       </dependency>
+      <dependency>
+        <groupId>com.io7m.junreachable</groupId>
+        <artifactId>com.io7m.junreachable.core</artifactId>
+        <version>4.0.0</version>
+      </dependency>
     </dependencies>
   </dependencyManagement>
 

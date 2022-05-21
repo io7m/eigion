@@ -1,6 +1,7 @@
 {
   "$id": "https://www.io7m.com/eigion/products-1.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
+
   "$defs": {
     "Products": {
       "type": "object",
@@ -22,6 +23,7 @@
         "Products"
       ]
     },
+
     "Product": {
       "type": "object",
       "additionalProperties": false,
@@ -47,10 +49,12 @@
         "Categories"
       ]
     },
+
     "Category": {
       "type": "string",
       "pattern": "[A-Z][a-zA-Z0-9 ]{0,64}"
     },
+
     "Hash": {
       "type": "object",
       "additionalProperties": false,
@@ -68,6 +72,7 @@
         "Value"
       ]
     },
+
     "Release": {
       "type": "object",
       "additionalProperties": false,
@@ -78,13 +83,13 @@
         "ProductDependencies": {
           "type": "array",
           "items": {
-            "$ref": "#/$defs/Dependency"
+            "$ref": "#/$defs/ProductDependency"
           }
         },
         "BundleDependencies": {
           "type": "array",
           "items": {
-            "$ref": "#/$defs/Dependency"
+            "$ref": "#/$defs/BundleDependency"
           }
         }
       },
@@ -94,12 +99,16 @@
         "BundleDependencies"
       ]
     },
-    "Dependency": {
+
+    "BundleDependency": {
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "id": {
+        "ID": {
           "$ref": "#/$defs/ProductID"
+        },
+        "Version": {
+          "$ref": "#/$defs/ProductVersion"
         },
         "Hash": {
           "$ref": "#/$defs/Hash"
@@ -107,13 +116,33 @@
       },
       "required": [
         "ID",
+        "Version",
         "Hash"
       ]
     },
+
+    "ProductDependency": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "ID": {
+          "$ref": "#/$defs/ProductID"
+        },
+        "Version": {
+          "$ref": "#/$defs/ProductVersion"
+        }
+      },
+      "required": [
+        "ID",
+        "Version"
+      ]
+    },
+
     "ProductVersion": {
       "type": "string",
       "pattern": "[0-9]+\\.[0-9]+\\.[0-9]+(-[a-zA-Z0-9]+)?"
     },
+
     "ProductID": {
       "type": "object",
       "additionalProperties": false,

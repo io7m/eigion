@@ -633,6 +633,17 @@ public final class EIServerDatabaseTest
       assertEquals("category-nonexistent", ex.errorCode());
     }
 
+    {
+      final var ex =
+        assertThrows(EIServerDatabaseException.class, () -> {
+          products.categoryRedact(
+            "Category 0",
+            Optional.of(EIRedaction.redaction(randomUUID(), timeNow(), "X"))
+          );
+        });
+      assertEquals("user-nonexistent", ex.errorCode());
+    }
+
     checkAuditLog(
       transaction,
       new ExpectedEvent("USER_CREATED", user.id().toString()),
@@ -694,6 +705,33 @@ public final class EIServerDatabaseTest
       new ExpectedEvent("USER_CREATED", user.id().toString()),
       new ExpectedEvent("PRODUCT_CREATED", "com.io7m.ex:com.q")
     );
+  }
+
+  /**
+   * Creating a product without a valid user fails.
+   *
+   * @throws Exception On errors
+   */
+
+  @Test
+  public void testProductCreateNonexistentUser()
+    throws Exception
+  {
+    assertTrue(this.container.isRunning());
+
+    final var transaction =
+      this.transactionOf(this.container, EIGION);
+    final var products =
+      transaction.queries(EIServerDatabaseProductsQueriesType.class);
+
+    final var id =
+      new EIProductIdentifier("com.io7m.ex", "com.q");
+
+    final var ex = assertThrows(EIServerDatabaseException.class, () -> {
+      products.productCreate(id, randomUUID());
+    });
+
+    assertEquals("user-nonexistent", ex.errorCode());
   }
 
   /**
@@ -878,6 +916,45 @@ public final class EIServerDatabaseTest
       new ExpectedEvent("PRODUCT_REDACTED", "com.io7m.ex:com.q: X"),
       new ExpectedEvent("PRODUCT_UNREDACTED", "com.io7m.ex:com.q")
     );
+  }
+
+  /**
+   * Redacting products without valid users fails.
+   *
+   * @throws Exception On errors
+   */
+
+  @Test
+  public void testProductRedactionNonexistentUser()
+    throws Exception
+  {
+    assertTrue(this.container.isRunning());
+
+    final var transaction =
+      this.transactionOf(this.container, EIGION);
+    final var products =
+      transaction.queries(EIServerDatabaseProductsQueriesType.class);
+    final var users =
+      transaction.queries(EIServerDatabaseUsersQueriesType.class);
+
+    final var id =
+      new EIProductIdentifier("com.io7m.ex", "com.q");
+    final var user =
+      users.userCreate(
+        "someone",
+        "someone@example.com",
+        EIPassword.createHashed("12345678"));
+
+    final var product =
+      products.productCreate(id, user.id());
+    final var redaction =
+      EIRedaction.redaction(randomUUID(), now(), "X");
+
+    final var ex = assertThrows(EIServerDatabaseException.class, () -> {
+      products.productRedact(id, Optional.of(redaction));
+    });
+
+    assertEquals("user-nonexistent", ex.errorCode());
   }
 
   /**

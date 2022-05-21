@@ -17,6 +17,7 @@
 package com.io7m.eigion.server.database.postgres;
 
 import com.io7m.anethum.common.ParseException;
+import com.io7m.eigion.product.parser.api.EIProductsSerializersType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseConfiguration;
 import com.io7m.eigion.server.database.api.EIServerDatabaseException;
 import com.io7m.eigion.server.database.api.EIServerDatabaseFactoryType;
@@ -43,6 +44,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.ServiceLoader;
 
 import static com.io7m.trasco.api.TrExecutorUpgrade.FAIL_INSTEAD_OF_UPGRADING;
 import static com.io7m.trasco.api.TrExecutorUpgrade.PERFORM_UPGRADES;
@@ -57,13 +59,32 @@ public final class EIServerDatabases implements EIServerDatabaseFactoryType
   private static final Logger LOG =
     LoggerFactory.getLogger(EIServerDatabases.class);
 
+  private final EIProductsSerializersType productsSerializers;
+
+  /**
+   * The default postgres server database implementation.
+   *
+   * @param inProductsSerializers A products serializer factory
+   */
+
+  public EIServerDatabases(
+    final EIProductsSerializersType inProductsSerializers)
+  {
+    this.productsSerializers =
+      Objects.requireNonNull(inProductsSerializers, "productsSerializers");
+  }
+
   /**
    * The default postgres server database implementation.
    */
 
   public EIServerDatabases()
   {
-
+    this(
+      ServiceLoader.load(EIProductsSerializersType.class)
+        .findFirst()
+        .orElseThrow()
+    );
   }
 
   private static void showEvent(
@@ -183,7 +204,11 @@ public final class EIServerDatabases implements EIServerDatabaseFactoryType
         connection.commit();
       }
 
-      return new EIServerDatabase(configuration.clock(), dataSource);
+      return new EIServerDatabase(
+        configuration.clock(),
+        dataSource,
+        this.productsSerializers
+      );
     } catch (final IOException e) {
       throw new EIServerDatabaseException(e.getMessage(), e, "resource");
     } catch (final TrException e) {

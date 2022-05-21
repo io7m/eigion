@@ -16,6 +16,7 @@
 
 package com.io7m.eigion.server.database.postgres.internal;
 
+import com.io7m.eigion.product.parser.api.EIProductsSerializersType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseConnectionType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseException;
 import com.io7m.eigion.server.database.api.EIServerDatabaseRole;
@@ -36,23 +37,28 @@ public final class EIServerDatabase implements EIServerDatabaseType
 {
   private final Clock clock;
   private final HikariDataSource dataSource;
+  private final EIProductsSerializersType productsSerializers;
   private final Settings settings;
 
   /**
    * The default postgres server database implementation.
    *
-   * @param inClock The clock
-   * @param inDataSource A pooled data source
+   * @param inClock               The clock
+   * @param inDataSource          A pooled data source
+   * @param inProductsSerializers A products serializer factory
    */
 
   public EIServerDatabase(
     final Clock inClock,
-    final HikariDataSource inDataSource)
+    final HikariDataSource inDataSource,
+    final EIProductsSerializersType inProductsSerializers)
   {
     this.clock =
       Objects.requireNonNull(inClock, "clock");
     this.dataSource =
       Objects.requireNonNull(inDataSource, "dataSource");
+    this.productsSerializers =
+      Objects.requireNonNull(inProductsSerializers, "inProductsSerializers");
     this.settings =
       new Settings().withRenderNameCase(RenderNameCase.LOWER);
   }
@@ -88,9 +94,36 @@ public final class EIServerDatabase implements EIServerDatabaseType
         }
       }
 
-      return new EIServerDatabaseConnection(this.clock, conn, this.settings);
+      return new EIServerDatabaseConnection(this, conn);
     } catch (final SQLException e) {
       throw new EIServerDatabaseException(e.getMessage(), e, "sql-error");
     }
+  }
+
+  /**
+   * @return The jooq SQL settings
+   */
+
+  public Settings settings()
+  {
+    return this.settings;
+  }
+
+  /**
+   * @return The clock used for time-related queries
+   */
+
+  public Clock clock()
+  {
+    return this.clock;
+  }
+
+  /**
+   * @return A products serializer factory
+   */
+
+  public EIProductsSerializersType productsSerializers()
+  {
+    return this.productsSerializers;
   }
 }

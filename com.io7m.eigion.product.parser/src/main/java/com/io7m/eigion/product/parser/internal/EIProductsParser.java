@@ -27,6 +27,7 @@ import com.io7m.eigion.model.EIProduct;
 import com.io7m.eigion.model.EIProducts;
 import com.io7m.eigion.product.parser.api.EIProductsParserType;
 import com.io7m.eigion.product.parser.internal.v1.EIv1Product;
+import com.io7m.eigion.product.parser.internal.v1.EIv1ProductBundleDependency;
 import com.io7m.eigion.product.parser.internal.v1.EIv1ProductDependency;
 import com.io7m.eigion.product.parser.internal.v1.EIv1ProductHash;
 import com.io7m.eigion.product.parser.internal.v1.EIv1ProductId;
@@ -82,6 +83,7 @@ public final class EIProductsParser implements EIProductsParserType
       DmJsonRestrictedDeserializers.builder()
         .allowClass(EIv1Product.class)
         .allowClass(EIv1ProductDependency.class)
+        .allowClass(EIv1ProductBundleDependency.class)
         .allowClass(EIv1ProductHash.class)
         .allowClass(EIv1ProductId.class)
         .allowClass(EIv1ProductRelease.class)
@@ -92,6 +94,8 @@ public final class EIProductsParser implements EIProductsParserType
           "java.util.List<com.io7m.eigion.product.parser.internal.v1.EIv1ProductRelease>")
         .allowClassName(
           "java.util.List<com.io7m.eigion.product.parser.internal.v1.EIv1ProductDependency>")
+        .allowClassName(
+          "java.util.List<com.io7m.eigion.product.parser.internal.v1.EIv1ProductBundleDependency>")
         .allowClassName(
           "java.util.List<com.io7m.eigion.product.parser.internal.v1.EIv1Product>")
         .allowClassName(

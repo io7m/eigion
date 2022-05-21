@@ -14,6 +14,10 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+import com.io7m.eigion.product.parser.api.EIProductsSerializersType;
+import com.io7m.eigion.server.database.api.EIServerDatabaseFactoryType;
+import com.io7m.eigion.server.database.postgres.EIServerDatabases;
+
 /**
  * Application runtime management (Server database Postgresql implementation)
  */
@@ -24,9 +28,11 @@ module com.io7m.eigion.server.database.postgres
   requires static org.osgi.annotation.versioning;
 
   requires transitive com.io7m.eigion.server.database.api;
+  requires transitive com.io7m.eigion.product.parser.api;
 
   requires com.io7m.anethum.common;
   requires com.io7m.jaffirm.core;
+  requires com.io7m.junreachable.core;
   requires com.io7m.trasco.api;
   requires com.io7m.trasco.vanilla;
   requires com.zaxxer.hikari;
@@ -38,4 +44,8 @@ module com.io7m.eigion.server.database.postgres
   exports com.io7m.eigion.server.database.postgres.internal.tables to org.jooq;
   exports com.io7m.eigion.server.database.postgres.internal.tables.records to org.jooq;
   exports com.io7m.eigion.server.database.postgres.internal to org.jooq;
+
+  provides EIServerDatabaseFactoryType with EIServerDatabases;
+
+  uses EIProductsSerializersType;
 }

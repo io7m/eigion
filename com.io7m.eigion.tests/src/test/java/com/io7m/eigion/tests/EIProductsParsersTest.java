@@ -18,6 +18,7 @@ package com.io7m.eigion.tests;
 
 import com.io7m.anethum.common.ParseException;
 import com.io7m.anethum.common.SerializeException;
+import com.io7m.eigion.model.EIProductBundleDependency;
 import com.io7m.eigion.model.EIProductCategory;
 import com.io7m.eigion.model.EIProductDependency;
 import com.io7m.eigion.model.EIProductHash;
@@ -69,15 +70,11 @@ public final class EIProductsParsersTest
         "com.io7m.zed",
         "com.io7m.zed"
       ),
-      new EIProductVersion(TWO, ZERO, ZERO, empty()),
-      new EIProductHash(
-        "SHA-256",
-        "167112362ADB3B2041C11F7337437872F9D821E57E8C3EDD68D87A1D0BABD0F5"
-      )
+      new EIProductVersion(TWO, ZERO, ZERO, empty())
     );
 
-  private static final EIProductDependency BUNDLE_DEPENDENCY_0 =
-    new EIProductDependency(
+  private static final EIProductBundleDependency BUNDLE_DEPENDENCY_0 =
+    new EIProductBundleDependency(
       new EIProductIdentifier(
         "com.io7m.ex",
         "com.io7m.ex"

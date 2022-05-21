@@ -30,7 +30,7 @@ import java.util.Objects;
 public record EIProductRelease(
   EIProductVersion version,
   List<EIProductDependency> productDependencies,
-  List<EIProductDependency> bundleDependencies)
+  List<EIProductBundleDependency> bundleDependencies)
   implements Comparable<EIProductRelease>
 {
   /**

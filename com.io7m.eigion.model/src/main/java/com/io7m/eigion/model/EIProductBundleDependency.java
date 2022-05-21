@@ -19,26 +19,30 @@ package com.io7m.eigion.model;
 import java.util.Objects;
 
 /**
- * A dependency.
+ * A dependency on a bundle.
  *
  * @param identifier The identifier of the target
  * @param version    The version of the target
+ * @param hash       The hash of the target
  */
 
-public record EIProductDependency(
+public record EIProductBundleDependency(
   EIProductIdentifier identifier,
-  EIProductVersion version)
+  EIProductVersion version,
+  EIProductHash hash)
 {
   /**
-   * A dependency.
+   * A dependency on a bundle.
    *
    * @param identifier The identifier of the target
    * @param version    The version of the target
+   * @param hash       The hash of the target
    */
 
-  public EIProductDependency
+  public EIProductBundleDependency
   {
     Objects.requireNonNull(identifier, "identifier");
     Objects.requireNonNull(version, "version");
+    Objects.requireNonNull(hash, "hash");
   }
 }

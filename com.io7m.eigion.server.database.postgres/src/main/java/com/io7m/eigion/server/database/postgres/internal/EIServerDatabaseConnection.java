@@ -18,15 +18,12 @@ package com.io7m.eigion.server.database.postgres.internal;
 
 import com.io7m.eigion.server.database.api.EIServerDatabaseConnectionType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseTransactionType;
-import org.jooq.conf.Settings;
 
 import java.sql.Connection;
-import java.time.Clock;
 
 record EIServerDatabaseConnection(
-  Clock clock,
-  Connection connection,
-  Settings settings)
+  EIServerDatabase database,
+  Connection connection)
   implements EIServerDatabaseConnectionType
 {
   @Override

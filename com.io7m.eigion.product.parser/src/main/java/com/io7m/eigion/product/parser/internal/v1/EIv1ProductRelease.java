@@ -21,6 +21,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.io7m.anethum.common.ParseStatus;
+import com.io7m.eigion.model.EIProductBundleDependency;
 import com.io7m.eigion.model.EIProductDependency;
 import com.io7m.eigion.model.EIProductRelease;
 
@@ -49,13 +50,13 @@ public final class EIv1ProductRelease
   public final List<EIv1ProductDependency> productDependencies;
 
   @JsonProperty(value = "BundleDependencies", required = true)
-  public final List<EIv1ProductDependency> bundleDependencies;
+  public final List<EIv1ProductBundleDependency> bundleDependencies;
 
   @JsonCreator
   public EIv1ProductRelease(
     @JsonProperty(value = "Version", required = true) final String inVersion,
     @JsonProperty(value = "ProductDependencies", required = true) final List<EIv1ProductDependency> inPd,
-    @JsonProperty(value = "BundleDependencies", required = true) final List<EIv1ProductDependency> inBd)
+    @JsonProperty(value = "BundleDependencies", required = true) final List<EIv1ProductBundleDependency> inBd)
   {
     this.version =
       Objects.requireNonNull(inVersion, "version");
@@ -89,6 +90,30 @@ public final class EIv1ProductRelease
     return anyFailed ? Optional.empty() : Optional.of(newDeps);
   }
 
+  private static Optional<List<EIProductBundleDependency>> toBundleDependencies(
+    final List<EIv1ProductBundleDependency> dependencies,
+    final URI source,
+    final Consumer<ParseStatus> errorConsumer)
+  {
+    var anyFailed = false;
+
+    final var newDeps =
+      new ArrayList<EIProductBundleDependency>(dependencies.size());
+
+    for (final var dep : dependencies) {
+      final var newDep =
+        dep.toProduct(source, errorConsumer);
+
+      if (newDep.isEmpty()) {
+        anyFailed = true;
+        continue;
+      }
+      newDeps.add(newDep.get());
+    }
+
+    return anyFailed ? Optional.empty() : Optional.of(newDeps);
+  }
+
   @Override
   public Optional<EIProductRelease> toProduct(
     final URI source,
@@ -99,7 +124,7 @@ public final class EIv1ProductRelease
     final var newProductDependencies =
       toDependencies(this.productDependencies, source, errorConsumer);
     final var newBundleDependencies =
-      toDependencies(this.bundleDependencies, source, errorConsumer);
+      toBundleDependencies(this.bundleDependencies, source, errorConsumer);
 
     if (newVersion.isPresent()
       && newProductDependencies.isPresent()

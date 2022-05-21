@@ -33,11 +33,7 @@
                 "Group": "com.io7m.zed",
                 "Name": "com.io7m.zed"
               },
-              "Version": "2.0.0",
-              "Hash": {
-                "Algorithm": "SHA-256",
-                "Hash": "167112362ADB3B2041C11F7337437872F9D821E57E8C3EDD68D87A1D0BABD0F5"
-              }
+              "Version": "2.0.0"
             }
           ]
         }

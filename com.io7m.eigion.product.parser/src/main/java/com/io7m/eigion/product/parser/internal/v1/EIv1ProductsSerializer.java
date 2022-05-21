@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.io7m.anethum.common.SerializeException;
 import com.io7m.eigion.model.EIProduct;
+import com.io7m.eigion.model.EIProductBundleDependency;
 import com.io7m.eigion.model.EIProductCategory;
 import com.io7m.eigion.model.EIProductDependency;
 import com.io7m.eigion.model.EIProductHash;
@@ -94,19 +95,29 @@ public final class EIv1ProductsSerializer implements EIProductsSerializerType
   {
     return new EIv1ProductRelease(
       convertProductVersion(release.version()),
-      convertDependencies(release.productDependencies()),
-      convertDependencies(release.bundleDependencies())
+      convertProductDependencies(release.productDependencies()),
+      convertBundleDependencies(release.bundleDependencies())
     );
   }
 
-  private static List<EIv1ProductDependency> convertDependencies(
+  private static List<EIv1ProductBundleDependency> convertBundleDependencies(
+    final List<EIProductBundleDependency> productDependencies)
+  {
+    return productDependencies.stream()
+      .map(k -> new EIv1ProductBundleDependency(
+        convertProductId(k.identifier()),
+        convertProductVersion(k.version()),
+        convertHash(k.hash())
+      )).toList();
+  }
+
+  private static List<EIv1ProductDependency> convertProductDependencies(
     final List<EIProductDependency> productDependencies)
   {
     return productDependencies.stream()
       .map(k -> new EIv1ProductDependency(
         convertProductId(k.identifier()),
-        convertProductVersion(k.version()),
-        convertHash(k.hash())
+        convertProductVersion(k.version())
       )).toList();
   }
 

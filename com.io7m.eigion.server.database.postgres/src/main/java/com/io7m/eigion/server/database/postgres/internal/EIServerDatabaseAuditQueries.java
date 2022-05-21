@@ -32,6 +32,17 @@ record EIServerDatabaseAuditQueries(
   EIServerDatabaseTransaction transaction)
   implements EIServerDatabaseAuditQueriesType
 {
+  private static EIAuditEvent toAuditEvent(
+    final AuditRecord record)
+  {
+    return new EIAuditEvent(
+      record.getId().longValue(),
+      record.getTime(),
+      record.getType(),
+      record.getMessage()
+    );
+  }
+
   @Override
   public List<EIAuditEvent> auditEvents(
     final OffsetDateTime fromInclusive,
@@ -54,16 +65,5 @@ record EIServerDatabaseAuditQueries(
     } catch (final Exception e) {
       throw new EIServerDatabaseException(e.getMessage(), e, "sql-error");
     }
-  }
-
-  private static EIAuditEvent toAuditEvent(
-    final AuditRecord record)
-  {
-    return new EIAuditEvent(
-      record.getId().longValue(),
-      record.getTime(),
-      record.getType(),
-      record.getMessage()
-    );
   }
 }

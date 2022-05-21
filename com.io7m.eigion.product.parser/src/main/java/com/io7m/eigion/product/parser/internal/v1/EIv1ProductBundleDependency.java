@@ -21,7 +21,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.io7m.anethum.common.ParseStatus;
-import com.io7m.eigion.model.EIProductDependency;
+import com.io7m.eigion.model.EIProductBundleDependency;
 
 import java.net.URI;
 import java.util.Objects;
@@ -36,40 +36,48 @@ import java.util.function.Consumer;
 
 @JsonSerialize
 @JsonDeserialize
-public final class EIv1ProductDependency
-  implements EIv1FromV1Type<EIProductDependency>
+public final class EIv1ProductBundleDependency
+  implements EIv1FromV1Type<EIProductBundleDependency>
 {
   @JsonProperty(value = "ID", required = true)
   public final EIv1ProductId id;
   @JsonProperty(value = "Version", required = true)
   public final String version;
+  @JsonProperty(value = "Hash", required = true)
+  public final EIv1ProductHash hash;
 
   @JsonCreator
-  public EIv1ProductDependency(
+  public EIv1ProductBundleDependency(
     @JsonProperty(value = "ID", required = true) final EIv1ProductId inId,
-    @JsonProperty(value = "Version", required = true) final String inVersion)
+    @JsonProperty(value = "Version", required = true) final String inVersion,
+    @JsonProperty(value = "Hash", required = true) final EIv1ProductHash inHash)
   {
     this.id =
       Objects.requireNonNull(inId, "id");
     this.version =
       Objects.requireNonNull(inVersion, "version");
+    this.hash =
+      Objects.requireNonNull(inHash, "hash");
   }
 
   @Override
-  public Optional<EIProductDependency> toProduct(
+  public Optional<EIProductBundleDependency> toProduct(
     final URI source,
     final Consumer<ParseStatus> errorConsumer)
   {
     final var pId =
       this.id.toProduct(source, errorConsumer);
+    final var pHash =
+      this.hash.toProduct(source, errorConsumer);
     final var pVersion =
       EIv1ProductVersion.toProduct(source, errorConsumer, this.version);
 
-    if (pId.isPresent() && pVersion.isPresent()) {
+    if (pId.isPresent() && pHash.isPresent() && pVersion.isPresent()) {
       return Optional.of(
-        new EIProductDependency(
+        new EIProductBundleDependency(
           pId.get(),
-          pVersion.get()
+          pVersion.get(),
+          pHash.get()
         ));
     }
     return Optional.empty();

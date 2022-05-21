@@ -20,13 +20,17 @@ package com.io7m.eigion.server.database.postgres.internal;
 import com.io7m.eigion.model.EIProduct;
 import com.io7m.eigion.model.EIProductCategory;
 import com.io7m.eigion.model.EIProductIdentifier;
+import com.io7m.eigion.model.EIProductRelease;
 import com.io7m.eigion.model.EIRedactableType;
 import com.io7m.eigion.model.EIRedaction;
+import com.io7m.eigion.model.EIUser;
 import com.io7m.eigion.server.database.api.EIServerDatabaseException;
 import com.io7m.eigion.server.database.api.EIServerDatabaseProductsQueriesType;
+import com.io7m.eigion.server.database.api.EIServerDatabaseUsersQueriesType;
 import com.io7m.eigion.server.database.postgres.internal.tables.records.AuditRecord;
 import com.io7m.jaffirm.core.Postconditions;
 import com.io7m.jaffirm.core.Preconditions;
+import com.io7m.junreachable.UnimplementedCodeException;
 import org.jooq.DSLContext;
 import org.jooq.InsertSetMoreStep;
 import org.jooq.Record;
@@ -53,12 +57,16 @@ final class EIServerDatabaseProductsQueries
   implements EIServerDatabaseProductsQueriesType
 {
   private final EIServerDatabaseTransaction transaction;
+  private final EIServerDatabaseUsersQueriesType users;
 
   EIServerDatabaseProductsQueries(
-    final EIServerDatabaseTransaction inTransaction)
+    final EIServerDatabaseTransaction inTransaction,
+    final EIServerDatabaseUsersQueriesType inUsers)
   {
     this.transaction =
       Objects.requireNonNull(inTransaction, "transaction");
+    this.users =
+      Objects.requireNonNull(inUsers, "users");
   }
 
   private static List<EIDatabaseProduct> fetchProducts(
@@ -389,6 +397,7 @@ final class EIServerDatabaseProductsQueries
 
       if (redacted.isPresent()) {
         final var redact = redacted.get();
+        this.fetchUserOrFail(redact.creator());
 
         final var inserted =
           context.insertInto(CATEGORY_REDACTIONS)
@@ -445,6 +454,8 @@ final class EIServerDatabaseProductsQueries
           "product-duplicate"
         );
       }
+
+      this.fetchUserOrFail(userId);
 
       final var time = this.currentTime();
 
@@ -507,6 +518,7 @@ final class EIServerDatabaseProductsQueries
 
       if (redacted.isPresent()) {
         final var redact = redacted.get();
+        this.fetchUserOrFail(redact.creator());
 
         final var inserted =
           context.insertInto(PRODUCT_REDACTIONS)
@@ -667,6 +679,43 @@ final class EIServerDatabaseProductsQueries
     } catch (final DataAccessException e) {
       throw new EIServerDatabaseException(e.getMessage(), e, "sql-error");
     }
+  }
+
+  @Override
+  public void productReleaseCreate(
+    final EIProductIdentifier id,
+    final UUID creator,
+    final EIProductRelease release)
+    throws EIServerDatabaseException
+  {
+    Objects.requireNonNull(id, "id");
+    Objects.requireNonNull(creator, "creator");
+    Objects.requireNonNull(release, "release");
+
+    final var context = this.transaction.createContext();
+
+    try {
+      final var product =
+        fetchProductOrFail(id, INCLUDE_REDACTED, false, false, context);
+      final var user =
+        this.fetchUserOrFail(creator);
+
+      throw new UnimplementedCodeException();
+    } catch (final DataAccessException e) {
+      throw new EIServerDatabaseException(e.getMessage(), e, "sql-error");
+    }
+  }
+
+  private EIUser fetchUserOrFail(
+    final UUID creator)
+    throws EIServerDatabaseException
+  {
+    return this.users.userGet(creator).orElseThrow(() -> {
+      return new EIServerDatabaseException(
+        String.format("User with ID %s does not exist", creator),
+        "user-nonexistent"
+      );
+    });
   }
 
   private record EIDatabaseProduct(

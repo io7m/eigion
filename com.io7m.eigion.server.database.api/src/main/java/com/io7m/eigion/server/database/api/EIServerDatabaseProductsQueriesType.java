@@ -19,6 +19,7 @@ package com.io7m.eigion.server.database.api;
 import com.io7m.eigion.model.EIProduct;
 import com.io7m.eigion.model.EIProductCategory;
 import com.io7m.eigion.model.EIProductIdentifier;
+import com.io7m.eigion.model.EIProductRelease;
 import com.io7m.eigion.model.EIRedaction;
 
 import java.util.Optional;
@@ -178,6 +179,22 @@ public non-sealed interface EIServerDatabaseProductsQueriesType
   void productCategoryRemove(
     EIProductIdentifier id,
     EIProductCategory category)
+    throws EIServerDatabaseException;
+
+  /**
+   * Create a new release.
+   *
+   * @param id      The product ID
+   * @param creator The user creating the release
+   * @param release The release information
+   *
+   * @throws EIServerDatabaseException On errors
+   */
+
+  void productReleaseCreate(
+    EIProductIdentifier id,
+    UUID creator,
+    EIProductRelease release)
     throws EIServerDatabaseException;
 
   /**

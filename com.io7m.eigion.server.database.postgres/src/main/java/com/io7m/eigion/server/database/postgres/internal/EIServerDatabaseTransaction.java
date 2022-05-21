@@ -16,6 +16,7 @@
 
 package com.io7m.eigion.server.database.postgres.internal;
 
+import com.io7m.eigion.product.parser.api.EIProductsSerializersType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseAuditQueriesType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseException;
 import com.io7m.eigion.server.database.api.EIServerDatabaseProductsQueriesType;
@@ -44,7 +45,10 @@ record EIServerDatabaseTransaction(
       return qClass.cast(new EIServerDatabaseUsersQueries(this));
     }
     if (Objects.equals(qClass, EIServerDatabaseProductsQueriesType.class)) {
-      return qClass.cast(new EIServerDatabaseProductsQueries(this));
+      return qClass.cast(new EIServerDatabaseProductsQueries(
+        this,
+        new EIServerDatabaseUsersQueries(this))
+      );
     }
     if (Objects.equals(qClass, EIServerDatabaseAuditQueriesType.class)) {
       return qClass.cast(new EIServerDatabaseAuditQueries(this));
@@ -63,13 +67,13 @@ record EIServerDatabaseTransaction(
     final var sqlConnection =
       trConnection.connection();
     final var settings =
-      trConnection.settings();
+      trConnection.database().settings();
     return DSL.using(sqlConnection, POSTGRES, settings);
   }
 
   public Clock clock()
   {
-    return this.connection.clock();
+    return this.connection.database().clock();
   }
 
   @Override
@@ -99,5 +103,10 @@ record EIServerDatabaseTransaction(
     throws EIServerDatabaseException
   {
     this.rollback();
+  }
+
+  public EIProductsSerializersType productsSerializers()
+  {
+    return this.connection.database().productsSerializers();
   }
 }
