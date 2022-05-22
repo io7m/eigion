@@ -150,7 +150,7 @@ record EIServerDatabaseUsersQueries(
 
       final var audit =
         context.insertInto(AUDIT)
-          .set(AUDIT.TIME, OffsetDateTime.now(this.transaction.clock()))
+          .set(AUDIT.TIME, this.timeNow())
           .set(AUDIT.TYPE, "USER_CREATED")
           .set(AUDIT.MESSAGE, id.toString());
 
@@ -159,6 +159,11 @@ record EIServerDatabaseUsersQueries(
     } catch (final DataAccessException e) {
       throw new EIServerDatabaseException(e.getMessage(), e, "sql-error");
     }
+  }
+
+  private OffsetDateTime timeNow()
+  {
+    return OffsetDateTime.now(this.transaction.clock()).withNano(0);
   }
 
   @Override
@@ -242,7 +247,7 @@ record EIServerDatabaseUsersQueries(
 
       final var audit =
         context.insertInto(AUDIT)
-          .set(AUDIT.TIME, OffsetDateTime.now(this.transaction.clock()))
+          .set(AUDIT.TIME, this.timeNow())
           .set(AUDIT.TYPE, "USER_BANNED")
           .set(AUDIT.MESSAGE, id + ": " + reason);
 
@@ -267,7 +272,7 @@ record EIServerDatabaseUsersQueries(
 
       final var audit =
         context.insertInto(AUDIT)
-          .set(AUDIT.TIME, OffsetDateTime.now(this.transaction.clock()))
+          .set(AUDIT.TIME, this.timeNow())
           .set(AUDIT.TYPE, "USER_UNBANNED")
           .set(AUDIT.MESSAGE, id.toString());
 

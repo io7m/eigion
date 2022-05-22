@@ -41,7 +41,7 @@ public non-sealed interface EIServerDatabaseProductsQueriesType
    * @throws EIServerDatabaseException On errors
    */
 
-  Set<EIProductCategory> categories(IncludeRedacted includeRedacted)
+  Set<EIProductCategory> categories(EIServerDatabaseIncludeRedacted includeRedacted)
     throws EIServerDatabaseException;
 
   /**
@@ -133,7 +133,7 @@ public non-sealed interface EIServerDatabaseProductsQueriesType
    */
 
   Set<EIProductIdentifier> productsAll(
-    IncludeRedacted includeRedacted)
+    EIServerDatabaseIncludeRedacted includeRedacted)
     throws EIServerDatabaseException;
 
   /**
@@ -149,7 +149,7 @@ public non-sealed interface EIServerDatabaseProductsQueriesType
 
   EIProduct product(
     EIProductIdentifier id,
-    IncludeRedacted includeRedacted)
+    EIServerDatabaseIncludeRedacted includeRedacted)
     throws EIServerDatabaseException;
 
   /**
@@ -196,23 +196,4 @@ public non-sealed interface EIServerDatabaseProductsQueriesType
     UUID creator,
     EIProductRelease release)
     throws EIServerDatabaseException;
-
-  /**
-   * Whether to include redacted items.
-   */
-
-  enum IncludeRedacted
-  {
-    /**
-     * Include redacted items.
-     */
-
-    INCLUDE_REDACTED,
-
-    /**
-     * Exclude redacted items.
-     */
-
-    EXCLUDE_REDACTED
-  }
 }

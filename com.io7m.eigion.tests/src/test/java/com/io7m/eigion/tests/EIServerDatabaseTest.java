@@ -24,6 +24,7 @@ import com.io7m.eigion.model.EIRedaction;
 import com.io7m.eigion.server.database.api.EIServerDatabaseAuditQueriesType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseConfiguration;
 import com.io7m.eigion.server.database.api.EIServerDatabaseException;
+import com.io7m.eigion.server.database.api.EIServerDatabaseImagesQueriesType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseProductsQueriesType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseRole;
 import com.io7m.eigion.server.database.api.EIServerDatabaseTransactionType;
@@ -48,8 +49,8 @@ import java.util.Set;
 
 import static com.io7m.eigion.model.EIRedaction.redactionOpt;
 import static com.io7m.eigion.server.database.api.EIServerDatabaseCreate.CREATE_DATABASE;
-import static com.io7m.eigion.server.database.api.EIServerDatabaseProductsQueriesType.IncludeRedacted.EXCLUDE_REDACTED;
-import static com.io7m.eigion.server.database.api.EIServerDatabaseProductsQueriesType.IncludeRedacted.INCLUDE_REDACTED;
+import static com.io7m.eigion.server.database.api.EIServerDatabaseIncludeRedacted.EXCLUDE_REDACTED;
+import static com.io7m.eigion.server.database.api.EIServerDatabaseIncludeRedacted.INCLUDE_REDACTED;
 import static com.io7m.eigion.server.database.api.EIServerDatabaseRole.EIGION;
 import static com.io7m.eigion.server.database.api.EIServerDatabaseRole.NONE;
 import static com.io7m.eigion.server.database.api.EIServerDatabaseUpgrade.UPGRADE_DATABASE;
@@ -136,7 +137,7 @@ public final class EIServerDatabaseTest
           "postgres",
           "12345678",
           container.getContainerIpAddress(),
-          container.getFirstMappedPort(),
+          container.getFirstMappedPort().intValue(),
           "postgres",
           CREATE_DATABASE,
           UPGRADE_DATABASE,
@@ -1127,6 +1128,169 @@ public final class EIServerDatabaseTest
       });
       assertEquals("sql-error", ex.errorCode());
     }
+  }
+
+  /**
+   * Accessing images requires privileges.
+   *
+   * @throws Exception On errors
+   */
+
+  @Test
+  public void testImagesUnprivileged()
+    throws Exception
+  {
+    assertTrue(this.container.isRunning());
+
+    final var transaction =
+      this.transactionOf(this.container, NONE);
+    final var images =
+      transaction.queries(EIServerDatabaseImagesQueriesType.class);
+
+    {
+      final var ex = assertThrows(EIServerDatabaseException.class, () -> {
+        images.imageCreate(
+          randomUUID(),
+          randomUUID(),
+          "text/plain",
+          new byte[23]);
+      });
+      assertEquals("sql-error", ex.errorCode());
+    }
+
+    {
+      final var ex = assertThrows(EIServerDatabaseException.class, () -> {
+        images.imageGet(randomUUID(), INCLUDE_REDACTED);
+      });
+      assertEquals("sql-error", ex.errorCode());
+    }
+
+    {
+      final var ex = assertThrows(EIServerDatabaseException.class, () -> {
+        images.imageRedact(randomUUID(), Optional.empty());
+      });
+      assertEquals("sql-error", ex.errorCode());
+    }
+  }
+
+  /**
+   * Creating images works.
+   *
+   * @throws Exception On errors
+   */
+
+  @Test
+  public void testImagesCreate()
+    throws Exception
+  {
+    assertTrue(this.container.isRunning());
+
+    final var transaction =
+      this.transactionOf(this.container, EIGION);
+    final var images =
+      transaction.queries(EIServerDatabaseImagesQueriesType.class);
+    final var users =
+      transaction.queries(EIServerDatabaseUsersQueriesType.class);
+
+    final var user =
+      users.userCreate(
+        "someone",
+        "someone@example.com",
+        EIPassword.createHashed("12345678"));
+
+    final var id = randomUUID();
+    final var image =
+      images.imageCreate(id, user.id(), "image/jpeg", new byte[23]);
+
+    assertEquals(id, image.id());
+    assertEquals("image/jpeg", image.contentType());
+    assertEquals(user.id(), image.creation().creator());
+
+    final var image2 =
+      images.imageGet(id, INCLUDE_REDACTED)
+        .orElseThrow();
+
+    assertEquals(image, image2);
+
+    {
+      final var ex = assertThrows(EIServerDatabaseException.class, () -> {
+        images.imageCreate(id, user.id(), "image/jpeg", new byte[23]);
+      });
+      assertEquals("image-duplicate", ex.errorCode());
+    }
+
+    checkAuditLog(
+      transaction,
+      new ExpectedEvent("USER_CREATED", user.id().toString()),
+      new ExpectedEvent("IMAGE_CREATED", id + ":" + user.id())
+    );
+  }
+
+  /**
+   * Redacting images works.
+   *
+   * @throws Exception On errors
+   */
+
+  @Test
+  public void testImagesRedact()
+    throws Exception
+  {
+    assertTrue(this.container.isRunning());
+
+    final var transaction =
+      this.transactionOf(this.container, EIGION);
+    final var images =
+      transaction.queries(EIServerDatabaseImagesQueriesType.class);
+    final var users =
+      transaction.queries(EIServerDatabaseUsersQueriesType.class);
+
+    final var user =
+      users.userCreate(
+        "someone",
+        "someone@example.com",
+        EIPassword.createHashed("12345678"));
+
+    final var imageId = randomUUID();
+    final var image =
+      images.imageCreate(imageId, user.id(), "image/jpeg", new byte[23]);
+
+    assertTrue(images.imageGet(imageId, INCLUDE_REDACTED).isPresent());
+    assertTrue(images.imageGet(imageId, EXCLUDE_REDACTED).isPresent());
+
+    final var time = timeNow();
+    images.imageRedact(imageId, redactionOpt(user.id(), time, "X"));
+
+    assertTrue(images.imageGet(imageId, INCLUDE_REDACTED).isPresent());
+    assertFalse(images.imageGet(imageId, EXCLUDE_REDACTED).isPresent());
+    assertEquals(
+      redactionOpt(user.id(), time, "X"),
+      images.imageGet(imageId, INCLUDE_REDACTED).orElseThrow().redaction()
+    );
+
+    images.imageRedact(imageId, Optional.empty());
+    assertTrue(images.imageGet(imageId, INCLUDE_REDACTED).isPresent());
+    assertTrue(images.imageGet(imageId, EXCLUDE_REDACTED).isPresent());
+
+    assertEquals(
+      Optional.empty(),
+      images.imageGet(imageId, INCLUDE_REDACTED).orElseThrow().redaction()
+    );
+
+    {
+      final var ex = assertThrows(EIServerDatabaseException.class, () -> {
+        images.imageRedact(randomUUID(), Optional.empty());
+      });
+      assertEquals("image-nonexistent", ex.errorCode());
+    }
+
+    checkAuditLog(
+      transaction,
+      new ExpectedEvent("USER_CREATED", user.id().toString()),
+      new ExpectedEvent("IMAGE_CREATED", imageId + ":" + user.id()),
+      new ExpectedEvent("IMAGE_REDACTED", imageId.toString()),
+      new ExpectedEvent("IMAGE_UNREDACTED", imageId.toString())
+    );
   }
 
   private record ExpectedEvent(

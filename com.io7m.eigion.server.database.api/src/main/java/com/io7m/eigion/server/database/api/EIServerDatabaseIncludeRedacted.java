@@ -18,14 +18,20 @@
 package com.io7m.eigion.server.database.api;
 
 /**
- * The base type of query interfaces.
+ * Whether to include redacted items.
  */
 
-public sealed interface EIServerDatabaseQueriesType
-  permits EIServerDatabaseAuditQueriesType,
-  EIServerDatabaseImagesQueriesType,
-  EIServerDatabaseProductsQueriesType,
-  EIServerDatabaseUsersQueriesType
+public enum EIServerDatabaseIncludeRedacted
 {
+  /**
+   * Include redacted items.
+   */
 
+  INCLUDE_REDACTED,
+
+  /**
+   * Exclude redacted items.
+   */
+
+  EXCLUDE_REDACTED
 }

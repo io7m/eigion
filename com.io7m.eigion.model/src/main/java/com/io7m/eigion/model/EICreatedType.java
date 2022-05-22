@@ -15,17 +15,17 @@
  */
 
 
-package com.io7m.eigion.server.database.api;
+package com.io7m.eigion.model;
 
 /**
- * The base type of query interfaces.
+ * An object that was created by a user.
  */
 
-public sealed interface EIServerDatabaseQueriesType
-  permits EIServerDatabaseAuditQueriesType,
-  EIServerDatabaseImagesQueriesType,
-  EIServerDatabaseProductsQueriesType,
-  EIServerDatabaseUsersQueriesType
+public interface EICreatedType
 {
+  /**
+   * @return The creation data
+   */
 
+  EICreation creation();
 }

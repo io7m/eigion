@@ -19,6 +19,7 @@ package com.io7m.eigion.server.database.postgres.internal;
 import com.io7m.eigion.product.parser.api.EIProductsSerializersType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseAuditQueriesType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseException;
+import com.io7m.eigion.server.database.api.EIServerDatabaseImagesQueriesType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseProductsQueriesType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseQueriesType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseTransactionType;
@@ -44,14 +45,23 @@ record EIServerDatabaseTransaction(
     if (Objects.equals(qClass, EIServerDatabaseUsersQueriesType.class)) {
       return qClass.cast(new EIServerDatabaseUsersQueries(this));
     }
+
     if (Objects.equals(qClass, EIServerDatabaseProductsQueriesType.class)) {
       return qClass.cast(new EIServerDatabaseProductsQueries(
         this,
         new EIServerDatabaseUsersQueries(this))
       );
     }
+
     if (Objects.equals(qClass, EIServerDatabaseAuditQueriesType.class)) {
       return qClass.cast(new EIServerDatabaseAuditQueries(this));
+    }
+
+    if (Objects.equals(qClass, EIServerDatabaseImagesQueriesType.class)) {
+      return qClass.cast(new EIServerDatabaseImagesQueries(
+        this,
+        new EIServerDatabaseUsersQueries(this))
+      );
     }
 
     throw new EIServerDatabaseException(

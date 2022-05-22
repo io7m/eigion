@@ -91,6 +91,43 @@ create table user_bans (
 
   <Schema versionCurrent="2">
     <Comment>
+      The images table holds image data.
+    </Comment>
+
+    <Statement><![CDATA[
+create table images (
+  id            uuid                     not null primary key,
+  creator       uuid                     not null,
+  created       timestamp with time zone not null,
+  content_type  varchar(256)             not null,
+  image_data    bytea                    not null,
+
+  foreign key (creator) references users (id)
+)
+]]></Statement>
+
+    <Statement>grant select, insert on images to eigion</Statement>
+    <Statement>grant update (image_data) on images to eigion</Statement>
+
+    <Comment>
+      The image_redactions table holds the set of images that have been redacted.
+    </Comment>
+
+    <Statement><![CDATA[
+create table image_redactions (
+  image   uuid                     not null unique,
+  reason  varchar(256)             not null,
+  creator uuid                     not null,
+  created timestamp with time zone not null,
+
+  foreign key (creator) references users (id),
+  foreign key (image)   references images (id)
+)
+]]></Statement>
+
+    <Statement>grant select, delete, insert on image_redactions to eigion</Statement>
+
+    <Comment>
       The categories table holds the set of categories that can be applied to products.
     </Comment>
 

@@ -14,18 +14,33 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+package com.io7m.eigion.model;
 
-package com.io7m.eigion.server.database.api;
+import java.time.OffsetDateTime;
+import java.util.Objects;
+import java.util.UUID;
 
 /**
- * The base type of query interfaces.
+ * Information about the creation of an object.
+ *
+ * @param creator The user that created the object
+ * @param created The time the user created the object
  */
 
-public sealed interface EIServerDatabaseQueriesType
-  permits EIServerDatabaseAuditQueriesType,
-  EIServerDatabaseImagesQueriesType,
-  EIServerDatabaseProductsQueriesType,
-  EIServerDatabaseUsersQueriesType
+public record EICreation(
+  UUID creator,
+  OffsetDateTime created)
 {
+  /**
+   * Information about the creation of an object.
+   *
+   * @param creator The user that created the object
+   * @param created The time the user created the object
+   */
 
+  public EICreation
+  {
+    Objects.requireNonNull(creator, "creator");
+    Objects.requireNonNull(created, "created");
+  }
 }

@@ -25,6 +25,7 @@ import com.io7m.eigion.model.EIRedactableType;
 import com.io7m.eigion.model.EIRedaction;
 import com.io7m.eigion.model.EIUser;
 import com.io7m.eigion.server.database.api.EIServerDatabaseException;
+import com.io7m.eigion.server.database.api.EIServerDatabaseIncludeRedacted;
 import com.io7m.eigion.server.database.api.EIServerDatabaseProductsQueriesType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseUsersQueriesType;
 import com.io7m.eigion.server.database.postgres.internal.tables.records.AuditRecord;
@@ -44,7 +45,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import static com.io7m.eigion.server.database.api.EIServerDatabaseProductsQueriesType.IncludeRedacted.INCLUDE_REDACTED;
+import static com.io7m.eigion.server.database.api.EIServerDatabaseIncludeRedacted.INCLUDE_REDACTED;
 import static com.io7m.eigion.server.database.postgres.internal.Tables.CATEGORY_REDACTIONS;
 import static com.io7m.eigion.server.database.postgres.internal.Tables.PRODUCTS;
 import static com.io7m.eigion.server.database.postgres.internal.Tables.PRODUCT_CATEGORIES;
@@ -70,7 +71,7 @@ final class EIServerDatabaseProductsQueries
   }
 
   private static List<EIDatabaseProduct> fetchProducts(
-    final IncludeRedacted includeRedacted,
+    final EIServerDatabaseIncludeRedacted includeRedacted,
     final DSLContext context)
   {
     return context.select()
@@ -85,7 +86,7 @@ final class EIServerDatabaseProductsQueries
 
   private static Optional<EIDatabaseProduct> fetchProductOptional(
     final EIProductIdentifier id,
-    final IncludeRedacted includeRedacted,
+    final EIServerDatabaseIncludeRedacted includeRedacted,
     final boolean includeCategories,
     final boolean includeReleases,
     final DSLContext context)
@@ -136,7 +137,7 @@ final class EIServerDatabaseProductsQueries
 
   private static EIDatabaseProduct fetchProductOrFail(
     final EIProductIdentifier id,
-    final IncludeRedacted includeRedacted,
+    final EIServerDatabaseIncludeRedacted includeRedacted,
     final boolean includeCategories,
     final boolean includeReleases,
     final DSLContext context)
@@ -191,7 +192,7 @@ final class EIServerDatabaseProductsQueries
   }
 
   private static List<EIDatabaseProductCategory> fetchCategories(
-    final IncludeRedacted includeRedacted,
+    final EIServerDatabaseIncludeRedacted includeRedacted,
     final DSLContext context)
   {
     final var query =
@@ -208,7 +209,7 @@ final class EIServerDatabaseProductsQueries
 
   private static EIDatabaseProductCategory fetchCategoryOrFail(
     final EIProductCategory category,
-    final IncludeRedacted includeRedacted,
+    final EIServerDatabaseIncludeRedacted includeRedacted,
     final DSLContext context)
     throws EIServerDatabaseException
   {
@@ -262,7 +263,7 @@ final class EIServerDatabaseProductsQueries
 
   private static boolean filterRedactedIfNecessary(
     final EIRedactableType r,
-    final IncludeRedacted includeRedacted)
+    final EIServerDatabaseIncludeRedacted includeRedacted)
   {
     return switch (includeRedacted) {
       case INCLUDE_REDACTED -> true;
@@ -297,7 +298,7 @@ final class EIServerDatabaseProductsQueries
 
   @Override
   public Set<EIProductCategory> categories(
-    final IncludeRedacted includeRedacted)
+    final EIServerDatabaseIncludeRedacted includeRedacted)
     throws EIServerDatabaseException
   {
     Objects.requireNonNull(includeRedacted, "includeRedacted");
@@ -358,7 +359,7 @@ final class EIServerDatabaseProductsQueries
 
   private OffsetDateTime currentTime()
   {
-    return OffsetDateTime.now(this.transaction.clock());
+    return OffsetDateTime.now(this.transaction.clock()).withNano(0);
   }
 
   @Override
@@ -552,7 +553,7 @@ final class EIServerDatabaseProductsQueries
 
   @Override
   public Set<EIProductIdentifier> productsAll(
-    final IncludeRedacted includeRedacted)
+    final EIServerDatabaseIncludeRedacted includeRedacted)
     throws EIServerDatabaseException
   {
     Objects.requireNonNull(includeRedacted, "includeRedacted");
@@ -571,7 +572,7 @@ final class EIServerDatabaseProductsQueries
   @Override
   public EIProduct product(
     final EIProductIdentifier id,
-    final IncludeRedacted includeRedacted)
+    final EIServerDatabaseIncludeRedacted includeRedacted)
     throws EIServerDatabaseException
   {
     Objects.requireNonNull(id, "id");
