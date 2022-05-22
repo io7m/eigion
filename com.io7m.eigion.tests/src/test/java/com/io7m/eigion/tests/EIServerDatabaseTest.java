@@ -179,6 +179,28 @@ public final class EIServerDatabaseTest
   }
 
   /**
+   * Setting the transaction user to a nonexistent user fails.
+   *
+   * @throws Exception On errors
+   */
+
+  @Test
+  public void testUserSetNonexistent()
+    throws Exception
+  {
+    assertTrue(this.container.isRunning());
+
+    final var transaction =
+      this.transactionOf(this.container, EIGION);
+
+    final var ex =
+      assertThrows(EIServerDatabaseException.class, () -> {
+        transaction.userIdSet(randomUUID());
+      });
+    assertEquals("user-nonexistent", ex.errorCode());
+  }
+
+  /**
    * The none role cannot manipulate users.
    *
    * @throws Exception On errors
