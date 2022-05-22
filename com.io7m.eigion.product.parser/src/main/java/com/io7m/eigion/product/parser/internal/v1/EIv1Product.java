@@ -21,6 +21,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.io7m.anethum.common.ParseStatus;
+import com.io7m.eigion.model.EICreation;
 import com.io7m.eigion.model.EIProduct;
 import com.io7m.eigion.model.EIProductRelease;
 
@@ -43,17 +44,14 @@ import static com.io7m.eigion.product.parser.api.EIProductSchemas.VERSION_1;
 @JsonDeserialize
 public final class EIv1Product implements EIv1FromV1Type<EIProduct>
 {
-  @JsonProperty(value = "%Type", required = false)
-  public String type = VERSION_1;
-
   @JsonProperty(value = "ID", required = true)
   public final EIv1ProductId id;
-
   @JsonProperty(value = "Releases", required = true)
   public final List<EIv1ProductRelease> releases;
-
   @JsonProperty(value = "Description", required = true)
   public final EIv1ProductDescription description;
+  @JsonProperty(value = "%Type", required = false)
+  public String type = VERSION_1;
 
   @JsonCreator
   public EIv1Product(
@@ -90,7 +88,8 @@ public final class EIv1Product implements EIv1FromV1Type<EIProduct>
           newId.get(),
           newReleases.get(),
           newDescription.get(),
-          Optional.empty()
+          Optional.empty(),
+          EICreation.zero()
         )
       );
     }

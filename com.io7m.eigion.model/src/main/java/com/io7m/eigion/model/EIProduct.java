@@ -27,14 +27,16 @@ import java.util.Optional;
  * @param releases    The bundles upon which the product depends
  * @param description The product description
  * @param redaction   The product redaction, if any
+ * @param creation    The product creation
  */
 
 public record EIProduct(
   EIProductIdentifier id,
   List<EIProductRelease> releases,
   EIProductDescription description,
-  Optional<EIRedaction> redaction)
-  implements EIRedactableType
+  Optional<EIRedaction> redaction,
+  EICreation creation)
+  implements EIRedactableType, EICreatedType
 {
   /**
    * A product.
@@ -43,6 +45,7 @@ public record EIProduct(
    * @param releases    The bundles upon which the product depends
    * @param description The product description
    * @param redaction   The product redaction, if any
+   * @param creation    The product creation
    */
 
   public EIProduct
@@ -51,5 +54,6 @@ public record EIProduct(
     Objects.requireNonNull(releases, "releases");
     Objects.requireNonNull(description, "description");
     Objects.requireNonNull(redaction, "redaction");
+    Objects.requireNonNull(creation, "creation");
   }
 }

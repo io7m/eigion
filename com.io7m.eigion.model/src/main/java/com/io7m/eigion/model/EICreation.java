@@ -31,6 +31,12 @@ public record EICreation(
   UUID creator,
   OffsetDateTime created)
 {
+  private static final UUID UUID_ZERO =
+    UUID.fromString("00000000-0000-0000-0000-000000000000");
+
+  private static final EICreation ZERO_CREATION =
+    new EICreation(UUID_ZERO, OffsetDateTime.MIN);
+
   /**
    * Information about the creation of an object.
    *
@@ -42,5 +48,14 @@ public record EICreation(
   {
     Objects.requireNonNull(creator, "creator");
     Objects.requireNonNull(created, "created");
+  }
+
+  /**
+   * @return The zero creation
+   */
+
+  public static EICreation zero()
+  {
+    return ZERO_CREATION;
   }
 }

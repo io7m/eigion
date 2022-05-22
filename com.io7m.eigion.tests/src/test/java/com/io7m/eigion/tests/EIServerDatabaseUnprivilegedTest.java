@@ -17,6 +17,7 @@
 
 package com.io7m.eigion.tests;
 
+import com.io7m.eigion.model.EICreation;
 import com.io7m.eigion.model.EIPassword;
 import com.io7m.eigion.model.EIProductCategory;
 import com.io7m.eigion.model.EIProductIdentifier;
@@ -540,7 +541,8 @@ public final class EIServerDatabaseUnprivilegedTest
                   List.of(),
                   List.of(),
                   List.of(),
-                  Optional.empty()
+                  Optional.empty(),
+                  EICreation.zero()
                 )
               );
             });

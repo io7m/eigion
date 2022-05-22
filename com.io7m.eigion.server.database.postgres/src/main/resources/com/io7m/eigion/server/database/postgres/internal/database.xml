@@ -234,7 +234,7 @@ create table product_releases (
   version_major       bigint                   not null,
   version_minor       bigint                   not null,
   version_patch       bigint                   not null,
-  version_qualifier   varchar(64),
+  version_qualifier   varchar(64)              not null,
   manifest            bytea                    not null,
   manifest_type       varchar(256)             not null,
   created_by          uuid                     not null,
@@ -264,6 +264,8 @@ create table product_release_redactions (
   foreign key (release) references product_releases (id)
 )
 ]]></Statement>
+
+    <Statement>grant select, delete, insert on product_release_redactions to eigion</Statement>
 
     <Comment>
       The product_categories table associates products with categories.

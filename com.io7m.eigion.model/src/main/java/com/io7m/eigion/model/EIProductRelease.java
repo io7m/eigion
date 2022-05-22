@@ -28,6 +28,7 @@ import java.util.Optional;
  * @param productDependencies The products upon which the release depends
  * @param changes             The list of changes for the release
  * @param redaction           The redaction, if any
+ * @param creation            The product release creation
  */
 
 public record EIProductRelease(
@@ -35,8 +36,9 @@ public record EIProductRelease(
   List<EIProductDependency> productDependencies,
   List<EIProductBundleDependency> bundleDependencies,
   List<EIChange> changes,
-  Optional<EIRedaction> redaction)
-  implements Comparable<EIProductRelease>, EIRedactableType
+  Optional<EIRedaction> redaction,
+  EICreation creation)
+  implements Comparable<EIProductRelease>, EIRedactableType, EICreatedType
 {
   /**
    * A release of a product.
@@ -46,6 +48,7 @@ public record EIProductRelease(
    * @param productDependencies The products upon which the release depends
    * @param changes             The list of changes for the release
    * @param redaction           The redaction, if any
+   * @param creation            The product release creation
    */
 
   public EIProductRelease
@@ -55,6 +58,7 @@ public record EIProductRelease(
     Objects.requireNonNull(bundleDependencies, "bundleDependencies");
     Objects.requireNonNull(changes, "changes");
     Objects.requireNonNull(redaction, "redaction");
+    Objects.requireNonNull(creation, "creation");
   }
 
   @Override

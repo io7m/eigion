@@ -14,11 +14,11 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-
 package com.io7m.eigion.server.database.postgres.internal;
 
 import com.io7m.anethum.common.ParseException;
 import com.io7m.anethum.common.SerializeException;
+import com.io7m.eigion.model.EICreation;
 import com.io7m.eigion.model.EILink;
 import com.io7m.eigion.model.EIProduct;
 import com.io7m.eigion.model.EIProductCategory;
@@ -211,7 +211,11 @@ final class EIServerDatabaseProductsQueries
         ),
         releases,
         description,
-        toProductRedaction(productRec)
+        toProductRedaction(productRec),
+        new EICreation(
+          productRec.get(PRODUCTS.CREATED_BY),
+          productRec.get(PRODUCTS.CREATED)
+        )
       )
     );
   }
@@ -321,6 +325,63 @@ final class EIServerDatabaseProductsQueries
     );
   }
 
+  private static Optional<Long> fetchProductReleaseID(
+    final EIProductIdentifier id,
+    final EIProductVersion version,
+    final DSLContext context)
+  {
+    final var vMajor =
+      valueOf(version.major().longValue());
+    final var vMinor =
+      valueOf(version.minor().longValue());
+    final var vPatch =
+      valueOf(version.patch().longValue());
+    final var vQuali =
+      version.qualifier().orElse("");
+
+    final var prodRec =
+      context.select()
+        .from(PRODUCTS)
+        .where(PRODUCTS.PRODUCT_GROUP.eq(id.group())
+                 .and(PRODUCTS.PRODUCT_NAME.eq(id.name())))
+        .fetchOptional();
+
+    if (prodRec.isEmpty()) {
+      return Optional.empty();
+    }
+
+    final var productId =
+      prodRec.get().get(PRODUCTS.ID);
+
+    final var releaseSelect =
+      context.select()
+        .from(PRODUCT_RELEASES)
+        .where(PRODUCT_RELEASES.PRODUCT_ID.eq(productId)
+                 .and(PRODUCT_RELEASES.VERSION_MAJOR.eq(vMajor))
+                 .and(PRODUCT_RELEASES.VERSION_MINOR.eq(vMinor))
+                 .and(PRODUCT_RELEASES.VERSION_PATCH.eq(vPatch))
+                 .and(PRODUCT_RELEASES.VERSION_QUALIFIER.eq(vQuali))
+        );
+
+    return releaseSelect
+      .fetchOptional()
+      .map(r -> r.get(PRODUCT_RELEASES.ID));
+  }
+
+  private static Long fetchProductReleaseIDOrFail(
+    final EIProductIdentifier id,
+    final EIProductVersion version,
+    final DSLContext context)
+    throws EIServerDatabaseException
+  {
+    return fetchProductReleaseID(id, version, context).orElseThrow(() -> {
+      return new EIServerDatabaseException(
+        "Product release does not exist",
+        "release-nonexistent"
+      );
+    });
+  }
+
   private EIDatabaseProduct fetchProductOrFail(
     final EIProductIdentifier id,
     final EIServerDatabaseIncludeRedacted includeRedacted,
@@ -406,8 +467,8 @@ final class EIServerDatabaseProductsQueries
       if (includes.contains(INCLUDE_RELEASES)) {
         return context.select()
           .from(PRODUCT_RELEASES)
-          .leftOuterJoin(PRODUCT_REDACTIONS)
-          .on(PRODUCT_REDACTIONS.PRODUCT.eq(productId))
+          .leftOuterJoin(PRODUCT_RELEASE_REDACTIONS)
+          .on(PRODUCT_RELEASE_REDACTIONS.RELEASE.eq(PRODUCT_RELEASES.ID))
           .where(PRODUCT_RELEASES.PRODUCT_ID.eq(productId))
           .stream()
           .map(r -> {
@@ -465,10 +526,17 @@ final class EIServerDatabaseProductsQueries
     final var patch =
       BigInteger.valueOf(r.get(PRODUCT_RELEASES.VERSION_PATCH).longValue());
     final var qualifier =
-      Optional.ofNullable(r.get(PRODUCT_RELEASES.VERSION_QUALIFIER));
+      r.get(PRODUCT_RELEASES.VERSION_QUALIFIER);
+
+    final Optional<String> qualifierOpt;
+    if (Objects.equals(qualifier, "")) {
+      qualifierOpt = Optional.empty();
+    } else {
+      qualifierOpt = Optional.of(qualifier);
+    }
 
     final var version =
-      new EIProductVersion(major, minor, patch, qualifier);
+      new EIProductVersion(major, minor, patch, qualifierOpt);
 
     Invariants.checkInvariantV(
       version.equals(release.version()),
@@ -477,12 +545,19 @@ final class EIServerDatabaseProductsQueries
       version.show()
     );
 
+    final var creation =
+      new EICreation(
+        r.get(PRODUCT_RELEASES.CREATED_BY),
+        r.get(PRODUCT_RELEASES.CREATED)
+      );
+
     return new EIProductRelease(
       version,
       release.productDependencies(),
       release.bundleDependencies(),
       release.changes(),
-      toReleaseRedaction(r)
+      toReleaseRedaction(r),
+      creation
     );
   }
 
@@ -700,7 +775,8 @@ final class EIServerDatabaseProductsQueries
           Set.of(),
           List.of()
         ),
-        Optional.empty()
+        Optional.empty(),
+        new EICreation(owner, time)
       );
     } catch (final DataAccessException e) {
       throw handleDatabaseException(this.transaction, e);
@@ -1044,7 +1120,7 @@ final class EIServerDatabaseProductsQueries
       final var time =
         this.currentTime();
       final var q =
-        version.qualifier().orElse(null);
+        version.qualifier().orElse("");
 
       final var serializers =
         this.transaction.productReleaseSerializers();
@@ -1087,11 +1163,95 @@ final class EIServerDatabaseProductsQueries
     }
   }
 
+  @Override
+  @EIServerDatabaseRequiresUser
+  public void productReleaseRedact(
+    final EIProductIdentifier id,
+    final EIProductVersion version,
+    final Optional<EIRedactionRequest> redaction)
+    throws EIServerDatabaseException
+  {
+    Objects.requireNonNull(id, "id");
+    Objects.requireNonNull(version, "version");
+    Objects.requireNonNull(redaction, "redaction");
+
+    final var owner =
+      this.transaction.userId();
+    final var context =
+      this.transaction.createContext();
+
+    try {
+      final var releaseId =
+        fetchProductReleaseIDOrFail(id, version, context);
+
+      final var time =
+        this.currentTime();
+
+      /*
+       * Delete any existing redaction. If there is one, we're either going
+       * to replace it or completely remove it.
+       */
+
+      context.delete(PRODUCT_RELEASE_REDACTIONS)
+        .where(PRODUCT_RELEASE_REDACTIONS.RELEASE.eq(releaseId))
+        .execute();
+
+      /*
+       * Create a new redaction if required.
+       */
+
+      if (redaction.isPresent()) {
+        final var redact = redaction.get();
+
+        final var inserted =
+          context.insertInto(PRODUCT_RELEASE_REDACTIONS)
+            .set(PRODUCT_RELEASE_REDACTIONS.RELEASE, releaseId)
+            .set(PRODUCT_RELEASE_REDACTIONS.REASON, redact.reason())
+            .set(PRODUCT_RELEASE_REDACTIONS.CREATOR, owner)
+            .set(PRODUCT_RELEASE_REDACTIONS.CREATED, redact.created())
+            .execute();
+
+        Postconditions.checkPostconditionV(
+          inserted == 1,
+          "Expected to insert 1 record (inserted %d)",
+          Integer.valueOf(inserted)
+        );
+      }
+
+      final var redactionType =
+        redaction.isPresent()
+          ? "PRODUCT_RELEASE_REDACTED" : "PRODUCT_RELEASE_UNREDACTED";
+
+      final var audit =
+        context.insertInto(AUDIT)
+          .set(AUDIT.TIME, time)
+          .set(AUDIT.TYPE, redactionType)
+          .set(AUDIT.USER_ID, owner)
+          .set(AUDIT.MESSAGE, id.show() + ":" + version.show());
+
+      insertAuditRecord(audit);
+    } catch (final DataAccessException e) {
+      throw handleDatabaseException(this.transaction, e);
+    }
+  }
+
   enum ProductInformationComponents
   {
     INCLUDE_CATEGORIES,
     INCLUDE_RELEASES,
     INCLUDE_DESCRIPTION
+  }
+
+  private record EIDatabaseProductRelease(
+    long id,
+    EIProductRelease release)
+    implements EIRedactableType
+  {
+    @Override
+    public Optional<EIRedaction> redaction()
+    {
+      return this.release.redaction();
+    }
   }
 
   private record EIDatabaseProduct(

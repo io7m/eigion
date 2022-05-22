@@ -51,10 +51,9 @@ public final class EIServerDatabaseExceptions
     final var m = e.getMessage();
 
     final EIServerDatabaseException result = switch (e.sqlState()) {
-      case "42501" -> new EIServerDatabaseException(
-        m,
-        e,
-        "operation-not-permitted");
+      case "42501" -> {
+        yield new EIServerDatabaseException(m, e, "operation-not-permitted");
+      }
 
       default -> {
         PSQLState actual = null;
@@ -67,14 +66,12 @@ public final class EIServerDatabaseExceptions
 
         if (actual != null) {
           yield switch (actual) {
-            case FOREIGN_KEY_VIOLATION -> new EIServerDatabaseException(
-              m,
-              e,
-              "foreign-key-violation");
-            case UNIQUE_VIOLATION -> new EIServerDatabaseException(
-              m,
-              e,
-              "unique-violation");
+            case FOREIGN_KEY_VIOLATION -> {
+              yield new EIServerDatabaseException(m, e, "foreign-key");
+            }
+            case UNIQUE_VIOLATION -> {
+              yield new EIServerDatabaseException(m, e, "unique");
+            }
             default -> new EIServerDatabaseException(m, e, "sql-error");
           };
         }

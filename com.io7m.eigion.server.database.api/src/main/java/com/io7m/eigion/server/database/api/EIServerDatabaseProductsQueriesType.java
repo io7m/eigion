@@ -20,6 +20,7 @@ import com.io7m.eigion.model.EIProduct;
 import com.io7m.eigion.model.EIProductCategory;
 import com.io7m.eigion.model.EIProductIdentifier;
 import com.io7m.eigion.model.EIProductRelease;
+import com.io7m.eigion.model.EIProductVersion;
 import com.io7m.eigion.model.EIRedactionRequest;
 import com.io7m.eigion.model.EIRichText;
 
@@ -231,5 +232,22 @@ public non-sealed interface EIServerDatabaseProductsQueriesType
   void productReleaseCreate(
     EIProductIdentifier id,
     EIProductRelease release)
+    throws EIServerDatabaseException;
+
+  /**
+   * Redact a release.
+   *
+   * @param id        The product ID
+   * @param version   The version
+   * @param redaction The redaction
+   *
+   * @throws EIServerDatabaseException On errors
+   */
+
+  @EIServerDatabaseRequiresUser
+  void productReleaseRedact(
+    EIProductIdentifier id,
+    EIProductVersion version,
+    Optional<EIRedactionRequest> redaction)
     throws EIServerDatabaseException;
 }

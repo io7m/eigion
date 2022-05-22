@@ -37,11 +37,10 @@ import static com.io7m.eigion.product.parser.api.EIProductSchemas.VERSION_1;
 @JsonDeserialize
 public final class EIv1Products implements EIvNProductsType
 {
-  @JsonProperty(value = "%Type", required = false)
-  public String type = VERSION_1;
-
   @JsonProperty(value = "Products", required = true)
   public final List<EIv1Product> products;
+  @JsonProperty(value = "%Type", required = false)
+  public String type = VERSION_1;
 
   @JsonCreator
   public EIv1Products(

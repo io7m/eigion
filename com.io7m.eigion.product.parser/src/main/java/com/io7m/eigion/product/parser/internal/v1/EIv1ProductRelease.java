@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.io7m.anethum.common.ParseStatus;
 import com.io7m.eigion.model.EIChange;
+import com.io7m.eigion.model.EICreation;
 import com.io7m.eigion.model.EIProductBundleDependency;
 import com.io7m.eigion.model.EIProductDependency;
 import com.io7m.eigion.model.EIProductRelease;
@@ -46,20 +47,16 @@ import static com.io7m.eigion.product.parser.api.EIProductSchemas.VERSION_1;
 public final class EIv1ProductRelease
   implements EIv1FromV1Type<EIProductRelease>
 {
-  @JsonProperty(value = "%Type", required = false)
-  public String type = VERSION_1;
-
   @JsonProperty(value = "Version", required = true)
   public final String version;
-
   @JsonProperty(value = "ProductDependencies", required = true)
   public final List<EIv1ProductDependency> productDependencies;
-
   @JsonProperty(value = "BundleDependencies", required = true)
   public final List<EIv1ProductBundleDependency> bundleDependencies;
-
   @JsonProperty(value = "Changes", required = true)
   public final List<EIv1Change> changes;
+  @JsonProperty(value = "%Type", required = false)
+  public String type = VERSION_1;
 
   @JsonCreator
   public EIv1ProductRelease(
@@ -173,7 +170,8 @@ public final class EIv1ProductRelease
           newProductDependencies.get(),
           newBundleDependencies.get(),
           newChanges.get(),
-          Optional.empty()
+          Optional.empty(),
+          EICreation.zero()
         )
       );
     }

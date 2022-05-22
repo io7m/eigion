@@ -19,6 +19,7 @@ package com.io7m.eigion.tests;
 
 import com.io7m.eigion.model.EIChange;
 import com.io7m.eigion.model.EIChangeTicket;
+import com.io7m.eigion.model.EICreation;
 import com.io7m.eigion.model.EIPassword;
 import com.io7m.eigion.model.EIProductBundleDependency;
 import com.io7m.eigion.model.EIProductCategory;
@@ -28,6 +29,7 @@ import com.io7m.eigion.model.EIProductIdentifier;
 import com.io7m.eigion.model.EIProductRelease;
 import com.io7m.eigion.model.EIProductVersion;
 import com.io7m.eigion.model.EIRedaction;
+import com.io7m.eigion.model.EIRedactionRequest;
 import com.io7m.eigion.model.EIRichText;
 import com.io7m.eigion.model.EIUser;
 import com.io7m.eigion.server.database.api.EIServerDatabaseAuditQueriesType;
@@ -1197,14 +1199,20 @@ public final class EIServerDatabaseTest
         List.of(new EIProductDependency(dep0, v1)),
         List.of(new EIProductBundleDependency(dep1, v1, hash0, List.of())),
         List.of(change0),
-        Optional.empty()
+        Optional.empty(),
+        EICreation.zero()
       );
 
     products.productReleaseCreate(id, release);
 
     {
       final var p = products.product(id, INCLUDE_REDACTED);
-      assertEquals(List.of(release), p.releases());
+      final var r = p.releases().get(0);
+      assertEquals(release.version(), r.version());
+      assertEquals(release.changes(), r.changes());
+      assertEquals(release.productDependencies(), r.productDependencies());
+      assertEquals(release.bundleDependencies(), r.bundleDependencies());
+      assertEquals(release.redaction(), r.redaction());
     }
 
     {
@@ -1213,6 +1221,98 @@ public final class EIServerDatabaseTest
           products.productReleaseCreate(id, release);
       });
       assertEquals("release-duplicate", ex.errorCode());
+    }
+
+    checkAuditLog(
+      transaction,
+      new ExpectedEvent("USER_CREATED", user.id().toString()),
+      new ExpectedEvent("PRODUCT_CREATED", "com.io7m.ex:com.q"),
+      new ExpectedEvent("PRODUCT_RELEASE_CREATED", "com.io7m.ex:com.q:1.2.10")
+    );
+  }
+
+  /**
+   * Redacting product releases works.
+   *
+   * @throws Exception On errors
+   */
+
+  @Test
+  public void testProductReleaseRedaction()
+    throws Exception
+  {
+    assertTrue(this.container.isRunning());
+
+    final var user =
+      this.createTestUser();
+
+    final var transaction =
+      this.transactionOf(EIGION);
+    final var products =
+      transaction.queries(EIServerDatabaseProductsQueriesType.class);
+
+    transaction.userIdSet(user.id());
+
+    final var id =
+      new EIProductIdentifier("com.io7m.ex", "com.q");
+    final var dep0 =
+      new EIProductIdentifier("com.io7m.ex", "com.w");
+    final var dep1 =
+      new EIProductIdentifier("com.io7m.ex", "com.x");
+
+    products.productCreate(id);
+
+    final var v0 =
+      new EIProductVersion(ONE, TWO, TEN, Optional.empty());
+    final var v1 =
+      new EIProductVersion(ONE, ONE, TWO, Optional.empty());
+    final var hash0 =
+      new EIProductHash(
+        "SHA-256",
+        "5891B5B522D5DF086D0FF0B110FBD9D21BB4FC7163AF34D08286A2E846F6BE03");
+
+    final var change0 =
+      new EIChange(
+        "Changed something",
+        List.of(
+          new EIChangeTicket(
+            "1",
+            URI.create("https://www.example.com/tickets/1")
+          )
+        )
+      );
+
+    final var release =
+      new EIProductRelease(
+        v0,
+        List.of(new EIProductDependency(dep0, v1)),
+        List.of(new EIProductBundleDependency(dep1, v1, hash0, List.of())),
+        List.of(change0),
+        Optional.empty(),
+        EICreation.zero()
+      );
+
+    products.productReleaseCreate(id, release);
+    transaction.commit();
+
+    products.productReleaseRedact(
+      id, v0, Optional.of(new EIRedactionRequest(timeNow(), "X"))
+    );
+    transaction.commit();
+
+    {
+      final var p = products.product(id, EXCLUDE_REDACTED);
+      assertEquals(List.of(), p.releases());
+    }
+
+    products.productReleaseRedact(
+      id, v0, Optional.empty()
+    );
+    transaction.commit();
+
+    {
+      final var p = products.product(id, EXCLUDE_REDACTED);
+      assertEquals(1, p.releases().size());
     }
 
     checkAuditLog(
