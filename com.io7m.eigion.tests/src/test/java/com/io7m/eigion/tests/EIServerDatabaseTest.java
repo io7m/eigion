@@ -38,7 +38,9 @@ import com.io7m.jmulticlose.core.CloseableCollectionType;
 import com.io7m.jmulticlose.core.ClosingResourceFailedException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestFactory;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -50,7 +52,7 @@ import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.UUID;
+import java.util.stream.Stream;
 
 import static com.io7m.eigion.model.EIRedaction.redactionOpt;
 import static com.io7m.eigion.model.EIRedactionRequest.redactionRequest;
@@ -67,6 +69,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.DynamicTest.dynamicTest;
 
 @Testcontainers(disabledWithoutDocker = true)
 public final class EIServerDatabaseTest
@@ -198,68 +201,6 @@ public final class EIServerDatabaseTest
         transaction.userIdSet(randomUUID());
       });
     assertEquals("user-nonexistent", ex.errorCode());
-  }
-
-  /**
-   * The none role cannot manipulate users.
-   *
-   * @throws Exception On errors
-   */
-
-  @Test
-  public void testUserUnprivileged()
-    throws Exception
-  {
-    assertTrue(this.container.isRunning());
-
-    final var user =
-      this.createTestUser();
-    final var transaction =
-      this.transactionOf(this.container, NONE);
-    final var users =
-      transaction.queries(EIServerDatabaseUsersQueriesType.class);
-
-    transaction.userIdSet(user.id());
-
-    var ex =
-      assertThrows(EIServerDatabaseException.class, () -> {
-        users.userCreate(
-          randomUUID(),
-          "someone",
-          "someone@example.com",
-          timeNow(),
-          EIPassword.createHashed("12345678")
-        );
-      });
-    assertEquals("sql-error", ex.errorCode());
-
-    ex = assertThrows(EIServerDatabaseException.class, () -> {
-      users.userGet(randomUUID());
-    });
-    assertEquals("sql-error", ex.errorCode());
-
-    ex = assertThrows(EIServerDatabaseException.class, () -> {
-      users.userGetForEmail("someone@example.com");
-    });
-    assertEquals("sql-error", ex.errorCode());
-
-    ex = assertThrows(EIServerDatabaseException.class, () -> {
-      users.userGetForName("someone");
-    });
-    assertEquals("sql-error", ex.errorCode());
-
-    ex = assertThrows(EIServerDatabaseException.class, () -> {
-      users.userBan(
-        randomUUID(),
-        Optional.of(now()),
-        "reason");
-    });
-    assertEquals("sql-error", ex.errorCode());
-
-    ex = assertThrows(EIServerDatabaseException.class, () -> {
-      users.userUnban(randomUUID());
-    });
-    assertEquals("sql-error", ex.errorCode());
   }
 
   /**
@@ -545,46 +486,6 @@ public final class EIServerDatabaseTest
   }
 
   /**
-   * The none role cannot manipulate categories.
-   *
-   * @throws Exception On errors
-   */
-
-  @Test
-  public void testCategoriesUnprivileged()
-    throws Exception
-  {
-    assertTrue(this.container.isRunning());
-
-    final var user =
-      this.createTestUser();
-    final var transaction =
-      this.transactionOf(this.container, NONE);
-    final var products =
-      transaction.queries(EIServerDatabaseProductsQueriesType.class);
-
-    transaction.userIdSet(user.id());
-
-    var ex =
-      assertThrows(EIServerDatabaseException.class, () -> {
-        products.categoryCreate("Category 0");
-      });
-    assertEquals("sql-error", ex.errorCode());
-
-    ex = assertThrows(EIServerDatabaseException.class, () -> {
-      products.categoryRedact(
-        "Category 0",
-        redactionRequestOpt(now(), "X"));
-    });
-    assertEquals("sql-error", ex.errorCode());
-
-    ex = assertThrows(EIServerDatabaseException.class, () -> {
-      products.categories(INCLUDE_REDACTED);
-    });
-    assertEquals("sql-error", ex.errorCode());
-  }
-
-  /**
    * Creating and redacting categories works.
    *
    * @throws Exception On errors
@@ -794,36 +695,6 @@ public final class EIServerDatabaseTest
     assertEquals("product-duplicate", ex.errorCode());
   }
 
-  /**
-   * Product privileges are required.
-   *
-   * @throws Exception On errors
-   */
-
-  @Test
-  public void testProductCreationUnprivileged()
-    throws Exception
-  {
-    assertTrue(this.container.isRunning());
-
-    final var user =
-      this.createTestUser();
-    final var transaction =
-      this.transactionOf(this.container, NONE);
-    final var products =
-      transaction.queries(EIServerDatabaseProductsQueriesType.class);
-    final var id =
-      new EIProductIdentifier("com.io7m.ex", "com.q");
-
-    transaction.userIdSet(user.id());
-
-    final var ex = assertThrows(EIServerDatabaseException.class, () -> {
-      products.productCreate(id);
-    });
-
-    assertEquals("sql-error", ex.errorCode());
-  }
-
   private EIUser createTestUser()
     throws
     EIServerDatabaseException,
@@ -966,64 +837,6 @@ public final class EIServerDatabaseTest
   }
 
   /**
-   * Product privileges are required.
-   *
-   * @throws Exception On errors
-   */
-
-  @Test
-  public void testProductRedactionUnprivileged()
-    throws Exception
-  {
-    assertTrue(this.container.isRunning());
-
-    final var user =
-      this.createTestUser();
-    final var transaction =
-      this.transactionOf(this.container, NONE);
-    final var products =
-      transaction.queries(EIServerDatabaseProductsQueriesType.class);
-
-    transaction.userIdSet(user.id());
-
-    final var id =
-      new EIProductIdentifier("com.io7m.ex", "com.q");
-
-    final var redaction =
-      redactionRequest(timeNow(), "X");
-
-    final var ex = assertThrows(EIServerDatabaseException.class, () -> {
-      products.productRedact(id, Optional.of(redaction));
-    });
-
-    assertEquals("sql-error", ex.errorCode());
-  }
-
-  /**
-   * Product privileges are required.
-   *
-   * @throws Exception On errors
-   */
-
-  @Test
-  public void testProductListUnprivileged()
-    throws Exception
-  {
-    assertTrue(this.container.isRunning());
-
-    final var transaction =
-      this.transactionOf(this.container, NONE);
-    final var products =
-      transaction.queries(EIServerDatabaseProductsQueriesType.class);
-
-    final var ex = assertThrows(EIServerDatabaseException.class, () -> {
-      products.productsAll(INCLUDE_REDACTED);
-    });
-
-    assertEquals("sql-error", ex.errorCode());
-  }
-
-  /**
    * Categorizing products works.
    *
    * @throws Exception On errors
@@ -1113,45 +926,6 @@ public final class EIServerDatabaseTest
   }
 
   /**
-   * Categorizing products requires privileges.
-   *
-   * @throws Exception On errors
-   */
-
-  @Test
-  public void testProductCategoriesUnprivileged()
-    throws Exception
-  {
-    assertTrue(this.container.isRunning());
-
-    final var user =
-      this.createTestUser();
-    final var transaction =
-      this.transactionOf(this.container, NONE);
-    final var products =
-      transaction.queries(EIServerDatabaseProductsQueriesType.class);
-
-    transaction.userIdSet(user.id());
-
-    final var id =
-      new EIProductIdentifier("com.io7m.ex", "com.q");
-    final var category0 =
-      new EIProductCategory("Cat0", Optional.empty());
-    {
-      final var ex = assertThrows(EIServerDatabaseException.class, () -> {
-        products.productCategoryAdd(id, category0);
-      });
-      assertEquals("sql-error", ex.errorCode());
-    }
-    {
-      final var ex = assertThrows(EIServerDatabaseException.class, () -> {
-        products.productCategoryRemove(id, category0);
-      });
-      assertEquals("sql-error", ex.errorCode());
-    }
-  }
-
-  /**
    * Setting product titles works.
    *
    * @throws Exception On errors
@@ -1218,7 +992,9 @@ public final class EIServerDatabaseTest
       new EIProductIdentifier("com.io7m.ex", "com.q");
 
     products.productCreate(id);
-    products.productSetDescription(id, new EIRichText("text/plain", "Description"));
+    products.productSetDescription(
+      id,
+      new EIRichText("text/plain", "Description"));
 
     {
       final var p = products.product(id, INCLUDE_REDACTED);
@@ -1233,52 +1009,6 @@ public final class EIServerDatabaseTest
       new ExpectedEvent("PRODUCT_CREATED", "com.io7m.ex:com.q"),
       new ExpectedEvent("PRODUCT_DESCRIPTION_SET", "com.io7m.ex:com.q")
     );
-  }
-
-  /**
-   * Accessing images requires privileges.
-   *
-   * @throws Exception On errors
-   */
-
-  @Test
-  public void testImagesUnprivileged()
-    throws Exception
-  {
-    assertTrue(this.container.isRunning());
-
-    final var user =
-      this.createTestUser();
-    final var transaction =
-      this.transactionOf(this.container, NONE);
-    final var images =
-      transaction.queries(EIServerDatabaseImagesQueriesType.class);
-
-    transaction.userIdSet(user.id());
-
-    {
-      final var ex = assertThrows(EIServerDatabaseException.class, () -> {
-        images.imageCreate(
-          randomUUID(),
-          "text/plain",
-          new byte[23]);
-      });
-      assertEquals("sql-error", ex.errorCode());
-    }
-
-    {
-      final var ex = assertThrows(EIServerDatabaseException.class, () -> {
-        images.imageGet(randomUUID(), INCLUDE_REDACTED);
-      });
-      assertEquals("sql-error", ex.errorCode());
-    }
-
-    {
-      final var ex = assertThrows(EIServerDatabaseException.class, () -> {
-        images.imageRedact(randomUUID(), Optional.empty());
-      });
-      assertEquals("sql-error", ex.errorCode());
-    }
   }
 
   /**
@@ -1404,6 +1134,239 @@ public final class EIServerDatabaseTest
       new ExpectedEvent("IMAGE_REDACTED", imageId.toString()),
       new ExpectedEvent("IMAGE_UNREDACTED", imageId.toString())
     );
+  }
+
+  /**
+   * Unprivileged contexts cannot execute code.
+   *
+   * @throws Exception On errors
+   */
+
+  @TestFactory
+  public Stream<DynamicTest> testUnprivileged()
+    throws Exception
+  {
+    assertTrue(this.container.isRunning());
+
+    final var user =
+      this.createTestUser();
+    final var transaction =
+      this.transactionOf(this.container, NONE);
+    final var images =
+      transaction.queries(EIServerDatabaseImagesQueriesType.class);
+    final var products =
+      transaction.queries(EIServerDatabaseProductsQueriesType.class);
+    final var users =
+      transaction.queries(EIServerDatabaseUsersQueriesType.class);
+
+    transaction.userIdSet(user.id());
+
+    return Stream.<ExecutableType>of(
+      () -> {
+        final var ex =
+          assertThrows(EIServerDatabaseException.class, () -> {
+            images.imageCreate(
+              randomUUID(),
+              "text/plain",
+              new byte[23]);
+          });
+        assertEquals("sql-error", ex.errorCode());
+      },
+
+      () -> {
+        final var ex =
+          assertThrows(EIServerDatabaseException.class, () -> {
+            images.imageGet(randomUUID(), INCLUDE_REDACTED);
+          });
+        assertEquals("sql-error", ex.errorCode());
+      },
+
+      () -> {
+        final var ex =
+          assertThrows(EIServerDatabaseException.class, () -> {
+            images.imageRedact(randomUUID(), Optional.empty());
+          });
+        assertEquals("sql-error", ex.errorCode());
+      },
+
+      () -> {
+        final var id =
+          new EIProductIdentifier("com.io7m.ex", "com.q");
+        final var category0 =
+          new EIProductCategory("Cat0", Optional.empty());
+
+        final var ex =
+          assertThrows(EIServerDatabaseException.class, () -> {
+            products.productCategoryAdd(id, category0);
+          });
+        assertEquals("sql-error", ex.errorCode());
+      },
+
+      () -> {
+        final var id =
+          new EIProductIdentifier("com.io7m.ex", "com.q");
+        final var category0 =
+          new EIProductCategory("Cat0", Optional.empty());
+
+        final var ex =
+          assertThrows(EIServerDatabaseException.class, () -> {
+            products.productCategoryRemove(id, category0);
+          });
+        assertEquals("sql-error", ex.errorCode());
+      },
+
+      () -> {
+        final var ex =
+          assertThrows(EIServerDatabaseException.class, () -> {
+            products.productsAll(INCLUDE_REDACTED);
+          });
+        assertEquals("sql-error", ex.errorCode());
+      },
+
+      () -> {
+        final var id =
+          new EIProductIdentifier("com.io7m.ex", "com.q");
+        final var redaction =
+          redactionRequest(timeNow(), "X");
+
+        final var ex =
+          assertThrows(EIServerDatabaseException.class, () -> {
+            products.productRedact(id, Optional.of(redaction));
+          });
+        assertEquals("sql-error", ex.errorCode());
+      },
+
+      () -> {
+        final var id =
+          new EIProductIdentifier("com.io7m.ex", "com.q");
+
+        final var ex =
+          assertThrows(EIServerDatabaseException.class, () -> {
+            products.productCreate(id);
+          });
+        assertEquals("sql-error", ex.errorCode());
+      },
+
+      () -> {
+        final var ex =
+          assertThrows(EIServerDatabaseException.class, () -> {
+            products.categoryCreate("Category 0");
+          });
+        assertEquals("sql-error", ex.errorCode());
+      },
+
+      () -> {
+        final var ex =
+          assertThrows(EIServerDatabaseException.class, () -> {
+            products.categoryRedact(
+              "Category 0",
+              redactionRequestOpt(now(), "X"));
+          });
+        assertEquals("sql-error", ex.errorCode());
+      },
+
+      () -> {
+        final var ex =
+          assertThrows(EIServerDatabaseException.class, () -> {
+            products.categories(INCLUDE_REDACTED);
+          });
+        assertEquals("sql-error", ex.errorCode());
+      },
+
+      () -> {
+        final var ex =
+          assertThrows(EIServerDatabaseException.class, () -> {
+            users.userCreate(
+              randomUUID(),
+              "someone",
+              "someone@example.com",
+              timeNow(),
+              EIPassword.createHashed("12345678")
+            );
+          });
+        assertEquals("sql-error", ex.errorCode());
+      },
+
+      () -> {
+        final var ex =
+          assertThrows(EIServerDatabaseException.class, () -> {
+            users.userGet(randomUUID());
+          });
+        assertEquals("sql-error", ex.errorCode());
+      },
+
+      () -> {
+        final var ex =
+          assertThrows(EIServerDatabaseException.class, () -> {
+            users.userGetForEmail("someone@example.com");
+          });
+        assertEquals("sql-error", ex.errorCode());
+      },
+
+      () -> {
+        final var ex =
+          assertThrows(EIServerDatabaseException.class, () -> {
+            users.userGetForName("someone");
+          });
+        assertEquals("sql-error", ex.errorCode());
+      },
+
+      () -> {
+        final var ex =
+          assertThrows(EIServerDatabaseException.class, () -> {
+            users.userBan(
+              randomUUID(),
+              Optional.of(now()),
+              "reason");
+          });
+        assertEquals("sql-error", ex.errorCode());
+      },
+
+      () -> {
+        final var ex =
+          assertThrows(EIServerDatabaseException.class, () -> {
+            users.userUnban(randomUUID());
+          });
+        assertEquals("sql-error", ex.errorCode());
+      },
+
+      () -> {
+        final var id =
+          new EIProductIdentifier("com.io7m.ex", "com.q");
+        final var ex =
+          assertThrows(EIServerDatabaseException.class, () -> {
+            products.productSetTitle(id, "title");
+          });
+        assertEquals("sql-error", ex.errorCode());
+      },
+
+      () -> {
+        final var id =
+          new EIProductIdentifier("com.io7m.ex", "com.q");
+        final var ex =
+          assertThrows(EIServerDatabaseException.class, () -> {
+            products.productSetDescription(id, new EIRichText("x", "y"));
+          });
+        assertEquals("sql-error", ex.errorCode());
+      },
+
+      () -> {
+        final var id =
+          new EIProductIdentifier("com.io7m.ex", "com.q");
+        final var ex =
+          assertThrows(EIServerDatabaseException.class, () -> {
+            products.product(id, INCLUDE_REDACTED);
+          });
+        assertEquals("sql-error", ex.errorCode());
+      }
+
+    ).map(x -> dynamicTest("testUnprivileged_" + x, x::execute));
+  }
+
+  interface ExecutableType
+  {
+    void execute()
+      throws Exception;
   }
 
   private record ExpectedEvent(
