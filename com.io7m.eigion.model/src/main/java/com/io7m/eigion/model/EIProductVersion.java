@@ -197,4 +197,29 @@ public record EIProductVersion(
     }
     return compareQualifiers(this.qualifier, other.qualifier);
   }
+
+  /**
+   * {@code ∀ v. parse(v.show()) = v}
+   *
+   * @return The product version as a humanly-readable string
+   */
+
+  public String show()
+  {
+    if (this.qualifier.isPresent()) {
+      return String.format(
+        "%s.%s.%s-%s",
+        this.major,
+        this.minor,
+        this.patch,
+        this.qualifier.get()
+      );
+    }
+    return String.format(
+      "%s.%s.%s",
+      this.major,
+      this.minor,
+      this.patch
+    );
+  }
 }

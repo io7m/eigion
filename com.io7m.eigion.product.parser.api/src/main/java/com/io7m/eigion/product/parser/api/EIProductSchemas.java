@@ -15,23 +15,39 @@
  */
 
 
-package com.io7m.eigion.product.parser.internal;
-
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import com.fasterxml.jackson.databind.annotation.JsonTypeIdResolver;
-import com.io7m.eigion.product.parser.internal.v1.EIv1Products;
+package com.io7m.eigion.product.parser.api;
 
 /**
- * The base type of product lists across schema versions.
+ * Product schema identifiers.
  */
 
-@JsonTypeInfo(
-  use = JsonTypeInfo.Id.CUSTOM,
-  include = JsonTypeInfo.As.PROPERTY,
-  property = "%Type"
-)
-@JsonTypeIdResolver(EIProductIdTypeResolver.class)
-public sealed interface EIvNProductsType permits EIv1Products
+public final class EIProductSchemas
 {
+  private EIProductSchemas()
+  {
 
+  }
+
+  /**
+   * The version 1 schema identifier
+   */
+
+  public static final String VERSION_1 =
+    "https://www.io7m.com/eigion/products-1.json";
+
+  /**
+   * The content type for JSON-encoded releases.
+   */
+
+  public static final String RELEASE_CONTENT_TYPE =
+    "application/eigion_release+json";
+
+  /**
+   * @return The version 1 schema identifier
+   */
+
+  public static String version1()
+  {
+    return VERSION_1;
+  }
 }

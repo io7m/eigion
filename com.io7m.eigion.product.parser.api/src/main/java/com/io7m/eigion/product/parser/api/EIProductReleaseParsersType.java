@@ -15,23 +15,17 @@
  */
 
 
-package com.io7m.eigion.product.parser.internal;
+package com.io7m.eigion.product.parser.api;
 
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import com.fasterxml.jackson.databind.annotation.JsonTypeIdResolver;
-import com.io7m.eigion.product.parser.internal.v1.EIv1Products;
+import com.io7m.anethum.api.ParserFactoryType;
+import com.io7m.eigion.model.EIProductRelease;
 
 /**
- * The base type of product lists across schema versions.
+ * A factory of product release parsers.
  */
 
-@JsonTypeInfo(
-  use = JsonTypeInfo.Id.CUSTOM,
-  include = JsonTypeInfo.As.PROPERTY,
-  property = "%Type"
-)
-@JsonTypeIdResolver(EIProductIdTypeResolver.class)
-public sealed interface EIvNProductsType permits EIv1Products
+public interface EIProductReleaseParsersType
+  extends ParserFactoryType<Void, EIProductRelease, EIProductReleaseParserType>
 {
 
 }

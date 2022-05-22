@@ -17,7 +17,8 @@
 package com.io7m.eigion.server.database.postgres;
 
 import com.io7m.anethum.common.ParseException;
-import com.io7m.eigion.product.parser.api.EIProductsSerializersType;
+import com.io7m.eigion.product.parser.api.EIProductReleaseParsersType;
+import com.io7m.eigion.product.parser.api.EIProductReleaseSerializersType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseConfiguration;
 import com.io7m.eigion.server.database.api.EIServerDatabaseException;
 import com.io7m.eigion.server.database.api.EIServerDatabaseFactoryType;
@@ -59,17 +60,22 @@ public final class EIServerDatabases implements EIServerDatabaseFactoryType
   private static final Logger LOG =
     LoggerFactory.getLogger(EIServerDatabases.class);
 
-  private final EIProductsSerializersType productsSerializers;
+  private final EIProductReleaseSerializersType productsSerializers;
+  private final EIProductReleaseParsersType productsParsers;
 
   /**
    * The default postgres server database implementation.
    *
-   * @param inProductsSerializers A products serializer factory
+   * @param inProductsSerializers A product release serializer factory
+   * @param inProductsParsers     A product release parser factory
    */
 
   public EIServerDatabases(
-    final EIProductsSerializersType inProductsSerializers)
+    final EIProductReleaseParsersType inProductsParsers,
+    final EIProductReleaseSerializersType inProductsSerializers)
   {
+    this.productsParsers =
+      Objects.requireNonNull(inProductsParsers, "productsParsers");
     this.productsSerializers =
       Objects.requireNonNull(inProductsSerializers, "productsSerializers");
   }
@@ -81,7 +87,10 @@ public final class EIServerDatabases implements EIServerDatabaseFactoryType
   public EIServerDatabases()
   {
     this(
-      ServiceLoader.load(EIProductsSerializersType.class)
+      ServiceLoader.load(EIProductReleaseParsersType.class)
+        .findFirst()
+        .orElseThrow(),
+      ServiceLoader.load(EIProductReleaseSerializersType.class)
         .findFirst()
         .orElseThrow()
     );
@@ -207,7 +216,8 @@ public final class EIServerDatabases implements EIServerDatabaseFactoryType
       return new EIServerDatabase(
         configuration.clock(),
         dataSource,
-        this.productsSerializers
+        this.productsSerializers,
+        this.productsParsers
       );
     } catch (final IOException e) {
       throw new EIServerDatabaseException(e.getMessage(), e, "resource");

@@ -17,12 +17,15 @@
 
 package com.io7m.eigion.server.database.postgres.internal;
 
+import com.io7m.anethum.common.ParseException;
+import com.io7m.anethum.common.SerializeException;
 import com.io7m.eigion.model.EILink;
 import com.io7m.eigion.model.EIProduct;
 import com.io7m.eigion.model.EIProductCategory;
 import com.io7m.eigion.model.EIProductDescription;
 import com.io7m.eigion.model.EIProductIdentifier;
 import com.io7m.eigion.model.EIProductRelease;
+import com.io7m.eigion.model.EIProductVersion;
 import com.io7m.eigion.model.EIRedactableType;
 import com.io7m.eigion.model.EIRedaction;
 import com.io7m.eigion.model.EIRedactionRequest;
@@ -31,17 +34,20 @@ import com.io7m.eigion.server.database.api.EIServerDatabaseException;
 import com.io7m.eigion.server.database.api.EIServerDatabaseIncludeRedacted;
 import com.io7m.eigion.server.database.api.EIServerDatabaseProductsQueriesType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseRequiresUser;
-import com.io7m.eigion.server.database.api.EIServerDatabaseUsersQueriesType;
 import com.io7m.eigion.server.database.postgres.internal.tables.records.AuditRecord;
 import com.io7m.eigion.server.database.postgres.internal.tables.records.ProductLinksRecord;
+import com.io7m.jaffirm.core.Invariants;
 import com.io7m.jaffirm.core.Postconditions;
 import com.io7m.jaffirm.core.Preconditions;
-import com.io7m.junreachable.UnimplementedCodeException;
 import org.jooq.DSLContext;
 import org.jooq.InsertSetMoreStep;
 import org.jooq.Record;
 import org.jooq.exception.DataAccessException;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.math.BigInteger;
 import java.net.URI;
 import java.time.OffsetDateTime;
 import java.util.EnumSet;
@@ -51,15 +57,19 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static com.io7m.eigion.product.parser.api.EIProductSchemas.RELEASE_CONTENT_TYPE;
 import static com.io7m.eigion.server.database.api.EIServerDatabaseIncludeRedacted.INCLUDE_REDACTED;
 import static com.io7m.eigion.server.database.postgres.internal.EIServerDatabaseExceptions.handleDatabaseException;
 import static com.io7m.eigion.server.database.postgres.internal.EIServerDatabaseProductsQueries.ProductInformationComponents.INCLUDE_CATEGORIES;
 import static com.io7m.eigion.server.database.postgres.internal.EIServerDatabaseProductsQueries.ProductInformationComponents.INCLUDE_DESCRIPTION;
+import static com.io7m.eigion.server.database.postgres.internal.EIServerDatabaseProductsQueries.ProductInformationComponents.INCLUDE_RELEASES;
 import static com.io7m.eigion.server.database.postgres.internal.Tables.CATEGORY_REDACTIONS;
 import static com.io7m.eigion.server.database.postgres.internal.Tables.PRODUCTS;
 import static com.io7m.eigion.server.database.postgres.internal.Tables.PRODUCT_CATEGORIES;
 import static com.io7m.eigion.server.database.postgres.internal.Tables.PRODUCT_LINKS;
 import static com.io7m.eigion.server.database.postgres.internal.Tables.PRODUCT_REDACTIONS;
+import static com.io7m.eigion.server.database.postgres.internal.Tables.PRODUCT_RELEASES;
+import static com.io7m.eigion.server.database.postgres.internal.Tables.PRODUCT_RELEASE_REDACTIONS;
 import static com.io7m.eigion.server.database.postgres.internal.tables.Audit.AUDIT;
 import static com.io7m.eigion.server.database.postgres.internal.tables.Categories.CATEGORIES;
 import static java.lang.Long.valueOf;
@@ -69,18 +79,16 @@ final class EIServerDatabaseProductsQueries
 {
   private static final EnumSet<ProductInformationComponents> INCLUDE_NOTHING =
     EnumSet.noneOf(ProductInformationComponents.class);
+  private static final EnumSet<ProductInformationComponents> INCLUDE_EVERYTHING =
+    EnumSet.allOf(ProductInformationComponents.class);
 
   private final EIServerDatabaseTransaction transaction;
-  private final EIServerDatabaseUsersQueriesType users;
 
   EIServerDatabaseProductsQueries(
-    final EIServerDatabaseTransaction inTransaction,
-    final EIServerDatabaseUsersQueriesType inUsers)
+    final EIServerDatabaseTransaction inTransaction)
   {
     this.transaction =
       Objects.requireNonNull(inTransaction, "transaction");
-    this.users =
-      Objects.requireNonNull(inUsers, "users");
   }
 
   private static List<EIDatabaseProduct> fetchProducts(
@@ -107,65 +115,24 @@ final class EIServerDatabaseProductsQueries
             List.of()
           );
 
-        return toProductWithRedaction(r, description);
+        return toProductWithRedaction(r, description, List.of());
       })
       .filter(r -> filterRedactedIfNecessary(r, includeRedacted))
       .toList();
   }
 
-  private static Optional<EIDatabaseProduct> fetchProductOptional(
-    final EIProductIdentifier id,
-    final EIServerDatabaseIncludeRedacted includeRedacted,
-    final EnumSet<ProductInformationComponents> includes,
-    final DSLContext context)
+  private static Optional<EIRedaction> toReleaseRedaction(
+    final Record r)
   {
-    final var productRec =
-      context.select()
-        .from(PRODUCTS)
-        .leftOuterJoin(PRODUCT_REDACTIONS)
-        .on(PRODUCT_REDACTIONS.PRODUCT.eq(PRODUCTS.ID))
-        .where(
-          PRODUCTS.PRODUCT_GROUP.eq(id.group())
-            .and(PRODUCTS.PRODUCT_NAME.eq(id.name()))
-        )
-        .fetchAny();
-
-    if (productRec == null) {
-      return Optional.empty();
+    final var reason = r.get(PRODUCT_RELEASE_REDACTIONS.REASON);
+    if (reason != null) {
+      return Optional.of(new EIRedaction(
+        r.get(PRODUCT_RELEASE_REDACTIONS.CREATOR),
+        r.get(PRODUCT_RELEASE_REDACTIONS.CREATED),
+        reason
+      ));
     }
-
-    final var productId =
-      productRec.get(PRODUCTS.ID);
-
-    final var descriptionText =
-      new EIRichText(
-        productRec.get(PRODUCTS.PRODUCT_DESCRIPTION_TYPE),
-        productRec.get(PRODUCTS.PRODUCT_DESCRIPTION)
-      );
-
-    final var categories =
-      fetchProductCategories(productId, includeRedacted, includes, context);
-    final var links =
-      fetchProductLinks(productId, includes, context);
-
-    final var description =
-      new EIProductDescription(
-        productRec.get(PRODUCTS.PRODUCT_TITLE),
-        descriptionText,
-        categories.stream()
-          .map(EIDatabaseProductCategory::category)
-          .collect(Collectors.toUnmodifiableSet()),
-        links
-      );
-
-    final var product =
-      toProductWithRedaction(productRec, description);
-
-    if (!filterRedactedIfNecessary(product, includeRedacted)) {
-      return Optional.empty();
-    }
-
-    return Optional.of(product);
+    return Optional.empty();
   }
 
   private static Set<EIDatabaseProductCategory> fetchProductCategories(
@@ -216,22 +183,6 @@ final class EIServerDatabaseProductsQueries
     );
   }
 
-  private static EIDatabaseProduct fetchProductOrFail(
-    final EIProductIdentifier id,
-    final EIServerDatabaseIncludeRedacted includeRedacted,
-    final EnumSet<ProductInformationComponents> includes,
-    final DSLContext context)
-    throws EIServerDatabaseException
-  {
-    return fetchProductOptional(id, includeRedacted, includes, context)
-      .orElseThrow(() -> {
-        return new EIServerDatabaseException(
-          "Product does not exist",
-          "product-nonexistent"
-        );
-      });
-  }
-
   private static Optional<EIRedaction> toProductRedaction(
     final Record r)
   {
@@ -248,7 +199,8 @@ final class EIServerDatabaseProductsQueries
 
   private static EIDatabaseProduct toProductWithRedaction(
     final Record productRec,
-    final EIProductDescription description)
+    final EIProductDescription description,
+    final List<EIProductRelease> releases)
   {
     return new EIDatabaseProduct(
       productRec.<Long>get(PRODUCTS.ID).longValue(),
@@ -257,7 +209,7 @@ final class EIServerDatabaseProductsQueries
           productRec.get(PRODUCTS.PRODUCT_GROUP),
           productRec.get(PRODUCTS.PRODUCT_NAME)
         ),
-        List.of(),
+        releases,
         description,
         toProductRedaction(productRec)
       )
@@ -366,6 +318,171 @@ final class EIServerDatabaseProductsQueries
       new EIProductCategory(
         r.get(CATEGORIES.NAME),
         Optional.empty())
+    );
+  }
+
+  private EIDatabaseProduct fetchProductOrFail(
+    final EIProductIdentifier id,
+    final EIServerDatabaseIncludeRedacted includeRedacted,
+    final EnumSet<ProductInformationComponents> includes,
+    final DSLContext context)
+    throws EIServerDatabaseException
+  {
+    return this.fetchProductOptional(id, includeRedacted, includes, context)
+      .orElseThrow(() -> {
+        return new EIServerDatabaseException(
+          "Product does not exist",
+          "product-nonexistent"
+        );
+      });
+  }
+
+  private Optional<EIDatabaseProduct> fetchProductOptional(
+    final EIProductIdentifier id,
+    final EIServerDatabaseIncludeRedacted includeRedacted,
+    final EnumSet<ProductInformationComponents> includes,
+    final DSLContext context)
+    throws EIServerDatabaseException
+  {
+    final var productRec =
+      context.select()
+        .from(PRODUCTS)
+        .leftOuterJoin(PRODUCT_REDACTIONS)
+        .on(PRODUCT_REDACTIONS.PRODUCT.eq(PRODUCTS.ID))
+        .where(
+          PRODUCTS.PRODUCT_GROUP.eq(id.group())
+            .and(PRODUCTS.PRODUCT_NAME.eq(id.name()))
+        )
+        .fetchAny();
+
+    if (productRec == null) {
+      return Optional.empty();
+    }
+
+    final var productId =
+      productRec.get(PRODUCTS.ID);
+
+    final var descriptionText =
+      new EIRichText(
+        productRec.get(PRODUCTS.PRODUCT_DESCRIPTION_TYPE),
+        productRec.get(PRODUCTS.PRODUCT_DESCRIPTION)
+      );
+
+    final var categories =
+      fetchProductCategories(productId, includeRedacted, includes, context);
+    final var links =
+      fetchProductLinks(productId, includes, context);
+    final var releases =
+      this.fetchProductReleases(productId, includeRedacted, includes, context);
+
+    final var description =
+      new EIProductDescription(
+        productRec.get(PRODUCTS.PRODUCT_TITLE),
+        descriptionText,
+        categories.stream()
+          .map(EIDatabaseProductCategory::category)
+          .collect(Collectors.toUnmodifiableSet()),
+        links
+      );
+
+    final var product =
+      toProductWithRedaction(productRec, description, releases);
+
+    if (!filterRedactedIfNecessary(product, includeRedacted)) {
+      return Optional.empty();
+    }
+
+    return Optional.of(product);
+  }
+
+  private List<EIProductRelease> fetchProductReleases(
+    final Long productId,
+    final EIServerDatabaseIncludeRedacted includeRedacted,
+    final EnumSet<ProductInformationComponents> includes,
+    final DSLContext context)
+    throws EIServerDatabaseException
+  {
+    try {
+      if (includes.contains(INCLUDE_RELEASES)) {
+        return context.select()
+          .from(PRODUCT_RELEASES)
+          .leftOuterJoin(PRODUCT_REDACTIONS)
+          .on(PRODUCT_REDACTIONS.PRODUCT.eq(productId))
+          .where(PRODUCT_RELEASES.PRODUCT_ID.eq(productId))
+          .stream()
+          .map(r -> {
+            try {
+              return this.toProductReleaseWithRedaction(r);
+            } catch (final EIServerDatabaseException e) {
+              throw new EIServerDatabaseExceptionUnchecked(e);
+            }
+          })
+          .filter(c -> filterRedactedIfNecessary(c, includeRedacted))
+          .toList();
+      }
+      return List.of();
+    } catch (final EIServerDatabaseExceptionUnchecked e) {
+      throw e.causeTyped;
+    }
+  }
+
+  private EIProductRelease toProductReleaseWithRedaction(
+    final Record r)
+    throws EIServerDatabaseException
+  {
+    final var manifestType =
+      r.get(PRODUCT_RELEASES.MANIFEST_TYPE);
+    final var manifest =
+      r.get(PRODUCT_RELEASES.MANIFEST);
+
+    final EIProductRelease release =
+      switch (manifestType) {
+        case RELEASE_CONTENT_TYPE -> {
+          try (var stream = new ByteArrayInputStream(manifest)) {
+            yield this.transaction.productReleaseParsers()
+              .parse(URI.create("urn:source"), stream);
+          } catch (final IOException e) {
+            throw new EIServerDatabaseException(e.getMessage(), e, "io-error");
+          } catch (final ParseException e) {
+            throw new EIServerDatabaseException(
+              e.getMessage(),
+              e,
+              "serialization");
+          }
+        }
+        default -> {
+          throw new EIServerDatabaseException(
+            "Unrecognized manifest type: " + manifestType,
+            "serialization"
+          );
+        }
+      };
+
+    final var major =
+      BigInteger.valueOf(r.get(PRODUCT_RELEASES.VERSION_MAJOR).longValue());
+    final var minor =
+      BigInteger.valueOf(r.get(PRODUCT_RELEASES.VERSION_MINOR).longValue());
+    final var patch =
+      BigInteger.valueOf(r.get(PRODUCT_RELEASES.VERSION_PATCH).longValue());
+    final var qualifier =
+      Optional.ofNullable(r.get(PRODUCT_RELEASES.VERSION_QUALIFIER));
+
+    final var version =
+      new EIProductVersion(major, minor, patch, qualifier);
+
+    Invariants.checkInvariantV(
+      version.equals(release.version()),
+      "Database manifest version %s must equal table version %s",
+      release.version().show(),
+      version.show()
+    );
+
+    return new EIProductRelease(
+      version,
+      release.productDependencies(),
+      release.bundleDependencies(),
+      release.changes(),
+      toReleaseRedaction(r)
     );
   }
 
@@ -489,7 +606,7 @@ final class EIServerDatabaseProductsQueries
             .set(CATEGORY_REDACTIONS.CREATED, redact.created())
             .execute();
 
-        Preconditions.checkPreconditionV(
+        Postconditions.checkPostconditionV(
           inserted == 1,
           "Expected to insert 1 record (inserted %d)",
           Integer.valueOf(inserted)
@@ -534,7 +651,11 @@ final class EIServerDatabaseProductsQueries
 
     try {
       final var existing =
-        fetchProductOptional(id, INCLUDE_REDACTED, INCLUDE_NOTHING, context);
+        this.fetchProductOptional(
+          id,
+          INCLUDE_REDACTED,
+          INCLUDE_NOTHING,
+          context);
 
       if (existing.isPresent()) {
         throw new EIServerDatabaseException(
@@ -556,7 +677,7 @@ final class EIServerDatabaseProductsQueries
           .set(PRODUCTS.PRODUCT_DESCRIPTION_TYPE, "text/plain")
           .execute();
 
-      Preconditions.checkPreconditionV(
+      Postconditions.checkPostconditionV(
         inserted == 1,
         "Expected to insert 1 record (inserted %d)",
         Integer.valueOf(inserted)
@@ -603,7 +724,7 @@ final class EIServerDatabaseProductsQueries
 
     try {
       final var existing =
-        fetchProductOrFail(id, INCLUDE_REDACTED, INCLUDE_NOTHING, context);
+        this.fetchProductOrFail(id, INCLUDE_REDACTED, INCLUDE_NOTHING, context);
 
       final var time = this.currentTime();
 
@@ -632,7 +753,7 @@ final class EIServerDatabaseProductsQueries
             .set(PRODUCT_REDACTIONS.CREATED, redact.created())
             .execute();
 
-        Preconditions.checkPreconditionV(
+        Postconditions.checkPostconditionV(
           inserted == 1,
           "Expected to insert 1 record (inserted %d)",
           Integer.valueOf(inserted)
@@ -685,10 +806,10 @@ final class EIServerDatabaseProductsQueries
     final var context = this.transaction.createContext();
 
     try {
-      return fetchProductOrFail(
+      return this.fetchProductOrFail(
         id,
         includeRedacted,
-        EnumSet.allOf(ProductInformationComponents.class),
+        INCLUDE_EVERYTHING,
         context
       ).product();
     } catch (final DataAccessException e) {
@@ -713,7 +834,7 @@ final class EIServerDatabaseProductsQueries
 
     try {
       final var productRec =
-        fetchProductOrFail(id, INCLUDE_REDACTED, INCLUDE_NOTHING, context);
+        this.fetchProductOrFail(id, INCLUDE_REDACTED, INCLUDE_NOTHING, context);
       final var categoryRec =
         fetchCategoryOrFail(category, INCLUDE_REDACTED, context);
 
@@ -733,7 +854,7 @@ final class EIServerDatabaseProductsQueries
           .set(PRODUCT_CATEGORIES.CATEGORY_ID, valueOf(categoryRec.id()))
           .execute();
 
-      Preconditions.checkPreconditionV(
+      Postconditions.checkPostconditionV(
         inserted == 1,
         "Expected to insert 1 record (inserted %d)",
         Integer.valueOf(inserted)
@@ -769,7 +890,7 @@ final class EIServerDatabaseProductsQueries
 
     try {
       final var productRec =
-        fetchProductOrFail(id, INCLUDE_REDACTED, INCLUDE_NOTHING, context);
+        this.fetchProductOrFail(id, INCLUDE_REDACTED, INCLUDE_NOTHING, context);
       final var categoryRec =
         fetchCategoryOrFail(category, INCLUDE_REDACTED, context);
 
@@ -815,7 +936,7 @@ final class EIServerDatabaseProductsQueries
 
     try {
       final var product =
-        fetchProductOrFail(id, INCLUDE_REDACTED, INCLUDE_NOTHING, context);
+        this.fetchProductOrFail(id, INCLUDE_REDACTED, INCLUDE_NOTHING, context);
 
       final var updated =
         context.update(PRODUCTS)
@@ -823,7 +944,7 @@ final class EIServerDatabaseProductsQueries
           .where(PRODUCTS.ID.eq(valueOf(product.id())))
           .execute();
 
-      Preconditions.checkPreconditionV(
+      Postconditions.checkPostconditionV(
         updated == 1,
         "Expected to update 1 record (update %d)",
         Integer.valueOf(updated)
@@ -859,7 +980,7 @@ final class EIServerDatabaseProductsQueries
 
     try {
       final var product =
-        fetchProductOrFail(id, INCLUDE_REDACTED, INCLUDE_NOTHING, context);
+        this.fetchProductOrFail(id, INCLUDE_REDACTED, INCLUDE_NOTHING, context);
 
       final var updated =
         context.update(PRODUCTS)
@@ -868,7 +989,7 @@ final class EIServerDatabaseProductsQueries
           .where(PRODUCTS.ID.eq(valueOf(product.id())))
           .execute();
 
-      Preconditions.checkPreconditionV(
+      Postconditions.checkPostconditionV(
         updated == 1,
         "Expected to update 1 record (update %d)",
         Integer.valueOf(updated)
@@ -904,11 +1025,65 @@ final class EIServerDatabaseProductsQueries
 
     try {
       final var product =
-        fetchProductOrFail(id, INCLUDE_REDACTED, INCLUDE_NOTHING, context);
+        this.fetchProductOrFail(
+          id,
+          INCLUDE_REDACTED,
+          INCLUDE_EVERYTHING,
+          context);
 
-      throw new UnimplementedCodeException();
+      final var version = release.version();
+      for (final var existing : product.product.releases()) {
+        if (Objects.equals(existing.version(), version)) {
+          throw new EIServerDatabaseException(
+            String.format("Release version %s already exists", version.show()),
+            "release-duplicate"
+          );
+        }
+      }
+
+      final var time =
+        this.currentTime();
+      final var q =
+        version.qualifier().orElse(null);
+
+      final var serializers =
+        this.transaction.productReleaseSerializers();
+
+      final var byteStream = new ByteArrayOutputStream();
+      serializers.serialize(URI.create("urn:source"), byteStream, release);
+      final var manifest = byteStream.toByteArray();
+
+      final var inserted =
+        context.insertInto(PRODUCT_RELEASES)
+          .set(PRODUCT_RELEASES.PRODUCT_ID, product.id())
+          .set(PRODUCT_RELEASES.CREATED, time)
+          .set(PRODUCT_RELEASES.CREATED_BY, owner)
+          .set(PRODUCT_RELEASES.VERSION_MAJOR, version.major().longValueExact())
+          .set(PRODUCT_RELEASES.VERSION_MINOR, version.minor().longValueExact())
+          .set(PRODUCT_RELEASES.VERSION_PATCH, version.patch().longValueExact())
+          .set(PRODUCT_RELEASES.VERSION_QUALIFIER, q)
+          .set(PRODUCT_RELEASES.MANIFEST_TYPE, RELEASE_CONTENT_TYPE)
+          .set(PRODUCT_RELEASES.MANIFEST, manifest)
+          .execute();
+
+      Postconditions.checkPostconditionV(
+        inserted == 1,
+        "Expected to insert 1 record (inserted %d)",
+        Integer.valueOf(inserted)
+      );
+
+      final var audit =
+        context.insertInto(AUDIT)
+          .set(AUDIT.TIME, time)
+          .set(AUDIT.TYPE, "PRODUCT_RELEASE_CREATED")
+          .set(AUDIT.USER_ID, owner)
+          .set(AUDIT.MESSAGE, id.show() + ":" + version.show());
+
+      insertAuditRecord(audit);
     } catch (final DataAccessException e) {
       throw handleDatabaseException(this.transaction, e);
+    } catch (final SerializeException e) {
+      throw new EIServerDatabaseException(e.getMessage(), e, "serialization");
     }
   }
 
@@ -940,6 +1115,19 @@ final class EIServerDatabaseProductsQueries
     public Optional<EIRedaction> redaction()
     {
       return this.category.redaction();
+    }
+  }
+
+  private final class EIServerDatabaseExceptionUnchecked
+    extends RuntimeException
+  {
+    private final EIServerDatabaseException causeTyped;
+
+    private EIServerDatabaseExceptionUnchecked(
+      final EIServerDatabaseException cause)
+    {
+      super(cause);
+      this.causeTyped = Objects.requireNonNull(cause, "cause");
     }
   }
 }

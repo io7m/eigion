@@ -17,9 +17,16 @@
 
 package com.io7m.eigion.tests;
 
+import com.io7m.eigion.model.EIChange;
+import com.io7m.eigion.model.EIChangeTicket;
 import com.io7m.eigion.model.EIPassword;
+import com.io7m.eigion.model.EIProductBundleDependency;
 import com.io7m.eigion.model.EIProductCategory;
+import com.io7m.eigion.model.EIProductDependency;
+import com.io7m.eigion.model.EIProductHash;
 import com.io7m.eigion.model.EIProductIdentifier;
+import com.io7m.eigion.model.EIProductRelease;
+import com.io7m.eigion.model.EIProductVersion;
 import com.io7m.eigion.model.EIRedaction;
 import com.io7m.eigion.model.EIRichText;
 import com.io7m.eigion.model.EIUser;
@@ -38,13 +45,12 @@ import com.io7m.jmulticlose.core.CloseableCollectionType;
 import com.io7m.jmulticlose.core.ClosingResourceFailedException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestFactory;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import java.net.URI;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.time.Clock;
@@ -52,7 +58,6 @@ import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Stream;
 
 import static com.io7m.eigion.model.EIRedaction.redactionOpt;
 import static com.io7m.eigion.model.EIRedactionRequest.redactionRequest;
@@ -61,15 +66,16 @@ import static com.io7m.eigion.server.database.api.EIServerDatabaseCreate.CREATE_
 import static com.io7m.eigion.server.database.api.EIServerDatabaseIncludeRedacted.EXCLUDE_REDACTED;
 import static com.io7m.eigion.server.database.api.EIServerDatabaseIncludeRedacted.INCLUDE_REDACTED;
 import static com.io7m.eigion.server.database.api.EIServerDatabaseRole.EIGION;
-import static com.io7m.eigion.server.database.api.EIServerDatabaseRole.NONE;
 import static com.io7m.eigion.server.database.api.EIServerDatabaseUpgrade.UPGRADE_DATABASE;
+import static java.math.BigInteger.ONE;
+import static java.math.BigInteger.TEN;
+import static java.math.BigInteger.TWO;
 import static java.time.OffsetDateTime.now;
 import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.DynamicTest.dynamicTest;
 
 @Testcontainers(disabledWithoutDocker = true)
 public final class EIServerDatabaseTest
@@ -1135,378 +1141,86 @@ public final class EIServerDatabaseTest
   }
 
   /**
-   * Unprivileged contexts cannot execute code.
+   * Creating product releases works.
    *
    * @throws Exception On errors
    */
 
-  @TestFactory
-  public Stream<DynamicTest> testUnprivileged()
+  @Test
+  public void testProductReleaseCreate()
     throws Exception
   {
     assertTrue(this.container.isRunning());
 
-    final var user = this.createTestUser();
+    final var user =
+      this.createTestUser();
 
-    final var database =
-      this.databaseOf(this.container);
-    final var c =
-      this.resources.add(database.openConnection(NONE));
+    final var transaction =
+      this.transactionOf(EIGION);
+    final var products =
+      transaction.queries(EIServerDatabaseProductsQueriesType.class);
 
-    return Stream.<ExecutableType>of(
-      () -> {
-        try (var transaction = c.openTransaction()) {
-          final var images =
-            transaction.queries(EIServerDatabaseImagesQueriesType.class);
-          transaction.userIdSet(user.id());
+    transaction.userIdSet(user.id());
 
-          final var ex =
-            assertThrows(EIServerDatabaseException.class, () -> {
-              images.imageCreate(
-                randomUUID(),
-                "text/plain",
-                new byte[23]);
-            });
-          assertEquals("operation-not-permitted", ex.errorCode());
-        }
-      },
+    final var id =
+      new EIProductIdentifier("com.io7m.ex", "com.q");
+    final var dep0 =
+      new EIProductIdentifier("com.io7m.ex", "com.w");
+    final var dep1 =
+      new EIProductIdentifier("com.io7m.ex", "com.x");
 
-      () -> {
-        try (var transaction = c.openTransaction()) {
-          final var images =
-            transaction.queries(EIServerDatabaseImagesQueriesType.class);
-          transaction.userIdSet(user.id());
+    products.productCreate(id);
 
-          final var ex =
-            assertThrows(EIServerDatabaseException.class, () -> {
-              images.imageGet(randomUUID(), INCLUDE_REDACTED);
-            });
-          assertEquals("operation-not-permitted", ex.errorCode());
-        }
-      },
+    final var v0 =
+      new EIProductVersion(ONE, TWO, TEN, Optional.empty());
+    final var v1 =
+      new EIProductVersion(ONE, ONE, TWO, Optional.empty());
+    final var hash0 =
+      new EIProductHash(
+        "SHA-256",
+        "5891B5B522D5DF086D0FF0B110FBD9D21BB4FC7163AF34D08286A2E846F6BE03");
 
-      () -> {
-        try (var transaction = c.openTransaction()) {
-          final var images =
-            transaction.queries(EIServerDatabaseImagesQueriesType.class);
-          transaction.userIdSet(user.id());
+    final var change0 =
+      new EIChange(
+        "Changed something",
+        List.of(
+          new EIChangeTicket(
+            "1",
+            URI.create("https://www.example.com/tickets/1")
+          )
+        )
+      );
 
-          final var ex =
-            assertThrows(EIServerDatabaseException.class, () -> {
-              images.imageRedact(randomUUID(), Optional.empty());
-            });
-          assertEquals("operation-not-permitted", ex.errorCode());
-        }
-      },
+    final var release =
+      new EIProductRelease(
+        v0,
+        List.of(new EIProductDependency(dep0, v1)),
+        List.of(new EIProductBundleDependency(dep1, v1, hash0, List.of())),
+        List.of(change0),
+        Optional.empty()
+      );
 
-      () -> {
-        try (var transaction = c.openTransaction()) {
-          final var products =
-            transaction.queries(EIServerDatabaseProductsQueriesType.class);
-          transaction.userIdSet(user.id());
+    products.productReleaseCreate(id, release);
 
-          final var id =
-            new EIProductIdentifier("com.io7m.ex", "com.q");
-          final var category0 =
-            new EIProductCategory("Cat0", Optional.empty());
+    {
+      final var p = products.product(id, INCLUDE_REDACTED);
+      assertEquals(List.of(release), p.releases());
+    }
 
-          final var ex =
-            assertThrows(EIServerDatabaseException.class, () -> {
-              products.productCategoryAdd(id, category0);
-            });
-          assertEquals("operation-not-permitted", ex.errorCode());
-        }
-      },
+    {
+      final var ex =
+        assertThrows(EIServerDatabaseException.class, () -> {
+          products.productReleaseCreate(id, release);
+      });
+      assertEquals("release-duplicate", ex.errorCode());
+    }
 
-      () -> {
-        try (var transaction = c.openTransaction()) {
-          final var products =
-            transaction.queries(EIServerDatabaseProductsQueriesType.class);
-          transaction.userIdSet(user.id());
-
-          final var id =
-            new EIProductIdentifier("com.io7m.ex", "com.q");
-          final var category0 =
-            new EIProductCategory("Cat0", Optional.empty());
-
-          final var ex =
-            assertThrows(EIServerDatabaseException.class, () -> {
-              products.productCategoryRemove(id, category0);
-            });
-          assertEquals("operation-not-permitted", ex.errorCode());
-        }
-      },
-
-      () -> {
-        try (var transaction = c.openTransaction()) {
-          final var products =
-            transaction.queries(EIServerDatabaseProductsQueriesType.class);
-          transaction.userIdSet(user.id());
-
-          final var ex =
-            assertThrows(EIServerDatabaseException.class, () -> {
-              products.productsAll(INCLUDE_REDACTED);
-            });
-          assertEquals("operation-not-permitted", ex.errorCode());
-        }
-      },
-
-      () -> {
-        try (var transaction = c.openTransaction()) {
-          final var products =
-            transaction.queries(EIServerDatabaseProductsQueriesType.class);
-          transaction.userIdSet(user.id());
-
-          final var id =
-            new EIProductIdentifier("com.io7m.ex", "com.q");
-          final var redaction =
-            redactionRequest(timeNow(), "X");
-
-          final var ex =
-            assertThrows(EIServerDatabaseException.class, () -> {
-              products.productRedact(id, Optional.of(redaction));
-            });
-          assertEquals("operation-not-permitted", ex.errorCode());
-        }
-      },
-
-      () -> {
-        try (var transaction = c.openTransaction()) {
-          final var products =
-            transaction.queries(EIServerDatabaseProductsQueriesType.class);
-          transaction.userIdSet(user.id());
-
-          final var id =
-            new EIProductIdentifier("com.io7m.ex", "com.q");
-
-          final var ex =
-            assertThrows(EIServerDatabaseException.class, () -> {
-              products.productCreate(id);
-            });
-          assertEquals("operation-not-permitted", ex.errorCode());
-        }
-      },
-
-      () -> {
-        try (var transaction = c.openTransaction()) {
-          final var products =
-            transaction.queries(EIServerDatabaseProductsQueriesType.class);
-          transaction.userIdSet(user.id());
-
-          final var ex =
-            assertThrows(EIServerDatabaseException.class, () -> {
-              products.categoryCreate("Category 0");
-            });
-          assertEquals("operation-not-permitted", ex.errorCode());
-        }
-      },
-
-      () -> {
-        try (var transaction = c.openTransaction()) {
-          final var products =
-            transaction.queries(EIServerDatabaseProductsQueriesType.class);
-          transaction.userIdSet(user.id());
-
-          final var ex =
-            assertThrows(EIServerDatabaseException.class, () -> {
-              products.categoryRedact(
-                "Category 0",
-                redactionRequestOpt(now(), "X"));
-            });
-          assertEquals("operation-not-permitted", ex.errorCode());
-        }
-      },
-
-      () -> {
-        try (var transaction = c.openTransaction()) {
-          final var products =
-            transaction.queries(EIServerDatabaseProductsQueriesType.class);
-          transaction.userIdSet(user.id());
-
-          final var ex =
-            assertThrows(EIServerDatabaseException.class, () -> {
-              products.categories(INCLUDE_REDACTED);
-            });
-          assertEquals("operation-not-permitted", ex.errorCode());
-        }
-      },
-
-      () -> {
-        try (var transaction = c.openTransaction()) {
-          final var users =
-            transaction.queries(EIServerDatabaseUsersQueriesType.class);
-          transaction.userIdSet(user.id());
-
-          final var ex =
-            assertThrows(EIServerDatabaseException.class, () -> {
-              users.userCreate(
-                randomUUID(),
-                "someone",
-                "someone@example.com",
-                timeNow(),
-                EIPassword.createHashed("12345678")
-              );
-            });
-          assertEquals("operation-not-permitted", ex.errorCode());
-        }
-      },
-
-      () -> {
-        try (var transaction = c.openTransaction()) {
-          final var users =
-            transaction.queries(EIServerDatabaseUsersQueriesType.class);
-          transaction.userIdSet(user.id());
-
-          final var ex =
-            assertThrows(EIServerDatabaseException.class, () -> {
-              users.userGet(randomUUID());
-            });
-          assertEquals("operation-not-permitted", ex.errorCode());
-        }
-      },
-
-      () -> {
-        try (var transaction = c.openTransaction()) {
-          final var users =
-            transaction.queries(EIServerDatabaseUsersQueriesType.class);
-          transaction.userIdSet(user.id());
-
-          final var ex =
-            assertThrows(EIServerDatabaseException.class, () -> {
-              users.userGetForEmail("someone@example.com");
-            });
-          assertEquals("operation-not-permitted", ex.errorCode());
-        }
-      },
-
-      () -> {
-        try (var transaction = c.openTransaction()) {
-          final var users =
-            transaction.queries(EIServerDatabaseUsersQueriesType.class);
-          transaction.userIdSet(user.id());
-
-          final var ex =
-            assertThrows(EIServerDatabaseException.class, () -> {
-              users.userGetForName("someone");
-            });
-          assertEquals("operation-not-permitted", ex.errorCode());
-        }
-      },
-
-      () -> {
-        try (var transaction = c.openTransaction()) {
-          final var users =
-            transaction.queries(EIServerDatabaseUsersQueriesType.class);
-          transaction.userIdSet(user.id());
-
-          final var ex =
-            assertThrows(EIServerDatabaseException.class, () -> {
-              users.userBan(
-                randomUUID(),
-                Optional.of(now()),
-                "reason");
-            });
-          assertEquals("operation-not-permitted", ex.errorCode());
-        }
-      },
-
-      () -> {
-        try (var transaction = c.openTransaction()) {
-          final var users =
-            transaction.queries(EIServerDatabaseUsersQueriesType.class);
-          transaction.userIdSet(user.id());
-
-          final var ex =
-            assertThrows(EIServerDatabaseException.class, () -> {
-              users.userUnban(randomUUID());
-            });
-          assertEquals("operation-not-permitted", ex.errorCode());
-        }
-      },
-
-      () -> {
-        try (var transaction = c.openTransaction()) {
-          final var products =
-            transaction.queries(EIServerDatabaseProductsQueriesType.class);
-          transaction.userIdSet(user.id());
-
-          final var id =
-            new EIProductIdentifier("com.io7m.ex", "com.q");
-          final var ex =
-            assertThrows(EIServerDatabaseException.class, () -> {
-              products.productSetTitle(id, "title");
-            });
-          assertEquals("operation-not-permitted", ex.errorCode());
-        }
-      },
-
-      () -> {
-        try (var transaction = c.openTransaction()) {
-          final var products =
-            transaction.queries(EIServerDatabaseProductsQueriesType.class);
-          transaction.userIdSet(user.id());
-
-          final var id =
-            new EIProductIdentifier("com.io7m.ex", "com.q");
-          final var ex =
-            assertThrows(EIServerDatabaseException.class, () -> {
-              products.productSetDescription(id, new EIRichText("x", "y"));
-            });
-          assertEquals("operation-not-permitted", ex.errorCode());
-        }
-      },
-
-      () -> {
-        try (var transaction = c.openTransaction()) {
-          final var products =
-            transaction.queries(EIServerDatabaseProductsQueriesType.class);
-          transaction.userIdSet(user.id());
-
-          final var id =
-            new EIProductIdentifier("com.io7m.ex", "com.q");
-          final var ex =
-            assertThrows(EIServerDatabaseException.class, () -> {
-              products.product(id, INCLUDE_REDACTED);
-            });
-          assertEquals("operation-not-permitted", ex.errorCode());
-        }
-      },
-
-      () -> {
-        try (var transaction = c.openTransaction()) {
-          final var images =
-            transaction.queries(EIServerDatabaseImagesQueriesType.class);
-          transaction.userIdSet(user.id());
-
-          final var ex =
-            assertThrows(EIServerDatabaseException.class, () -> {
-              images.imageCreate(randomUUID(), "image/jpeg", new byte[32]);
-            });
-          assertEquals("operation-not-permitted", ex.errorCode());
-        }
-      },
-
-      () -> {
-        try (var transaction = c.openTransaction()) {
-          final var images =
-            transaction.queries(EIServerDatabaseImagesQueriesType.class);
-          transaction.userIdSet(user.id());
-
-          final var ex =
-            assertThrows(EIServerDatabaseException.class, () -> {
-              images.imageRedact(randomUUID(), Optional.empty());
-            });
-          assertEquals("operation-not-permitted", ex.errorCode());
-        }
-      }
-
-    ).map(x -> dynamicTest("testUnprivileged_" + x, x::execute));
-  }
-
-  interface ExecutableType
-  {
-    void execute()
-      throws Exception;
+    checkAuditLog(
+      transaction,
+      new ExpectedEvent("USER_CREATED", user.id().toString()),
+      new ExpectedEvent("PRODUCT_CREATED", "com.io7m.ex:com.q"),
+      new ExpectedEvent("PRODUCT_RELEASE_CREATED", "com.io7m.ex:com.q:1.2.10")
+    );
   }
 
   private record ExpectedEvent(

@@ -21,10 +21,9 @@ import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.io7m.anethum.common.ParseException;
 import com.io7m.anethum.common.ParseStatus;
-import com.io7m.eigion.model.EIProduct;
-import com.io7m.eigion.model.EIProducts;
-import com.io7m.eigion.product.parser.api.EIProductsParserType;
-import com.io7m.eigion.product.parser.internal.v1.EIv1Products;
+import com.io7m.eigion.model.EIProductRelease;
+import com.io7m.eigion.product.parser.api.EIProductReleaseParserType;
+import com.io7m.eigion.product.parser.internal.v1.EIv1ProductRelease;
 import com.io7m.jlexing.core.LexicalPosition;
 import com.io7m.jlexing.core.LexicalPositions;
 
@@ -32,7 +31,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -41,10 +39,11 @@ import static com.io7m.anethum.common.ParseSeverity.PARSE_ERROR;
 import static com.io7m.eigion.product.parser.internal.EISerializers.SERIALIZERS;
 
 /**
- * A products parser.
+ * A product release parser.
  */
 
-public final class EIProductsParser implements EIProductsParserType
+public final class EIProductReleaseParser
+  implements EIProductReleaseParserType
 {
   private final URI source;
   private final InputStream stream;
@@ -59,7 +58,7 @@ public final class EIProductsParser implements EIProductsParserType
    * @param inStatusConsumer The status consumer
    */
 
-  public EIProductsParser(
+  public EIProductReleaseParser(
     final URI inSource,
     final InputStream inStream,
     final Consumer<ParseStatus> inStatusConsumer)
@@ -81,11 +80,9 @@ public final class EIProductsParser implements EIProductsParserType
   }
 
   @Override
-  public EIProducts execute()
+  public EIProductRelease execute()
     throws ParseException
   {
-    final var productList =
-      new ArrayList<EIProduct>();
     final var errors =
       new ArrayList<ParseStatus>();
 
@@ -96,23 +93,9 @@ public final class EIProductsParser implements EIProductsParserType
 
     try {
       final var products =
-        this.mapper.readValue(this.stream, EIvNProductsType.class);
-
-      if (products instanceof EIv1Products v1products) {
-        return switch (this.parseProductsV1(
-          v1products,
-          productList,
-          errorConsumer)) {
-          case SUCCEEDED -> new EIProducts(List.copyOf(productList));
-          case FAILED -> throw new ParseException(
-            "Product parsing failed.",
-            errors);
-        };
-      }
-
-      throw new IllegalStateException(
-        "Unrecognized product type: %s".formatted(products.getClass())
-      );
+        this.mapper.readValue(this.stream, EIv1ProductRelease.class);
+      return products.toProduct(this.source, errorConsumer)
+        .orElseThrow(() -> new ParseException("Parsing failed", errors));
     } catch (final DatabindException e) {
       final var loc = e.getLocation();
       errorConsumer.accept(
@@ -138,27 +121,6 @@ public final class EIProductsParser implements EIProductsParserType
       );
       throw new ParseException(e.getMessage(), errors);
     }
-  }
-
-  private Status parseProductsV1(
-    final EIv1Products v1products,
-    final ArrayList<EIProduct> productList,
-    final Consumer<ParseStatus> errorConsumer)
-  {
-    var failedAny = false;
-
-    for (final var v1Product : v1products.products) {
-      final var productOpt =
-        v1Product.toProduct(this.source, errorConsumer);
-
-      if (productOpt.isPresent()) {
-        productList.add(productOpt.get());
-      } else {
-        failedAny = true;
-      }
-    }
-
-    return failedAny ? Status.FAILED : Status.SUCCEEDED;
   }
 
   @Override

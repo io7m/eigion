@@ -3,12 +3,16 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
 
   "$defs": {
+    "SchemaIdentifier": {
+      "type": "string",
+      "const": "https://www.io7m.com/eigion/products-1.json"
+    },
+
     "Products": {
       "type": "object",
       "properties": {
-        "%id": {
-          "type": "string",
-          "const": "https://www.io7m.com/eigion/products-1.json"
+        "%Type": {
+          "$ref": "#/$defs/SchemaIdentifier"
         },
         "Products": {
           "type": "array",
@@ -19,7 +23,7 @@
       },
       "additionalProperties": false,
       "required": [
-        "%id",
+        "%Type",
         "Products"
       ]
     },
@@ -98,6 +102,9 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
+        "%Type": {
+          "$ref": "#/$defs/SchemaIdentifier"
+        },
         "ID": {
           "$ref": "#/$defs/ProductID"
         },
@@ -179,6 +186,9 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
+        "%Type": {
+          "$ref": "#/$defs/SchemaIdentifier"
+        },
         "Version": {
           "$ref": "#/$defs/ProductVersion"
         },

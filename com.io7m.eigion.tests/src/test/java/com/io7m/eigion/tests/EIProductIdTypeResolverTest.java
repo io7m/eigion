@@ -25,6 +25,7 @@ import org.mockito.Mockito;
 
 import java.io.IOException;
 
+import static com.io7m.eigion.product.parser.api.EIProductSchemas.VERSION_1;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -83,7 +84,7 @@ public final class EIProductIdTypeResolverTest
 
     final var type =
       new EIProductIdTypeResolver()
-        .typeFromId(context, "https://www.io7m.com/eigion/products-1.json");
+        .typeFromId(context, VERSION_1);
 
     assertEquals(
       "Lcom/io7m/eigion/product/parser/internal/v1/EIv1Products;",

@@ -25,6 +25,8 @@ import com.io7m.eigion.product.parser.internal.EIvNProductsType;
 import java.util.List;
 import java.util.Objects;
 
+import static com.io7m.eigion.product.parser.api.EIProductSchemas.VERSION_1;
+
 /*
  * These are effectively JSON DTOs and therefore are exempt from the usual style checks.
  */
@@ -35,6 +37,9 @@ import java.util.Objects;
 @JsonDeserialize
 public final class EIv1Products implements EIvNProductsType
 {
+  @JsonProperty(value = "%Type", required = false)
+  public String type = VERSION_1;
+
   @JsonProperty(value = "Products", required = true)
   public final List<EIv1Product> products;
 

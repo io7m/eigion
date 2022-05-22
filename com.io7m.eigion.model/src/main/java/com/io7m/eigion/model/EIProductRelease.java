@@ -18,6 +18,7 @@ package com.io7m.eigion.model;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * A release of a product.
@@ -26,14 +27,16 @@ import java.util.Objects;
  * @param bundleDependencies  The bundles upon which the release depends
  * @param productDependencies The products upon which the release depends
  * @param changes             The list of changes for the release
+ * @param redaction           The redaction, if any
  */
 
 public record EIProductRelease(
   EIProductVersion version,
   List<EIProductDependency> productDependencies,
   List<EIProductBundleDependency> bundleDependencies,
-  List<EIChange> changes)
-  implements Comparable<EIProductRelease>
+  List<EIChange> changes,
+  Optional<EIRedaction> redaction)
+  implements Comparable<EIProductRelease>, EIRedactableType
 {
   /**
    * A release of a product.
@@ -42,6 +45,7 @@ public record EIProductRelease(
    * @param bundleDependencies  The bundles upon which the release depends
    * @param productDependencies The products upon which the release depends
    * @param changes             The list of changes for the release
+   * @param redaction           The redaction, if any
    */
 
   public EIProductRelease
@@ -50,6 +54,7 @@ public record EIProductRelease(
     Objects.requireNonNull(productDependencies, "productDependencies");
     Objects.requireNonNull(bundleDependencies, "bundleDependencies");
     Objects.requireNonNull(changes, "changes");
+    Objects.requireNonNull(redaction, "redaction");
   }
 
   @Override

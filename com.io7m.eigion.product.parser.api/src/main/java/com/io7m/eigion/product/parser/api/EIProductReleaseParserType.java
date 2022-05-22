@@ -14,24 +14,17 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+package com.io7m.eigion.product.parser.api;
 
-package com.io7m.eigion.product.parser.internal;
 
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import com.fasterxml.jackson.databind.annotation.JsonTypeIdResolver;
-import com.io7m.eigion.product.parser.internal.v1.EIv1Products;
+import com.io7m.anethum.api.ParserType;
+import com.io7m.eigion.model.EIProductRelease;
 
 /**
- * The base type of product lists across schema versions.
+ * A product release parser.
  */
 
-@JsonTypeInfo(
-  use = JsonTypeInfo.Id.CUSTOM,
-  include = JsonTypeInfo.As.PROPERTY,
-  property = "%Type"
-)
-@JsonTypeIdResolver(EIProductIdTypeResolver.class)
-public sealed interface EIvNProductsType permits EIv1Products
+public interface EIProductReleaseParserType extends ParserType<EIProductRelease>
 {
 
 }

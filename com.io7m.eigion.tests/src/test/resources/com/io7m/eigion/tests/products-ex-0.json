@@ -1,7 +1,10 @@
 {
-  "%id": "https://www.io7m.com/eigion/products-1.json",
+  "%Type": "https://www.io7m.com/eigion/products-1.json",
+
   "Products": [
     {
+      "%Type": "https://www.io7m.com/eigion/products-1.json",
+
       "ID": {
         "Group": "com.io7m.eigion",
         "Name": "com.io7m.eigion.api"
@@ -32,6 +35,7 @@
 
       "Releases": [
         {
+          "%Type": "https://www.io7m.com/eigion/products-1.json",
           "Version": "1.0.0",
           "BundleDependencies": [
             {

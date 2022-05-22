@@ -16,7 +16,8 @@
 
 package com.io7m.eigion.server.database.postgres.internal;
 
-import com.io7m.eigion.product.parser.api.EIProductsSerializersType;
+import com.io7m.eigion.product.parser.api.EIProductReleaseParsersType;
+import com.io7m.eigion.product.parser.api.EIProductReleaseSerializersType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseConnectionType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseException;
 import com.io7m.eigion.server.database.api.EIServerDatabaseRole;
@@ -37,21 +38,24 @@ public final class EIServerDatabase implements EIServerDatabaseType
 {
   private final Clock clock;
   private final HikariDataSource dataSource;
-  private final EIProductsSerializersType productsSerializers;
+  private final EIProductReleaseSerializersType productsSerializers;
   private final Settings settings;
+  private final EIProductReleaseParsersType productReleaseParsers;
 
   /**
    * The default postgres server database implementation.
    *
-   * @param inClock               The clock
-   * @param inDataSource          A pooled data source
-   * @param inProductsSerializers A products serializer factory
+   * @param inClock                 The clock
+   * @param inDataSource            A pooled data source
+   * @param inProductsSerializers   A product release serializer factory
+   * @param inProductReleaseParsers A product release parser factory
    */
 
   public EIServerDatabase(
     final Clock inClock,
     final HikariDataSource inDataSource,
-    final EIProductsSerializersType inProductsSerializers)
+    final EIProductReleaseSerializersType inProductsSerializers,
+    final EIProductReleaseParsersType inProductReleaseParsers)
   {
     this.clock =
       Objects.requireNonNull(inClock, "clock");
@@ -59,6 +63,8 @@ public final class EIServerDatabase implements EIServerDatabaseType
       Objects.requireNonNull(inDataSource, "dataSource");
     this.productsSerializers =
       Objects.requireNonNull(inProductsSerializers, "inProductsSerializers");
+    this.productReleaseParsers =
+      Objects.requireNonNull(inProductReleaseParsers, "productReleaseParsers");
     this.settings =
       new Settings().withRenderNameCase(RenderNameCase.LOWER);
   }
@@ -102,11 +108,20 @@ public final class EIServerDatabase implements EIServerDatabaseType
   }
 
   /**
-   * @return A products serializer factory
+   * @return A product release serializer factory
    */
 
-  public EIProductsSerializersType productsSerializers()
+  public EIProductReleaseSerializersType productReleaseSerializers()
   {
     return this.productsSerializers;
+  }
+
+  /**
+   * @return A product release parser factory
+   */
+
+  public EIProductReleaseParsersType productReleaseParsers()
+  {
+    return this.productReleaseParsers;
   }
 }

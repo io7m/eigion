@@ -14,7 +14,8 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-import com.io7m.eigion.product.parser.api.EIProductsSerializersType;
+import com.io7m.eigion.product.parser.api.EIProductReleaseParsersType;
+import com.io7m.eigion.product.parser.api.EIProductReleaseSerializersType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseFactoryType;
 import com.io7m.eigion.server.database.postgres.EIServerDatabases;
 
@@ -32,7 +33,6 @@ module com.io7m.eigion.server.database.postgres
 
   requires com.io7m.anethum.common;
   requires com.io7m.jaffirm.core;
-  requires com.io7m.junreachable.core;
   requires com.io7m.trasco.api;
   requires com.io7m.trasco.vanilla;
   requires com.zaxxer.hikari;
@@ -47,5 +47,6 @@ module com.io7m.eigion.server.database.postgres
 
   provides EIServerDatabaseFactoryType with EIServerDatabases;
 
-  uses EIProductsSerializersType;
+  uses EIProductReleaseSerializersType;
+  uses EIProductReleaseParsersType;
 }

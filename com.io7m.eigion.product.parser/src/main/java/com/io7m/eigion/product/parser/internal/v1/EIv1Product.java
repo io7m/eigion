@@ -31,6 +31,8 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
 
+import static com.io7m.eigion.product.parser.api.EIProductSchemas.VERSION_1;
+
 /*
  * These are effectively JSON DTOs and therefore are exempt from the usual style checks.
  */
@@ -41,6 +43,9 @@ import java.util.function.Consumer;
 @JsonDeserialize
 public final class EIv1Product implements EIv1FromV1Type<EIProduct>
 {
+  @JsonProperty(value = "%Type", required = false)
+  public String type = VERSION_1;
+
   @JsonProperty(value = "ID", required = true)
   public final EIv1ProductId id;
 

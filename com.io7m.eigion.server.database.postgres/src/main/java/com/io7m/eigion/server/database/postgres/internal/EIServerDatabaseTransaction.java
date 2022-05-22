@@ -16,7 +16,8 @@
 
 package com.io7m.eigion.server.database.postgres.internal;
 
-import com.io7m.eigion.product.parser.api.EIProductsSerializersType;
+import com.io7m.eigion.product.parser.api.EIProductReleaseParsersType;
+import com.io7m.eigion.product.parser.api.EIProductReleaseSerializersType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseAuditQueriesType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseException;
 import com.io7m.eigion.server.database.api.EIServerDatabaseImagesQueriesType;
@@ -128,9 +129,7 @@ final class EIServerDatabaseTransaction
     }
 
     if (Objects.equals(qClass, EIServerDatabaseProductsQueriesType.class)) {
-      return qClass.cast(new EIServerDatabaseProductsQueries(
-        this,
-        new EIServerDatabaseUsersQueries(this))
+      return qClass.cast(new EIServerDatabaseProductsQueries(this)
       );
     }
 
@@ -195,8 +194,13 @@ final class EIServerDatabaseTransaction
     this.rollback();
   }
 
-  public EIProductsSerializersType productsSerializers()
+  public EIProductReleaseSerializersType productReleaseSerializers()
   {
-    return this.connection.database().productsSerializers();
+    return this.connection.database().productReleaseSerializers();
+  }
+
+  public EIProductReleaseParsersType productReleaseParsers()
+  {
+    return this.connection.database().productReleaseParsers();
   }
 }

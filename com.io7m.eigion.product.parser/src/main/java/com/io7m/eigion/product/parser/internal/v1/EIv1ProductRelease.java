@@ -33,6 +33,8 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
 
+import static com.io7m.eigion.product.parser.api.EIProductSchemas.VERSION_1;
+
 /*
  * These are effectively JSON DTOs and therefore are exempt from the usual style checks.
  */
@@ -44,6 +46,9 @@ import java.util.function.Consumer;
 public final class EIv1ProductRelease
   implements EIv1FromV1Type<EIProductRelease>
 {
+  @JsonProperty(value = "%Type", required = false)
+  public String type = VERSION_1;
+
   @JsonProperty(value = "Version", required = true)
   public final String version;
 
@@ -167,7 +172,8 @@ public final class EIv1ProductRelease
           newVersion.get(),
           newProductDependencies.get(),
           newBundleDependencies.get(),
-          newChanges.get()
+          newChanges.get(),
+          Optional.empty()
         )
       );
     }
