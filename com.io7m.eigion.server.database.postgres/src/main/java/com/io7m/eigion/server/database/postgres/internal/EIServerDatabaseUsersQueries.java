@@ -21,6 +21,7 @@ import com.io7m.eigion.model.EIPassword;
 import com.io7m.eigion.model.EIUser;
 import com.io7m.eigion.model.EIUserBan;
 import com.io7m.eigion.server.database.api.EIServerDatabaseException;
+import com.io7m.eigion.server.database.api.EIServerDatabaseRequiresUser;
 import com.io7m.eigion.server.database.api.EIServerDatabaseUsersQueriesType;
 import com.io7m.eigion.server.database.postgres.internal.tables.records.UserBansRecord;
 import com.io7m.eigion.server.database.postgres.internal.tables.records.UsersRecord;
@@ -152,6 +153,7 @@ record EIServerDatabaseUsersQueries(
         context.insertInto(AUDIT)
           .set(AUDIT.TIME, this.timeNow())
           .set(AUDIT.TYPE, "USER_CREATED")
+          .set(AUDIT.USER_ID, id)
           .set(AUDIT.MESSAGE, id.toString());
 
       audit.execute();
@@ -216,6 +218,7 @@ record EIServerDatabaseUsersQueries(
   }
 
   @Override
+  @EIServerDatabaseRequiresUser
   public void userBan(
     final UUID id,
     final Optional<OffsetDateTime> expires,
@@ -226,7 +229,10 @@ record EIServerDatabaseUsersQueries(
     Objects.requireNonNull(expires, "expires");
     Objects.requireNonNull(reason, "reason");
 
-    final var context = this.transaction.createContext();
+    final var owner =
+      this.transaction.userId();
+    final var context =
+      this.transaction.createContext();
 
     try {
       final var existingBanOpt =
@@ -249,6 +255,7 @@ record EIServerDatabaseUsersQueries(
         context.insertInto(AUDIT)
           .set(AUDIT.TIME, this.timeNow())
           .set(AUDIT.TYPE, "USER_BANNED")
+          .set(AUDIT.USER_ID, owner)
           .set(AUDIT.MESSAGE, id + ": " + reason);
 
       audit.execute();
@@ -258,12 +265,16 @@ record EIServerDatabaseUsersQueries(
   }
 
   @Override
+  @EIServerDatabaseRequiresUser
   public void userUnban(final UUID id)
     throws EIServerDatabaseException
   {
     Objects.requireNonNull(id, "id");
 
-    final var context = this.transaction.createContext();
+    final var owner =
+      this.transaction.userId();
+    final var context =
+      this.transaction.createContext();
 
     try {
       context.deleteFrom(USER_BANS)
@@ -274,6 +285,7 @@ record EIServerDatabaseUsersQueries(
         context.insertInto(AUDIT)
           .set(AUDIT.TIME, this.timeNow())
           .set(AUDIT.TYPE, "USER_UNBANNED")
+          .set(AUDIT.USER_ID, owner)
           .set(AUDIT.MESSAGE, id.toString());
 
       audit.execute();

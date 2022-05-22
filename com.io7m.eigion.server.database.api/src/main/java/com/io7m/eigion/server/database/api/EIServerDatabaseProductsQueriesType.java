@@ -20,11 +20,11 @@ import com.io7m.eigion.model.EIProduct;
 import com.io7m.eigion.model.EIProductCategory;
 import com.io7m.eigion.model.EIProductIdentifier;
 import com.io7m.eigion.model.EIProductRelease;
-import com.io7m.eigion.model.EIRedaction;
+import com.io7m.eigion.model.EIRedactionRequest;
+import com.io7m.eigion.model.EIRichText;
 
 import java.util.Optional;
 import java.util.Set;
-import java.util.UUID;
 
 /**
  * The database queries involving products.
@@ -41,7 +41,8 @@ public non-sealed interface EIServerDatabaseProductsQueriesType
    * @throws EIServerDatabaseException On errors
    */
 
-  Set<EIProductCategory> categories(EIServerDatabaseIncludeRedacted includeRedacted)
+  Set<EIProductCategory> categories(
+    EIServerDatabaseIncludeRedacted includeRedacted)
     throws EIServerDatabaseException;
 
   /**
@@ -54,7 +55,9 @@ public non-sealed interface EIServerDatabaseProductsQueriesType
    * @throws EIServerDatabaseException On errors
    */
 
-  EIProductCategory categoryCreate(String text)
+  @EIServerDatabaseRequiresUser
+  EIProductCategory categoryCreate(
+    String text)
     throws EIServerDatabaseException;
 
   /**
@@ -68,9 +71,10 @@ public non-sealed interface EIServerDatabaseProductsQueriesType
    * @throws EIServerDatabaseException On errors
    */
 
+  @EIServerDatabaseRequiresUser
   EIProductCategory categoryRedact(
     String category,
-    Optional<EIRedaction> redacted)
+    Optional<EIRedactionRequest> redacted)
     throws EIServerDatabaseException;
 
   /**
@@ -84,9 +88,10 @@ public non-sealed interface EIServerDatabaseProductsQueriesType
    * @throws EIServerDatabaseException On errors
    */
 
+  @EIServerDatabaseRequiresUser
   default EIProductCategory categoryRedact(
     final EIProductCategory category,
-    final Optional<EIRedaction> redacted)
+    final Optional<EIRedactionRequest> redacted)
     throws EIServerDatabaseException
   {
     return this.categoryRedact(category.value(), redacted);
@@ -95,17 +100,16 @@ public non-sealed interface EIServerDatabaseProductsQueriesType
   /**
    * Create a product.
    *
-   * @param id     The product ID
-   * @param userId The user that created the product
+   * @param id The product ID
    *
    * @return A new product
    *
    * @throws EIServerDatabaseException On errors
    */
 
+  @EIServerDatabaseRequiresUser
   EIProduct productCreate(
-    EIProductIdentifier id,
-    UUID userId)
+    EIProductIdentifier id)
     throws EIServerDatabaseException;
 
   /**
@@ -117,9 +121,10 @@ public non-sealed interface EIServerDatabaseProductsQueriesType
    * @throws EIServerDatabaseException On errors
    */
 
+  @EIServerDatabaseRequiresUser
   void productRedact(
     EIProductIdentifier id,
-    Optional<EIRedaction> redacted)
+    Optional<EIRedactionRequest> redacted)
     throws EIServerDatabaseException;
 
   /**
@@ -161,6 +166,7 @@ public non-sealed interface EIServerDatabaseProductsQueriesType
    * @throws EIServerDatabaseException On errors
    */
 
+  @EIServerDatabaseRequiresUser
   void productCategoryAdd(
     EIProductIdentifier id,
     EIProductCategory category)
@@ -176,24 +182,54 @@ public non-sealed interface EIServerDatabaseProductsQueriesType
    * @throws EIServerDatabaseException On errors
    */
 
+  @EIServerDatabaseRequiresUser
   void productCategoryRemove(
     EIProductIdentifier id,
     EIProductCategory category)
     throws EIServerDatabaseException;
 
   /**
+   * Set the product title.
+   *
+   * @param id    The product ID
+   * @param title The title
+   *
+   * @throws EIServerDatabaseException On errors
+   */
+
+  @EIServerDatabaseRequiresUser
+  void productSetTitle(
+    EIProductIdentifier id,
+    String title)
+    throws EIServerDatabaseException;
+
+  /**
+   * Set the product description.
+   *
+   * @param id          The product ID
+   * @param description The description
+   *
+   * @throws EIServerDatabaseException On errors
+   */
+
+  @EIServerDatabaseRequiresUser
+  void productSetDescription(
+    EIProductIdentifier id,
+    EIRichText description)
+    throws EIServerDatabaseException;
+
+  /**
    * Create a new release.
    *
    * @param id      The product ID
-   * @param creator The user creating the release
    * @param release The release information
    *
    * @throws EIServerDatabaseException On errors
    */
 
+  @EIServerDatabaseRequiresUser
   void productReleaseCreate(
     EIProductIdentifier id,
-    UUID creator,
     EIProductRelease release)
     throws EIServerDatabaseException;
 }

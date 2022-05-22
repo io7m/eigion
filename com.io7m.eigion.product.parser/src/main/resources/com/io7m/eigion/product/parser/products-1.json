@@ -24,18 +24,82 @@
       ]
     },
 
-    "Product": {
+    "RichText": {
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "ID": {
-          "$ref": "#/$defs/ProductID"
+        "Content-Type": {
+          "type": "string",
+          "maxLength": 128
+        },
+        "Text": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "Content-Type",
+        "Text"
+      ]
+    },
+
+    "Link": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "Relation": {
+          "type": "string",
+          "maxLength": 128
+        },
+        "Location": {
+          "type": "string",
+          "format": "uri",
+          "maxLength": 2000
+        }
+      },
+      "required": [
+        "Relation",
+        "Location"
+      ]
+    },
+
+    "ProductDescription": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "Title": {
+          "type": "string",
+          "maxLength": 128
+        },
+        "Description": {
+          "$ref": "#/$defs/RichText"
         },
         "Categories": {
           "type": "array",
           "items": {
             "$ref": "#/$defs/Category"
           }
+        },
+        "Links": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Link"
+          }
+        }
+      },
+      "required": [
+        "Title",
+        "Description",
+        "Categories",
+        "Links"
+      ]
+    },
+
+    "Product": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "ID": {
+          "$ref": "#/$defs/ProductID"
         },
         "Releases": {
           "type": "array",

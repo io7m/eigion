@@ -25,18 +25,73 @@ import com.io7m.eigion.server.database.api.EIServerDatabaseQueriesType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseTransactionType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseUsersQueriesType;
 import org.jooq.DSLContext;
+import org.jooq.exception.DataAccessException;
 import org.jooq.impl.DSL;
 
 import java.sql.SQLException;
 import java.time.Clock;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.UUID;
 
+import static com.io7m.eigion.server.database.postgres.internal.Tables.USERS;
 import static org.jooq.SQLDialect.POSTGRES;
 
-record EIServerDatabaseTransaction(
-  EIServerDatabaseConnection connection)
+final class EIServerDatabaseTransaction
   implements EIServerDatabaseTransactionType
 {
+  private final EIServerDatabaseConnection connection;
+  private UUID currentUserId;
+
+  EIServerDatabaseTransaction(
+    final EIServerDatabaseConnection inConnection)
+  {
+    this.connection =
+      Objects.requireNonNull(inConnection, "connection");
+  }
+
+  @Override
+  public void userIdSet(
+    final UUID userId)
+    throws EIServerDatabaseException
+  {
+    Objects.requireNonNull(userId, "userId");
+
+    final var context = this.createContext();
+
+    try {
+      final var userOpt =
+        context.select(USERS.ID)
+          .from(USERS)
+          .where(USERS.ID.eq(userId))
+          .fetchOptional()
+          .map(r -> r.getValue(USERS.ID));
+
+      if (userOpt.isEmpty()) {
+        throw new EIServerDatabaseException(
+          "No such user: " + userId,
+          "user-nonexistent"
+        );
+      }
+
+      this.currentUserId = userId;
+    } catch (final DataAccessException e) {
+      throw new EIServerDatabaseException(e.getMessage(), e, "sql-error");
+    }
+  }
+
+  @Override
+  public UUID userId()
+    throws EIServerDatabaseException
+  {
+    return Optional.ofNullable(this.currentUserId).orElseThrow(() -> {
+      return new EIServerDatabaseException(
+        "A user must be set before calling this method.",
+        "user-unset"
+      );
+    });
+  }
+
   @Override
   public <T extends EIServerDatabaseQueriesType> T queries(
     final Class<T> qClass)
@@ -72,12 +127,10 @@ record EIServerDatabaseTransaction(
 
   public DSLContext createContext()
   {
-    final var trConnection =
-      this.connection();
     final var sqlConnection =
-      trConnection.connection();
+      this.connection.connection();
     final var settings =
-      trConnection.database().settings();
+      this.connection.database().settings();
     return DSL.using(sqlConnection, POSTGRES, settings);
   }
 
@@ -112,6 +165,7 @@ record EIServerDatabaseTransaction(
   public void close()
     throws EIServerDatabaseException
   {
+    this.currentUserId = null;
     this.rollback();
   }
 

@@ -21,6 +21,7 @@ import com.io7m.eigion.model.EIPassword;
 import com.io7m.eigion.model.EIProductCategory;
 import com.io7m.eigion.model.EIProductIdentifier;
 import com.io7m.eigion.model.EIRedaction;
+import com.io7m.eigion.model.EIUser;
 import com.io7m.eigion.server.database.api.EIServerDatabaseAuditQueriesType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseConfiguration;
 import com.io7m.eigion.server.database.api.EIServerDatabaseException;
@@ -41,13 +42,18 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
 import java.time.Clock;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 
 import static com.io7m.eigion.model.EIRedaction.redactionOpt;
+import static com.io7m.eigion.model.EIRedactionRequest.redactionRequest;
+import static com.io7m.eigion.model.EIRedactionRequest.redactionRequestOpt;
 import static com.io7m.eigion.server.database.api.EIServerDatabaseCreate.CREATE_DATABASE;
 import static com.io7m.eigion.server.database.api.EIServerDatabaseIncludeRedacted.EXCLUDE_REDACTED;
 import static com.io7m.eigion.server.database.api.EIServerDatabaseIncludeRedacted.INCLUDE_REDACTED;
@@ -86,7 +92,7 @@ public final class EIServerDatabaseTest
     final var events =
       audit.auditEvents(timeNow().minusYears(1L), timeNow().plusYears(1L));
 
-    for (int index = 0; index < expectedEvents.length; ++index) {
+    for (var index = 0; index < expectedEvents.length; ++index) {
       final var event =
         events.get(index);
       final var expect =
@@ -178,15 +184,19 @@ public final class EIServerDatabaseTest
    */
 
   @Test
-  public void testUserNone()
+  public void testUserUnprivileged()
     throws Exception
   {
     assertTrue(this.container.isRunning());
 
+    final var user =
+      this.createTestUser();
     final var transaction =
       this.transactionOf(this.container, NONE);
     final var users =
       transaction.queries(EIServerDatabaseUsersQueriesType.class);
+
+    transaction.userIdSet(user.id());
 
     var ex =
       assertThrows(EIServerDatabaseException.class, () -> {
@@ -478,6 +488,8 @@ public final class EIServerDatabaseTest
         password
       );
 
+    transaction.userIdSet(user.id());
+
     final var expires = now().plusDays(1L);
     users.userBan(id, Optional.of(expires), "Did something bad.");
 
@@ -516,15 +528,19 @@ public final class EIServerDatabaseTest
    */
 
   @Test
-  public void testCategoriesNone()
+  public void testCategoriesUnprivileged()
     throws Exception
   {
     assertTrue(this.container.isRunning());
 
+    final var user =
+      this.createTestUser();
     final var transaction =
       this.transactionOf(this.container, NONE);
     final var products =
       transaction.queries(EIServerDatabaseProductsQueriesType.class);
+
+    transaction.userIdSet(user.id());
 
     var ex =
       assertThrows(EIServerDatabaseException.class, () -> {
@@ -535,7 +551,7 @@ public final class EIServerDatabaseTest
     ex = assertThrows(EIServerDatabaseException.class, () -> {
       products.categoryRedact(
         "Category 0",
-        redactionOpt(randomUUID(), now(), "X"));
+        redactionRequestOpt(now(), "X"));
     });
     assertEquals("sql-error", ex.errorCode());
 
@@ -571,6 +587,8 @@ public final class EIServerDatabaseTest
         EIPassword.createHashed("12345678")
       );
 
+    transaction.userIdSet(user.id());
+
     final var category0 =
       products.categoryCreate("Category 0");
     final var category1 =
@@ -589,8 +607,10 @@ public final class EIServerDatabaseTest
 
     final var redaction =
       EIRedaction.redaction(user.id(), timeNow(), "X");
+    final var redactionReq =
+      redactionRequestOpt(timeNow(), "X");
 
-    products.categoryRedact(category0, Optional.of(redaction));
+    products.categoryRedact(category0, redactionReq);
 
     assertEquals(
       Set.of(
@@ -604,7 +624,7 @@ public final class EIServerDatabaseTest
       products.categories(EXCLUDE_REDACTED)
     );
 
-    products.categoryRedact(category1, Optional.of(redaction));
+    products.categoryRedact(category1, redactionReq);
 
     assertEquals(
       Set.of(
@@ -639,21 +659,10 @@ public final class EIServerDatabaseTest
         assertThrows(EIServerDatabaseException.class, () -> {
           products.categoryRedact(
             "Nonexistent",
-            Optional.of(redaction)
+            redactionReq
           );
         });
       assertEquals("category-nonexistent", ex.errorCode());
-    }
-
-    {
-      final var ex =
-        assertThrows(EIServerDatabaseException.class, () -> {
-          products.categoryRedact(
-            "Category 0",
-            Optional.of(EIRedaction.redaction(randomUUID(), timeNow(), "X"))
-          );
-        });
-      assertEquals("user-nonexistent", ex.errorCode());
     }
 
     checkAuditLog(
@@ -689,50 +698,28 @@ public final class EIServerDatabaseTest
 
     final var id =
       new EIProductIdentifier("com.io7m.ex", "com.q");
+
     final var user =
       users.userCreate(
         "someone",
         "someone@example.com",
         EIPassword.createHashed("12345678"));
+
+    transaction.userIdSet(user.id());
+
     final var product =
-      products.productCreate(id, user.id());
+      products.productCreate(id);
 
     assertEquals(id, product.id());
     assertEquals(List.of(), product.releases());
-    assertEquals(Set.of(), product.categories());
+    assertEquals(Set.of(), product.description().categories());
+    assertEquals(List.of(), product.description().links());
 
     checkAuditLog(
       transaction,
       new ExpectedEvent("USER_CREATED", user.id().toString()),
       new ExpectedEvent("PRODUCT_CREATED", "com.io7m.ex:com.q")
     );
-  }
-
-  /**
-   * Creating a product without a valid user fails.
-   *
-   * @throws Exception On errors
-   */
-
-  @Test
-  public void testProductCreateNonexistentUser()
-    throws Exception
-  {
-    assertTrue(this.container.isRunning());
-
-    final var transaction =
-      this.transactionOf(this.container, EIGION);
-    final var products =
-      transaction.queries(EIServerDatabaseProductsQueriesType.class);
-
-    final var id =
-      new EIProductIdentifier("com.io7m.ex", "com.q");
-
-    final var ex = assertThrows(EIServerDatabaseException.class, () -> {
-      products.productCreate(id, randomUUID());
-    });
-
-    assertEquals("user-nonexistent", ex.errorCode());
   }
 
   /**
@@ -761,8 +748,11 @@ public final class EIServerDatabaseTest
         "someone",
         "someone@example.com",
         EIPassword.createHashed("12345678"));
+
+    transaction.userIdSet(user.id());
+
     final var product =
-      products.productCreate(id, user.id());
+      products.productCreate(id);
 
     assertEquals(
       Set.of(id),
@@ -773,9 +763,10 @@ public final class EIServerDatabaseTest
       products.productsAll(EXCLUDE_REDACTED)
     );
 
-    final var ex = assertThrows(EIServerDatabaseException.class, () -> {
-      products.productCreate(id, user.id());
-    });
+    final var ex =
+      assertThrows(EIServerDatabaseException.class, () -> {
+        products.productCreate(id);
+      });
 
     assertEquals("product-duplicate", ex.errorCode());
   }
@@ -792,19 +783,43 @@ public final class EIServerDatabaseTest
   {
     assertTrue(this.container.isRunning());
 
+    final var user =
+      this.createTestUser();
     final var transaction =
       this.transactionOf(this.container, NONE);
     final var products =
       transaction.queries(EIServerDatabaseProductsQueriesType.class);
-
     final var id =
       new EIProductIdentifier("com.io7m.ex", "com.q");
 
+    transaction.userIdSet(user.id());
+
     final var ex = assertThrows(EIServerDatabaseException.class, () -> {
-      products.productCreate(id, randomUUID());
+      products.productCreate(id);
     });
 
     assertEquals("sql-error", ex.errorCode());
+  }
+
+  private EIUser createTestUser()
+    throws
+    EIServerDatabaseException,
+    NoSuchAlgorithmException,
+    InvalidKeySpecException
+  {
+    final EIUser user;
+    {
+      final var transaction =
+        this.transactionOf(this.container, EIGION);
+      final var users =
+        transaction.queries(EIServerDatabaseUsersQueriesType.class);
+      final var p =
+        EIPassword.createHashed("12345678");
+      user =
+        users.userCreate("someone", "someone@example.com", p);
+      transaction.commit();
+    }
+    return user;
   }
 
   /**
@@ -819,10 +834,14 @@ public final class EIServerDatabaseTest
   {
     assertTrue(this.container.isRunning());
 
+    final var user =
+      this.createTestUser();
     final var transaction =
       this.transactionOf(this.container, EIGION);
     final var products =
       transaction.queries(EIServerDatabaseProductsQueriesType.class);
+
+    transaction.userIdSet(user.id());
 
     var ex = assertThrows(EIServerDatabaseException.class, () -> {
       products.productRedact(
@@ -834,7 +853,7 @@ public final class EIServerDatabaseTest
     assertEquals("product-nonexistent", ex.errorCode());
 
     final var redaction =
-      EIRedaction.redaction(randomUUID(), now(), "X");
+      redactionRequest(timeNow(), "X");
 
     ex = assertThrows(EIServerDatabaseException.class, () -> {
       products.productRedact(
@@ -873,8 +892,10 @@ public final class EIServerDatabaseTest
         "someone@example.com",
         EIPassword.createHashed("12345678"));
 
+    transaction.userIdSet(user.id());
+
     final var product =
-      products.productCreate(id, user.id());
+      products.productCreate(id);
 
     assertEquals(
       Set.of(id),
@@ -887,8 +908,10 @@ public final class EIServerDatabaseTest
 
     final var redaction =
       EIRedaction.redaction(user.id(), now(), "X");
+    final var redactionReq =
+      redactionRequestOpt(timeNow(), "X");
 
-    products.productRedact(id, Optional.of(redaction));
+    products.productRedact(id, redactionReq);
 
     assertEquals(
       Set.of(id),
@@ -920,45 +943,6 @@ public final class EIServerDatabaseTest
   }
 
   /**
-   * Redacting products without valid users fails.
-   *
-   * @throws Exception On errors
-   */
-
-  @Test
-  public void testProductRedactionNonexistentUser()
-    throws Exception
-  {
-    assertTrue(this.container.isRunning());
-
-    final var transaction =
-      this.transactionOf(this.container, EIGION);
-    final var products =
-      transaction.queries(EIServerDatabaseProductsQueriesType.class);
-    final var users =
-      transaction.queries(EIServerDatabaseUsersQueriesType.class);
-
-    final var id =
-      new EIProductIdentifier("com.io7m.ex", "com.q");
-    final var user =
-      users.userCreate(
-        "someone",
-        "someone@example.com",
-        EIPassword.createHashed("12345678"));
-
-    final var product =
-      products.productCreate(id, user.id());
-    final var redaction =
-      EIRedaction.redaction(randomUUID(), now(), "X");
-
-    final var ex = assertThrows(EIServerDatabaseException.class, () -> {
-      products.productRedact(id, Optional.of(redaction));
-    });
-
-    assertEquals("user-nonexistent", ex.errorCode());
-  }
-
-  /**
    * Product privileges are required.
    *
    * @throws Exception On errors
@@ -970,16 +954,20 @@ public final class EIServerDatabaseTest
   {
     assertTrue(this.container.isRunning());
 
+    final var user =
+      this.createTestUser();
     final var transaction =
       this.transactionOf(this.container, NONE);
     final var products =
       transaction.queries(EIServerDatabaseProductsQueriesType.class);
 
+    transaction.userIdSet(user.id());
+
     final var id =
       new EIProductIdentifier("com.io7m.ex", "com.q");
 
     final var redaction =
-      EIRedaction.redaction(randomUUID(), now(), "X");
+      redactionRequest(timeNow(), "X");
 
     final var ex = assertThrows(EIServerDatabaseException.class, () -> {
       products.productRedact(id, Optional.of(redaction));
@@ -1033,17 +1021,21 @@ public final class EIServerDatabaseTest
 
     final var id =
       new EIProductIdentifier("com.io7m.ex", "com.q");
+
     final var user =
       users.userCreate(
         "someone",
         "someone@example.com",
         EIPassword.createHashed("12345678"));
+
+    transaction.userIdSet(user.id());
+
     final var product =
-      products.productCreate(id, user.id());
+      products.productCreate(id);
 
     assertEquals(id, product.id());
     assertEquals(List.of(), product.releases());
-    assertEquals(Set.of(), product.categories());
+    assertEquals(Set.of(), product.description().categories());
 
     final var category0 =
       products.categoryCreate("Cat0");
@@ -1055,22 +1047,24 @@ public final class EIServerDatabaseTest
 
     {
       final var p = products.product(id, INCLUDE_REDACTED);
-      assertEquals(Set.of(category0, category1), p.categories());
+      assertEquals(Set.of(category0, category1), p.description().categories());
     }
 
     {
       final var p = products.product(id, EXCLUDE_REDACTED);
-      assertEquals(Set.of(category0, category1), p.categories());
+      assertEquals(Set.of(category0, category1), p.description().categories());
     }
 
     final var redaction =
       EIRedaction.redaction(user.id(), now(), "X");
+    final var redactionReq =
+      redactionRequestOpt(timeNow(), "X");
 
-    products.categoryRedact(category0, Optional.of(redaction));
+    products.categoryRedact(category0, redactionReq);
 
     {
       final var p = products.product(id, EXCLUDE_REDACTED);
-      assertEquals(Set.of(category1), p.categories());
+      assertEquals(Set.of(category1), p.description().categories());
     }
 
     products.productCategoryRemove(id, category0);
@@ -1078,7 +1072,7 @@ public final class EIServerDatabaseTest
 
     {
       final var p = products.product(id, INCLUDE_REDACTED);
-      assertEquals(Set.of(), p.categories());
+      assertEquals(Set.of(), p.description().categories());
     }
 
     checkAuditLog(
@@ -1107,10 +1101,14 @@ public final class EIServerDatabaseTest
   {
     assertTrue(this.container.isRunning());
 
+    final var user =
+      this.createTestUser();
     final var transaction =
       this.transactionOf(this.container, NONE);
     final var products =
       transaction.queries(EIServerDatabaseProductsQueriesType.class);
+
+    transaction.userIdSet(user.id());
 
     final var id =
       new EIProductIdentifier("com.io7m.ex", "com.q");
@@ -1142,15 +1140,18 @@ public final class EIServerDatabaseTest
   {
     assertTrue(this.container.isRunning());
 
+    final var user =
+      this.createTestUser();
     final var transaction =
       this.transactionOf(this.container, NONE);
     final var images =
       transaction.queries(EIServerDatabaseImagesQueriesType.class);
 
+    transaction.userIdSet(user.id());
+
     {
       final var ex = assertThrows(EIServerDatabaseException.class, () -> {
         images.imageCreate(
-          randomUUID(),
           randomUUID(),
           "text/plain",
           new byte[23]);
@@ -1198,9 +1199,11 @@ public final class EIServerDatabaseTest
         "someone@example.com",
         EIPassword.createHashed("12345678"));
 
+    transaction.userIdSet(user.id());
+
     final var id = randomUUID();
     final var image =
-      images.imageCreate(id, user.id(), "image/jpeg", new byte[23]);
+      images.imageCreate(id, "image/jpeg", new byte[23]);
 
     assertEquals(id, image.id());
     assertEquals("image/jpeg", image.contentType());
@@ -1214,7 +1217,7 @@ public final class EIServerDatabaseTest
 
     {
       final var ex = assertThrows(EIServerDatabaseException.class, () -> {
-        images.imageCreate(id, user.id(), "image/jpeg", new byte[23]);
+        images.imageCreate(id, "image/jpeg", new byte[23]);
       });
       assertEquals("image-duplicate", ex.errorCode());
     }
@@ -1222,7 +1225,7 @@ public final class EIServerDatabaseTest
     checkAuditLog(
       transaction,
       new ExpectedEvent("USER_CREATED", user.id().toString()),
-      new ExpectedEvent("IMAGE_CREATED", id + ":" + user.id())
+      new ExpectedEvent("IMAGE_CREATED", id.toString())
     );
   }
 
@@ -1251,15 +1254,18 @@ public final class EIServerDatabaseTest
         "someone@example.com",
         EIPassword.createHashed("12345678"));
 
-    final var imageId = randomUUID();
+    transaction.userIdSet(user.id());
+
+    final var imageId =
+      randomUUID();
     final var image =
-      images.imageCreate(imageId, user.id(), "image/jpeg", new byte[23]);
+      images.imageCreate(imageId, "image/jpeg", new byte[23]);
 
     assertTrue(images.imageGet(imageId, INCLUDE_REDACTED).isPresent());
     assertTrue(images.imageGet(imageId, EXCLUDE_REDACTED).isPresent());
 
     final var time = timeNow();
-    images.imageRedact(imageId, redactionOpt(user.id(), time, "X"));
+    images.imageRedact(imageId, redactionRequestOpt(time, "X"));
 
     assertTrue(images.imageGet(imageId, INCLUDE_REDACTED).isPresent());
     assertFalse(images.imageGet(imageId, EXCLUDE_REDACTED).isPresent());
@@ -1287,7 +1293,7 @@ public final class EIServerDatabaseTest
     checkAuditLog(
       transaction,
       new ExpectedEvent("USER_CREATED", user.id().toString()),
-      new ExpectedEvent("IMAGE_CREATED", imageId + ":" + user.id()),
+      new ExpectedEvent("IMAGE_CREATED", imageId.toString()),
       new ExpectedEvent("IMAGE_REDACTED", imageId.toString()),
       new ExpectedEvent("IMAGE_UNREDACTED", imageId.toString())
     );

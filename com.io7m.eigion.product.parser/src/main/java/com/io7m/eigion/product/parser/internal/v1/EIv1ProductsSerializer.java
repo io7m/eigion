@@ -23,15 +23,18 @@ import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.io7m.anethum.common.SerializeException;
 import com.io7m.eigion.model.EIChange;
 import com.io7m.eigion.model.EIChangeTicket;
+import com.io7m.eigion.model.EILink;
 import com.io7m.eigion.model.EIProduct;
 import com.io7m.eigion.model.EIProductBundleDependency;
 import com.io7m.eigion.model.EIProductCategory;
 import com.io7m.eigion.model.EIProductDependency;
+import com.io7m.eigion.model.EIProductDescription;
 import com.io7m.eigion.model.EIProductHash;
 import com.io7m.eigion.model.EIProductIdentifier;
 import com.io7m.eigion.model.EIProductRelease;
 import com.io7m.eigion.model.EIProductVersion;
 import com.io7m.eigion.model.EIProducts;
+import com.io7m.eigion.model.EIRichText;
 import com.io7m.eigion.product.parser.api.EIProductsSerializerType;
 
 import java.io.IOException;
@@ -80,7 +83,35 @@ public final class EIv1ProductsSerializer implements EIProductsSerializerType
     return new EIv1Product(
       convertProductId(product.id()),
       convertReleases(product.releases()),
-      convertCategories(product.categories())
+      convertProductDescription(product.description())
+    );
+  }
+
+  private static EIv1ProductDescription convertProductDescription(
+    final EIProductDescription description)
+  {
+    return new EIv1ProductDescription(
+      description.title(),
+      convertRichText(description.description()),
+      convertLinks(description.links()),
+      convertCategories(description.categories())
+    );
+  }
+
+  private static List<EIv1Link> convertLinks(
+    final List<EILink> links)
+  {
+    return links.stream()
+      .map(l -> new EIv1Link(l.relation(), l.location()))
+      .toList();
+  }
+
+  private static EIv1RichText convertRichText(
+    final EIRichText description)
+  {
+    return new EIv1RichText(
+      description.contentType(),
+      description.text()
     );
   }
 

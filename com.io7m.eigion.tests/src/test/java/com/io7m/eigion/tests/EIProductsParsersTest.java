@@ -142,7 +142,7 @@ public final class EIProductsParsersTest
     {
       final var p = products.products().get(0);
       assertEquals(EXAMPLE_ID, p.id());
-      assertEquals(EXAMPLE_CATEGORIES, p.categories());
+      assertEquals(EXAMPLE_CATEGORIES, p.description().categories());
 
       final var r = p.releases().get(0);
       assertEquals(ONE, r.version().major());
@@ -173,7 +173,7 @@ public final class EIProductsParsersTest
     {
       final var p = products.products().get(0);
       assertEquals(EXAMPLE_ID, p.id());
-      assertEquals(EXAMPLE_CATEGORIES, p.categories());
+      assertEquals(EXAMPLE_CATEGORIES, p.description().categories());
 
       final var r = p.releases().get(0);
       assertEquals(ONE, r.version().major());
@@ -203,7 +203,11 @@ public final class EIProductsParsersTest
       new ErrorCase("products-error-4.json", "invalid-hash"),
       new ErrorCase("products-error-5.json", "databind"),
       new ErrorCase("products-error-6.json", "databind"),
-      new ErrorCase("products-error-7.json", "databind")
+      new ErrorCase("products-error-7.json", "databind"),
+      new ErrorCase("products-error-8.json", "invalid-link"),
+      new ErrorCase("products-error-9.json", "invalid-product-description"),
+      new ErrorCase("products-error-10.json", "invalid-rich-text"),
+      new ErrorCase("products-error-11.json", "invalid-identifier")
     ).map(this::errorCaseFor);
   }
 
@@ -257,7 +261,7 @@ public final class EIProductsParsersTest
     {
       final var p = products.products().get(0);
       assertEquals(EXAMPLE_ID, p.id());
-      assertEquals(EXAMPLE_CATEGORIES, p.categories());
+      assertEquals(EXAMPLE_CATEGORIES, p.description().categories());
 
       final var r = p.releases().get(0);
       assertEquals(ONE, r.version().major());
@@ -288,7 +292,7 @@ public final class EIProductsParsersTest
     {
       final var p = products.products().get(0);
       assertEquals(EXAMPLE_ID, p.id());
-      assertEquals(EXAMPLE_CATEGORIES, p.categories());
+      assertEquals(EXAMPLE_CATEGORIES, p.description().categories());
 
       final var r = p.releases().get(0);
       assertEquals(ONE, r.version().major());

@@ -20,21 +20,15 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.io7m.anethum.common.ParseSeverity;
 import com.io7m.anethum.common.ParseStatus;
 import com.io7m.eigion.model.EIProduct;
-import com.io7m.eigion.model.EIProductCategory;
-import com.io7m.eigion.model.EIProductDependency;
 import com.io7m.eigion.model.EIProductRelease;
-import com.io7m.jlexing.core.LexicalPositions;
 
 import java.net.URI;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 import java.util.function.Consumer;
 
 /*
@@ -53,45 +47,21 @@ public final class EIv1Product implements EIv1FromV1Type<EIProduct>
   @JsonProperty(value = "Releases", required = true)
   public final List<EIv1ProductRelease> releases;
 
-  @JsonProperty(value = "Categories", required = true)
-  public final List<String> categories;
+  @JsonProperty(value = "Description", required = true)
+  public final EIv1ProductDescription description;
 
   @JsonCreator
   public EIv1Product(
     @JsonProperty(value = "ID", required = true) final EIv1ProductId inId,
     @JsonProperty(value = "Releases", required = true) final List<EIv1ProductRelease> inR,
-    @JsonProperty(value = "Categories", required = true) final List<String> inCategories)
+    @JsonProperty(value = "Description", required = true) final EIv1ProductDescription inD)
   {
     this.id =
       Objects.requireNonNull(inId, "name");
     this.releases =
       Objects.requireNonNull(inR, "releases");
-    this.categories =
-      Objects.requireNonNull(inCategories, "categories");
-  }
-
-  private static Optional<List<EIProductDependency>> toDependencies(
-    final List<EIv1ProductDependency> dependencies,
-    final URI source,
-    final Consumer<ParseStatus> errorConsumer)
-  {
-    var anyFailed = false;
-
-    final var newDeps =
-      new ArrayList<EIProductDependency>(dependencies.size());
-
-    for (final var dep : dependencies) {
-      final var newDep =
-        dep.toProduct(source, errorConsumer);
-
-      if (newDep.isEmpty()) {
-        anyFailed = true;
-        continue;
-      }
-      newDeps.add(newDep.get());
-    }
-
-    return anyFailed ? Optional.empty() : Optional.of(newDeps);
+    this.description =
+      Objects.requireNonNull(inD, "inD");
   }
 
   @Override
@@ -101,20 +71,20 @@ public final class EIv1Product implements EIv1FromV1Type<EIProduct>
   {
     final var newId =
       this.id.toProduct(source, errorConsumer);
-    final var newCategories =
-      this.toProductCategories(source, errorConsumer);
     final var newReleases =
       this.toReleases(source, errorConsumer);
+    final var newDescription =
+      this.description.toProduct(source, errorConsumer);
 
     if (newId.isPresent()
-      && newCategories.isPresent()
+      && newDescription.isPresent()
       && newReleases.isPresent()) {
 
       return Optional.of(
         new EIProduct(
           newId.get(),
           newReleases.get(),
-          newCategories.get(),
+          newDescription.get(),
           Optional.empty()
         )
       );
@@ -143,33 +113,5 @@ public final class EIv1Product implements EIv1FromV1Type<EIProduct>
     }
 
     return anyFailed ? Optional.empty() : Optional.of(releases);
-  }
-
-  private Optional<Set<EIProductCategory>> toProductCategories(
-    final URI source,
-    final Consumer<ParseStatus> errorConsumer)
-  {
-    var anyFailed = false;
-
-    final var categories =
-      new HashSet<EIProductCategory>(this.categories.size());
-
-    for (final var name : this.categories) {
-      try {
-        categories.add(EIProductCategory.category(name));
-      } catch (final IllegalArgumentException e) {
-        anyFailed = true;
-        errorConsumer.accept(
-          ParseStatus.builder()
-            .setMessage(e.getMessage())
-            .setLexical(LexicalPositions.zeroWithFile(source))
-            .setErrorCode("invalid-category")
-            .setSeverity(ParseSeverity.PARSE_ERROR)
-            .build()
-        );
-      }
-    }
-
-    return anyFailed ? Optional.empty() : Optional.of(categories);
   }
 }

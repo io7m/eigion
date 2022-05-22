@@ -18,38 +18,42 @@ package com.io7m.eigion.model;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
+import java.util.Set;
 
 /**
- * A product.
+ * Descriptive metadata about a product intended for human consumption.
  *
- * @param id          The product identifier
- * @param releases    The bundles upon which the product depends
+ * @param title       The product title
  * @param description The product description
- * @param redaction   The product redaction, if any
+ * @param categories  The product categories
+ * @param links       The product links
  */
 
-public record EIProduct(
-  EIProductIdentifier id,
-  List<EIProductRelease> releases,
-  EIProductDescription description,
-  Optional<EIRedaction> redaction)
-  implements EIRedactableType
+public record EIProductDescription(
+  String title,
+  EIRichText description,
+  Set<EIProductCategory> categories,
+  List<EILink> links)
 {
   /**
-   * A product.
+   * Descriptive metadata about a product intended for human consumption.
    *
-   * @param id          The product identifier
-   * @param releases    The bundles upon which the product depends
+   * @param title       The product title
    * @param description The product description
-   * @param redaction   The product redaction, if any
+   * @param categories  The product categories
+   * @param links       The product links
    */
 
-  public EIProduct
+  public EIProductDescription
   {
-    Objects.requireNonNull(id, "id");
-    Objects.requireNonNull(releases, "releases");
+    Objects.requireNonNull(title, "title");
     Objects.requireNonNull(description, "description");
-    Objects.requireNonNull(redaction, "redaction");
+    Objects.requireNonNull(categories, "categories");
+    Objects.requireNonNull(links, "links");
+
+    if (title.length() > 128) {
+      throw new IllegalArgumentException(
+        "Product titles must be <= 128 characters");
+    }
   }
 }

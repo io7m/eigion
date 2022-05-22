@@ -38,21 +38,6 @@ create table schema_version (
 
   <Schema versionCurrent="1">
     <Comment>
-      The audit table stores a list of auditable events.
-    </Comment>
-
-    <Statement><![CDATA[
-create table audit (
-  id      bigint                   not null primary key generated always as identity,
-  time    timestamp with time zone not null,
-  type    varchar(64)              not null,
-  message varchar(8192)            not null
-)
-]]></Statement>
-
-    <Statement>grant insert, select on audit to eigion</Statement>
-
-    <Comment>
       The users table stores the current set of users.
     </Comment>
 
@@ -70,6 +55,7 @@ create table users (
 ]]></Statement>
 
     <Statement>grant select, insert, update on users to eigion</Statement>
+    <Statement>grant select (id) on users to eigion_none</Statement>
 
     <Comment>
       The user_bans table stores the set of users that might be banned for any reason.
@@ -87,6 +73,24 @@ create table user_bans (
 ]]></Statement>
 
     <Statement>grant select, insert, update, delete on user_bans to eigion</Statement>
+
+    <Comment>
+      The audit table stores a list of auditable events. Who did it? What did they do? When did they do it?
+    </Comment>
+
+    <Statement><![CDATA[
+create table audit (
+  id      bigint                   not null primary key generated always as identity,
+  user_id uuid                     not null,
+  time    timestamp with time zone not null,
+  type    varchar(64)              not null,
+  message varchar(8192)            not null,
+
+  foreign key (user_id) references users (id)
+)
+]]></Statement>
+
+    <Statement>grant insert, select on audit to eigion</Statement>
   </Schema>
 
   <Schema versionCurrent="2">
@@ -165,11 +169,14 @@ create table category_redactions (
 
     <Statement><![CDATA[
 create table products (
-  id             bigint                   not null primary key generated always as identity,
-  product_group  varchar(1024)            not null,
-  product_name   varchar(1024)            not null,
-  created_by     uuid                     not null,
-  created        timestamp with time zone not null,
+  id                        bigint                   not null primary key generated always as identity,
+  product_group             varchar(1024)            not null,
+  product_name              varchar(1024)            not null,
+  product_title             varchar(128)             not null,
+  product_description       text                     not null,
+  product_description_type  varchar(128)             not null,
+  created_by                uuid                     not null,
+  created                   timestamp with time zone not null,
 
   unique (product_group, product_name),
 
@@ -178,6 +185,25 @@ create table products (
 ]]></Statement>
 
     <Statement>grant select, insert on products to eigion</Statement>
+    <Statement>grant update (product_title)            on products to eigion</Statement>
+    <Statement>grant update (product_description)      on products to eigion</Statement>
+    <Statement>grant update (product_description_type) on products to eigion</Statement>
+
+    <Comment>
+      The product_links table holds links associated with products.
+    </Comment>
+
+    <Statement><![CDATA[
+create table product_links (
+  product        bigint        not null,
+  link_relation  varchar(128)  not null,
+  link_location  varchar(2048) not null,
+
+  foreign key (product) references products (id)
+)
+]]></Statement>
+
+    <Statement>grant select, insert on product_links to eigion</Statement>
 
     <Comment>
       The product_redactions table holds the set of products that have been redacted.

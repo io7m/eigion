@@ -37,6 +37,7 @@ record EIServerDatabaseAuditQueries(
   {
     return new EIAuditEvent(
       record.getId().longValue(),
+      record.getUserId(),
       record.getTime(),
       record.getType(),
       record.getMessage()

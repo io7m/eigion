@@ -17,18 +17,24 @@
 
 package com.io7m.eigion.server.database.postgres.internal;
 
+import com.io7m.eigion.model.EILink;
 import com.io7m.eigion.model.EIProduct;
 import com.io7m.eigion.model.EIProductCategory;
+import com.io7m.eigion.model.EIProductDescription;
 import com.io7m.eigion.model.EIProductIdentifier;
 import com.io7m.eigion.model.EIProductRelease;
 import com.io7m.eigion.model.EIRedactableType;
 import com.io7m.eigion.model.EIRedaction;
+import com.io7m.eigion.model.EIRedactionRequest;
+import com.io7m.eigion.model.EIRichText;
 import com.io7m.eigion.model.EIUser;
 import com.io7m.eigion.server.database.api.EIServerDatabaseException;
 import com.io7m.eigion.server.database.api.EIServerDatabaseIncludeRedacted;
 import com.io7m.eigion.server.database.api.EIServerDatabaseProductsQueriesType;
+import com.io7m.eigion.server.database.api.EIServerDatabaseRequiresUser;
 import com.io7m.eigion.server.database.api.EIServerDatabaseUsersQueriesType;
 import com.io7m.eigion.server.database.postgres.internal.tables.records.AuditRecord;
+import com.io7m.eigion.server.database.postgres.internal.tables.records.ProductLinksRecord;
 import com.io7m.jaffirm.core.Postconditions;
 import com.io7m.jaffirm.core.Preconditions;
 import com.io7m.junreachable.UnimplementedCodeException;
@@ -37,7 +43,9 @@ import org.jooq.InsertSetMoreStep;
 import org.jooq.Record;
 import org.jooq.exception.DataAccessException;
 
+import java.net.URI;
 import java.time.OffsetDateTime;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -46,9 +54,12 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static com.io7m.eigion.server.database.api.EIServerDatabaseIncludeRedacted.INCLUDE_REDACTED;
+import static com.io7m.eigion.server.database.postgres.internal.EIServerDatabaseProductsQueries.ProductInformationComponents.INCLUDE_CATEGORIES;
+import static com.io7m.eigion.server.database.postgres.internal.EIServerDatabaseProductsQueries.ProductInformationComponents.INCLUDE_DESCRIPTION;
 import static com.io7m.eigion.server.database.postgres.internal.Tables.CATEGORY_REDACTIONS;
 import static com.io7m.eigion.server.database.postgres.internal.Tables.PRODUCTS;
 import static com.io7m.eigion.server.database.postgres.internal.Tables.PRODUCT_CATEGORIES;
+import static com.io7m.eigion.server.database.postgres.internal.Tables.PRODUCT_LINKS;
 import static com.io7m.eigion.server.database.postgres.internal.Tables.PRODUCT_REDACTIONS;
 import static com.io7m.eigion.server.database.postgres.internal.tables.Audit.AUDIT;
 import static com.io7m.eigion.server.database.postgres.internal.tables.Categories.CATEGORIES;
@@ -57,6 +68,9 @@ import static java.lang.Long.valueOf;
 final class EIServerDatabaseProductsQueries
   implements EIServerDatabaseProductsQueriesType
 {
+  private static final EnumSet<ProductInformationComponents> INCLUDE_NOTHING =
+    EnumSet.noneOf(ProductInformationComponents.class);
+
   private final EIServerDatabaseTransaction transaction;
   private final EIServerDatabaseUsersQueriesType users;
 
@@ -79,7 +93,23 @@ final class EIServerDatabaseProductsQueries
       .leftOuterJoin(PRODUCT_REDACTIONS)
       .on(PRODUCT_REDACTIONS.PRODUCT.eq(PRODUCTS.ID))
       .stream()
-      .map(r -> toProductWithRedaction(r, Set.of()))
+      .map(r -> {
+        final var descriptionText =
+          new EIRichText(
+            r.get(PRODUCTS.PRODUCT_DESCRIPTION_TYPE),
+            r.get(PRODUCTS.PRODUCT_DESCRIPTION)
+          );
+
+        final var description =
+          new EIProductDescription(
+            r.get(PRODUCTS.PRODUCT_TITLE),
+            descriptionText,
+            Set.of(),
+            List.of()
+          );
+
+        return toProductWithRedaction(r, description);
+      })
       .filter(r -> filterRedactedIfNecessary(r, includeRedacted))
       .toList();
   }
@@ -87,8 +117,7 @@ final class EIServerDatabaseProductsQueries
   private static Optional<EIDatabaseProduct> fetchProductOptional(
     final EIProductIdentifier id,
     final EIServerDatabaseIncludeRedacted includeRedacted,
-    final boolean includeCategories,
-    final boolean includeReleases,
+    final EnumSet<ProductInformationComponents> includes,
     final DSLContext context)
   {
     final var productRec =
@@ -106,27 +135,32 @@ final class EIServerDatabaseProductsQueries
       return Optional.empty();
     }
 
-    final Set<EIDatabaseProductCategory> productCats;
-    if (includeCategories) {
-      productCats = context.select()
-        .from(CATEGORIES)
-        .leftOuterJoin(CATEGORY_REDACTIONS)
-        .on(CATEGORY_REDACTIONS.CATEGORY.eq(CATEGORIES.ID))
-        .join(PRODUCT_CATEGORIES)
-        .on(PRODUCT_CATEGORIES.CATEGORY_ID.eq(CATEGORIES.ID))
-        .join(PRODUCTS)
-        .on(PRODUCT_CATEGORIES.CATEGORY_PRODUCT.eq(productRec.field(PRODUCTS.ID)))
-        .where(PRODUCT_CATEGORIES.CATEGORY_PRODUCT.eq(productRec.field(PRODUCTS.ID)))
-        .stream()
-        .map(EIServerDatabaseProductsQueries::toCategoryWithRedaction)
-        .filter(c -> filterRedactedIfNecessary(c, includeRedacted))
-        .collect(Collectors.toUnmodifiableSet());
-    } else {
-      productCats = Set.of();
-    }
+    final var productId =
+      productRec.get(PRODUCTS.ID);
+
+    final var descriptionText =
+      new EIRichText(
+        productRec.get(PRODUCTS.PRODUCT_DESCRIPTION_TYPE),
+        productRec.get(PRODUCTS.PRODUCT_DESCRIPTION)
+      );
+
+    final var categories =
+      fetchProductCategories(productId, includeRedacted, includes, context);
+    final var links =
+      fetchProductLinks(productId, includes, context);
+
+    final var description =
+      new EIProductDescription(
+        productRec.get(PRODUCTS.PRODUCT_TITLE),
+        descriptionText,
+        categories.stream()
+          .map(EIDatabaseProductCategory::category)
+          .collect(Collectors.toUnmodifiableSet()),
+        links
+      );
 
     final var product =
-      toProductWithRedaction(productRec, productCats);
+      toProductWithRedaction(productRec, description);
 
     if (!filterRedactedIfNecessary(product, includeRedacted)) {
       return Optional.empty();
@@ -135,20 +169,62 @@ final class EIServerDatabaseProductsQueries
     return Optional.of(product);
   }
 
+  private static Set<EIDatabaseProductCategory> fetchProductCategories(
+    final Long productId,
+    final EIServerDatabaseIncludeRedacted includeRedacted,
+    final EnumSet<ProductInformationComponents> includes,
+    final DSLContext context)
+  {
+    if (includes.contains(INCLUDE_CATEGORIES)) {
+      return context.select()
+        .from(CATEGORIES)
+        .leftOuterJoin(CATEGORY_REDACTIONS)
+        .on(CATEGORY_REDACTIONS.CATEGORY.eq(CATEGORIES.ID))
+        .join(PRODUCT_CATEGORIES)
+        .on(PRODUCT_CATEGORIES.CATEGORY_ID.eq(CATEGORIES.ID))
+        .join(PRODUCTS)
+        .on(PRODUCT_CATEGORIES.CATEGORY_PRODUCT.eq(productId))
+        .where(PRODUCT_CATEGORIES.CATEGORY_PRODUCT.eq(productId))
+        .stream()
+        .map(EIServerDatabaseProductsQueries::toCategoryWithRedaction)
+        .filter(c -> filterRedactedIfNecessary(c, includeRedacted))
+        .collect(Collectors.toUnmodifiableSet());
+    }
+    return Set.of();
+  }
+
+  private static List<EILink> fetchProductLinks(
+    final Long productId,
+    final EnumSet<ProductInformationComponents> includes,
+    final DSLContext context)
+  {
+    if (includes.contains(INCLUDE_DESCRIPTION)) {
+      return context.selectFrom(PRODUCT_LINKS)
+        .where(PRODUCT_LINKS.PRODUCT.eq(productId))
+        .stream()
+        .map(EIServerDatabaseProductsQueries::toLink)
+        .toList();
+    }
+    return List.of();
+  }
+
+  private static EILink toLink(
+    final ProductLinksRecord rec)
+  {
+    return new EILink(
+      rec.getLinkRelation(),
+      URI.create(rec.getLinkLocation())
+    );
+  }
+
   private static EIDatabaseProduct fetchProductOrFail(
     final EIProductIdentifier id,
     final EIServerDatabaseIncludeRedacted includeRedacted,
-    final boolean includeCategories,
-    final boolean includeReleases,
+    final EnumSet<ProductInformationComponents> includes,
     final DSLContext context)
     throws EIServerDatabaseException
   {
-    return fetchProductOptional(
-      id,
-      includeRedacted,
-      includeCategories,
-      includeReleases,
-      context)
+    return fetchProductOptional(id, includeRedacted, includes, context)
       .orElseThrow(() -> {
         return new EIServerDatabaseException(
           "Product does not exist",
@@ -173,7 +249,7 @@ final class EIServerDatabaseProductsQueries
 
   private static EIDatabaseProduct toProductWithRedaction(
     final Record productRec,
-    final Set<EIDatabaseProductCategory> productCats)
+    final EIProductDescription description)
   {
     return new EIDatabaseProduct(
       productRec.<Long>get(PRODUCTS.ID).longValue(),
@@ -183,9 +259,7 @@ final class EIServerDatabaseProductsQueries
           productRec.get(PRODUCTS.PRODUCT_NAME)
         ),
         List.of(),
-        productCats.stream()
-          .map(EIDatabaseProductCategory::category)
-          .collect(Collectors.toUnmodifiableSet()),
+        description,
         toProductRedaction(productRec)
       )
     );
@@ -243,7 +317,7 @@ final class EIServerDatabaseProductsQueries
   }
 
   private static String redactionReason(
-    final Optional<EIRedaction> redacted,
+    final Optional<EIRedactionRequest> redacted,
     final EIProductIdentifier id)
   {
     return redacted.map(r -> id.show() + ": " + r.reason())
@@ -316,13 +390,17 @@ final class EIServerDatabaseProductsQueries
   }
 
   @Override
+  @EIServerDatabaseRequiresUser
   public EIProductCategory categoryCreate(
     final String text)
     throws EIServerDatabaseException
   {
     Objects.requireNonNull(text, "text");
 
-    final var context = this.transaction.createContext();
+    final var owner =
+      this.transaction.userId();
+    final var context =
+      this.transaction.createContext();
 
     try {
       final var existingOpt =
@@ -348,6 +426,7 @@ final class EIServerDatabaseProductsQueries
         context.insertInto(AUDIT)
           .set(AUDIT.TIME, time)
           .set(AUDIT.TYPE, "CATEGORY_CREATED")
+          .set(AUDIT.USER_ID, owner)
           .set(AUDIT.MESSAGE, text);
 
       insertAuditRecord(audit);
@@ -363,15 +442,19 @@ final class EIServerDatabaseProductsQueries
   }
 
   @Override
+  @EIServerDatabaseRequiresUser
   public EIProductCategory categoryRedact(
     final String category,
-    final Optional<EIRedaction> redacted)
+    final Optional<EIRedactionRequest> redacted)
     throws EIServerDatabaseException
   {
     Objects.requireNonNull(category, "category");
     Objects.requireNonNull(redacted, "redacted");
 
-    final var context = this.transaction.createContext();
+    final var owner =
+      this.transaction.userId();
+    final var context =
+      this.transaction.createContext();
 
     try {
       final var categoryRec =
@@ -398,13 +481,12 @@ final class EIServerDatabaseProductsQueries
 
       if (redacted.isPresent()) {
         final var redact = redacted.get();
-        this.fetchUserOrFail(redact.creator());
 
         final var inserted =
           context.insertInto(CATEGORY_REDACTIONS)
             .set(CATEGORY_REDACTIONS.CATEGORY, valueOf(categoryRec.id()))
             .set(CATEGORY_REDACTIONS.REASON, redact.reason())
-            .set(CATEGORY_REDACTIONS.CREATOR, redact.creator())
+            .set(CATEGORY_REDACTIONS.CREATOR, owner)
             .set(CATEGORY_REDACTIONS.CREATED, redact.created())
             .execute();
 
@@ -425,29 +507,35 @@ final class EIServerDatabaseProductsQueries
         context.insertInto(AUDIT)
           .set(AUDIT.TIME, time)
           .set(AUDIT.TYPE, redactType)
+          .set(AUDIT.USER_ID, owner)
           .set(AUDIT.MESSAGE, category);
 
       insertAuditRecord(audit);
-      return new EIProductCategory(category, redacted);
+      return new EIProductCategory(
+        category,
+        redacted.map(r -> new EIRedaction(owner, r.created(), r.reason()))
+      );
     } catch (final DataAccessException e) {
       throw new EIServerDatabaseException(e.getMessage(), e, "sql-error");
     }
   }
 
   @Override
+  @EIServerDatabaseRequiresUser
   public EIProduct productCreate(
-    final EIProductIdentifier id,
-    final UUID userId)
+    final EIProductIdentifier id)
     throws EIServerDatabaseException
   {
     Objects.requireNonNull(id, "id");
-    Objects.requireNonNull(userId, "userId");
 
-    final var context = this.transaction.createContext();
+    final var owner =
+      this.transaction.userId();
+    final var context =
+      this.transaction.createContext();
 
     try {
       final var existing =
-        fetchProductOptional(id, INCLUDE_REDACTED, false, false, context);
+        fetchProductOptional(id, INCLUDE_REDACTED, INCLUDE_NOTHING, context);
 
       if (existing.isPresent()) {
         throw new EIServerDatabaseException(
@@ -456,16 +544,17 @@ final class EIServerDatabaseProductsQueries
         );
       }
 
-      this.fetchUserOrFail(userId);
-
       final var time = this.currentTime();
 
       final var inserted =
         context.insertInto(PRODUCTS)
           .set(PRODUCTS.PRODUCT_GROUP, id.group())
           .set(PRODUCTS.PRODUCT_NAME, id.name())
-          .set(PRODUCTS.CREATED_BY, userId)
+          .set(PRODUCTS.CREATED_BY, owner)
           .set(PRODUCTS.CREATED, time)
+          .set(PRODUCTS.PRODUCT_TITLE, "")
+          .set(PRODUCTS.PRODUCT_DESCRIPTION, "")
+          .set(PRODUCTS.PRODUCT_DESCRIPTION_TYPE, "text/plain")
           .execute();
 
       Preconditions.checkPreconditionV(
@@ -478,29 +567,44 @@ final class EIServerDatabaseProductsQueries
         context.insertInto(AUDIT)
           .set(AUDIT.TIME, time)
           .set(AUDIT.TYPE, "PRODUCT_CREATED")
+          .set(AUDIT.USER_ID, owner)
           .set(AUDIT.MESSAGE, id.show());
 
       insertAuditRecord(audit);
-      return new EIProduct(id, List.of(), Set.of(), Optional.empty());
+      return new EIProduct(
+        id,
+        List.of(),
+        new EIProductDescription(
+          "",
+          new EIRichText("text/plain", ""),
+          Set.of(),
+          List.of()
+        ),
+        Optional.empty()
+      );
     } catch (final DataAccessException e) {
       throw new EIServerDatabaseException(e.getMessage(), e, "sql-error");
     }
   }
 
   @Override
+  @EIServerDatabaseRequiresUser
   public void productRedact(
     final EIProductIdentifier id,
-    final Optional<EIRedaction> redacted)
+    final Optional<EIRedactionRequest> redacted)
     throws EIServerDatabaseException
   {
     Objects.requireNonNull(id, "id");
     Objects.requireNonNull(redacted, "redacted");
 
-    final var context = this.transaction.createContext();
+    final var owner =
+      this.transaction.userId();
+    final var context =
+      this.transaction.createContext();
 
     try {
       final var existing =
-        fetchProductOrFail(id, INCLUDE_REDACTED, false, false, context);
+        fetchProductOrFail(id, INCLUDE_REDACTED, INCLUDE_NOTHING, context);
 
       final var time = this.currentTime();
 
@@ -518,14 +622,14 @@ final class EIServerDatabaseProductsQueries
        */
 
       if (redacted.isPresent()) {
-        final var redact = redacted.get();
-        this.fetchUserOrFail(redact.creator());
+        final var redact =
+          redacted.get();
 
         final var inserted =
           context.insertInto(PRODUCT_REDACTIONS)
             .set(PRODUCT_REDACTIONS.PRODUCT, valueOf(existing.id()))
             .set(PRODUCT_REDACTIONS.REASON, redact.reason())
-            .set(PRODUCT_REDACTIONS.CREATOR, redact.creator())
+            .set(PRODUCT_REDACTIONS.CREATOR, owner)
             .set(PRODUCT_REDACTIONS.CREATED, redact.created())
             .execute();
 
@@ -543,6 +647,7 @@ final class EIServerDatabaseProductsQueries
         context.insertInto(AUDIT)
           .set(AUDIT.TIME, time)
           .set(AUDIT.TYPE, auditType)
+          .set(AUDIT.USER_ID, owner)
           .set(AUDIT.MESSAGE, redactionReason(redacted, id));
 
       insertAuditRecord(audit);
@@ -581,14 +686,19 @@ final class EIServerDatabaseProductsQueries
     final var context = this.transaction.createContext();
 
     try {
-      return fetchProductOrFail(id, includeRedacted, true, true, context)
-        .product();
+      return fetchProductOrFail(
+        id,
+        includeRedacted,
+        EnumSet.allOf(ProductInformationComponents.class),
+        context
+      ).product();
     } catch (final DataAccessException e) {
       throw new EIServerDatabaseException(e.getMessage(), e, "sql-error");
     }
   }
 
   @Override
+  @EIServerDatabaseRequiresUser
   public void productCategoryAdd(
     final EIProductIdentifier id,
     final EIProductCategory category)
@@ -597,12 +707,14 @@ final class EIServerDatabaseProductsQueries
     Objects.requireNonNull(id, "id");
     Objects.requireNonNull(category, "category");
 
+    final var owner =
+      this.transaction.userId();
     final var context =
       this.transaction.createContext();
 
     try {
       final var productRec =
-        fetchProductOrFail(id, INCLUDE_REDACTED, false, false, context);
+        fetchProductOrFail(id, INCLUDE_REDACTED, INCLUDE_NOTHING, context);
       final var categoryRec =
         fetchCategoryOrFail(category, INCLUDE_REDACTED, context);
 
@@ -632,6 +744,7 @@ final class EIServerDatabaseProductsQueries
         context.insertInto(AUDIT)
           .set(AUDIT.TIME, this.currentTime())
           .set(AUDIT.TYPE, "PRODUCT_CATEGORY_ADDED")
+          .set(AUDIT.USER_ID, owner)
           .set(AUDIT.MESSAGE, id.show() + ":" + category.value());
 
       insertAuditRecord(audit);
@@ -641,6 +754,7 @@ final class EIServerDatabaseProductsQueries
   }
 
   @Override
+  @EIServerDatabaseRequiresUser
   public void productCategoryRemove(
     final EIProductIdentifier id,
     final EIProductCategory category)
@@ -649,12 +763,14 @@ final class EIServerDatabaseProductsQueries
     Objects.requireNonNull(id, "id");
     Objects.requireNonNull(category, "category");
 
+    final var owner =
+      this.transaction.userId();
     final var context =
       this.transaction.createContext();
 
     try {
       final var productRec =
-        fetchProductOrFail(id, INCLUDE_REDACTED, false, false, context);
+        fetchProductOrFail(id, INCLUDE_REDACTED, INCLUDE_NOTHING, context);
       final var categoryRec =
         fetchCategoryOrFail(category, INCLUDE_REDACTED, context);
 
@@ -673,6 +789,7 @@ final class EIServerDatabaseProductsQueries
           context.insertInto(AUDIT)
             .set(AUDIT.TIME, this.currentTime())
             .set(AUDIT.TYPE, "PRODUCT_CATEGORY_REMOVED")
+            .set(AUDIT.USER_ID, owner)
             .set(AUDIT.MESSAGE, id.show() + ":" + category.value());
 
         insertAuditRecord(audit);
@@ -683,23 +800,78 @@ final class EIServerDatabaseProductsQueries
   }
 
   @Override
+  @EIServerDatabaseRequiresUser
+  public void productSetTitle(
+    final EIProductIdentifier id,
+    final String title)
+    throws EIServerDatabaseException
+  {
+    Objects.requireNonNull(id, "id");
+    Objects.requireNonNull(title, "title");
+
+    final var owner =
+      this.transaction.userId();
+    final var context =
+      this.transaction.createContext();
+
+    try {
+      final var product =
+        fetchProductOrFail(id, INCLUDE_REDACTED, INCLUDE_NOTHING, context);
+
+
+
+    } catch (final DataAccessException e) {
+      throw new EIServerDatabaseException(e.getMessage(), e, "sql-error");
+    }
+  }
+
+  @Override
+  @EIServerDatabaseRequiresUser
+  public void productSetDescription(
+    final EIProductIdentifier id,
+    final EIRichText description)
+    throws EIServerDatabaseException
+  {
+    Objects.requireNonNull(id, "id");
+    Objects.requireNonNull(description, "description");
+
+    final var owner =
+      this.transaction.userId();
+    final var context =
+      this.transaction.createContext();
+
+    try {
+      final var product =
+        fetchProductOrFail(id, INCLUDE_REDACTED, INCLUDE_NOTHING, context);
+
+    } catch (final DataAccessException e) {
+      throw new EIServerDatabaseException(e.getMessage(), e, "sql-error");
+    }
+  }
+
+  @Override
+  @EIServerDatabaseRequiresUser
   public void productReleaseCreate(
     final EIProductIdentifier id,
-    final UUID creator,
     final EIProductRelease release)
     throws EIServerDatabaseException
   {
     Objects.requireNonNull(id, "id");
-    Objects.requireNonNull(creator, "creator");
     Objects.requireNonNull(release, "release");
 
-    final var context = this.transaction.createContext();
+    final var owner =
+      this.transaction.userId();
+    final var context =
+      this.transaction.createContext();
 
     try {
       final var product =
-        fetchProductOrFail(id, INCLUDE_REDACTED, false, false, context);
-      final var user =
-        this.fetchUserOrFail(creator);
+        fetchProductOrFail(
+          id,
+          INCLUDE_REDACTED,
+          INCLUDE_NOTHING,
+          context
+        );
 
       throw new UnimplementedCodeException();
     } catch (final DataAccessException e) {
@@ -717,6 +889,13 @@ final class EIServerDatabaseProductsQueries
         "user-nonexistent"
       );
     });
+  }
+
+  enum ProductInformationComponents
+  {
+    INCLUDE_CATEGORIES,
+    INCLUDE_RELEASES,
+    INCLUDE_DESCRIPTION
   }
 
   private record EIDatabaseProduct(

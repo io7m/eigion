@@ -16,6 +16,8 @@
 
 package com.io7m.eigion.server.database.api;
 
+import java.util.UUID;
+
 /**
  * A database transaction. If the transaction is closed, it is automatically
  * rolled back.
@@ -23,6 +25,27 @@ package com.io7m.eigion.server.database.api;
 
 public interface EIServerDatabaseTransactionType extends AutoCloseable
 {
+  /**
+   * Set the user ID for the transaction. This is the ID that will typically end
+   * up in audit events.
+   *
+   * @param userId The user ID
+   *
+   * @throws EIServerDatabaseException On errors
+   */
+
+  void userIdSet(UUID userId)
+    throws EIServerDatabaseException;
+
+  /**
+   * @return The current user ID
+   *
+   * @throws EIServerDatabaseException On errors
+   */
+
+  UUID userId()
+    throws EIServerDatabaseException;
+
   /**
    * Obtain queries for the transaction.
    *

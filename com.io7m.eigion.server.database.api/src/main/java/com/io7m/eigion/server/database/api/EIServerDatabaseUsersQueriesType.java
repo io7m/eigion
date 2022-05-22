@@ -123,6 +123,7 @@ public non-sealed interface EIServerDatabaseUsersQueriesType
    * @throws EIServerDatabaseException On errors
    */
 
+  @EIServerDatabaseRequiresUser
   void userBan(
     UUID id,
     Optional<OffsetDateTime> expires,
@@ -137,6 +138,7 @@ public non-sealed interface EIServerDatabaseUsersQueriesType
    * @throws EIServerDatabaseException On errors
    */
 
+  @EIServerDatabaseRequiresUser
   void userUnban(
     UUID id)
     throws EIServerDatabaseException;

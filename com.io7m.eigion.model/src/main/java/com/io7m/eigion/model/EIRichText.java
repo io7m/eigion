@@ -16,42 +16,36 @@
 
 package com.io7m.eigion.model;
 
-import java.time.OffsetDateTime;
 import java.util.Objects;
-import java.util.UUID;
 
 /**
- * An audit event.
+ * A piece of rich text. Rich text in this case may be HTML, markdown, or some
+ * other interpreted text format.
  *
- * @param id      The unique event ID
- * @param owner   The event owner
- * @param time    The event time
- * @param message The event message
- * @param type    The event type
+ * @param contentType The content type
+ * @param text        The text
  */
 
-public record EIAuditEvent(
-  long id,
-  UUID owner,
-  OffsetDateTime time,
-  String type,
-  String message)
+public record EIRichText(
+  String contentType,
+  String text)
 {
   /**
-   * An audit event.
+   * A piece of rich text. Rich text in this case may be HTML, markdown, or some
+   * other interpreted text format.
    *
-   * @param id      The unique event ID
-   * @param owner   The event owner
-   * @param time    The event time
-   * @param message The event message
-   * @param type    The event type
+   * @param contentType The content type
+   * @param text        The text
    */
 
-  public EIAuditEvent
+  public EIRichText
   {
-    Objects.requireNonNull(owner, "owner");
-    Objects.requireNonNull(time, "time");
-    Objects.requireNonNull(type, "type");
-    Objects.requireNonNull(message, "message");
+    Objects.requireNonNull(contentType, "contentType");
+    Objects.requireNonNull(text, "text");
+
+    if (contentType.length() > 128) {
+      throw new IllegalArgumentException(
+        "Content types must be <= 128 characters");
+    }
   }
 }

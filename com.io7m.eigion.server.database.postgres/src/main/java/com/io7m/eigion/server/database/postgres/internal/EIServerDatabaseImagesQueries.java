@@ -19,10 +19,12 @@ package com.io7m.eigion.server.database.postgres.internal;
 import com.io7m.eigion.model.EICreation;
 import com.io7m.eigion.model.EIImage;
 import com.io7m.eigion.model.EIRedaction;
+import com.io7m.eigion.model.EIRedactionRequest;
 import com.io7m.eigion.model.EIUser;
 import com.io7m.eigion.server.database.api.EIServerDatabaseException;
 import com.io7m.eigion.server.database.api.EIServerDatabaseImagesQueriesType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseIncludeRedacted;
+import com.io7m.eigion.server.database.api.EIServerDatabaseRequiresUser;
 import com.io7m.eigion.server.database.api.EIServerDatabaseUsersQueriesType;
 import com.io7m.eigion.server.database.postgres.internal.tables.records.AuditRecord;
 import com.io7m.jaffirm.core.Postconditions;
@@ -58,19 +60,21 @@ final class EIServerDatabaseImagesQueries
   }
 
   @Override
+  @EIServerDatabaseRequiresUser
   public EIImage imageCreate(
     final UUID id,
-    final UUID creator,
     final String contentType,
     final byte[] data)
     throws EIServerDatabaseException
   {
     Objects.requireNonNull(id, "id");
-    Objects.requireNonNull(creator, "creator");
     Objects.requireNonNull(contentType, "contentType");
     Objects.requireNonNull(data, "data");
 
-    final var context = this.transaction.createContext();
+    final var owner =
+      this.transaction.userId();
+    final var context =
+      this.transaction.createContext();
 
     try {
       if (this.imageGet(id, INCLUDE_REDACTED).isPresent()) {
@@ -80,7 +84,7 @@ final class EIServerDatabaseImagesQueries
         );
       }
 
-      this.fetchUserOrFail(creator);
+      this.fetchUserOrFail(owner);
 
       final var time =
         this.currentTime();
@@ -89,7 +93,7 @@ final class EIServerDatabaseImagesQueries
         context.insertInto(IMAGES)
           .set(IMAGES.ID, id)
           .set(IMAGES.CREATED, time)
-          .set(IMAGES.CREATOR, creator)
+          .set(IMAGES.CREATOR, owner)
           .set(IMAGES.CONTENT_TYPE, contentType)
           .set(IMAGES.IMAGE_DATA, data)
           .execute();
@@ -104,14 +108,15 @@ final class EIServerDatabaseImagesQueries
         context.insertInto(AUDIT)
           .set(AUDIT.TIME, time)
           .set(AUDIT.TYPE, "IMAGE_CREATED")
-          .set(AUDIT.MESSAGE, id + ":" + creator);
+          .set(AUDIT.USER_ID, owner)
+          .set(AUDIT.MESSAGE, id.toString());
 
       insertAuditRecord(audit);
 
       return new EIImage(
         id,
         contentType,
-        new EICreation(creator, time),
+        new EICreation(owner, time),
         Optional.empty()
       );
     } catch (final DataAccessException e) {
@@ -161,18 +166,22 @@ final class EIServerDatabaseImagesQueries
   }
 
   @Override
+  @EIServerDatabaseRequiresUser
   public void imageRedact(
-    final UUID id,
-    final Optional<EIRedaction> redacted)
+    final UUID imageId,
+    final Optional<EIRedactionRequest> request)
     throws EIServerDatabaseException
   {
-    Objects.requireNonNull(id, "id");
-    Objects.requireNonNull(redacted, "redacted");
+    Objects.requireNonNull(imageId, "imageId");
+    Objects.requireNonNull(request, "request");
 
-    final var context = this.transaction.createContext();
+    final var owner =
+      this.transaction.userId();
+    final var context =
+      this.transaction.createContext();
 
     try {
-      if (this.imageGet(id, INCLUDE_REDACTED).isEmpty()) {
+      if (this.imageGet(imageId, INCLUDE_REDACTED).isEmpty()) {
         throw new EIServerDatabaseException(
           "Image does not exist",
           "image-nonexistent"
@@ -185,7 +194,7 @@ final class EIServerDatabaseImagesQueries
        */
 
       context.delete(IMAGE_REDACTIONS)
-        .where(IMAGE_REDACTIONS.IMAGE.eq(id))
+        .where(IMAGE_REDACTIONS.IMAGE.eq(imageId))
         .execute();
 
       final var time = this.currentTime();
@@ -194,15 +203,14 @@ final class EIServerDatabaseImagesQueries
        * Create a new redaction if required.
        */
 
-      if (redacted.isPresent()) {
-        final var redact = redacted.get();
-        this.fetchUserOrFail(redact.creator());
+      if (request.isPresent()) {
+        final var redact = request.get();
 
         final var inserted =
           context.insertInto(IMAGE_REDACTIONS)
-            .set(IMAGE_REDACTIONS.IMAGE, id)
+            .set(IMAGE_REDACTIONS.IMAGE, imageId)
             .set(IMAGE_REDACTIONS.REASON, redact.reason())
-            .set(IMAGE_REDACTIONS.CREATOR, redact.creator())
+            .set(IMAGE_REDACTIONS.CREATOR, owner)
             .set(IMAGE_REDACTIONS.CREATED, redact.created())
             .execute();
 
@@ -218,12 +226,14 @@ final class EIServerDatabaseImagesQueries
        */
 
       final var redactType =
-        redacted.isPresent() ? "IMAGE_REDACTED" : "IMAGE_UNREDACTED";
+        request.isPresent() ? "IMAGE_REDACTED" : "IMAGE_UNREDACTED";
+
       final var audit =
         context.insertInto(AUDIT)
           .set(AUDIT.TIME, time)
           .set(AUDIT.TYPE, redactType)
-          .set(AUDIT.MESSAGE, id.toString());
+          .set(AUDIT.USER_ID, owner)
+          .set(AUDIT.MESSAGE, imageId.toString());
 
       insertAuditRecord(audit);
     } catch (final DataAccessException e) {

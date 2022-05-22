@@ -6,11 +6,30 @@
         "Group": "com.io7m.eigion",
         "Name": "com.io7m.eigion.api"
       },
-      "Categories": [
-        "Category 0",
-        "Category 1",
-        "Category 2"
-      ],
+
+      "Description": {
+        "Title": "Example Title",
+        "Description": {
+          "Content-Type": "text/plain",
+          "Text": "Example description."
+        },
+        "Categories": [
+          "Category 0",
+          "Category 1",
+          "Category 2"
+        ],
+        "Links": [
+          {
+            "Relation": "image",
+            "Location": "https://www.example.com/screenshot.png"
+          },
+          {
+            "Relation": "icon",
+            "Location": "https://www.example.com/icon.png"
+          }
+        ]
+      },
+
       "Releases": [
         {
           "Version": "1.0.0-SNAPSHOT",

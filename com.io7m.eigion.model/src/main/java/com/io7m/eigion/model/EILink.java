@@ -16,42 +16,35 @@
 
 package com.io7m.eigion.model;
 
-import java.time.OffsetDateTime;
+import java.net.URI;
 import java.util.Objects;
-import java.util.UUID;
 
 /**
- * An audit event.
+ * A link to a resource.
  *
- * @param id      The unique event ID
- * @param owner   The event owner
- * @param time    The event time
- * @param message The event message
- * @param type    The event type
+ * @param relation The link relation
+ * @param location The link location
  */
 
-public record EIAuditEvent(
-  long id,
-  UUID owner,
-  OffsetDateTime time,
-  String type,
-  String message)
+public record EILink(
+  String relation,
+  URI location)
 {
   /**
-   * An audit event.
+   * A link to a resource.
    *
-   * @param id      The unique event ID
-   * @param owner   The event owner
-   * @param time    The event time
-   * @param message The event message
-   * @param type    The event type
+   * @param relation The link relation
+   * @param location The link location
    */
 
-  public EIAuditEvent
+  public EILink
   {
-    Objects.requireNonNull(owner, "owner");
-    Objects.requireNonNull(time, "time");
-    Objects.requireNonNull(type, "type");
-    Objects.requireNonNull(message, "message");
+    Objects.requireNonNull(relation, "relation");
+    Objects.requireNonNull(location, "location");
+
+    if (relation.length() > 128) {
+      throw new IllegalArgumentException(
+        "Link relations must be <= 128 characters");
+    }
   }
 }

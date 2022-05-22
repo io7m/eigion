@@ -18,7 +18,7 @@
 package com.io7m.eigion.server.database.api;
 
 import com.io7m.eigion.model.EIImage;
-import com.io7m.eigion.model.EIRedaction;
+import com.io7m.eigion.model.EIRedactionRequest;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -34,7 +34,6 @@ public non-sealed interface EIServerDatabaseImagesQueriesType
    * Create an image.
    *
    * @param id          The image ID
-   * @param creator     The image creator
    * @param contentType The content type
    * @param data        The image data
    *
@@ -43,9 +42,9 @@ public non-sealed interface EIServerDatabaseImagesQueriesType
    * @throws EIServerDatabaseException On errors
    */
 
+  @EIServerDatabaseRequiresUser
   EIImage imageCreate(
     UUID id,
-    UUID creator,
     String contentType,
     byte[] data)
     throws EIServerDatabaseException;
@@ -67,16 +66,18 @@ public non-sealed interface EIServerDatabaseImagesQueriesType
     throws EIServerDatabaseException;
 
   /**
-   * Redact an image.
+   * Redact an image. If {@code request} is empty, then request that the image
+   * be un-redacted.
    *
-   * @param id       The image ID
-   * @param redacted The redaction
+   * @param imageId The image ID
+   * @param request The redaction request
    *
    * @throws EIServerDatabaseException On errors
    */
 
+  @EIServerDatabaseRequiresUser
   void imageRedact(
-    UUID id,
-    Optional<EIRedaction> redacted)
+    UUID imageId,
+    Optional<EIRedactionRequest> request)
     throws EIServerDatabaseException;
 }
