@@ -77,24 +77,7 @@ public final class EIServerDatabase implements EIServerDatabaseType
     try {
       final var conn = this.dataSource.getConnection();
       conn.setAutoCommit(false);
-
-      switch (role) {
-        case ADMIN -> {
-
-        }
-        case EIGION -> {
-          try (var st = conn.prepareStatement("set role eigion")) {
-            st.execute();
-          }
-        }
-        case NONE -> {
-          try (var st = conn.prepareStatement("set role eigion_none")) {
-            st.execute();
-          }
-        }
-      }
-
-      return new EIServerDatabaseConnection(this, conn);
+      return new EIServerDatabaseConnection(this, conn, role);
     } catch (final SQLException e) {
       throw new EIServerDatabaseException(e.getMessage(), e, "sql-error");
     }

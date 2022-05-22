@@ -39,6 +39,7 @@ import java.util.UUID;
 
 import static com.io7m.eigion.server.database.api.EIServerDatabaseIncludeRedacted.EXCLUDE_REDACTED;
 import static com.io7m.eigion.server.database.api.EIServerDatabaseIncludeRedacted.INCLUDE_REDACTED;
+import static com.io7m.eigion.server.database.postgres.internal.EIServerDatabaseExceptions.handleDatabaseException;
 import static com.io7m.eigion.server.database.postgres.internal.Tables.IMAGES;
 import static com.io7m.eigion.server.database.postgres.internal.Tables.IMAGE_REDACTIONS;
 import static com.io7m.eigion.server.database.postgres.internal.tables.Audit.AUDIT;
@@ -57,6 +58,17 @@ final class EIServerDatabaseImagesQueries
       Objects.requireNonNull(inTransaction, "transaction");
     this.users =
       Objects.requireNonNull(inUsers, "users");
+  }
+
+  private static void insertAuditRecord(
+    final InsertSetMoreStep<AuditRecord> audit)
+  {
+    final var inserted = audit.execute();
+    Postconditions.checkPostconditionV(
+      inserted == 1,
+      "Expected to insert one audit record (inserted %d)",
+      Integer.valueOf(inserted)
+    );
   }
 
   @Override
@@ -120,7 +132,7 @@ final class EIServerDatabaseImagesQueries
         Optional.empty()
       );
     } catch (final DataAccessException e) {
-      throw new EIServerDatabaseException(e.getMessage(), e, "sql-error");
+      throw handleDatabaseException(this.transaction, e);
     }
   }
 
@@ -161,7 +173,8 @@ final class EIServerDatabaseImagesQueries
         );
       });
     } catch (final DataAccessException e) {
-      throw new EIServerDatabaseException(e.getMessage(), e, "sql-error");
+      throw handleDatabaseException(this.transaction, e);
+
     }
   }
 
@@ -237,19 +250,8 @@ final class EIServerDatabaseImagesQueries
 
       insertAuditRecord(audit);
     } catch (final DataAccessException e) {
-      throw new EIServerDatabaseException(e.getMessage(), e, "sql-error");
+      throw handleDatabaseException(this.transaction, e);
     }
-  }
-
-  private static void insertAuditRecord(
-    final InsertSetMoreStep<AuditRecord> audit)
-  {
-    final var inserted = audit.execute();
-    Postconditions.checkPostconditionV(
-      inserted == 1,
-      "Expected to insert one audit record (inserted %d)",
-      Integer.valueOf(inserted)
-    );
   }
 
   private EIUser fetchUserOrFail(

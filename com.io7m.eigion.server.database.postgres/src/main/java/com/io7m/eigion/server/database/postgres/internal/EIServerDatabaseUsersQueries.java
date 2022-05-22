@@ -34,6 +34,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
+import static com.io7m.eigion.server.database.postgres.internal.EIServerDatabaseExceptions.handleDatabaseException;
 import static com.io7m.eigion.server.database.postgres.internal.Tables.USER_BANS;
 import static com.io7m.eigion.server.database.postgres.internal.tables.Audit.AUDIT;
 import static com.io7m.eigion.server.database.postgres.internal.tables.Users.USERS;
@@ -159,7 +160,7 @@ record EIServerDatabaseUsersQueries(
       audit.execute();
       return this.userGet(id).orElseThrow();
     } catch (final DataAccessException e) {
-      throw new EIServerDatabaseException(e.getMessage(), e, "sql-error");
+      throw handleDatabaseException(this.transaction, e);
     }
   }
 
@@ -179,7 +180,7 @@ record EIServerDatabaseUsersQueries(
     try {
       return userMap(context, context.fetchOptional(USERS, USERS.ID.eq(id)));
     } catch (final DataAccessException e) {
-      throw new EIServerDatabaseException(e.getMessage(), e, "sql-error");
+      throw handleDatabaseException(this.transaction, e);
     }
   }
 
@@ -196,7 +197,7 @@ record EIServerDatabaseUsersQueries(
         context,
         context.fetchOptional(USERS, USERS.NAME.eq(name)));
     } catch (final DataAccessException e) {
-      throw new EIServerDatabaseException(e.getMessage(), e, "sql-error");
+      throw handleDatabaseException(this.transaction, e);
     }
   }
 
@@ -213,7 +214,7 @@ record EIServerDatabaseUsersQueries(
         context,
         context.fetchOptional(USERS, USERS.EMAIL.eq(email)));
     } catch (final DataAccessException e) {
-      throw new EIServerDatabaseException(e.getMessage(), e, "sql-error");
+      throw handleDatabaseException(this.transaction, e);
     }
   }
 
@@ -260,7 +261,7 @@ record EIServerDatabaseUsersQueries(
 
       audit.execute();
     } catch (final DataAccessException e) {
-      throw new EIServerDatabaseException(e.getMessage(), e, "sql-error");
+      throw handleDatabaseException(this.transaction, e);
     }
   }
 
@@ -290,7 +291,7 @@ record EIServerDatabaseUsersQueries(
 
       audit.execute();
     } catch (final DataAccessException e) {
-      throw new EIServerDatabaseException(e.getMessage(), e, "sql-error");
+      throw handleDatabaseException(this.transaction, e);
     }
   }
 }

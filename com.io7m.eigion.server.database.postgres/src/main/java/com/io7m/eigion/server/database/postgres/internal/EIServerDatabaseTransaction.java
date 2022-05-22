@@ -22,6 +22,7 @@ import com.io7m.eigion.server.database.api.EIServerDatabaseException;
 import com.io7m.eigion.server.database.api.EIServerDatabaseImagesQueriesType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseProductsQueriesType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseQueriesType;
+import com.io7m.eigion.server.database.api.EIServerDatabaseRole;
 import com.io7m.eigion.server.database.api.EIServerDatabaseTransactionType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseUsersQueriesType;
 import org.jooq.DSLContext;
@@ -48,6 +49,31 @@ final class EIServerDatabaseTransaction
   {
     this.connection =
       Objects.requireNonNull(inConnection, "connection");
+  }
+
+  void setRole(
+    final EIServerDatabaseRole role)
+    throws SQLException
+  {
+    switch (role) {
+      case ADMIN -> {
+
+      }
+      case EIGION -> {
+        try (var st =
+               this.connection.connection()
+                 .prepareStatement("set role eigion")) {
+          st.execute();
+        }
+      }
+      case NONE -> {
+        try (var st =
+               this.connection.connection()
+                 .prepareStatement("set role eigion_none")) {
+          st.execute();
+        }
+      }
+    }
   }
 
   @Override

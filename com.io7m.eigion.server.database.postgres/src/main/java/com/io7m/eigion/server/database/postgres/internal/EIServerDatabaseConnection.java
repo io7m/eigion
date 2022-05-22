@@ -17,25 +17,39 @@
 package com.io7m.eigion.server.database.postgres.internal;
 
 import com.io7m.eigion.server.database.api.EIServerDatabaseConnectionType;
+import com.io7m.eigion.server.database.api.EIServerDatabaseException;
+import com.io7m.eigion.server.database.api.EIServerDatabaseRole;
 import com.io7m.eigion.server.database.api.EIServerDatabaseTransactionType;
 
 import java.sql.Connection;
+import java.sql.SQLException;
 
 record EIServerDatabaseConnection(
   EIServerDatabase database,
-  Connection connection)
+  Connection connection,
+  EIServerDatabaseRole role)
   implements EIServerDatabaseConnectionType
 {
   @Override
   public EIServerDatabaseTransactionType openTransaction()
+    throws EIServerDatabaseException
   {
-    return new EIServerDatabaseTransaction(this);
+    try {
+      final var t = new EIServerDatabaseTransaction(this);
+      t.setRole(this.role);
+      t.commit();
+      return t;
+    } catch (final SQLException e) {
+      throw new EIServerDatabaseException(e.getMessage(), e, "sql-error");
+    }
   }
 
   @Override
   public void close()
     throws Exception
   {
-    this.connection.close();
+    if (!this.connection.isClosed()) {
+      this.connection.close();
+    }
   }
 }

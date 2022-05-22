@@ -52,6 +52,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.io7m.eigion.server.database.api.EIServerDatabaseIncludeRedacted.INCLUDE_REDACTED;
+import static com.io7m.eigion.server.database.postgres.internal.EIServerDatabaseExceptions.handleDatabaseException;
 import static com.io7m.eigion.server.database.postgres.internal.EIServerDatabaseProductsQueries.ProductInformationComponents.INCLUDE_CATEGORIES;
 import static com.io7m.eigion.server.database.postgres.internal.EIServerDatabaseProductsQueries.ProductInformationComponents.INCLUDE_DESCRIPTION;
 import static com.io7m.eigion.server.database.postgres.internal.Tables.CATEGORY_REDACTIONS;
@@ -383,7 +384,7 @@ final class EIServerDatabaseProductsQueries
         .map(EIDatabaseProductCategory::category)
         .collect(Collectors.toUnmodifiableSet());
     } catch (final DataAccessException e) {
-      throw new EIServerDatabaseException(e.getMessage(), e, "sql-error");
+      throw handleDatabaseException(this.transaction, e);
     }
   }
 
@@ -430,7 +431,7 @@ final class EIServerDatabaseProductsQueries
       insertAuditRecord(audit);
       return new EIProductCategory(text, Optional.empty());
     } catch (final DataAccessException e) {
-      throw new EIServerDatabaseException(e.getMessage(), e, "sql-error");
+      throw handleDatabaseException(this.transaction, e);
     }
   }
 
@@ -514,7 +515,7 @@ final class EIServerDatabaseProductsQueries
         redacted.map(r -> new EIRedaction(owner, r.created(), r.reason()))
       );
     } catch (final DataAccessException e) {
-      throw new EIServerDatabaseException(e.getMessage(), e, "sql-error");
+      throw handleDatabaseException(this.transaction, e);
     }
   }
 
@@ -581,7 +582,7 @@ final class EIServerDatabaseProductsQueries
         Optional.empty()
       );
     } catch (final DataAccessException e) {
-      throw new EIServerDatabaseException(e.getMessage(), e, "sql-error");
+      throw handleDatabaseException(this.transaction, e);
     }
   }
 
@@ -650,7 +651,7 @@ final class EIServerDatabaseProductsQueries
 
       insertAuditRecord(audit);
     } catch (final DataAccessException e) {
-      throw new EIServerDatabaseException(e.getMessage(), e, "sql-error");
+      throw handleDatabaseException(this.transaction, e);
     }
   }
 
@@ -668,7 +669,7 @@ final class EIServerDatabaseProductsQueries
         .stream().map(r -> r.product().id())
         .collect(Collectors.toUnmodifiableSet());
     } catch (final DataAccessException e) {
-      throw new EIServerDatabaseException(e.getMessage(), e, "sql-error");
+      throw handleDatabaseException(this.transaction, e);
     }
   }
 
@@ -691,7 +692,7 @@ final class EIServerDatabaseProductsQueries
         context
       ).product();
     } catch (final DataAccessException e) {
-      throw new EIServerDatabaseException(e.getMessage(), e, "sql-error");
+      throw handleDatabaseException(this.transaction, e);
     }
   }
 
@@ -747,7 +748,7 @@ final class EIServerDatabaseProductsQueries
 
       insertAuditRecord(audit);
     } catch (final DataAccessException e) {
-      throw new EIServerDatabaseException(e.getMessage(), e, "sql-error");
+      throw handleDatabaseException(this.transaction, e);
     }
   }
 
@@ -793,7 +794,7 @@ final class EIServerDatabaseProductsQueries
         insertAuditRecord(audit);
       }
     } catch (final DataAccessException e) {
-      throw new EIServerDatabaseException(e.getMessage(), e, "sql-error");
+      throw handleDatabaseException(this.transaction, e);
     }
   }
 
@@ -837,7 +838,7 @@ final class EIServerDatabaseProductsQueries
 
       insertAuditRecord(audit);
     } catch (final DataAccessException e) {
-      throw new EIServerDatabaseException(e.getMessage(), e, "sql-error");
+      throw handleDatabaseException(this.transaction, e);
     }
   }
 
@@ -882,7 +883,7 @@ final class EIServerDatabaseProductsQueries
 
       insertAuditRecord(audit);
     } catch (final DataAccessException e) {
-      throw new EIServerDatabaseException(e.getMessage(), e, "sql-error");
+      throw handleDatabaseException(this.transaction, e);
     }
   }
 
@@ -907,7 +908,7 @@ final class EIServerDatabaseProductsQueries
 
       throw new UnimplementedCodeException();
     } catch (final DataAccessException e) {
-      throw new EIServerDatabaseException(e.getMessage(), e, "sql-error");
+      throw handleDatabaseException(this.transaction, e);
     }
   }
 

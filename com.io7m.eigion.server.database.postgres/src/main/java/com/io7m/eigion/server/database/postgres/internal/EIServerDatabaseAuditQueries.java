@@ -14,18 +14,19 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-
 package com.io7m.eigion.server.database.postgres.internal;
 
 import com.io7m.eigion.model.EIAuditEvent;
 import com.io7m.eigion.server.database.api.EIServerDatabaseAuditQueriesType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseException;
 import com.io7m.eigion.server.database.postgres.internal.tables.records.AuditRecord;
+import org.jooq.exception.DataAccessException;
 
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Objects;
 
+import static com.io7m.eigion.server.database.postgres.internal.EIServerDatabaseExceptions.handleDatabaseException;
 import static com.io7m.eigion.server.database.postgres.internal.tables.Audit.AUDIT;
 
 record EIServerDatabaseAuditQueries(
@@ -63,8 +64,8 @@ record EIServerDatabaseAuditQueries(
           .map(EIServerDatabaseAuditQueries::toAuditEvent)
           .toList();
       }
-    } catch (final Exception e) {
-      throw new EIServerDatabaseException(e.getMessage(), e, "sql-error");
+    } catch (final DataAccessException e) {
+      throw handleDatabaseException(this.transaction, e);
     }
   }
 }
