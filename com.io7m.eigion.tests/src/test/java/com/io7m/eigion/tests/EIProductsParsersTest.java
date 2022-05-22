@@ -26,6 +26,7 @@ import com.io7m.eigion.model.EIProductHash;
 import com.io7m.eigion.model.EIProductIdentifier;
 import com.io7m.eigion.model.EIProductVersion;
 import com.io7m.eigion.model.EIProducts;
+import com.io7m.eigion.product.parser.EIProductReleaseSerializers;
 import com.io7m.eigion.product.parser.EIProductsParsers;
 import com.io7m.eigion.product.parser.EIProductsSerializers;
 import com.io7m.eigion.product.parser.api.EIProductsSerializerConfiguration;
@@ -39,6 +40,7 @@ import org.junit.jupiter.api.TestFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Path;
@@ -101,6 +103,7 @@ public final class EIProductsParsersTest
       category("Category 2")
     );
 
+  private EIProductReleaseSerializers releaseSerializers;
   private EIProductsParsers parsers;
   private EIProductsSerializers serializers;
   private Path directory;
@@ -113,6 +116,8 @@ public final class EIProductsParsersTest
       new EIProductsParsers();
     this.serializers =
       new EIProductsSerializers();
+    this.releaseSerializers =
+      new EIProductReleaseSerializers();
     this.directory =
       EITestDirectories.createTempDirectory();
   }
@@ -352,6 +357,38 @@ public final class EIProductsParsersTest
         parseStatus -> {
         }
       ).execute();
+    });
+  }
+
+  /**
+   * An unsupported version fails.
+   */
+
+  @Test
+  public void testSerializerUnsupported0()
+  {
+    assertThrows(IllegalArgumentException.class, () -> {
+      this.serializers.createSerializerWithContext(
+        new EIProductsSerializerConfiguration(999999),
+        URI.create("urn:source"),
+        new ByteArrayOutputStream()
+      );
+    });
+  }
+
+  /**
+   * An unsupported version fails.
+   */
+
+  @Test
+  public void testSerializerUnsupported1()
+  {
+    assertThrows(IllegalArgumentException.class, () -> {
+      this.releaseSerializers.createSerializerWithContext(
+        new EIProductsSerializerConfiguration(999999),
+        URI.create("urn:source"),
+        new ByteArrayOutputStream()
+      );
     });
   }
 

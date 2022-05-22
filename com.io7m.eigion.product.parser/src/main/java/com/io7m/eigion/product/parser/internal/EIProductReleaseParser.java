@@ -129,10 +129,4 @@ public final class EIProductReleaseParser
   {
     this.stream.close();
   }
-
-  private enum Status
-  {
-    FAILED,
-    SUCCEEDED
-  }
 }
