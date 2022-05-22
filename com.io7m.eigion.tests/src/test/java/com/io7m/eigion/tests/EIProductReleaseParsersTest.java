@@ -19,16 +19,17 @@ package com.io7m.eigion.tests;
 import com.io7m.anethum.common.ParseException;
 import com.io7m.anethum.common.ParseStatus;
 import com.io7m.anethum.common.SerializeException;
+import com.io7m.eigion.model.EIChange;
+import com.io7m.eigion.model.EIChangeTicket;
+import com.io7m.eigion.model.EICreation;
 import com.io7m.eigion.model.EIProductBundleDependency;
-import com.io7m.eigion.model.EIProductCategory;
 import com.io7m.eigion.model.EIProductDependency;
 import com.io7m.eigion.model.EIProductHash;
 import com.io7m.eigion.model.EIProductIdentifier;
+import com.io7m.eigion.model.EIProductRelease;
 import com.io7m.eigion.model.EIProductVersion;
-import com.io7m.eigion.model.EIProducts;
+import com.io7m.eigion.product.parser.EIProductReleaseParsers;
 import com.io7m.eigion.product.parser.EIProductReleaseSerializers;
-import com.io7m.eigion.product.parser.EIProductsParsers;
-import com.io7m.eigion.product.parser.EIProductsSerializers;
 import com.io7m.eigion.product.parser.api.EIProductsSerializerConfiguration;
 import org.apache.commons.io.input.BrokenInputStream;
 import org.apache.commons.io.output.BrokenOutputStream;
@@ -47,10 +48,8 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Stream;
 
-import static com.io7m.eigion.model.EIProductCategory.category;
 import static java.math.BigInteger.ONE;
 import static java.math.BigInteger.TWO;
 import static java.math.BigInteger.ZERO;
@@ -59,16 +58,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public final class EIProductsParsersTest
+public final class EIProductReleaseParsersTest
 {
   private static final Logger LOG =
-    LoggerFactory.getLogger(EIProductsParsersTest.class);
-
-  private static final EIProductIdentifier EXAMPLE_ID =
-    new EIProductIdentifier(
-      "com.io7m.eigion",
-      "com.io7m.eigion.api"
-    );
+    LoggerFactory.getLogger(EIProductReleaseParsersTest.class);
 
   private static final EIProductDependency PRODUCT_DEPENDENCY_0 =
     new EIProductDependency(
@@ -96,15 +89,28 @@ public final class EIProductsParsersTest
       )
     );
 
-  private static final Set<EIProductCategory> EXAMPLE_CATEGORIES =
-    Set.of(
-      category("Category 0"),
-      category("Category 1"),
-      category("Category 2")
+  private static final EIChange CHANGE_0 =
+    new EIChange(
+      "Description",
+      List.of(
+        new EIChangeTicket("X", URI.create("https://x.com/X")),
+        new EIChangeTicket("Y", URI.create("https://x.com/Y")),
+        new EIChangeTicket("Z", URI.create("https://x.com/Z"))
+      )
     );
 
-  private EIProductsParsers parsers;
-  private EIProductsSerializers serializers;
+  private static final EIProductRelease RELEASE_0 =
+    new EIProductRelease(
+      new EIProductVersion(ONE, ZERO, ZERO, empty()),
+      List.of(PRODUCT_DEPENDENCY_0),
+      List.of(BUNDLE_DEPENDENCY_0),
+      List.of(CHANGE_0),
+      empty(),
+      EICreation.zero()
+    );
+
+  private EIProductReleaseParsers parsers;
+  private EIProductReleaseSerializers serializers;
   private Path directory;
 
   @BeforeEach
@@ -112,9 +118,9 @@ public final class EIProductsParsersTest
     throws IOException
   {
     this.parsers =
-      new EIProductsParsers();
+      new EIProductReleaseParsers();
     this.serializers =
-      new EIProductsSerializers();
+      new EIProductReleaseSerializers();
     this.directory =
       EITestDirectories.createTempDirectory();
   }
@@ -127,68 +133,6 @@ public final class EIProductsParsersTest
   }
 
   /**
-   * A simple parsed example.
-   *
-   * @throws Exception On errors
-   */
-
-  @Test
-  public void testExample0()
-    throws Exception
-  {
-    final var products =
-      this.parseFile(this.resourceOf("products-ex-0.json"));
-
-    assertEquals(1, products.products().size());
-
-    {
-      final var p = products.products().get(0);
-      assertEquals(EXAMPLE_ID, p.id());
-      assertEquals(EXAMPLE_CATEGORIES, p.description().categories());
-
-      final var r = p.releases().get(0);
-      assertEquals(ONE, r.version().major());
-      assertEquals(ZERO, r.version().minor());
-      assertEquals(ZERO, r.version().patch());
-      assertEquals(empty(), r.version().qualifier());
-      assertEquals(List.of(PRODUCT_DEPENDENCY_0), r.productDependencies());
-      assertEquals(List.of(BUNDLE_DEPENDENCY_0), r.bundleDependencies());
-      assertEquals(1, p.releases().size());
-    }
-  }
-
-  /**
-   * A simple parsed example.
-   *
-   * @throws Exception On errors
-   */
-
-  @Test
-  public void testExample1()
-    throws Exception
-  {
-    final var products =
-      this.parseFile(this.resourceOf("products-ex-1.json"));
-
-    assertEquals(1, products.products().size());
-
-    {
-      final var p = products.products().get(0);
-      assertEquals(EXAMPLE_ID, p.id());
-      assertEquals(EXAMPLE_CATEGORIES, p.description().categories());
-
-      final var r = p.releases().get(0);
-      assertEquals(ONE, r.version().major());
-      assertEquals(ZERO, r.version().minor());
-      assertEquals(ZERO, r.version().patch());
-      assertEquals(Optional.of("SNAPSHOT"), r.version().qualifier());
-      assertEquals(List.of(PRODUCT_DEPENDENCY_0), r.productDependencies());
-      assertEquals(List.of(BUNDLE_DEPENDENCY_0), r.bundleDependencies());
-      assertEquals(1, p.releases().size());
-    }
-  }
-
-  /**
    * Error cases and their error codes.
    *
    * @return A stream of test cases
@@ -198,18 +142,8 @@ public final class EIProductsParsersTest
   public Stream<DynamicTest> testErrorCases()
   {
     return Stream.of(
-      new ErrorCase("products-error-0.json", "invalid-version"),
-      new ErrorCase("products-error-1.json", "invalid-version"),
-      new ErrorCase("products-error-2.json", "databind"),
-      new ErrorCase("products-error-3.json", "invalid-category"),
-      new ErrorCase("products-error-4.json", "invalid-hash"),
-      new ErrorCase("products-error-5.json", "databind"),
-      new ErrorCase("products-error-6.json", "databind"),
-      new ErrorCase("products-error-7.json", "databind"),
-      new ErrorCase("products-error-8.json", "invalid-link"),
-      new ErrorCase("products-error-9.json", "invalid-product-description"),
-      new ErrorCase("products-error-10.json", "invalid-rich-text"),
-      new ErrorCase("products-error-11.json", "invalid-identifier")
+      new ErrorCase("release-error-0.json", "invalid-hash"),
+      new ErrorCase("release-error-1.json", "databind")
     ).map(this::errorCaseFor);
   }
 
@@ -255,25 +189,15 @@ public final class EIProductsParsersTest
   public void testRoundTripExample0()
     throws Exception
   {
-    final var products =
-      this.roundTrip(this.resourceOf("products-ex-0.json"));
+    final var r =
+      this.roundTrip(this.resourceOf("release-ex-0.json"));
 
-    assertEquals(1, products.products().size());
-
-    {
-      final var p = products.products().get(0);
-      assertEquals(EXAMPLE_ID, p.id());
-      assertEquals(EXAMPLE_CATEGORIES, p.description().categories());
-
-      final var r = p.releases().get(0);
-      assertEquals(ONE, r.version().major());
-      assertEquals(ZERO, r.version().minor());
-      assertEquals(ZERO, r.version().patch());
-      assertEquals(empty(), r.version().qualifier());
-      assertEquals(List.of(PRODUCT_DEPENDENCY_0), r.productDependencies());
-      assertEquals(List.of(BUNDLE_DEPENDENCY_0), r.bundleDependencies());
-      assertEquals(1, p.releases().size());
-    }
+    assertEquals(ONE, r.version().major());
+    assertEquals(ZERO, r.version().minor());
+    assertEquals(ZERO, r.version().patch());
+    assertEquals(empty(), r.version().qualifier());
+    assertEquals(List.of(PRODUCT_DEPENDENCY_0), r.productDependencies());
+    assertEquals(List.of(BUNDLE_DEPENDENCY_0), r.bundleDependencies());
   }
 
   /**
@@ -286,25 +210,15 @@ public final class EIProductsParsersTest
   public void testRoundTripExample1()
     throws Exception
   {
-    final var products =
-      this.roundTrip(this.resourceOf("products-ex-1.json"));
+    final var r =
+      this.roundTrip(this.resourceOf("release-ex-1.json"));
 
-    assertEquals(1, products.products().size());
-
-    {
-      final var p = products.products().get(0);
-      assertEquals(EXAMPLE_ID, p.id());
-      assertEquals(EXAMPLE_CATEGORIES, p.description().categories());
-
-      final var r = p.releases().get(0);
-      assertEquals(ONE, r.version().major());
-      assertEquals(ZERO, r.version().minor());
-      assertEquals(ZERO, r.version().patch());
-      assertEquals(Optional.of("SNAPSHOT"), r.version().qualifier());
-      assertEquals(List.of(PRODUCT_DEPENDENCY_0), r.productDependencies());
-      assertEquals(List.of(BUNDLE_DEPENDENCY_0), r.bundleDependencies());
-      assertEquals(1, p.releases().size());
-    }
+    assertEquals(ONE, r.version().major());
+    assertEquals(ZERO, r.version().minor());
+    assertEquals(ZERO, r.version().patch());
+    assertEquals(Optional.of("SNAPSHOT"), r.version().qualifier());
+    assertEquals(List.of(PRODUCT_DEPENDENCY_0), r.productDependencies());
+    assertEquals(List.of(BUNDLE_DEPENDENCY_0), r.bundleDependencies());
   }
 
   /**
@@ -318,7 +232,7 @@ public final class EIProductsParsersTest
       this.serializers.serializeFileWithContext(
         new EIProductsSerializerConfiguration(9999),
         this.directory.resolve("tmp.json"),
-        new EIProducts(List.of())
+        RELEASE_0
       );
     });
   }
@@ -335,7 +249,7 @@ public final class EIProductsParsersTest
         new EIProductsSerializerConfiguration(1),
         URI.create("urn:source"),
         new BrokenOutputStream()
-      ).execute(new EIProducts(List.of()));
+      ).execute(RELEASE_0);
     });
   }
 
@@ -373,7 +287,7 @@ public final class EIProductsParsersTest
     });
   }
 
-  private EIProducts roundTrip(
+  private EIProductRelease roundTrip(
     final Path file)
     throws Exception
   {
@@ -384,7 +298,7 @@ public final class EIProductsParsersTest
     return this.parseFile(tmp);
   }
 
-  private EIProducts parseFile(
+  private EIProductRelease parseFile(
     final Path file)
     throws Exception
   {
@@ -405,7 +319,7 @@ public final class EIProductsParsersTest
     throws IOException
   {
     return EITestDirectories.resourceOf(
-      EIProductsParsersTest.class,
+      EIProductReleaseParsersTest.class,
       this.directory,
       name
     );

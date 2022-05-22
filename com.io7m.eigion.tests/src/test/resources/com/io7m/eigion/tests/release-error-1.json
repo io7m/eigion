@@ -1,0 +1,11 @@
+{
+  "%Type": "https://www.io7m.com/eigion/products-1.json",
+  "Version": "1.0.0",
+  "BundleDependencies": [
+    {
+      "ID": {
+        "Group": "com.io7m.ex",
+        "Name": "com.io7m.ex"
+      },
+      "Version": "1.0.0",
+      "Hash":
