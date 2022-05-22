@@ -21,6 +21,7 @@ import com.io7m.eigion.model.EIPassword;
 import com.io7m.eigion.model.EIProductCategory;
 import com.io7m.eigion.model.EIProductIdentifier;
 import com.io7m.eigion.model.EIRedaction;
+import com.io7m.eigion.model.EIRichText;
 import com.io7m.eigion.model.EIUser;
 import com.io7m.eigion.server.database.api.EIServerDatabaseAuditQueriesType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseConfiguration;
@@ -1126,6 +1127,90 @@ public final class EIServerDatabaseTest
       });
       assertEquals("sql-error", ex.errorCode());
     }
+  }
+
+  /**
+   * Setting product titles works.
+   *
+   * @throws Exception On errors
+   */
+
+  @Test
+  public void testProductTitleSet()
+    throws Exception
+  {
+    assertTrue(this.container.isRunning());
+
+    final var user =
+      this.createTestUser();
+
+    final var transaction =
+      this.transactionOf(this.container, EIGION);
+    final var products =
+      transaction.queries(EIServerDatabaseProductsQueriesType.class);
+
+    transaction.userIdSet(user.id());
+
+    final var id =
+      new EIProductIdentifier("com.io7m.ex", "com.q");
+
+    products.productCreate(id);
+    products.productSetTitle(id, "Title");
+
+    {
+      final var p = products.product(id, INCLUDE_REDACTED);
+      assertEquals("Title", p.description().title());
+    }
+
+    checkAuditLog(
+      transaction,
+      new ExpectedEvent("USER_CREATED", user.id().toString()),
+      new ExpectedEvent("PRODUCT_CREATED", "com.io7m.ex:com.q"),
+      new ExpectedEvent("PRODUCT_TITLE_SET", "com.io7m.ex:com.q:Title")
+    );
+  }
+
+  /**
+   * Setting product descriptions works.
+   *
+   * @throws Exception On errors
+   */
+
+  @Test
+  public void testProductDescriptionSet()
+    throws Exception
+  {
+    assertTrue(this.container.isRunning());
+
+    final var user =
+      this.createTestUser();
+
+    final var transaction =
+      this.transactionOf(this.container, EIGION);
+    final var products =
+      transaction.queries(EIServerDatabaseProductsQueriesType.class);
+
+    transaction.userIdSet(user.id());
+
+    final var id =
+      new EIProductIdentifier("com.io7m.ex", "com.q");
+
+    products.productCreate(id);
+    products.productSetDescription(id, new EIRichText("text/plain", "Description"));
+
+    {
+      final var p = products.product(id, INCLUDE_REDACTED);
+      final var rich = p.description().description();
+      assertEquals("Description", rich.text());
+      assertEquals("text/plain", rich.contentType());
+    }
+
+    checkAuditLog(
+      transaction,
+      new ExpectedEvent("USER_CREATED", user.id().toString()),
+      new ExpectedEvent("PRODUCT_CREATED", "com.io7m.ex:com.q"),
+      new ExpectedEvent("PRODUCT_DESCRIPTION_SET", "com.io7m.ex:com.q")
+    );
   }
 
   /**

@@ -27,7 +27,6 @@ import com.io7m.eigion.model.EIRedactableType;
 import com.io7m.eigion.model.EIRedaction;
 import com.io7m.eigion.model.EIRedactionRequest;
 import com.io7m.eigion.model.EIRichText;
-import com.io7m.eigion.model.EIUser;
 import com.io7m.eigion.server.database.api.EIServerDatabaseException;
 import com.io7m.eigion.server.database.api.EIServerDatabaseIncludeRedacted;
 import com.io7m.eigion.server.database.api.EIServerDatabaseProductsQueriesType;
@@ -50,7 +49,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static com.io7m.eigion.server.database.api.EIServerDatabaseIncludeRedacted.INCLUDE_REDACTED;
@@ -818,8 +816,26 @@ final class EIServerDatabaseProductsQueries
       final var product =
         fetchProductOrFail(id, INCLUDE_REDACTED, INCLUDE_NOTHING, context);
 
+      final var updated =
+        context.update(PRODUCTS)
+          .set(PRODUCTS.PRODUCT_TITLE, title)
+          .where(PRODUCTS.ID.eq(valueOf(product.id())))
+          .execute();
 
+      Preconditions.checkPreconditionV(
+        updated == 1,
+        "Expected to update 1 record (update %d)",
+        Integer.valueOf(updated)
+      );
 
+      final var audit =
+        context.insertInto(AUDIT)
+          .set(AUDIT.TIME, this.currentTime())
+          .set(AUDIT.TYPE, "PRODUCT_TITLE_SET")
+          .set(AUDIT.USER_ID, owner)
+          .set(AUDIT.MESSAGE, id.show() + ":" + title);
+
+      insertAuditRecord(audit);
     } catch (final DataAccessException e) {
       throw new EIServerDatabaseException(e.getMessage(), e, "sql-error");
     }
@@ -844,6 +860,27 @@ final class EIServerDatabaseProductsQueries
       final var product =
         fetchProductOrFail(id, INCLUDE_REDACTED, INCLUDE_NOTHING, context);
 
+      final var updated =
+        context.update(PRODUCTS)
+          .set(PRODUCTS.PRODUCT_DESCRIPTION_TYPE, description.contentType())
+          .set(PRODUCTS.PRODUCT_DESCRIPTION, description.text())
+          .where(PRODUCTS.ID.eq(valueOf(product.id())))
+          .execute();
+
+      Preconditions.checkPreconditionV(
+        updated == 1,
+        "Expected to update 1 record (update %d)",
+        Integer.valueOf(updated)
+      );
+
+      final var audit =
+        context.insertInto(AUDIT)
+          .set(AUDIT.TIME, this.currentTime())
+          .set(AUDIT.TYPE, "PRODUCT_DESCRIPTION_SET")
+          .set(AUDIT.USER_ID, owner)
+          .set(AUDIT.MESSAGE, id.show());
+
+      insertAuditRecord(audit);
     } catch (final DataAccessException e) {
       throw new EIServerDatabaseException(e.getMessage(), e, "sql-error");
     }
@@ -866,29 +903,12 @@ final class EIServerDatabaseProductsQueries
 
     try {
       final var product =
-        fetchProductOrFail(
-          id,
-          INCLUDE_REDACTED,
-          INCLUDE_NOTHING,
-          context
-        );
+        fetchProductOrFail(id, INCLUDE_REDACTED, INCLUDE_NOTHING, context);
 
       throw new UnimplementedCodeException();
     } catch (final DataAccessException e) {
       throw new EIServerDatabaseException(e.getMessage(), e, "sql-error");
     }
-  }
-
-  private EIUser fetchUserOrFail(
-    final UUID creator)
-    throws EIServerDatabaseException
-  {
-    return this.users.userGet(creator).orElseThrow(() -> {
-      return new EIServerDatabaseException(
-        String.format("User with ID %s does not exist", creator),
-        "user-nonexistent"
-      );
-    });
   }
 
   enum ProductInformationComponents
