@@ -16,16 +16,9 @@
 
 package com.io7m.eigion.model;
 
-import javax.crypto.SecretKeyFactory;
-import javax.crypto.spec.PBEKeySpec;
-import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
-import java.security.spec.InvalidKeySpecException;
 import java.util.HexFormat;
 import java.util.Objects;
 import java.util.regex.Pattern;
-
-import static java.util.Locale.ROOT;
 
 /**
  * A hashed password for a user.
@@ -36,7 +29,7 @@ import static java.util.Locale.ROOT;
  */
 
 public record EIPassword(
-  String algorithm,
+  EIPasswordAlgorithmType algorithm,
   String hash,
   String salt)
 {
@@ -70,72 +63,27 @@ public record EIPassword(
   }
 
   /**
-   * Create a hashed password from the raw password text. Salt is generated.
+   * Check the given plain text password against this hashed password.
    *
-   * @param passwordText The password text
+   * @param passwordText The plain text password
    *
-   * @return A hashed password
+   * @return {@code  true} iff the password matches
    *
-   * @throws NoSuchAlgorithmException If the JVM does not support the hash
-   *                                  algorithm
-   * @throws InvalidKeySpecException  If the secret key is somehow invalid
+   * @throws EIPasswordException On internal errors such as missing algorithm
+   *                             support
+   * @see EIPasswordAlgorithmType#check(String, String, byte[])
    */
 
-  public static EIPassword createHashed(
+  public boolean check(
     final String passwordText)
-    throws NoSuchAlgorithmException,
-    InvalidKeySpecException
+    throws EIPasswordException
   {
     Objects.requireNonNull(passwordText, "passwordText");
 
-    final var salt = new byte[16];
-    final var rng =
-      SecureRandom.getInstanceStrong();
-    rng.nextBytes(salt);
-    return createHashed(
+    return this.algorithm.check(
+      this.hash,
       passwordText,
-      salt
-    );
-  }
-
-  /**
-   * Create a hashed password from the raw password text.
-   *
-   * @param passwordText The password text
-   * @param salt         The salt
-   *
-   * @return A hashed password
-   *
-   * @throws NoSuchAlgorithmException If the JVM does not support the hash
-   *                                  algorithm
-   * @throws InvalidKeySpecException  If the secret key is somehow invalid
-   */
-
-  public static EIPassword createHashed(
-    final String passwordText,
-    final byte[] salt)
-    throws NoSuchAlgorithmException, InvalidKeySpecException
-  {
-    Objects.requireNonNull(passwordText, "passwordText");
-    Objects.requireNonNull(salt, "salt");
-
-    final var formatter =
-      HexFormat.of();
-    final var passwordSalt =
-      formatter.formatHex(salt);
-    final var keyFactory =
-      SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
-    final var keySpec =
-      new PBEKeySpec(passwordText.toCharArray(), salt, 10000, 256);
-    final var hash =
-      keyFactory.generateSecret(keySpec).getEncoded();
-    final var passwordHash =
-      formatter.formatHex(hash);
-
-    return new EIPassword(
-      "PBKDF2WithHmacSHA256:10000:256",
-      passwordHash.toUpperCase(ROOT),
-      passwordSalt.toUpperCase(ROOT)
+      HexFormat.of().parseHex(this.salt)
     );
   }
 }

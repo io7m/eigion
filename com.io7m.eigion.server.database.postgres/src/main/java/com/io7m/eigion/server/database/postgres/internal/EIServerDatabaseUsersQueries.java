@@ -18,6 +18,8 @@
 package com.io7m.eigion.server.database.postgres.internal;
 
 import com.io7m.eigion.model.EIPassword;
+import com.io7m.eigion.model.EIPasswordAlgorithms;
+import com.io7m.eigion.model.EIPasswordException;
 import com.io7m.eigion.model.EIUser;
 import com.io7m.eigion.model.EIUserBan;
 import com.io7m.eigion.server.database.api.EIServerDatabaseException;
@@ -46,15 +48,16 @@ record EIServerDatabaseUsersQueries(
   private static EIUser userRecordToUser(
     final UsersRecord userRecord,
     final Optional<UserBansRecord> banOpt)
+    throws EIPasswordException
   {
     return new EIUser(
       userRecord.getId(),
       userRecord.getName(),
       userRecord.getEmail(),
       userRecord.getCreated(),
-      userRecord.getLastLogin(),
+      userRecord.getLastLoginTime(),
       new EIPassword(
-        userRecord.getPasswordAlgo(),
+        EIPasswordAlgorithms.parse(userRecord.getPasswordAlgo()),
         userRecord.getPasswordHash().toUpperCase(Locale.ROOT),
         userRecord.getPasswordSalt().toUpperCase(Locale.ROOT)
       ),
@@ -70,6 +73,7 @@ record EIServerDatabaseUsersQueries(
   private static Optional<EIUser> userMap(
     final DSLContext context,
     final Optional<UsersRecord> recordOpt)
+    throws EIPasswordException
   {
     if (recordOpt.isPresent()) {
       final var userRecord =
@@ -143,8 +147,8 @@ record EIServerDatabaseUsersQueries(
           .set(USERS.NAME, userName)
           .set(USERS.EMAIL, email)
           .set(USERS.CREATED, created)
-          .set(USERS.LAST_LOGIN, created)
-          .set(USERS.PASSWORD_ALGO, password.algorithm())
+          .set(USERS.LAST_LOGIN_TIME, created)
+          .set(USERS.PASSWORD_ALGO, password.algorithm().identifier())
           .set(USERS.PASSWORD_HASH, password.hash())
           .set(USERS.PASSWORD_SALT, password.salt());
 
@@ -181,6 +185,8 @@ record EIServerDatabaseUsersQueries(
       return userMap(context, context.fetchOptional(USERS, USERS.ID.eq(id)));
     } catch (final DataAccessException e) {
       throw handleDatabaseException(this.transaction, e);
+    } catch (final EIPasswordException e) {
+      throw handlePasswordException(e);
     }
   }
 
@@ -198,6 +204,8 @@ record EIServerDatabaseUsersQueries(
         context.fetchOptional(USERS, USERS.NAME.eq(name)));
     } catch (final DataAccessException e) {
       throw handleDatabaseException(this.transaction, e);
+    } catch (final EIPasswordException e) {
+      throw handlePasswordException(e);
     }
   }
 
@@ -215,6 +223,8 @@ record EIServerDatabaseUsersQueries(
         context.fetchOptional(USERS, USERS.EMAIL.eq(email)));
     } catch (final DataAccessException e) {
       throw handleDatabaseException(this.transaction, e);
+    } catch (final EIPasswordException e) {
+      throw handlePasswordException(e);
     }
   }
 
@@ -293,5 +303,56 @@ record EIServerDatabaseUsersQueries(
     } catch (final DataAccessException e) {
       throw handleDatabaseException(this.transaction, e);
     }
+  }
+
+  @Override
+  public void userLogin(
+    final UUID id,
+    final String host)
+    throws EIServerDatabaseException
+  {
+    Objects.requireNonNull(id, "id");
+    Objects.requireNonNull(host, "host");
+
+    final var context =
+      this.transaction.createContext();
+
+    try {
+      final var time = this.timeNow();
+
+      final var existingOpt =
+        context.fetchOptional(USERS, USERS.ID.eq(id));
+      if (!existingOpt.isPresent()) {
+        throw new EIServerDatabaseException(
+          "User does not exist",
+          "user-nonexistent"
+        );
+      }
+
+      final var existing = existingOpt.get();
+      existing.setLastLoginTime(time);
+      existing.store();
+
+      final var audit =
+        context.insertInto(AUDIT)
+          .set(AUDIT.TIME, this.timeNow())
+          .set(AUDIT.TYPE, "USER_LOGGED_IN")
+          .set(AUDIT.USER_ID, id)
+          .set(AUDIT.MESSAGE, host);
+
+      audit.execute();
+    } catch (final DataAccessException e) {
+      throw handleDatabaseException(this.transaction, e);
+    }
+  }
+
+  private static EIServerDatabaseException handlePasswordException(
+    final EIPasswordException exception)
+  {
+    return new EIServerDatabaseException(
+      exception.getMessage(),
+      exception,
+      "password-error"
+    );
   }
 }

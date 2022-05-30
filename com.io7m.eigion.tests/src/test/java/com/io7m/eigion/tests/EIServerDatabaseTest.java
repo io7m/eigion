@@ -21,12 +21,15 @@ import com.io7m.eigion.model.EIChange;
 import com.io7m.eigion.model.EIChangeTicket;
 import com.io7m.eigion.model.EICreation;
 import com.io7m.eigion.model.EIPassword;
+import com.io7m.eigion.model.EIPasswordAlgorithmPBKDF2HmacSHA256;
+import com.io7m.eigion.model.EIPasswordException;
 import com.io7m.eigion.model.EIProductBundleDependency;
 import com.io7m.eigion.model.EIProductCategory;
 import com.io7m.eigion.model.EIProductDependency;
 import com.io7m.eigion.model.EIProductHash;
 import com.io7m.eigion.model.EIProductIdentifier;
 import com.io7m.eigion.model.EIProductRelease;
+import com.io7m.eigion.model.EIProductSummary;
 import com.io7m.eigion.model.EIProductVersion;
 import com.io7m.eigion.model.EIRedaction;
 import com.io7m.eigion.model.EIRedactionRequest;
@@ -52,14 +55,16 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import java.math.BigInteger;
 import java.net.URI;
-import java.security.NoSuchAlgorithmException;
-import java.security.spec.InvalidKeySpecException;
 import java.time.Clock;
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static com.io7m.eigion.model.EIRedaction.redactionOpt;
 import static com.io7m.eigion.model.EIRedactionRequest.redactionRequest;
@@ -74,6 +79,7 @@ import static java.math.BigInteger.TEN;
 import static java.math.BigInteger.TWO;
 import static java.time.OffsetDateTime.now;
 import static java.util.UUID.randomUUID;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -160,7 +166,10 @@ public final class EIServerDatabaseTest
           CREATE_DATABASE,
           UPGRADE_DATABASE,
           Clock.systemUTC()
-        )
+        ),
+        message -> {
+
+        }
       ));
   }
 
@@ -233,7 +242,7 @@ public final class EIServerDatabaseTest
       now();
 
     final var password =
-      EIPassword.createHashed("12345678");
+      createBadPassword();
 
     var user =
       users.userCreate(
@@ -248,7 +257,7 @@ public final class EIServerDatabaseTest
     assertEquals(reqId, user.id());
     assertEquals("someone@example.com", user.email());
     assertEquals(now.toEpochSecond(), user.created().toEpochSecond());
-    assertEquals(now.toEpochSecond(), user.lastLogin().toEpochSecond());
+    assertEquals(now.toEpochSecond(), user.lastLoginTime().toEpochSecond());
     assertFalse(user.ban().isPresent());
 
     user = users.userGet(reqId).orElseThrow();
@@ -256,7 +265,7 @@ public final class EIServerDatabaseTest
     assertEquals(reqId, user.id());
     assertEquals("someone@example.com", user.email());
     assertEquals(now.toEpochSecond(), user.created().toEpochSecond());
-    assertEquals(now.toEpochSecond(), user.lastLogin().toEpochSecond());
+    assertEquals(now.toEpochSecond(), user.lastLoginTime().toEpochSecond());
     assertFalse(user.ban().isPresent());
 
     user = users.userGetForEmail("someone@example.com").orElseThrow();
@@ -264,7 +273,7 @@ public final class EIServerDatabaseTest
     assertEquals(reqId, user.id());
     assertEquals("someone@example.com", user.email());
     assertEquals(now.toEpochSecond(), user.created().toEpochSecond());
-    assertEquals(now.toEpochSecond(), user.lastLogin().toEpochSecond());
+    assertEquals(now.toEpochSecond(), user.lastLoginTime().toEpochSecond());
     assertFalse(user.ban().isPresent());
 
     user = users.userGetForName("someone").orElseThrow();
@@ -272,7 +281,7 @@ public final class EIServerDatabaseTest
     assertEquals(reqId, user.id());
     assertEquals("someone@example.com", user.email());
     assertEquals(now.toEpochSecond(), user.created().toEpochSecond());
-    assertEquals(now.toEpochSecond(), user.lastLogin().toEpochSecond());
+    assertEquals(now.toEpochSecond(), user.lastLoginTime().toEpochSecond());
     assertFalse(user.ban().isPresent());
 
     checkAuditLog(
@@ -304,7 +313,7 @@ public final class EIServerDatabaseTest
       now();
 
     final var password =
-      EIPassword.createHashed("12345678");
+      createBadPassword();
 
     final var user =
       users.userCreate(
@@ -352,7 +361,7 @@ public final class EIServerDatabaseTest
       now();
 
     final var password =
-      EIPassword.createHashed("12345678");
+      createBadPassword();
 
     final var user =
       users.userCreate(
@@ -400,7 +409,7 @@ public final class EIServerDatabaseTest
       now();
 
     final var password =
-      EIPassword.createHashed("12345678");
+      createBadPassword();
 
     final var user =
       users.userCreate(
@@ -448,7 +457,7 @@ public final class EIServerDatabaseTest
       now();
 
     final var password =
-      EIPassword.createHashed("12345678");
+      createBadPassword();
 
     var user =
       users.userCreate(
@@ -493,6 +502,80 @@ public final class EIServerDatabaseTest
   }
 
   /**
+   * Logging in works.
+   *
+   * @throws Exception On errors
+   */
+
+  @Test
+  public void testUserLogin()
+    throws Exception
+  {
+    assertTrue(this.container.isRunning());
+
+    final var transaction =
+      this.transactionOf(EIGION);
+    final var users =
+      transaction.queries(EIServerDatabaseUsersQueriesType.class);
+
+    final var id =
+      randomUUID();
+    final var now =
+      now();
+
+    final var password =
+      createBadPassword();
+
+    var user =
+      users.userCreate(
+        id,
+        "someone",
+        "someone@example.com",
+        now,
+        password
+      );
+
+    users.userLogin(user.id(), "127.0.0.1");
+
+    checkAuditLog(
+      transaction,
+      new ExpectedEvent("USER_CREATED", id.toString()),
+      new ExpectedEvent("USER_LOGGED_IN", "127.0.0.1")
+    );
+  }
+
+  /**
+   * Logging in fails for nonexistent users.
+   *
+   * @throws Exception On errors
+   */
+
+  @Test
+  public void testUserLoginNonexistent()
+    throws Exception
+  {
+    assertTrue(this.container.isRunning());
+
+    final var transaction =
+      this.transactionOf(EIGION);
+    final var users =
+      transaction.queries(EIServerDatabaseUsersQueriesType.class);
+
+    final var ex =
+      assertThrows(EIServerDatabaseException.class, () -> {
+        users.userLogin(randomUUID(), "127.0.0.1");
+      });
+    assertEquals("user-nonexistent", ex.errorCode());
+  }
+
+  private static EIPassword createBadPassword()
+    throws EIPasswordException
+  {
+    return EIPasswordAlgorithmPBKDF2HmacSHA256.create()
+      .createHashed("12345678");
+  }
+
+  /**
    * Creating and redacting categories works.
    *
    * @throws Exception On errors
@@ -515,7 +598,7 @@ public final class EIServerDatabaseTest
       users.userCreate(
         "someone",
         "someone@example.com",
-        EIPassword.createHashed("12345678")
+        createBadPassword()
       );
 
     transaction.userIdSet(user.id());
@@ -634,7 +717,7 @@ public final class EIServerDatabaseTest
       users.userCreate(
         "someone",
         "someone@example.com",
-        EIPassword.createHashed("12345678"));
+        createBadPassword());
 
     transaction.userIdSet(user.id());
 
@@ -678,7 +761,7 @@ public final class EIServerDatabaseTest
       users.userCreate(
         "someone",
         "someone@example.com",
-        EIPassword.createHashed("12345678"));
+        createBadPassword());
 
     transaction.userIdSet(user.id());
 
@@ -704,8 +787,7 @@ public final class EIServerDatabaseTest
 
   private EIUser createTestUser()
     throws EIServerDatabaseException,
-    NoSuchAlgorithmException,
-    InvalidKeySpecException
+    EIPasswordException
   {
     final EIUser user;
     {
@@ -714,7 +796,7 @@ public final class EIServerDatabaseTest
       final var users =
         transaction.queries(EIServerDatabaseUsersQueriesType.class);
       final var p =
-        EIPassword.createHashed("12345678");
+        createBadPassword();
       user =
         users.userCreate("someone", "someone@example.com", p);
       transaction.commit();
@@ -790,7 +872,7 @@ public final class EIServerDatabaseTest
       users.userCreate(
         "someone",
         "someone@example.com",
-        EIPassword.createHashed("12345678"));
+        createBadPassword());
 
     transaction.userIdSet(user.id());
 
@@ -868,7 +950,7 @@ public final class EIServerDatabaseTest
       users.userCreate(
         "someone",
         "someone@example.com",
-        EIPassword.createHashed("12345678"));
+        createBadPassword());
 
     transaction.userIdSet(user.id());
 
@@ -1040,7 +1122,7 @@ public final class EIServerDatabaseTest
       users.userCreate(
         "someone",
         "someone@example.com",
-        EIPassword.createHashed("12345678"));
+        createBadPassword());
 
     transaction.userIdSet(user.id());
 
@@ -1056,7 +1138,11 @@ public final class EIServerDatabaseTest
       images.imageGet(id, INCLUDE_REDACTED)
         .orElseThrow();
 
-    assertEquals(image, image2);
+    assertEquals(image.contentType(), image2.contentType());
+    assertEquals(image.creation(), image2.creation());
+    assertEquals(image.id(), image2.id());
+    assertEquals(image.redaction(), image2.redaction());
+    assertArrayEquals(image.data(), image2.data());
 
     {
       final var ex = assertThrows(EIServerDatabaseException.class, () -> {
@@ -1095,7 +1181,7 @@ public final class EIServerDatabaseTest
       users.userCreate(
         "someone",
         "someone@example.com",
-        EIPassword.createHashed("12345678"));
+        createBadPassword());
 
     transaction.userIdSet(user.id());
 
@@ -1219,7 +1305,7 @@ public final class EIServerDatabaseTest
       final var ex =
         assertThrows(EIServerDatabaseException.class, () -> {
           products.productReleaseCreate(id, release);
-      });
+        });
       assertEquals("release-duplicate", ex.errorCode());
     }
 
@@ -1321,6 +1407,119 @@ public final class EIServerDatabaseTest
       new ExpectedEvent("PRODUCT_CREATED", "com.io7m.ex:com.q"),
       new ExpectedEvent("PRODUCT_RELEASE_CREATED", "com.io7m.ex:com.q:1.2.10")
     );
+  }
+
+  /**
+   * Product summary retrievals work.
+   *
+   * @throws Exception On errors
+   */
+
+  @Test
+  public void testProductSummaries()
+    throws Exception
+  {
+    assertTrue(this.container.isRunning());
+
+    final var user =
+      this.createTestUser();
+
+    final var transaction =
+      this.transactionOf(EIGION);
+    final var products =
+      transaction.queries(EIServerDatabaseProductsQueriesType.class);
+
+    transaction.userIdSet(user.id());
+
+    final Function<Integer, EIProductIdentifier> idFor = i -> {
+      return new EIProductIdentifier(
+        "com.io7m.ex",
+        String.format("com.q%04d", i)
+      );
+    };
+
+    for (int index = 0; index < 100; ++index) {
+      final var id = idFor.apply(Integer.valueOf(index));
+      products.productCreate(id);
+      products.productSetTitle(id, "Title " + index);
+
+      if (index == 30 || index == 46) {
+        products.productRedact(
+          id, Optional.of(new EIRedactionRequest(timeNow(), "Broken!"))
+        );
+      }
+    }
+
+    transaction.commit();
+
+    EIProductIdentifier next;
+    final var limit = BigInteger.valueOf(20L);
+
+    {
+      final var page =
+        products.productSummaries(Optional.empty(), limit);
+      assertEquals(20, page.items().size());
+      assertEquals(
+        page.items().stream().map(EIProductSummary::id).toList(),
+        page.items().stream().map(EIProductSummary::id).sorted().toList()
+      );
+      next = page.lastKey().orElseThrow();
+    }
+
+    {
+      final var page =
+        products.productSummaries(Optional.of(next), limit);
+      assertEquals(20, page.items().size());
+      assertEquals(
+        page.items().stream().map(EIProductSummary::id).toList(),
+        page.items().stream().map(EIProductSummary::id).sorted().toList()
+      );
+      next = page.lastKey().orElseThrow();
+    }
+
+    {
+      final var page =
+        products.productSummaries(Optional.of(next), limit);
+      assertEquals(20, page.items().size());
+      assertEquals(
+        page.items().stream().map(EIProductSummary::id).toList(),
+        page.items().stream().map(EIProductSummary::id).sorted().toList()
+      );
+      next = page.lastKey().orElseThrow();
+    }
+
+    {
+      final var page =
+        products.productSummaries(Optional.of(next), limit);
+      assertEquals(20, page.items().size());
+      assertEquals(
+        page.items().stream().map(EIProductSummary::id).toList(),
+        page.items().stream().map(EIProductSummary::id).sorted().toList()
+      );
+      next = page.lastKey().orElseThrow();
+    }
+
+    {
+      final var page =
+        products.productSummaries(Optional.of(next), limit);
+      assertEquals(18, page.items().size());
+      assertEquals(
+        page.items().stream().map(EIProductSummary::id).toList(),
+        page.items().stream().map(EIProductSummary::id).sorted().toList()
+      );
+      next = page.lastKey().orElseThrow();
+    }
+
+    {
+      final var page =
+        products.productSummaries(Optional.of(next), limit);
+      assertEquals(0, page.items().size());
+      assertEquals(
+        page.items().stream().map(EIProductSummary::id).toList(),
+        page.items().stream().map(EIProductSummary::id).sorted().toList()
+      );
+      assertEquals(Optional.empty(), page.lastKey());
+    }
   }
 
   private record ExpectedEvent(

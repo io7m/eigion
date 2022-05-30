@@ -1,0 +1,162 @@
+{
+  "$id": "https://www.io7m.com/eigion/public-1.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+
+  "$defs": {
+
+    "SchemaIdentifier": {
+      "type": "string",
+      "const": "https://www.io7m.com/eigion/public-1.json"
+    },
+
+    "CommandLogin": {
+      "type": "object",
+
+      "properties": {
+        "%Schema": {
+          "$ref": "#/$defs/SchemaIdentifier"
+        },
+        "%Type": {
+          "type": "string",
+          "const": "CommandLogin"
+        },
+        "UserName": {
+          "type": "string"
+        },
+        "Password": {
+          "type": "string"
+        }
+      },
+
+      "additionalProperties": false,
+      "required": [
+        "%Type",
+        "UserName",
+        "Password"
+      ]
+    },
+
+    "ResponseError": {
+      "type": "object",
+
+      "properties": {
+        "%Schema": {
+          "$ref": "#/$defs/SchemaIdentifier"
+        },
+        "%Type": {
+          "type": "string",
+          "const": "ResponseError"
+        },
+        "ErrorCode": {
+          "type": "string"
+        },
+        "Message": {
+          "type": "string"
+        }
+      },
+
+      "additionalProperties": false,
+      "required": [
+        "%Type",
+        "ErrorCode",
+        "Message"
+      ]
+    },
+
+    "ResponseImageCreated": {
+      "type": "object",
+
+      "properties": {
+        "%Schema": {
+          "$ref": "#/$defs/SchemaIdentifier"
+        },
+        "%Type": {
+          "type": "string",
+          "const": "ResponseImageCreated"
+        },
+        "ImageID": {
+          "type": "string"
+        }
+      },
+
+      "additionalProperties": false,
+      "required": [
+        "%Type",
+        "ImageID"
+      ]
+    },
+
+    "ResponseProductList": {
+      "type": "object",
+
+      "properties": {
+        "%Schema": {
+          "$ref": "#/$defs/SchemaIdentifier"
+        },
+        "%Type": {
+          "type": "string",
+          "const": "ResponseProductList"
+        },
+        "Products": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ProductSummary"
+          }
+        },
+        "Start": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+
+      "additionalProperties": false,
+      "required": [
+        "%Type",
+        "Products",
+        "Start"
+      ]
+    },
+
+    "ProductSummary": {
+      "type": "object",
+
+      "properties": {
+        "%Schema": {
+          "$ref": "#/$defs/SchemaIdentifier"
+        },
+        "%Type": {
+          "type": "string",
+          "const": "ProductSummary"
+        },
+        "ID": {
+          "type": "string"
+        },
+        "Title": {
+          "type": "string"
+        }
+      },
+
+      "additionalProperties": false,
+      "required": [
+        "%Type",
+        "ID",
+        "Title"
+      ]
+    }
+  },
+
+  "anyOf": [
+    {
+      "$ref": "#/$defs/CommandLogin"
+    },
+    {
+      "$ref": "#/$defs/ResponseError"
+    },
+    {
+      "$ref": "#/$defs/ResponseImageCreated"
+    },
+    {
+      "$ref": "#/$defs/ResponseProductList"
+    }
+  ]
+}

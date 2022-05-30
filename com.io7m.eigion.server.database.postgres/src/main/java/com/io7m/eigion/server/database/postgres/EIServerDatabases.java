@@ -46,6 +46,7 @@ import java.sql.SQLException;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.ServiceLoader;
+import java.util.function.Consumer;
 
 import static com.io7m.trasco.api.TrExecutorUpgrade.FAIL_INSTEAD_OF_UPGRADING;
 import static com.io7m.trasco.api.TrExecutorUpgrade.PERFORM_UPGRADES;
@@ -94,23 +95,6 @@ public final class EIServerDatabases implements EIServerDatabaseFactoryType
         .findFirst()
         .orElseThrow()
     );
-  }
-
-  private static void showEvent(
-    final TrEventType event)
-  {
-    if (event instanceof TrEventExecutingSQL sql) {
-      LOG.debug("executing: {}", sql);
-      return;
-    }
-
-    if (event instanceof TrEventUpgrading upgrading) {
-      LOG.info(
-        "upgrading database from version {} -> {}",
-        upgrading.fromVersion(),
-        upgrading.toVersion()
-      );
-    }
   }
 
   private static void schemaVersionSet(
@@ -165,10 +149,12 @@ public final class EIServerDatabases implements EIServerDatabaseFactoryType
 
   @Override
   public EIServerDatabaseType open(
-    final EIServerDatabaseConfiguration configuration)
+    final EIServerDatabaseConfiguration configuration,
+    final Consumer<String> startupMessages)
     throws EIServerDatabaseException
   {
     Objects.requireNonNull(configuration, "configuration");
+    Objects.requireNonNull(startupMessages, "startupMessages");
 
     try {
       final var url = new StringBuilder(128);
@@ -201,7 +187,7 @@ public final class EIServerDatabases implements EIServerDatabaseFactoryType
           new TrExecutorConfiguration(
             EIServerDatabases::schemaVersionGet,
             EIServerDatabases::schemaVersionSet,
-            EIServerDatabases::showEvent,
+            event -> publishTrEvent(startupMessages, event),
             revisions,
             switch (configuration.upgrade()) {
               case UPGRADE_DATABASE -> PERFORM_UPGRADES;
@@ -227,6 +213,42 @@ public final class EIServerDatabases implements EIServerDatabaseFactoryType
       throw new EIServerDatabaseException(e.getMessage(), e, "sql-revisions");
     } catch (final SQLException e) {
       throw new EIServerDatabaseException(e.getMessage(), e, "sql-error");
+    }
+  }
+
+  private static void publishEvent(
+    final Consumer<String> startupMessages,
+    final String message)
+  {
+    try {
+      LOG.trace("{}", message);
+      startupMessages.accept(message);
+    } catch (final Exception e) {
+      LOG.error("ignored consumer exception: ", e);
+    }
+  }
+
+  private static void publishTrEvent(
+    final Consumer<String> startupMessages,
+    final TrEventType event)
+  {
+    if (event instanceof TrEventExecutingSQL sql) {
+      publishEvent(
+        startupMessages,
+        String.format("Executing SQL: %s", sql.statement())
+      );
+      return;
+    }
+
+    if (event instanceof TrEventUpgrading upgrading) {
+      publishEvent(
+        startupMessages,
+        String.format(
+          "Upgrading database from version %s -> %s",
+          upgrading.fromVersion(),
+          upgrading.toVersion())
+      );
+      return;
     }
   }
 }

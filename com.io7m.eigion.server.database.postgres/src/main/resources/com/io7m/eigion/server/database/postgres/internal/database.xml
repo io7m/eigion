@@ -43,14 +43,14 @@ create table schema_version (
 
     <Statement><![CDATA[
 create table users (
-  id             uuid                     not null primary key,
-  name           varchar(64)              not null unique,
-  email          varchar(256)             not null unique,
-  created        timestamp with time zone not null,
-  last_login     timestamp with time zone not null,
-  password_algo  varchar(64)              not null,
-  password_hash  varchar(256)             not null,
-  password_salt  varchar(64)              not null
+  id               uuid                     not null primary key,
+  name             varchar(64)              not null unique,
+  email            varchar(256)             not null unique,
+  created          timestamp with time zone not null,
+  last_login_time  timestamp with time zone not null,
+  password_algo    varchar(64)              not null,
+  password_hash    varchar(256)             not null,
+  password_salt    varchar(64)              not null
 )
 ]]></Statement>
 

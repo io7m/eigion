@@ -16,12 +16,18 @@
 
 package com.io7m.eigion.server.database.api;
 
+import com.io7m.eigion.services.api.EIServiceType;
+
 /**
  * An open database.
  */
 
-public interface EIServerDatabaseType extends AutoCloseable
+public interface EIServerDatabaseType extends AutoCloseable, EIServiceType
 {
+  @Override
+  void close()
+    throws EIServerDatabaseException;
+
   /**
    * Open a database connection using the given role.
    *

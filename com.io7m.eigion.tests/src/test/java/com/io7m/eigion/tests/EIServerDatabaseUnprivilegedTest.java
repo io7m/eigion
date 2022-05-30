@@ -19,6 +19,8 @@ package com.io7m.eigion.tests;
 
 import com.io7m.eigion.model.EICreation;
 import com.io7m.eigion.model.EIPassword;
+import com.io7m.eigion.model.EIPasswordAlgorithmPBKDF2HmacSHA256;
+import com.io7m.eigion.model.EIPasswordException;
 import com.io7m.eigion.model.EIProductCategory;
 import com.io7m.eigion.model.EIProductIdentifier;
 import com.io7m.eigion.model.EIProductRelease;
@@ -45,8 +47,6 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-import java.security.NoSuchAlgorithmException;
-import java.security.spec.InvalidKeySpecException;
 import java.time.Clock;
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -109,7 +109,10 @@ public final class EIServerDatabaseUnprivilegedTest
           CREATE_DATABASE,
           UPGRADE_DATABASE,
           Clock.systemUTC()
-        )
+        ),
+        message -> {
+
+        }
       ));
   }
 
@@ -139,8 +142,7 @@ public final class EIServerDatabaseUnprivilegedTest
 
   private EIUser createTestUser()
     throws EIServerDatabaseException,
-    NoSuchAlgorithmException,
-    InvalidKeySpecException
+    EIPasswordException
   {
     final EIUser user;
     {
@@ -149,7 +151,8 @@ public final class EIServerDatabaseUnprivilegedTest
       final var users =
         transaction.queries(EIServerDatabaseUsersQueriesType.class);
       final var p =
-        EIPassword.createHashed("12345678");
+        EIPasswordAlgorithmPBKDF2HmacSHA256.create()
+          .createHashed("12345678");
       user =
         users.userCreate("someone", "someone@example.com", p);
       transaction.commit();
@@ -367,7 +370,8 @@ public final class EIServerDatabaseUnprivilegedTest
                 "someone",
                 "someone@example.com",
                 timeNow(),
-                EIPassword.createHashed("12345678")
+                EIPasswordAlgorithmPBKDF2HmacSHA256.create()
+                  .createHashed("12345678")
               );
             });
           assertEquals("operation-not-permitted", ex.errorCode());

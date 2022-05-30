@@ -46,10 +46,14 @@ record EIServerDatabaseConnection(
 
   @Override
   public void close()
-    throws Exception
+    throws EIServerDatabaseException
   {
-    if (!this.connection.isClosed()) {
-      this.connection.close();
+    try {
+      if (!this.connection.isClosed()) {
+        this.connection.close();
+      }
+    } catch (final SQLException e) {
+      throw new EIServerDatabaseException(e.getMessage(), e, "database-error");
     }
   }
 }

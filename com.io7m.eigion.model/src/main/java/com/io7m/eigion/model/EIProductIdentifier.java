@@ -16,6 +16,9 @@
 
 package com.io7m.eigion.model;
 
+import java.text.ParseException;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Objects;
 import java.util.regex.Pattern;
 
@@ -31,6 +34,7 @@ import static java.util.regex.Pattern.UNICODE_CHARACTER_CLASS;
 public record EIProductIdentifier(
   String group,
   String name)
+  implements Comparable<EIProductIdentifier>
 {
   /**
    * The pattern that defines a valid group name.
@@ -76,11 +80,42 @@ public record EIProductIdentifier(
   }
 
   /**
+   * Parse an identifier.
+   *
+   * @param text The identifier text
+   *
+   * @return A parsed identifier
+   *
+   * @throws ParseException On parse errors
+   * @see #show()
+   */
+
+  public static EIProductIdentifier parse(
+    final String text)
+    throws ParseException
+  {
+    final var segments = List.of(text.split(":"));
+    if (segments.size() != 2) {
+      throw new ParseException(text, 0);
+    }
+    return new EIProductIdentifier(segments.get(0), segments.get(1));
+  }
+
+  /**
    * @return The identifier as a string
    */
 
   public String show()
   {
     return String.format("%s:%s", this.group, this.name);
+  }
+
+  @Override
+  public int compareTo(
+    final EIProductIdentifier other)
+  {
+    return Comparator.comparing(EIProductIdentifier::group)
+      .thenComparing(EIProductIdentifier::name)
+      .compare(this, other);
   }
 }

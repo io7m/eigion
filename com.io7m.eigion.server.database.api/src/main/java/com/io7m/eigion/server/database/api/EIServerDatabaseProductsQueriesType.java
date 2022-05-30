@@ -20,10 +20,12 @@ import com.io7m.eigion.model.EIProduct;
 import com.io7m.eigion.model.EIProductCategory;
 import com.io7m.eigion.model.EIProductIdentifier;
 import com.io7m.eigion.model.EIProductRelease;
+import com.io7m.eigion.model.EIProductSummaryPage;
 import com.io7m.eigion.model.EIProductVersion;
 import com.io7m.eigion.model.EIRedactionRequest;
 import com.io7m.eigion.model.EIRichText;
 
+import java.math.BigInteger;
 import java.util.Optional;
 import java.util.Set;
 
@@ -249,5 +251,21 @@ public non-sealed interface EIServerDatabaseProductsQueriesType
     EIProductIdentifier id,
     EIProductVersion version,
     Optional<EIRedactionRequest> redaction)
+    throws EIServerDatabaseException;
+
+  /**
+   * Return a set of product summaries, starting at the given offset.
+   *
+   * @param startOffset     The initial product offset
+   * @param limit The maximum number of returned items
+   *
+   * @return A list of product summaries
+   *
+   * @throws EIServerDatabaseException On errors
+   */
+
+  EIProductSummaryPage productSummaries(
+    Optional<EIProductIdentifier> startOffset,
+    BigInteger limit)
     throws EIServerDatabaseException;
 }

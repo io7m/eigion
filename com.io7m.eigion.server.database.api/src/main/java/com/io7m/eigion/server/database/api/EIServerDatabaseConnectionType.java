@@ -23,6 +23,10 @@ package com.io7m.eigion.server.database.api;
 
 public interface EIServerDatabaseConnectionType extends AutoCloseable
 {
+  @Override
+  void close()
+    throws EIServerDatabaseException;
+
   /**
    * Begin a new transaction.
    *

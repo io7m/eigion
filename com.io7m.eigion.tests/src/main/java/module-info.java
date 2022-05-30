@@ -24,10 +24,17 @@ open module com.io7m.eigion.tests
   requires com.io7m.eigion.launcher.felix;
   requires com.io7m.eigion.product.parser.api;
   requires com.io7m.eigion.product.parser;
+  requires com.io7m.eigion.server.api;
   requires com.io7m.eigion.server.database.api;
   requires com.io7m.eigion.server.database.postgres;
+  requires com.io7m.eigion.server.protocol.public_api.v1;
+  requires com.io7m.eigion.server.protocol.versions;
+  requires com.io7m.eigion.server.vanilla;
   requires com.io7m.jmulticlose.core;
+  requires java.net.http;
+  requires org.apache.commons.io;
   requires org.eclipse.jetty.server;
+  requires org.eclipse.jetty.servlet;
   requires org.junit.jupiter.api;
   requires org.slf4j;
 

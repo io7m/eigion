@@ -27,13 +27,15 @@ import java.util.UUID;
  * @param contentType The image content type
  * @param creation    The creation info
  * @param redaction   The redaction info
+ * @param data        The image data
  */
 
 public record EIImage(
   UUID id,
   String contentType,
   EICreation creation,
-  Optional<EIRedaction> redaction)
+  Optional<EIRedaction> redaction,
+  byte[] data)
   implements EIRedactableType, EICreatedType
 {
   /**
@@ -43,6 +45,7 @@ public record EIImage(
    * @param contentType The image content type
    * @param creation    The creation info
    * @param redaction   The redaction info
+   * @param data        The image data
    */
 
   public EIImage
@@ -51,5 +54,6 @@ public record EIImage(
     Objects.requireNonNull(contentType, "contentType");
     Objects.requireNonNull(creation, "creation");
     Objects.requireNonNull(redaction, "redaction");
+    Objects.requireNonNull(data, "data");
   }
 }

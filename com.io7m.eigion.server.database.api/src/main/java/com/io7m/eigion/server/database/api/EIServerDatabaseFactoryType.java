@@ -17,6 +17,8 @@
 
 package com.io7m.eigion.server.database.api;
 
+import java.util.function.Consumer;
+
 /**
  * The type of server database factories.
  */
@@ -26,7 +28,8 @@ public interface EIServerDatabaseFactoryType
   /**
    * Open a database.
    *
-   * @param configuration The database configuration
+   * @param configuration   The database configuration
+   * @param startupMessages A function that will receive startup messages
    *
    * @return A database
    *
@@ -34,7 +37,8 @@ public interface EIServerDatabaseFactoryType
    */
 
   EIServerDatabaseType open(
-    EIServerDatabaseConfiguration configuration)
+    EIServerDatabaseConfiguration configuration,
+    Consumer<String> startupMessages)
     throws EIServerDatabaseException;
 
 }

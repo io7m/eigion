@@ -17,6 +17,7 @@
 package com.io7m.eigion.tests;
 
 import com.io7m.eigion.model.EIPassword;
+import com.io7m.eigion.model.EIPasswordAlgorithmPBKDF2HmacSHA256;
 import com.io7m.eigion.server.database.api.EIServerDatabaseConfiguration;
 import com.io7m.eigion.server.database.api.EIServerDatabaseUsersQueriesType;
 import com.io7m.eigion.server.database.postgres.EIServerDatabases;
@@ -66,7 +67,9 @@ public final class EIServerDatabaseExample
 
     try (var resources = CloseableCollection.create()) {
       final var database =
-        resources.add(databases.open(configuration));
+        resources.add(databases.open(configuration, message -> {
+
+        }));
       final var c =
         resources.add(database.openConnection(EIGION));
       final var t =
@@ -75,7 +78,8 @@ public final class EIServerDatabaseExample
         t.queries(EIServerDatabaseUsersQueriesType.class);
 
       final var password =
-        EIPassword.createHashed("12345678");
+        EIPasswordAlgorithmPBKDF2HmacSHA256.create()
+          .createHashed("12345678");
 
       final var id =
         q.userCreate(

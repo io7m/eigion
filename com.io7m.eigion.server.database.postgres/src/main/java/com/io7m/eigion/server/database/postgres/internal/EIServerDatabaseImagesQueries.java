@@ -129,7 +129,8 @@ final class EIServerDatabaseImagesQueries
         id,
         contentType,
         new EICreation(owner, time),
-        Optional.empty()
+        Optional.empty(),
+        data
       );
     } catch (final DataAccessException e) {
       throw handleDatabaseException(this.transaction, e);
@@ -169,7 +170,8 @@ final class EIServerDatabaseImagesQueries
               re.getCreator(),
               re.getCreated(),
               re.getReason());
-          })
+          }),
+          ir.getImageData()
         );
       });
     } catch (final DataAccessException e) {

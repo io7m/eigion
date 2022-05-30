@@ -25,7 +25,8 @@ import java.util.Objects;
  * @param products The products
  */
 
-public record EIProducts(List<EIProduct> products)
+public record EIProducts(
+  List<EIProduct> products)
 {
   /**
    * A list of products.

@@ -124,4 +124,10 @@ public final class EIServerDatabase implements EIServerDatabaseType
   {
     return this.productReleaseParsers;
   }
+
+  @Override
+  public String description()
+  {
+    return "Server database service.";
+  }
 }

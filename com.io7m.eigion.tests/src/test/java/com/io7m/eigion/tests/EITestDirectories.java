@@ -100,4 +100,15 @@ public final class EITestDirectories
   {
     return Files.newInputStream(resourceOf(clazz, output, name));
   }
+
+  public static byte[] resourceBytesOf(
+    final Class<?> clazz,
+    final Path output,
+    final String name)
+    throws IOException
+  {
+    try (var stream = resourceStreamOf(clazz, output, name)) {
+      return stream.readAllBytes();
+    }
+  }
 }

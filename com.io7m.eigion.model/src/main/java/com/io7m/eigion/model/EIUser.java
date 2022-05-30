@@ -24,13 +24,13 @@ import java.util.UUID;
 /**
  * Information for a single user.
  *
- * @param id        The user's ID
- * @param name      The user's name
- * @param email     The user's email
- * @param password  The user's password
- * @param created   The date the user was created
- * @param lastLogin The date the user last logged in
- * @param ban       The user's ban, if one exists
+ * @param id            The user's ID
+ * @param name          The user's name
+ * @param email         The user's email
+ * @param password      The user's password
+ * @param created       The date the user was created
+ * @param lastLoginTime The date the user last logged in
+ * @param ban           The user's ban, if one exists
  */
 
 public record EIUser(
@@ -38,20 +38,20 @@ public record EIUser(
   String name,
   String email,
   OffsetDateTime created,
-  OffsetDateTime lastLogin,
+  OffsetDateTime lastLoginTime,
   EIPassword password,
   Optional<EIUserBan> ban)
 {
   /**
    * Information for a single user.
    *
-   * @param id        The user's ID
-   * @param name      The user's name
-   * @param email     The user's email
-   * @param password  The user's password
-   * @param created   The date the user was created
-   * @param lastLogin The date the user last logged in
-   * @param ban       The user's ban, if one exists
+   * @param id            The user's ID
+   * @param name          The user's name
+   * @param email         The user's email
+   * @param password      The user's password
+   * @param created       The date the user was created
+   * @param lastLoginTime The date the user last logged in
+   * @param ban           The user's ban, if one exists
    */
 
   public EIUser
@@ -60,7 +60,7 @@ public record EIUser(
     Objects.requireNonNull(name, "name");
     Objects.requireNonNull(email, "email");
     Objects.requireNonNull(created, "created");
-    Objects.requireNonNull(lastLogin, "lastLogin");
+    Objects.requireNonNull(lastLoginTime, "lastLoginTime");
     Objects.requireNonNull(password, "password");
     Objects.requireNonNull(ban, "ban");
   }

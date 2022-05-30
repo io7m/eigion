@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+
+<properties>
+  <entry key="unauthorized">Unauthorized.</entry>
+  <entry key="methodNotAllowed">HTTP method not allowed.</entry>
+  <entry key="loginFailed">Login failed.</entry>
+  <entry key="expectedCommand">Expected a '{0}'.</entry>
+  <entry key="invalidImage">Invalid image.</entry>
+  <entry key="requestTooLarge">A request of size {0} is too large.</entry>
+  <entry key="missingParameter">Missing a required query parameter '{0}'</entry>
+  <entry key="invalidParameter">Invalid value for query parameter '{0}'</entry>
+  <entry key="notFound">Not found.</entry>
+</properties>

@@ -25,6 +25,10 @@ import java.util.UUID;
 
 public interface EIServerDatabaseTransactionType extends AutoCloseable
 {
+  @Override
+  void close()
+    throws EIServerDatabaseException;
+
   /**
    * Set the user ID for the transaction. This is the ID that will typically end
    * up in audit events.

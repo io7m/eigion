@@ -25,6 +25,8 @@ import com.io7m.eigion.model.EIProductCategory;
 import com.io7m.eigion.model.EIProductDescription;
 import com.io7m.eigion.model.EIProductIdentifier;
 import com.io7m.eigion.model.EIProductRelease;
+import com.io7m.eigion.model.EIProductSummary;
+import com.io7m.eigion.model.EIProductSummaryPage;
 import com.io7m.eigion.model.EIProductVersion;
 import com.io7m.eigion.model.EIRedactableType;
 import com.io7m.eigion.model.EIRedaction;
@@ -42,6 +44,7 @@ import com.io7m.jaffirm.core.Preconditions;
 import org.jooq.DSLContext;
 import org.jooq.InsertSetMoreStep;
 import org.jooq.Record;
+import org.jooq.Select;
 import org.jooq.exception.DataAccessException;
 
 import java.io.ByteArrayInputStream;
@@ -1230,6 +1233,60 @@ final class EIServerDatabaseProductsQueries
           .set(AUDIT.MESSAGE, id.show() + ":" + version.show());
 
       insertAuditRecord(audit);
+    } catch (final DataAccessException e) {
+      throw handleDatabaseException(this.transaction, e);
+    }
+  }
+
+  @Override
+  public EIProductSummaryPage productSummaries(
+    final Optional<EIProductIdentifier> startOffset,
+    final BigInteger limit)
+    throws EIServerDatabaseException
+  {
+    Objects.requireNonNull(startOffset, "startOffset");
+    Objects.requireNonNull(limit, "limit");
+
+    final var context =
+      this.transaction.createContext();
+
+    try {
+      final Select<Record> baseQuery;
+      if (startOffset.isPresent()) {
+        final var id = startOffset.get();
+        baseQuery = context.select()
+          .from(PRODUCTS)
+          .leftOuterJoin(PRODUCT_REDACTIONS)
+          .on(PRODUCT_REDACTIONS.PRODUCT.eq(PRODUCTS.ID))
+          .where(PRODUCT_REDACTIONS.REASON.isNull())
+          .orderBy(PRODUCTS.PRODUCT_GROUP, PRODUCTS.PRODUCT_NAME)
+          .seek(id.group(), id.name())
+          .limit(limit);
+      } else {
+        baseQuery = context.select()
+          .from(PRODUCTS)
+          .leftOuterJoin(PRODUCT_REDACTIONS)
+          .on(PRODUCT_REDACTIONS.PRODUCT.eq(PRODUCTS.ID))
+          .where(PRODUCT_REDACTIONS.REASON.isNull())
+          .orderBy(PRODUCTS.PRODUCT_GROUP, PRODUCTS.PRODUCT_NAME)
+          .limit(limit);
+      }
+
+      final var items =
+        baseQuery.stream()
+          .map(r -> {
+            return new EIProductSummary(
+              new EIProductIdentifier(
+                r.get(PRODUCTS.PRODUCT_GROUP),
+                r.get(PRODUCTS.PRODUCT_NAME)
+              ),
+              r.get(PRODUCTS.PRODUCT_TITLE),
+              toProductRedaction(r)
+            );
+          })
+          .toList();
+
+      return new EIProductSummaryPage(items);
     } catch (final DataAccessException e) {
       throw handleDatabaseException(this.transaction, e);
     }

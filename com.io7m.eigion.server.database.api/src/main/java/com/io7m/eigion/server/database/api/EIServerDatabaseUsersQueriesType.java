@@ -14,7 +14,6 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-
 package com.io7m.eigion.server.database.api;
 
 import com.io7m.eigion.model.EIPassword;
@@ -141,5 +140,19 @@ public non-sealed interface EIServerDatabaseUsersQueriesType
   @EIServerDatabaseRequiresUser
   void userUnban(
     UUID id)
+    throws EIServerDatabaseException;
+
+  /**
+   * Record the fact that the given user has logged in.
+   *
+   * @param id The user ID
+   * @param host The host from which the user logged in
+   *
+   * @throws EIServerDatabaseException On errors
+   */
+
+  void userLogin(
+    UUID id,
+    String host)
     throws EIServerDatabaseException;
 }
