@@ -50,6 +50,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.management.ManagementFactory;
+import java.util.Arrays;
 import java.util.Objects;
 import java.util.concurrent.Flow;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -223,6 +224,14 @@ public final class EIServer implements EIServerType
     final var statsHandler = new StatisticsHandler();
     statsHandler.setHandler(sessionHandler);
 
+    /*
+     * Add a connector listener that adds unique identifiers to all requests.
+     */
+
+    Arrays.stream(server.getConnectors()).forEach(
+      connector -> connector.addBean(new EIServerRequestIDs())
+    );
+
     server.setHandler(statsHandler);
     server.start();
     LOG.info("[{}] public server started", address);
@@ -281,6 +290,14 @@ public final class EIServer implements EIServerType
 
     final var statsHandler = new StatisticsHandler();
     statsHandler.setHandler(sessionHandler);
+
+    /*
+     * Add a connector listener that adds unique identifiers to all requests.
+     */
+
+    Arrays.stream(server.getConnectors()).forEach(
+      connector -> connector.addBean(new EIServerRequestIDs())
+    );
 
     server.setHandler(statsHandler);
     server.start();

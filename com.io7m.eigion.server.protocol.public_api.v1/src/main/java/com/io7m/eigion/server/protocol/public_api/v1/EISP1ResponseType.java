@@ -17,6 +17,8 @@
 
 package com.io7m.eigion.server.protocol.public_api.v1;
 
+import java.util.UUID;
+
 /**
  * The type of Public API v1 responses.
  */
@@ -27,5 +29,9 @@ public sealed interface EISP1ResponseType
   EISP1ResponseImageCreated,
   EISP1ResponseProductList
 {
+  /**
+   * @return The server-assigned request ID
+   */
 
+  UUID requestId();
 }

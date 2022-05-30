@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 import java.util.Objects;
+import java.util.UUID;
 
 // CHECKSTYLE:OFF
 
@@ -30,6 +31,8 @@ import java.util.Objects;
 public record EISP1ResponseErrorJSON(
   @JsonProperty(value = "%Schema", required = false)
   String schemaId,
+  @JsonProperty(value = "RequestID", required = true)
+  UUID requestId,
   @JsonProperty(value = "ErrorCode", required = true)
   String errorCode,
   @JsonProperty(value = "Message", required = true)
@@ -41,6 +44,7 @@ public record EISP1ResponseErrorJSON(
   @JsonCreator
   public EISP1ResponseErrorJSON
   {
+    Objects.requireNonNull(requestId, "requestId");
     Objects.requireNonNull(errorCode, "errorCode");
     Objects.requireNonNull(message, "message");
   }

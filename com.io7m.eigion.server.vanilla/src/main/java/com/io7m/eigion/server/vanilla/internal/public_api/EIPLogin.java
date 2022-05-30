@@ -42,6 +42,7 @@ import java.io.IOException;
 import java.util.Objects;
 
 import static com.io7m.eigion.server.database.api.EIServerDatabaseRole.EIGION;
+import static com.io7m.eigion.server.vanilla.internal.EIServerRequestIDs.requestIdFor;
 import static org.eclipse.jetty.http.HttpStatus.BAD_REQUEST_400;
 import static org.eclipse.jetty.http.HttpStatus.INTERNAL_SERVER_ERROR_500;
 import static org.eclipse.jetty.http.HttpStatus.METHOD_NOT_ALLOWED_405;
@@ -134,6 +135,7 @@ public final class EIPLogin extends HttpServlet
     } catch (final EIHTTPErrorStatusException e) {
       this.errors.sendError(
         response,
+        requestIdFor(request),
         e.statusCode(),
         e.errorCode(),
         e.getMessage()
@@ -142,6 +144,7 @@ public final class EIPLogin extends HttpServlet
       LOG.debug("password: ", e);
       this.errors.sendError(
         response,
+        requestIdFor(request),
         INTERNAL_SERVER_ERROR_500,
         "password",
         e.getMessage()
@@ -150,6 +153,7 @@ public final class EIPLogin extends HttpServlet
       LOG.debug("database: ", e);
       this.errors.sendError(
         response,
+        requestIdFor(request),
         INTERNAL_SERVER_ERROR_500,
         "database",
         e.getMessage()
@@ -203,6 +207,7 @@ public final class EIPLogin extends HttpServlet
     this.events.publish(
       new EIServerUserLoggedIn(
         this.clock.now(),
+        requestIdFor(request),
         user.id(),
         user.name(),
         request.getRemoteAddr())

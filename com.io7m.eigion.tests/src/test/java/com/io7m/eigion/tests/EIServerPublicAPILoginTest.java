@@ -26,8 +26,10 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
+import java.util.UUID;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -185,7 +187,7 @@ public final class EIServerPublicAPILoginTest extends EIServerContract
       this.postPublicBytes(
         "/public/1/0/login",
         this.messagesV1().serialize(
-          new EISP1ResponseError("x", "e")
+          new EISP1ResponseError(randomUUID(), "x", "e")
         )
       );
 

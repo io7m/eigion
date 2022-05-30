@@ -31,6 +31,8 @@ import java.util.UUID;
 public record EISP1ResponseImageCreatedJSON(
   @JsonProperty(value = "%Schema", required = false)
   String schemaId,
+  @JsonProperty(value = "RequestID", required = true)
+  UUID requestId,
   @JsonProperty(value = "ImageID", required = true)
   UUID imageID)
   implements EISP1JsonType
@@ -40,6 +42,7 @@ public record EISP1ResponseImageCreatedJSON(
   @JsonCreator
   public EISP1ResponseImageCreatedJSON
   {
+    Objects.requireNonNull(requestId, "requestId");
     Objects.requireNonNull(imageID, "imageID");
   }
 }

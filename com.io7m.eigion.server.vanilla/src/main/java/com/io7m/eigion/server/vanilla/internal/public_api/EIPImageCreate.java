@@ -36,6 +36,7 @@ import java.util.Iterator;
 import java.util.UUID;
 
 import static com.io7m.eigion.server.database.api.EIServerDatabaseRole.EIGION;
+import static com.io7m.eigion.server.vanilla.internal.EIServerRequestIDs.requestIdFor;
 import static org.eclipse.jetty.http.HttpStatus.BAD_REQUEST_400;
 
 /**
@@ -97,7 +98,11 @@ public final class EIPImageCreate extends EIPAuthenticatedServlet
         transaction.commit();
 
         this.sends()
-          .send(servletResponse, 200, new EISP1ResponseImageCreated(imageId));
+          .send(
+            servletResponse,
+            200,
+            new EISP1ResponseImageCreated(requestIdFor(request), imageId)
+          );
       }
     }
   }

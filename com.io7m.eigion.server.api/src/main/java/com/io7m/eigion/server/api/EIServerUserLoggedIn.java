@@ -23,14 +23,16 @@ import java.util.UUID;
 /**
  * A user successfully logged in.
  *
- * @param time     The event timestamp
- * @param userId   The user ID
- * @param userName The user name
- * @param host     The user's remote host
+ * @param time      The event timestamp
+ * @param requestId The login request ID
+ * @param userId    The user ID
+ * @param userName  The user name
+ * @param host      The user's remote host
  */
 
 public record EIServerUserLoggedIn(
   OffsetDateTime time,
+  UUID requestId,
   UUID userId,
   String userName,
   String host)
@@ -39,15 +41,17 @@ public record EIServerUserLoggedIn(
   /**
    * A user successfully logged in.
    *
-   * @param time     The event timestamp
-   * @param userId   The user ID
-   * @param userName The user name
-   * @param host     The user's remote host
+   * @param time      The event timestamp
+   * @param requestId The login request ID
+   * @param userId    The user ID
+   * @param userName  The user name
+   * @param host      The user's remote host
    */
 
   public EIServerUserLoggedIn
   {
     Objects.requireNonNull(time, "time");
+    Objects.requireNonNull(requestId, "requestId");
     Objects.requireNonNull(userId, "userId");
     Objects.requireNonNull(userName, "userName");
     Objects.requireNonNull(host, "host");

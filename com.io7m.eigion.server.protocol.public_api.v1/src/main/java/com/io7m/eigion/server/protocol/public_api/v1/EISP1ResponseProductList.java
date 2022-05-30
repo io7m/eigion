@@ -22,14 +22,17 @@ import com.io7m.eigion.model.EIProductSummary;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 
 /**
  * A product list was successfully retrieved.
  *
- * @param items The products
+ * @param requestId The server-assigned request ID
+ * @param items     The products
  */
 
 public record EISP1ResponseProductList(
+  UUID requestId,
   List<EIProductSummary> items)
   implements EISP1ResponseType,
   EIPageType<EIProductSummary, EIProductIdentifier>
@@ -37,11 +40,13 @@ public record EISP1ResponseProductList(
   /**
    * A product list was successfully retrieved.
    *
-   * @param items The products
+   * @param requestId The server-assigned request ID
+   * @param items     The products
    */
 
   public EISP1ResponseProductList
   {
+    Objects.requireNonNull(requestId, "requestId");
     Objects.requireNonNull(items, "items");
   }
 

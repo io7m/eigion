@@ -122,13 +122,17 @@ public final class EISP1Messages
   private static EISP1MessageType mapImageCreated(
     final EISP1ResponseImageCreatedJSON imageCreated)
   {
-    return new EISP1ResponseImageCreated(imageCreated.imageID());
+    return new EISP1ResponseImageCreated(
+      imageCreated.requestId(),
+      imageCreated.imageID()
+    );
   }
 
   private static EISP1MessageType mapError(
     final EISP1ResponseErrorJSON error)
   {
     return new EISP1ResponseError(
+      error.requestId(),
       error.errorCode(),
       error.message()
     );
@@ -147,6 +151,7 @@ public final class EISP1Messages
     final EISP1ResponseProductListJSON productList)
   {
     return new EISP1ResponseProductList(
+      productList.requestId(),
       productList.products()
         .stream()
         .map(EISP1Messages::mapProductSummary)
@@ -243,6 +248,7 @@ public final class EISP1Messages
     return this.mapper.writeValueAsBytes(
       new EISP1ResponseProductListJSON(
         schemaId(),
+        productList.requestId(),
         productList.items()
           .stream()
           .map(EISP1Messages::serializeProductSummary)
@@ -258,6 +264,7 @@ public final class EISP1Messages
     return this.mapper.writeValueAsBytes(
       new EISP1ResponseImageCreatedJSON(
         schemaId(),
+        imageCreated.requestId(),
         imageCreated.imageId()
       )
     );
@@ -270,6 +277,7 @@ public final class EISP1Messages
     return this.mapper.writeValueAsBytes(
       new EISP1ResponseErrorJSON(
         schemaId(),
+        error.requestId(),
         error.errorCode(),
         error.message()
       )

@@ -23,6 +23,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 
 // CHECKSTYLE:OFF
 
@@ -31,6 +32,8 @@ import java.util.Objects;
 public record EISP1ResponseProductListJSON(
   @JsonProperty(value = "%Schema", required = false)
   String schemaId,
+  @JsonProperty(value = "RequestID", required = true)
+  UUID requestId,
   @JsonProperty(value = "Products", required = true)
   List<EISP1ProductSummaryJSON> products)
   implements EISP1JsonType
@@ -40,6 +43,7 @@ public record EISP1ResponseProductListJSON(
   @JsonCreator
   public EISP1ResponseProductListJSON
   {
+    Objects.requireNonNull(requestId, "requestId");
     Objects.requireNonNull(products, "products");
   }
 }

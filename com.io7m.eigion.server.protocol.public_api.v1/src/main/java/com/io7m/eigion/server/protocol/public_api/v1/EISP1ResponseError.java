@@ -17,15 +17,18 @@
 package com.io7m.eigion.server.protocol.public_api.v1;
 
 import java.util.Objects;
+import java.util.UUID;
 
 /**
  * A command failed.
  *
+ * @param requestId The server-assigned request ID
  * @param errorCode The error code
  * @param message   The error message
  */
 
 public record EISP1ResponseError(
+  UUID requestId,
   String errorCode,
   String message)
   implements EISP1ResponseType
@@ -33,12 +36,14 @@ public record EISP1ResponseError(
   /**
    * A command failed.
    *
+   * @param requestId The server-assigned request ID
    * @param errorCode The error code
    * @param message   The error message
    */
 
   public EISP1ResponseError
   {
+    Objects.requireNonNull(requestId, "requestId");
     Objects.requireNonNull(errorCode, "errorCode");
     Objects.requireNonNull(message, "message");
   }

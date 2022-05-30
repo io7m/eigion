@@ -33,6 +33,7 @@ import java.text.ParseException;
 import java.util.Optional;
 
 import static com.io7m.eigion.server.database.api.EIServerDatabaseRole.EIGION;
+import static com.io7m.eigion.server.vanilla.internal.EIServerRequestIDs.requestIdFor;
 import static org.eclipse.jetty.http.HttpStatus.BAD_REQUEST_400;
 
 /**
@@ -105,7 +106,9 @@ public final class EIPProducts extends EIPAuthenticatedServlet
         this.sends.send(
           servletResponse,
           200,
-          new EISP1ResponseProductList(productPage.items())
+          new EISP1ResponseProductList(
+            requestIdFor(request),
+            productPage.items())
         );
       }
     }

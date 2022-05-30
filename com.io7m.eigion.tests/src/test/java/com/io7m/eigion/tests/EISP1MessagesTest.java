@@ -33,6 +33,7 @@ import java.math.BigInteger;
 import java.util.stream.Stream;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -60,7 +61,7 @@ public final class EISP1MessagesTest
   {
     return Stream.of(
       new EISP1CommandLogin("user", "pass"),
-      new EISP1ResponseError("errorCode", "message")
+      new EISP1ResponseError(randomUUID(),"errorCode", "message")
     ).map(this::dynamicTestOfRoundTrip);
   }
 

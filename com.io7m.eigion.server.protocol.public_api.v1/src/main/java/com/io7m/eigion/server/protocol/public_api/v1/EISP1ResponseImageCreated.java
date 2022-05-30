@@ -22,21 +22,25 @@ import java.util.UUID;
 /**
  * An image was successfully created.
  *
- * @param imageId The image ID
+ * @param requestId The server-assigned request ID
+ * @param imageId   The image ID
  */
 
 public record EISP1ResponseImageCreated(
+  UUID requestId,
   UUID imageId)
   implements EISP1ResponseType
 {
   /**
    * An image was successfully created.
    *
-   * @param imageId The image ID
+   * @param requestId The server-assigned request ID
+   * @param imageId   The image ID
    */
 
   public EISP1ResponseImageCreated
   {
+    Objects.requireNonNull(requestId, "requestId");
     Objects.requireNonNull(imageId, "imageId");
   }
 }

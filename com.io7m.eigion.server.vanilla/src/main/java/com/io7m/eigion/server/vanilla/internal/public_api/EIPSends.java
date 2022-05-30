@@ -26,6 +26,7 @@ import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 import java.util.Objects;
+import java.util.UUID;
 
 /**
  * Convenient functions to send messages.
@@ -51,6 +52,7 @@ public final class EIPSends implements EIServiceType
    * Send an error message.
    *
    * @param response   The servlet response
+   * @param requestId  The request ID
    * @param statusCode The HTTP status code
    * @param errorCode  The error code
    * @param message    The message
@@ -60,12 +62,17 @@ public final class EIPSends implements EIServiceType
 
   public void sendError(
     final HttpServletResponse response,
+    final UUID requestId,
     final int statusCode,
     final String errorCode,
     final String message)
     throws IOException
   {
-    this.send(response, statusCode, new EISP1ResponseError(errorCode, message));
+    this.send(
+      response,
+      statusCode,
+      new EISP1ResponseError(requestId, errorCode, message)
+    );
   }
 
   /**

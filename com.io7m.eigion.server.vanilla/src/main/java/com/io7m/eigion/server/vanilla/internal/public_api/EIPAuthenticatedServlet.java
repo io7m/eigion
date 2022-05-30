@@ -39,6 +39,7 @@ import java.net.URI;
 import java.util.Objects;
 import java.util.UUID;
 
+import static com.io7m.eigion.server.vanilla.internal.EIServerRequestIDs.requestIdFor;
 import static org.eclipse.jetty.http.HttpStatus.INTERNAL_SERVER_ERROR_500;
 
 /**
@@ -207,6 +208,7 @@ public abstract class EIPAuthenticatedServlet extends HttpServlet
       this.logger().debug("unauthenticated!");
       this.sends.sendError(
         servletResponse,
+        requestIdFor(request),
         HttpStatus.UNAUTHORIZED_401,
         "unauthorized",
         this.strings.format("unauthorized")
@@ -214,6 +216,7 @@ public abstract class EIPAuthenticatedServlet extends HttpServlet
     } catch (final EIHTTPErrorStatusException e) {
       this.sends.sendError(
         servletResponse,
+        requestIdFor(request),
         e.statusCode(),
         e.errorCode(),
         e.getMessage()
@@ -222,6 +225,7 @@ public abstract class EIPAuthenticatedServlet extends HttpServlet
       this.logger().debug("password: ", e);
       this.sends.sendError(
         servletResponse,
+        requestIdFor(request),
         INTERNAL_SERVER_ERROR_500,
         "password",
         e.getMessage()
@@ -230,6 +234,7 @@ public abstract class EIPAuthenticatedServlet extends HttpServlet
       this.logger().debug("database: ", e);
       this.sends.sendError(
         servletResponse,
+        requestIdFor(request),
         INTERNAL_SERVER_ERROR_500,
         "database",
         e.getMessage()
