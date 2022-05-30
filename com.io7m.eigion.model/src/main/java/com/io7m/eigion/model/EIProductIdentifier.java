@@ -45,6 +45,7 @@ public record EIProductIdentifier(
       "([\\p{Alpha}][\\p{Alpha}\\p{Digit}_-]{0,64})(\\.[\\p{Alpha}][\\p{Alpha}\\p{Digit}_-]{0,64}){0,8}",
       UNICODE_CHARACTER_CLASS
     );
+
   /**
    * The pattern that defines a valid artifact name.
    */
@@ -117,5 +118,14 @@ public record EIProductIdentifier(
     return Comparator.comparing(EIProductIdentifier::group)
       .thenComparing(EIProductIdentifier::name)
       .compare(this, other);
+  }
+
+  /**
+   * @return The group name
+   */
+
+  public EIGroupName groupName()
+  {
+    return new EIGroupName(this.group);
   }
 }

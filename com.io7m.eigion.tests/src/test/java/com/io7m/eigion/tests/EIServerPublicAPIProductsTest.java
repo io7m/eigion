@@ -16,8 +16,10 @@
 
 package com.io7m.eigion.tests;
 
+import com.io7m.eigion.model.EIGroupName;
 import com.io7m.eigion.model.EIProductIdentifier;
 import com.io7m.eigion.server.database.api.EIServerDatabaseException;
+import com.io7m.eigion.server.database.api.EIServerDatabaseGroupsQueriesType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseProductsQueriesType;
 import com.io7m.eigion.server.protocol.public_api.v1.EISP1CommandLogin;
 import com.io7m.eigion.server.protocol.public_api.v1.EISP1ResponseProductList;
@@ -153,6 +155,8 @@ public final class EIServerPublicAPIProductsTest extends EIServerContract
     final var database = this.databases().mostRecent();
     try (var connection = database.openConnection(EIGION)) {
       try (var transaction = connection.openTransaction()) {
+        final var groups =
+          transaction.queries(EIServerDatabaseGroupsQueriesType.class);
         final var products =
           transaction.queries(EIServerDatabaseProductsQueriesType.class);
 
@@ -160,6 +164,11 @@ public final class EIServerPublicAPIProductsTest extends EIServerContract
 
         final var identifier =
           createProductIdentifier(number);
+
+        final var groupName = new EIGroupName(identifier.group());
+        if (!groups.groupExists(groupName)) {
+          groups.groupCreate(groupName);
+        }
 
         products.productCreate(identifier);
         products.productSetTitle(

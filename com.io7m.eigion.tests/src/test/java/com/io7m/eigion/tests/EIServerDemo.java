@@ -41,6 +41,9 @@ public final class EIServerDemo
     final String[] args)
     throws Exception
   {
+    System.setProperty("org.jooq.no-tips", "true");
+    System.setProperty("org.jooq.no-logo", "true");
+
     final var databaseConfiguration =
       new EIServerDatabaseConfiguration(
         "postgres",

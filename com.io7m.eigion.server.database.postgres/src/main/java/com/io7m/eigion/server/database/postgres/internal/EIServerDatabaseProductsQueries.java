@@ -36,13 +36,11 @@ import com.io7m.eigion.server.database.api.EIServerDatabaseException;
 import com.io7m.eigion.server.database.api.EIServerDatabaseIncludeRedacted;
 import com.io7m.eigion.server.database.api.EIServerDatabaseProductsQueriesType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseRequiresUser;
-import com.io7m.eigion.server.database.postgres.internal.tables.records.AuditRecord;
 import com.io7m.eigion.server.database.postgres.internal.tables.records.ProductLinksRecord;
 import com.io7m.jaffirm.core.Invariants;
 import com.io7m.jaffirm.core.Postconditions;
 import com.io7m.jaffirm.core.Preconditions;
 import org.jooq.DSLContext;
-import org.jooq.InsertSetMoreStep;
 import org.jooq.Record;
 import org.jooq.Select;
 import org.jooq.exception.DataAccessException;
@@ -52,7 +50,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.net.URI;
-import java.time.OffsetDateTime;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Objects;
@@ -67,6 +64,7 @@ import static com.io7m.eigion.server.database.postgres.internal.EIServerDatabase
 import static com.io7m.eigion.server.database.postgres.internal.EIServerDatabaseProductsQueries.ProductInformationComponents.INCLUDE_DESCRIPTION;
 import static com.io7m.eigion.server.database.postgres.internal.EIServerDatabaseProductsQueries.ProductInformationComponents.INCLUDE_RELEASES;
 import static com.io7m.eigion.server.database.postgres.internal.Tables.CATEGORY_REDACTIONS;
+import static com.io7m.eigion.server.database.postgres.internal.Tables.GROUPS;
 import static com.io7m.eigion.server.database.postgres.internal.Tables.PRODUCTS;
 import static com.io7m.eigion.server.database.postgres.internal.Tables.PRODUCT_CATEGORIES;
 import static com.io7m.eigion.server.database.postgres.internal.Tables.PRODUCT_LINKS;
@@ -78,6 +76,7 @@ import static com.io7m.eigion.server.database.postgres.internal.tables.Categorie
 import static java.lang.Long.valueOf;
 
 final class EIServerDatabaseProductsQueries
+  extends EIBaseQueries
   implements EIServerDatabaseProductsQueriesType
 {
   private static final EnumSet<ProductInformationComponents> INCLUDE_NOTHING =
@@ -85,13 +84,10 @@ final class EIServerDatabaseProductsQueries
   private static final EnumSet<ProductInformationComponents> INCLUDE_EVERYTHING =
     EnumSet.allOf(ProductInformationComponents.class);
 
-  private final EIServerDatabaseTransaction transaction;
-
   EIServerDatabaseProductsQueries(
     final EIServerDatabaseTransaction inTransaction)
   {
-    this.transaction =
-      Objects.requireNonNull(inTransaction, "transaction");
+    super(inTransaction);
   }
 
   private static List<EIDatabaseProduct> fetchProducts(
@@ -100,6 +96,8 @@ final class EIServerDatabaseProductsQueries
   {
     return context.select()
       .from(PRODUCTS)
+      .join(GROUPS)
+      .on(GROUPS.ID.eq(PRODUCTS.PRODUCT_GROUP))
       .leftOuterJoin(PRODUCT_REDACTIONS)
       .on(PRODUCT_REDACTIONS.PRODUCT.eq(PRODUCTS.ID))
       .stream()
@@ -209,7 +207,7 @@ final class EIServerDatabaseProductsQueries
       productRec.<Long>get(PRODUCTS.ID).longValue(),
       new EIProduct(
         new EIProductIdentifier(
-          productRec.get(PRODUCTS.PRODUCT_GROUP),
+          productRec.get(GROUPS.NAME),
           productRec.get(PRODUCTS.PRODUCT_NAME)
         ),
         releases,
@@ -282,17 +280,6 @@ final class EIServerDatabaseProductsQueries
       .orElseGet(id::show);
   }
 
-  private static void insertAuditRecord(
-    final InsertSetMoreStep<AuditRecord> audit)
-  {
-    final var inserted = audit.execute();
-    Postconditions.checkPostconditionV(
-      inserted == 1,
-      "Expected to insert one audit record (inserted %d)",
-      Integer.valueOf(inserted)
-    );
-  }
-
   private static boolean filterRedactedIfNecessary(
     final EIRedactableType r,
     final EIServerDatabaseIncludeRedacted includeRedacted)
@@ -345,7 +332,9 @@ final class EIServerDatabaseProductsQueries
     final var prodRec =
       context.select()
         .from(PRODUCTS)
-        .where(PRODUCTS.PRODUCT_GROUP.eq(id.group())
+        .join(GROUPS)
+        .on(GROUPS.ID.eq(PRODUCTS.PRODUCT_GROUP))
+        .where(GROUPS.NAME.eq(id.group())
                  .and(PRODUCTS.PRODUCT_NAME.eq(id.name())))
         .fetchOptional();
 
@@ -411,13 +400,13 @@ final class EIServerDatabaseProductsQueries
     final var productRec =
       context.select()
         .from(PRODUCTS)
+        .join(GROUPS)
+        .on(GROUPS.ID.eq(PRODUCTS.PRODUCT_GROUP))
         .leftOuterJoin(PRODUCT_REDACTIONS)
         .on(PRODUCT_REDACTIONS.PRODUCT.eq(PRODUCTS.ID))
         .where(
-          PRODUCTS.PRODUCT_GROUP.eq(id.group())
-            .and(PRODUCTS.PRODUCT_NAME.eq(id.name()))
-        )
-        .fetchAny();
+          GROUPS.NAME.eq(id.group()).and(PRODUCTS.PRODUCT_NAME.eq(id.name()))
+        ).fetchAny();
 
     if (productRec == null) {
       return Optional.empty();
@@ -503,7 +492,7 @@ final class EIServerDatabaseProductsQueries
       switch (manifestType) {
         case RELEASE_CONTENT_TYPE -> {
           try (var stream = new ByteArrayInputStream(manifest)) {
-            yield this.transaction.productReleaseParsers()
+            yield this.transaction().productReleaseParsers()
               .parse(URI.create("urn:source"), stream);
           } catch (final IOException e) {
             throw new EIServerDatabaseException(e.getMessage(), e, "io-error");
@@ -571,7 +560,7 @@ final class EIServerDatabaseProductsQueries
   {
     Objects.requireNonNull(includeRedacted, "includeRedacted");
 
-    final var context = this.transaction.createContext();
+    final var context = this.transaction().createContext();
 
     try {
       return fetchCategories(includeRedacted, context)
@@ -579,7 +568,7 @@ final class EIServerDatabaseProductsQueries
         .map(EIDatabaseProductCategory::category)
         .collect(Collectors.toUnmodifiableSet());
     } catch (final DataAccessException e) {
-      throw handleDatabaseException(this.transaction, e);
+      throw handleDatabaseException(this.transaction(), e);
     }
   }
 
@@ -592,9 +581,9 @@ final class EIServerDatabaseProductsQueries
     Objects.requireNonNull(text, "text");
 
     final var owner =
-      this.transaction.userId();
+      this.transaction().userId();
     final var context =
-      this.transaction.createContext();
+      this.transaction().createContext();
 
     try {
       final var existingOpt =
@@ -626,13 +615,8 @@ final class EIServerDatabaseProductsQueries
       insertAuditRecord(audit);
       return new EIProductCategory(text, Optional.empty());
     } catch (final DataAccessException e) {
-      throw handleDatabaseException(this.transaction, e);
+      throw handleDatabaseException(this.transaction(), e);
     }
-  }
-
-  private OffsetDateTime currentTime()
-  {
-    return OffsetDateTime.now(this.transaction.clock()).withNano(0);
   }
 
   @Override
@@ -646,9 +630,9 @@ final class EIServerDatabaseProductsQueries
     Objects.requireNonNull(redacted, "redacted");
 
     final var owner =
-      this.transaction.userId();
+      this.transaction().userId();
     final var context =
-      this.transaction.createContext();
+      this.transaction().createContext();
 
     try {
       final var categoryRec =
@@ -710,7 +694,7 @@ final class EIServerDatabaseProductsQueries
         redacted.map(r -> new EIRedaction(owner, r.created(), r.reason()))
       );
     } catch (final DataAccessException e) {
-      throw handleDatabaseException(this.transaction, e);
+      throw handleDatabaseException(this.transaction(), e);
     }
   }
 
@@ -723,9 +707,9 @@ final class EIServerDatabaseProductsQueries
     Objects.requireNonNull(id, "id");
 
     final var owner =
-      this.transaction.userId();
+      this.transaction().userId();
     final var context =
-      this.transaction.createContext();
+      this.transaction().createContext();
 
     try {
       final var existing =
@@ -742,11 +726,20 @@ final class EIServerDatabaseProductsQueries
         );
       }
 
+      final var group =
+        context.fetchOptional(GROUPS, GROUPS.NAME.eq(id.group()))
+          .orElseThrow(() -> {
+            return new EIServerDatabaseException(
+              "Group does not exist",
+              "group-nonexistent"
+            );
+          });
+
       final var time = this.currentTime();
 
       final var inserted =
         context.insertInto(PRODUCTS)
-          .set(PRODUCTS.PRODUCT_GROUP, id.group())
+          .set(PRODUCTS.PRODUCT_GROUP, group.get(GROUPS.ID))
           .set(PRODUCTS.PRODUCT_NAME, id.name())
           .set(PRODUCTS.CREATED_BY, owner)
           .set(PRODUCTS.CREATED, time)
@@ -782,7 +775,7 @@ final class EIServerDatabaseProductsQueries
         new EICreation(owner, time)
       );
     } catch (final DataAccessException e) {
-      throw handleDatabaseException(this.transaction, e);
+      throw handleDatabaseException(this.transaction(), e);
     }
   }
 
@@ -797,9 +790,9 @@ final class EIServerDatabaseProductsQueries
     Objects.requireNonNull(redacted, "redacted");
 
     final var owner =
-      this.transaction.userId();
+      this.transaction().userId();
     final var context =
-      this.transaction.createContext();
+      this.transaction().createContext();
 
     try {
       final var existing =
@@ -851,7 +844,7 @@ final class EIServerDatabaseProductsQueries
 
       insertAuditRecord(audit);
     } catch (final DataAccessException e) {
-      throw handleDatabaseException(this.transaction, e);
+      throw handleDatabaseException(this.transaction(), e);
     }
   }
 
@@ -862,14 +855,14 @@ final class EIServerDatabaseProductsQueries
   {
     Objects.requireNonNull(includeRedacted, "includeRedacted");
 
-    final var context = this.transaction.createContext();
+    final var context = this.transaction().createContext();
 
     try {
       return fetchProducts(includeRedacted, context)
         .stream().map(r -> r.product().id())
         .collect(Collectors.toUnmodifiableSet());
     } catch (final DataAccessException e) {
-      throw handleDatabaseException(this.transaction, e);
+      throw handleDatabaseException(this.transaction(), e);
     }
   }
 
@@ -882,7 +875,7 @@ final class EIServerDatabaseProductsQueries
     Objects.requireNonNull(id, "id");
     Objects.requireNonNull(includeRedacted, "includeRedacted");
 
-    final var context = this.transaction.createContext();
+    final var context = this.transaction().createContext();
 
     try {
       return this.fetchProductOrFail(
@@ -892,7 +885,7 @@ final class EIServerDatabaseProductsQueries
         context
       ).product();
     } catch (final DataAccessException e) {
-      throw handleDatabaseException(this.transaction, e);
+      throw handleDatabaseException(this.transaction(), e);
     }
   }
 
@@ -907,9 +900,9 @@ final class EIServerDatabaseProductsQueries
     Objects.requireNonNull(category, "category");
 
     final var owner =
-      this.transaction.userId();
+      this.transaction().userId();
     final var context =
-      this.transaction.createContext();
+      this.transaction().createContext();
 
     try {
       final var productRec =
@@ -948,7 +941,7 @@ final class EIServerDatabaseProductsQueries
 
       insertAuditRecord(audit);
     } catch (final DataAccessException e) {
-      throw handleDatabaseException(this.transaction, e);
+      throw handleDatabaseException(this.transaction(), e);
     }
   }
 
@@ -963,9 +956,9 @@ final class EIServerDatabaseProductsQueries
     Objects.requireNonNull(category, "category");
 
     final var owner =
-      this.transaction.userId();
+      this.transaction().userId();
     final var context =
-      this.transaction.createContext();
+      this.transaction().createContext();
 
     try {
       final var productRec =
@@ -994,7 +987,7 @@ final class EIServerDatabaseProductsQueries
         insertAuditRecord(audit);
       }
     } catch (final DataAccessException e) {
-      throw handleDatabaseException(this.transaction, e);
+      throw handleDatabaseException(this.transaction(), e);
     }
   }
 
@@ -1009,9 +1002,9 @@ final class EIServerDatabaseProductsQueries
     Objects.requireNonNull(title, "title");
 
     final var owner =
-      this.transaction.userId();
+      this.transaction().userId();
     final var context =
-      this.transaction.createContext();
+      this.transaction().createContext();
 
     try {
       final var product =
@@ -1038,7 +1031,7 @@ final class EIServerDatabaseProductsQueries
 
       insertAuditRecord(audit);
     } catch (final DataAccessException e) {
-      throw handleDatabaseException(this.transaction, e);
+      throw handleDatabaseException(this.transaction(), e);
     }
   }
 
@@ -1053,9 +1046,9 @@ final class EIServerDatabaseProductsQueries
     Objects.requireNonNull(description, "description");
 
     final var owner =
-      this.transaction.userId();
+      this.transaction().userId();
     final var context =
-      this.transaction.createContext();
+      this.transaction().createContext();
 
     try {
       final var product =
@@ -1083,7 +1076,7 @@ final class EIServerDatabaseProductsQueries
 
       insertAuditRecord(audit);
     } catch (final DataAccessException e) {
-      throw handleDatabaseException(this.transaction, e);
+      throw handleDatabaseException(this.transaction(), e);
     }
   }
 
@@ -1098,9 +1091,9 @@ final class EIServerDatabaseProductsQueries
     Objects.requireNonNull(release, "release");
 
     final var owner =
-      this.transaction.userId();
+      this.transaction().userId();
     final var context =
-      this.transaction.createContext();
+      this.transaction().createContext();
 
     try {
       final var product =
@@ -1126,7 +1119,7 @@ final class EIServerDatabaseProductsQueries
         version.qualifier().orElse("");
 
       final var serializers =
-        this.transaction.productReleaseSerializers();
+        this.transaction().productReleaseSerializers();
 
       final var byteStream = new ByteArrayOutputStream();
       serializers.serialize(URI.create("urn:source"), byteStream, release);
@@ -1160,7 +1153,7 @@ final class EIServerDatabaseProductsQueries
 
       insertAuditRecord(audit);
     } catch (final DataAccessException e) {
-      throw handleDatabaseException(this.transaction, e);
+      throw handleDatabaseException(this.transaction(), e);
     } catch (final SerializeException e) {
       throw new EIServerDatabaseException(e.getMessage(), e, "serialization");
     }
@@ -1179,9 +1172,9 @@ final class EIServerDatabaseProductsQueries
     Objects.requireNonNull(redaction, "redaction");
 
     final var owner =
-      this.transaction.userId();
+      this.transaction().userId();
     final var context =
-      this.transaction.createContext();
+      this.transaction().createContext();
 
     try {
       final var releaseId =
@@ -1234,7 +1227,7 @@ final class EIServerDatabaseProductsQueries
 
       insertAuditRecord(audit);
     } catch (final DataAccessException e) {
-      throw handleDatabaseException(this.transaction, e);
+      throw handleDatabaseException(this.transaction(), e);
     }
   }
 
@@ -1248,7 +1241,7 @@ final class EIServerDatabaseProductsQueries
     Objects.requireNonNull(limit, "limit");
 
     final var context =
-      this.transaction.createContext();
+      this.transaction().createContext();
 
     try {
       final Select<Record> baseQuery;
@@ -1256,19 +1249,23 @@ final class EIServerDatabaseProductsQueries
         final var id = startOffset.get();
         baseQuery = context.select()
           .from(PRODUCTS)
+          .join(GROUPS)
+          .on(GROUPS.ID.eq(PRODUCTS.PRODUCT_GROUP))
           .leftOuterJoin(PRODUCT_REDACTIONS)
           .on(PRODUCT_REDACTIONS.PRODUCT.eq(PRODUCTS.ID))
           .where(PRODUCT_REDACTIONS.REASON.isNull())
-          .orderBy(PRODUCTS.PRODUCT_GROUP, PRODUCTS.PRODUCT_NAME)
+          .orderBy(GROUPS.NAME, PRODUCTS.PRODUCT_NAME)
           .seek(id.group(), id.name())
           .limit(limit);
       } else {
         baseQuery = context.select()
           .from(PRODUCTS)
+          .join(GROUPS)
+          .on(GROUPS.ID.eq(PRODUCTS.PRODUCT_GROUP))
           .leftOuterJoin(PRODUCT_REDACTIONS)
           .on(PRODUCT_REDACTIONS.PRODUCT.eq(PRODUCTS.ID))
           .where(PRODUCT_REDACTIONS.REASON.isNull())
-          .orderBy(PRODUCTS.PRODUCT_GROUP, PRODUCTS.PRODUCT_NAME)
+          .orderBy(GROUPS.NAME, PRODUCTS.PRODUCT_NAME)
           .limit(limit);
       }
 
@@ -1277,7 +1274,7 @@ final class EIServerDatabaseProductsQueries
           .map(r -> {
             return new EIProductSummary(
               new EIProductIdentifier(
-                r.get(PRODUCTS.PRODUCT_GROUP),
+                r.get(GROUPS.NAME),
                 r.get(PRODUCTS.PRODUCT_NAME)
               ),
               r.get(PRODUCTS.PRODUCT_TITLE),
@@ -1288,7 +1285,7 @@ final class EIServerDatabaseProductsQueries
 
       return new EIProductSummaryPage(items);
     } catch (final DataAccessException e) {
-      throw handleDatabaseException(this.transaction, e);
+      throw handleDatabaseException(this.transaction(), e);
     }
   }
 

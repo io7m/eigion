@@ -41,10 +41,16 @@ import static com.io7m.eigion.server.database.postgres.internal.Tables.USER_BANS
 import static com.io7m.eigion.server.database.postgres.internal.tables.Audit.AUDIT;
 import static com.io7m.eigion.server.database.postgres.internal.tables.Users.USERS;
 
-record EIServerDatabaseUsersQueries(
-  EIServerDatabaseTransaction transaction)
+final class EIServerDatabaseUsersQueries
+  extends EIBaseQueries
   implements EIServerDatabaseUsersQueriesType
 {
+  EIServerDatabaseUsersQueries(
+    final EIServerDatabaseTransaction inTransaction)
+  {
+    super(inTransaction);
+  }
+
   private static EIUser userRecordToUser(
     final UsersRecord userRecord,
     final Optional<UserBansRecord> banOpt)
@@ -88,6 +94,16 @@ record EIServerDatabaseUsersQueries(
     return Optional.empty();
   }
 
+  private static EIServerDatabaseException handlePasswordException(
+    final EIPasswordException exception)
+  {
+    return new EIServerDatabaseException(
+      exception.getMessage(),
+      exception,
+      "password-error"
+    );
+  }
+
   @Override
   public EIUser userCreate(
     final UUID id,
@@ -105,7 +121,7 @@ record EIServerDatabaseUsersQueries(
     Objects.requireNonNull(password, "password");
 
     final var context =
-      this.transaction.createContext();
+      this.transaction().createContext();
 
     try {
       {
@@ -156,7 +172,7 @@ record EIServerDatabaseUsersQueries(
 
       final var audit =
         context.insertInto(AUDIT)
-          .set(AUDIT.TIME, this.timeNow())
+          .set(AUDIT.TIME, this.currentTime())
           .set(AUDIT.TYPE, "USER_CREATED")
           .set(AUDIT.USER_ID, id)
           .set(AUDIT.MESSAGE, id.toString());
@@ -164,13 +180,8 @@ record EIServerDatabaseUsersQueries(
       audit.execute();
       return this.userGet(id).orElseThrow();
     } catch (final DataAccessException e) {
-      throw handleDatabaseException(this.transaction, e);
+      throw handleDatabaseException(this.transaction(), e);
     }
-  }
-
-  private OffsetDateTime timeNow()
-  {
-    return OffsetDateTime.now(this.transaction.clock()).withNano(0);
   }
 
   @Override
@@ -180,11 +191,11 @@ record EIServerDatabaseUsersQueries(
   {
     Objects.requireNonNull(id, "id");
 
-    final var context = this.transaction.createContext();
+    final var context = this.transaction().createContext();
     try {
       return userMap(context, context.fetchOptional(USERS, USERS.ID.eq(id)));
     } catch (final DataAccessException e) {
-      throw handleDatabaseException(this.transaction, e);
+      throw handleDatabaseException(this.transaction(), e);
     } catch (final EIPasswordException e) {
       throw handlePasswordException(e);
     }
@@ -197,13 +208,13 @@ record EIServerDatabaseUsersQueries(
   {
     Objects.requireNonNull(name, "name");
 
-    final var context = this.transaction.createContext();
+    final var context = this.transaction().createContext();
     try {
       return userMap(
         context,
         context.fetchOptional(USERS, USERS.NAME.eq(name)));
     } catch (final DataAccessException e) {
-      throw handleDatabaseException(this.transaction, e);
+      throw handleDatabaseException(this.transaction(), e);
     } catch (final EIPasswordException e) {
       throw handlePasswordException(e);
     }
@@ -216,13 +227,13 @@ record EIServerDatabaseUsersQueries(
   {
     Objects.requireNonNull(email, "email");
 
-    final var context = this.transaction.createContext();
+    final var context = this.transaction().createContext();
     try {
       return userMap(
         context,
         context.fetchOptional(USERS, USERS.EMAIL.eq(email)));
     } catch (final DataAccessException e) {
-      throw handleDatabaseException(this.transaction, e);
+      throw handleDatabaseException(this.transaction(), e);
     } catch (final EIPasswordException e) {
       throw handlePasswordException(e);
     }
@@ -241,9 +252,9 @@ record EIServerDatabaseUsersQueries(
     Objects.requireNonNull(reason, "reason");
 
     final var owner =
-      this.transaction.userId();
+      this.transaction().userId();
     final var context =
-      this.transaction.createContext();
+      this.transaction().createContext();
 
     try {
       final var existingBanOpt =
@@ -264,14 +275,14 @@ record EIServerDatabaseUsersQueries(
 
       final var audit =
         context.insertInto(AUDIT)
-          .set(AUDIT.TIME, this.timeNow())
+          .set(AUDIT.TIME, this.currentTime())
           .set(AUDIT.TYPE, "USER_BANNED")
           .set(AUDIT.USER_ID, owner)
           .set(AUDIT.MESSAGE, id + ": " + reason);
 
       audit.execute();
     } catch (final DataAccessException e) {
-      throw handleDatabaseException(this.transaction, e);
+      throw handleDatabaseException(this.transaction(), e);
     }
   }
 
@@ -283,9 +294,9 @@ record EIServerDatabaseUsersQueries(
     Objects.requireNonNull(id, "id");
 
     final var owner =
-      this.transaction.userId();
+      this.transaction().userId();
     final var context =
-      this.transaction.createContext();
+      this.transaction().createContext();
 
     try {
       context.deleteFrom(USER_BANS)
@@ -294,14 +305,14 @@ record EIServerDatabaseUsersQueries(
 
       final var audit =
         context.insertInto(AUDIT)
-          .set(AUDIT.TIME, this.timeNow())
+          .set(AUDIT.TIME, this.currentTime())
           .set(AUDIT.TYPE, "USER_UNBANNED")
           .set(AUDIT.USER_ID, owner)
           .set(AUDIT.MESSAGE, id.toString());
 
       audit.execute();
     } catch (final DataAccessException e) {
-      throw handleDatabaseException(this.transaction, e);
+      throw handleDatabaseException(this.transaction(), e);
     }
   }
 
@@ -315,10 +326,10 @@ record EIServerDatabaseUsersQueries(
     Objects.requireNonNull(host, "host");
 
     final var context =
-      this.transaction.createContext();
+      this.transaction().createContext();
 
     try {
-      final var time = this.timeNow();
+      final var time = this.currentTime();
 
       final var existingOpt =
         context.fetchOptional(USERS, USERS.ID.eq(id));
@@ -335,24 +346,14 @@ record EIServerDatabaseUsersQueries(
 
       final var audit =
         context.insertInto(AUDIT)
-          .set(AUDIT.TIME, this.timeNow())
+          .set(AUDIT.TIME, time)
           .set(AUDIT.TYPE, "USER_LOGGED_IN")
           .set(AUDIT.USER_ID, id)
           .set(AUDIT.MESSAGE, host);
 
       audit.execute();
     } catch (final DataAccessException e) {
-      throw handleDatabaseException(this.transaction, e);
+      throw handleDatabaseException(this.transaction(), e);
     }
-  }
-
-  private static EIServerDatabaseException handlePasswordException(
-    final EIPasswordException exception)
-  {
-    return new EIServerDatabaseException(
-      exception.getMessage(),
-      exception,
-      "password-error"
-    );
   }
 }

@@ -26,13 +26,9 @@ import com.io7m.eigion.server.database.api.EIServerDatabaseImagesQueriesType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseIncludeRedacted;
 import com.io7m.eigion.server.database.api.EIServerDatabaseRequiresUser;
 import com.io7m.eigion.server.database.api.EIServerDatabaseUsersQueriesType;
-import com.io7m.eigion.server.database.postgres.internal.tables.records.AuditRecord;
-import com.io7m.jaffirm.core.Postconditions;
 import com.io7m.jaffirm.core.Preconditions;
-import org.jooq.InsertSetMoreStep;
 import org.jooq.exception.DataAccessException;
 
-import java.time.OffsetDateTime;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
@@ -45,30 +41,17 @@ import static com.io7m.eigion.server.database.postgres.internal.Tables.IMAGE_RED
 import static com.io7m.eigion.server.database.postgres.internal.tables.Audit.AUDIT;
 
 final class EIServerDatabaseImagesQueries
+  extends EIBaseQueries
   implements EIServerDatabaseImagesQueriesType
 {
-  private final EIServerDatabaseTransaction transaction;
   private final EIServerDatabaseUsersQueriesType users;
 
   EIServerDatabaseImagesQueries(
     final EIServerDatabaseTransaction inTransaction,
     final EIServerDatabaseUsersQueriesType inUsers)
   {
-    this.transaction =
-      Objects.requireNonNull(inTransaction, "transaction");
-    this.users =
-      Objects.requireNonNull(inUsers, "users");
-  }
-
-  private static void insertAuditRecord(
-    final InsertSetMoreStep<AuditRecord> audit)
-  {
-    final var inserted = audit.execute();
-    Postconditions.checkPostconditionV(
-      inserted == 1,
-      "Expected to insert one audit record (inserted %d)",
-      Integer.valueOf(inserted)
-    );
+    super(inTransaction);
+    this.users = Objects.requireNonNull(inUsers, "users");
   }
 
   @Override
@@ -84,9 +67,9 @@ final class EIServerDatabaseImagesQueries
     Objects.requireNonNull(data, "data");
 
     final var owner =
-      this.transaction.userId();
+      this.transaction().userId();
     final var context =
-      this.transaction.createContext();
+      this.transaction().createContext();
 
     try {
       if (this.imageGet(id, INCLUDE_REDACTED).isPresent()) {
@@ -133,7 +116,7 @@ final class EIServerDatabaseImagesQueries
         data
       );
     } catch (final DataAccessException e) {
-      throw handleDatabaseException(this.transaction, e);
+      throw handleDatabaseException(this.transaction(), e);
     }
   }
 
@@ -146,7 +129,7 @@ final class EIServerDatabaseImagesQueries
     Objects.requireNonNull(id, "id");
     Objects.requireNonNull(includeRedacted, "includeRedacted");
 
-    final var context = this.transaction.createContext();
+    final var context = this.transaction().createContext();
 
     try {
       final var imageOpt =
@@ -175,7 +158,7 @@ final class EIServerDatabaseImagesQueries
         );
       });
     } catch (final DataAccessException e) {
-      throw handleDatabaseException(this.transaction, e);
+      throw handleDatabaseException(this.transaction(), e);
 
     }
   }
@@ -191,9 +174,9 @@ final class EIServerDatabaseImagesQueries
     Objects.requireNonNull(request, "request");
 
     final var owner =
-      this.transaction.userId();
+      this.transaction().userId();
     final var context =
-      this.transaction.createContext();
+      this.transaction().createContext();
 
     try {
       if (this.imageGet(imageId, INCLUDE_REDACTED).isEmpty()) {
@@ -252,7 +235,7 @@ final class EIServerDatabaseImagesQueries
 
       insertAuditRecord(audit);
     } catch (final DataAccessException e) {
-      throw handleDatabaseException(this.transaction, e);
+      throw handleDatabaseException(this.transaction(), e);
     }
   }
 
@@ -266,11 +249,5 @@ final class EIServerDatabaseImagesQueries
         "user-nonexistent"
       );
     });
-  }
-
-  private OffsetDateTime currentTime()
-  {
-    return OffsetDateTime.now(this.transaction.clock())
-      .withNano(0);
   }
 }

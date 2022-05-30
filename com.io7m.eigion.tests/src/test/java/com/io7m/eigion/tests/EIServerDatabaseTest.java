@@ -20,6 +20,7 @@ package com.io7m.eigion.tests;
 import com.io7m.eigion.model.EIChange;
 import com.io7m.eigion.model.EIChangeTicket;
 import com.io7m.eigion.model.EICreation;
+import com.io7m.eigion.model.EIGroupName;
 import com.io7m.eigion.model.EIPassword;
 import com.io7m.eigion.model.EIPasswordAlgorithmPBKDF2HmacSHA256;
 import com.io7m.eigion.model.EIPasswordException;
@@ -38,6 +39,7 @@ import com.io7m.eigion.model.EIUser;
 import com.io7m.eigion.server.database.api.EIServerDatabaseAuditQueriesType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseConfiguration;
 import com.io7m.eigion.server.database.api.EIServerDatabaseException;
+import com.io7m.eigion.server.database.api.EIServerDatabaseGroupsQueriesType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseImagesQueriesType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseProductsQueriesType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseRole;
@@ -709,6 +711,8 @@ public final class EIServerDatabaseTest
       transaction.queries(EIServerDatabaseProductsQueriesType.class);
     final var users =
       transaction.queries(EIServerDatabaseUsersQueriesType.class);
+    final var groups =
+      transaction.queries(EIServerDatabaseGroupsQueriesType.class);
 
     final var id =
       new EIProductIdentifier("com.io7m.ex", "com.q");
@@ -721,8 +725,8 @@ public final class EIServerDatabaseTest
 
     transaction.userIdSet(user.id());
 
-    final var product =
-      products.productCreate(id);
+    groups.groupCreate(id.groupName());
+    final var product = products.productCreate(id);
 
     assertEquals(id, product.id());
     assertEquals(List.of(), product.releases());
@@ -732,6 +736,7 @@ public final class EIServerDatabaseTest
     checkAuditLog(
       transaction,
       new ExpectedEvent("USER_CREATED", user.id().toString()),
+      new ExpectedEvent("GROUP_CREATED", "com.io7m.ex"),
       new ExpectedEvent("PRODUCT_CREATED", "com.io7m.ex:com.q")
     );
   }
@@ -754,6 +759,8 @@ public final class EIServerDatabaseTest
       transaction.queries(EIServerDatabaseProductsQueriesType.class);
     final var users =
       transaction.queries(EIServerDatabaseUsersQueriesType.class);
+    final var groups =
+      transaction.queries(EIServerDatabaseGroupsQueriesType.class);
 
     final var id =
       new EIProductIdentifier("com.io7m.ex", "com.q");
@@ -765,8 +772,8 @@ public final class EIServerDatabaseTest
 
     transaction.userIdSet(user.id());
 
-    final var product =
-      products.productCreate(id);
+    groups.groupCreate(id.groupName());
+    final var product = products.productCreate(id);
 
     assertEquals(
       Set.of(id),
@@ -865,6 +872,8 @@ public final class EIServerDatabaseTest
       transaction.queries(EIServerDatabaseProductsQueriesType.class);
     final var users =
       transaction.queries(EIServerDatabaseUsersQueriesType.class);
+    final var groups =
+      transaction.queries(EIServerDatabaseGroupsQueriesType.class);
 
     final var id =
       new EIProductIdentifier("com.io7m.ex", "com.q");
@@ -876,8 +885,8 @@ public final class EIServerDatabaseTest
 
     transaction.userIdSet(user.id());
 
-    final var product =
-      products.productCreate(id);
+    groups.groupCreate(id.groupName());
+    final var product = products.productCreate(id);
 
     assertEquals(
       Set.of(id),
@@ -918,6 +927,7 @@ public final class EIServerDatabaseTest
     checkAuditLog(
       transaction,
       new ExpectedEvent("USER_CREATED", user.id().toString()),
+      new ExpectedEvent("GROUP_CREATED", "com.io7m.ex"),
       new ExpectedEvent("PRODUCT_CREATED", "com.io7m.ex:com.q"),
       new ExpectedEvent("PRODUCT_REDACTED", "com.io7m.ex:com.q: X"),
       new ExpectedEvent("PRODUCT_UNREDACTED", "com.io7m.ex:com.q")
@@ -942,6 +952,8 @@ public final class EIServerDatabaseTest
       transaction.queries(EIServerDatabaseProductsQueriesType.class);
     final var users =
       transaction.queries(EIServerDatabaseUsersQueriesType.class);
+    final var groups =
+      transaction.queries(EIServerDatabaseGroupsQueriesType.class);
 
     final var id =
       new EIProductIdentifier("com.io7m.ex", "com.q");
@@ -954,9 +966,9 @@ public final class EIServerDatabaseTest
 
     transaction.userIdSet(user.id());
 
-    final var product =
-      products.productCreate(id);
+    groups.groupCreate(id.groupName());
 
+    final var product = products.productCreate(id);
     assertEquals(id, product.id());
     assertEquals(List.of(), product.releases());
     assertEquals(Set.of(), product.description().categories());
@@ -1002,6 +1014,7 @@ public final class EIServerDatabaseTest
     checkAuditLog(
       transaction,
       new ExpectedEvent("USER_CREATED", user.id().toString()),
+      new ExpectedEvent("GROUP_CREATED", "com.io7m.ex"),
       new ExpectedEvent("PRODUCT_CREATED", "com.io7m.ex:com.q"),
       new ExpectedEvent("CATEGORY_CREATED", category0.value()),
       new ExpectedEvent("CATEGORY_CREATED", category1.value()),
@@ -1032,12 +1045,15 @@ public final class EIServerDatabaseTest
       this.transactionOf(EIGION);
     final var products =
       transaction.queries(EIServerDatabaseProductsQueriesType.class);
+    final var groups =
+      transaction.queries(EIServerDatabaseGroupsQueriesType.class);
 
     transaction.userIdSet(user.id());
 
     final var id =
       new EIProductIdentifier("com.io7m.ex", "com.q");
 
+    groups.groupCreate(id.groupName());
     products.productCreate(id);
     products.productSetTitle(id, "Title");
 
@@ -1049,6 +1065,7 @@ public final class EIServerDatabaseTest
     checkAuditLog(
       transaction,
       new ExpectedEvent("USER_CREATED", user.id().toString()),
+      new ExpectedEvent("GROUP_CREATED", "com.io7m.ex"),
       new ExpectedEvent("PRODUCT_CREATED", "com.io7m.ex:com.q"),
       new ExpectedEvent("PRODUCT_TITLE_SET", "com.io7m.ex:com.q:Title")
     );
@@ -1073,12 +1090,15 @@ public final class EIServerDatabaseTest
       this.transactionOf(EIGION);
     final var products =
       transaction.queries(EIServerDatabaseProductsQueriesType.class);
+    final var groups =
+      transaction.queries(EIServerDatabaseGroupsQueriesType.class);
 
     transaction.userIdSet(user.id());
 
     final var id =
       new EIProductIdentifier("com.io7m.ex", "com.q");
 
+    groups.groupCreate(id.groupName());
     products.productCreate(id);
     products.productSetDescription(
       id,
@@ -1094,6 +1114,7 @@ public final class EIServerDatabaseTest
     checkAuditLog(
       transaction,
       new ExpectedEvent("USER_CREATED", user.id().toString()),
+      new ExpectedEvent("GROUP_CREATED", "com.io7m.ex"),
       new ExpectedEvent("PRODUCT_CREATED", "com.io7m.ex:com.q"),
       new ExpectedEvent("PRODUCT_DESCRIPTION_SET", "com.io7m.ex:com.q")
     );
@@ -1247,6 +1268,8 @@ public final class EIServerDatabaseTest
       this.transactionOf(EIGION);
     final var products =
       transaction.queries(EIServerDatabaseProductsQueriesType.class);
+    final var groups =
+      transaction.queries(EIServerDatabaseGroupsQueriesType.class);
 
     transaction.userIdSet(user.id());
 
@@ -1257,6 +1280,7 @@ public final class EIServerDatabaseTest
     final var dep1 =
       new EIProductIdentifier("com.io7m.ex", "com.x");
 
+    groups.groupCreate(id.groupName());
     products.productCreate(id);
 
     final var v0 =
@@ -1312,6 +1336,7 @@ public final class EIServerDatabaseTest
     checkAuditLog(
       transaction,
       new ExpectedEvent("USER_CREATED", user.id().toString()),
+      new ExpectedEvent("GROUP_CREATED", "com.io7m.ex"),
       new ExpectedEvent("PRODUCT_CREATED", "com.io7m.ex:com.q"),
       new ExpectedEvent("PRODUCT_RELEASE_CREATED", "com.io7m.ex:com.q:1.2.10")
     );
@@ -1336,6 +1361,8 @@ public final class EIServerDatabaseTest
       this.transactionOf(EIGION);
     final var products =
       transaction.queries(EIServerDatabaseProductsQueriesType.class);
+    final var groups =
+      transaction.queries(EIServerDatabaseGroupsQueriesType.class);
 
     transaction.userIdSet(user.id());
 
@@ -1346,6 +1373,7 @@ public final class EIServerDatabaseTest
     final var dep1 =
       new EIProductIdentifier("com.io7m.ex", "com.x");
 
+    groups.groupCreate(id.groupName());
     products.productCreate(id);
 
     final var v0 =
@@ -1404,6 +1432,7 @@ public final class EIServerDatabaseTest
     checkAuditLog(
       transaction,
       new ExpectedEvent("USER_CREATED", user.id().toString()),
+      new ExpectedEvent("GROUP_CREATED", "com.io7m.ex"),
       new ExpectedEvent("PRODUCT_CREATED", "com.io7m.ex:com.q"),
       new ExpectedEvent("PRODUCT_RELEASE_CREATED", "com.io7m.ex:com.q:1.2.10")
     );
@@ -1428,8 +1457,12 @@ public final class EIServerDatabaseTest
       this.transactionOf(EIGION);
     final var products =
       transaction.queries(EIServerDatabaseProductsQueriesType.class);
+    final var groups =
+      transaction.queries(EIServerDatabaseGroupsQueriesType.class);
 
     transaction.userIdSet(user.id());
+
+    groups.groupCreate(new EIGroupName("com.io7m.ex"));
 
     final Function<Integer, EIProductIdentifier> idFor = i -> {
       return new EIProductIdentifier(

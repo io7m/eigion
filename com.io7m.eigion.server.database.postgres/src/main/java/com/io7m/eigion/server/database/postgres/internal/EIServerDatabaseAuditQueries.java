@@ -29,10 +29,16 @@ import java.util.Objects;
 import static com.io7m.eigion.server.database.postgres.internal.EIServerDatabaseExceptions.handleDatabaseException;
 import static com.io7m.eigion.server.database.postgres.internal.tables.Audit.AUDIT;
 
-record EIServerDatabaseAuditQueries(
-  EIServerDatabaseTransaction transaction)
+final class EIServerDatabaseAuditQueries
+  extends EIBaseQueries
   implements EIServerDatabaseAuditQueriesType
 {
+  EIServerDatabaseAuditQueries(
+    final EIServerDatabaseTransaction inTransaction)
+  {
+    super(inTransaction);
+  }
+
   private static EIAuditEvent toAuditEvent(
     final AuditRecord record)
   {
@@ -54,7 +60,7 @@ record EIServerDatabaseAuditQueries(
     Objects.requireNonNull(fromInclusive, "fromInclusive");
     Objects.requireNonNull(toInclusive, "toInclusive");
 
-    final var context = this.transaction.createContext();
+    final var context = this.transaction().createContext();
     try {
       try (var auditRecords = context.selectFrom(AUDIT)) {
         return auditRecords
@@ -65,7 +71,7 @@ record EIServerDatabaseAuditQueries(
           .toList();
       }
     } catch (final DataAccessException e) {
-      throw handleDatabaseException(this.transaction, e);
+      throw handleDatabaseException(this.transaction(), e);
     }
   }
 }

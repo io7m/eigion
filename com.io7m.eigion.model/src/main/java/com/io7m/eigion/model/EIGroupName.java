@@ -14,19 +14,34 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+package com.io7m.eigion.model;
 
-package com.io7m.eigion.server.database.api;
+import java.util.Objects;
+
+import static com.io7m.eigion.model.EIProductIdentifier.VALID_GROUP_NAME;
 
 /**
- * The base type of query interfaces.
+ * The name of a group.
+ *
+ * @param value The name
  */
 
-public sealed interface EIServerDatabaseQueriesType
-  permits EIServerDatabaseAuditQueriesType,
-  EIServerDatabaseGroupsQueriesType,
-  EIServerDatabaseImagesQueriesType,
-  EIServerDatabaseProductsQueriesType,
-  EIServerDatabaseUsersQueriesType
+public record EIGroupName(String value)
 {
+  /**
+   * The name of a group.
+   *
+   * @param value The name
+   */
 
+  public EIGroupName
+  {
+    Objects.requireNonNull(value, "value");
+
+    if (!VALID_GROUP_NAME.matcher(value).matches()) {
+      throw new IllegalArgumentException(
+        String.format(
+          "Group name '%s' must match %s", value, VALID_GROUP_NAME));
+    }
+  }
 }

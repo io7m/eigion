@@ -20,6 +20,7 @@ import com.io7m.eigion.product.parser.api.EIProductReleaseParsersType;
 import com.io7m.eigion.product.parser.api.EIProductReleaseSerializersType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseAuditQueriesType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseException;
+import com.io7m.eigion.server.database.api.EIServerDatabaseGroupsQueriesType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseImagesQueriesType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseProductsQueriesType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseQueriesType;
@@ -142,6 +143,10 @@ final class EIServerDatabaseTransaction
         this,
         new EIServerDatabaseUsersQueries(this))
       );
+    }
+
+    if (Objects.equals(qClass, EIServerDatabaseGroupsQueriesType.class)) {
+      return qClass.cast(new EIServerDatabaseGroupQueries(this));
     }
 
     throw new EIServerDatabaseException(

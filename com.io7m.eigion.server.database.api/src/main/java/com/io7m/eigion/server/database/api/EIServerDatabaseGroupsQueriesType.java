@@ -14,19 +14,37 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-
 package com.io7m.eigion.server.database.api;
 
+import com.io7m.eigion.model.EIGroupName;
+
 /**
- * The base type of query interfaces.
+ * The database queries involving groups.
  */
 
-public sealed interface EIServerDatabaseQueriesType
-  permits EIServerDatabaseAuditQueriesType,
-  EIServerDatabaseGroupsQueriesType,
-  EIServerDatabaseImagesQueriesType,
-  EIServerDatabaseProductsQueriesType,
-  EIServerDatabaseUsersQueriesType
+public non-sealed interface EIServerDatabaseGroupsQueriesType
+  extends EIServerDatabaseQueriesType
 {
+  /**
+   * Create a group, failing if one already exists with the given name.
+   *
+   * @param name The group
+   *
+   * @throws EIServerDatabaseException On errors
+   */
 
+  @EIServerDatabaseRequiresUser
+  void groupCreate(EIGroupName name)
+    throws EIServerDatabaseException;
+
+  /**
+   * @param name The group
+   *
+   * @return {@code true} if a group exists with the given name
+   *
+   * @throws EIServerDatabaseException On errors
+   */
+
+  boolean groupExists(EIGroupName name)
+    throws EIServerDatabaseException;
 }

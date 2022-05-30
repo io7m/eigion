@@ -164,13 +164,31 @@ create table category_redactions (
     <Statement>grant select, delete, insert on category_redactions to eigion</Statement>
 
     <Comment>
+      The groups table holds product groups. A product is produced by exactly one group, and users may
+      be in zero or more groups.
+    </Comment>
+
+    <Statement><![CDATA[
+create table groups (
+  id       bigint                   not null primary key generated always as identity,
+  name     varchar(1024)            not null unique,
+  creator  uuid                     not null,
+  created  timestamp with time zone not null,
+
+  foreign key (creator) references users (id)
+)
+]]></Statement>
+
+    <Statement>grant select, insert on groups to eigion</Statement>
+
+    <Comment>
       The products table holds product definitions.
     </Comment>
 
     <Statement><![CDATA[
 create table products (
   id                        bigint                   not null primary key generated always as identity,
-  product_group             varchar(1024)            not null,
+  product_group             bigint                   not null,
   product_name              varchar(1024)            not null,
   product_title             varchar(128)             not null,
   product_description       text                     not null,
@@ -180,7 +198,8 @@ create table products (
 
   unique (product_group, product_name),
 
-  foreign key (created_by) references users (id)
+  foreign key (product_group) references groups (id),
+  foreign key (created_by)    references users (id)
 )
 ]]></Statement>
 
