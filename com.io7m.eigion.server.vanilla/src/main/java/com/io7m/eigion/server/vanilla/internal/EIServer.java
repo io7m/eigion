@@ -109,6 +109,7 @@ public final class EIServer implements EIServerType
         this.resources.add(this.createDatabase());
 
       final var services = new EIServiceDirectory();
+      services.register(EIServerEventBus.class, this.events);
       services.register(EIServerDatabaseType.class, database);
       final var clock = new EIServerClock(this.configuration.clock());
       services.register(EIServerClock.class, clock);
@@ -118,7 +119,6 @@ public final class EIServer implements EIServerType
       services.register(EISP1Messages.class, pv1messages);
       final var strings = new EIServerStrings(this.configuration.locale());
       services.register(EIServerStrings.class, strings);
-      services.register(EIServerEventBus.class, this.events);
       services.register(EIPSends.class, new EIPSends(pv1messages));
       services.register(EIRequestLimits.class, new EIRequestLimits(strings));
 
@@ -229,9 +229,10 @@ public final class EIServer implements EIServerType
      */
 
     Arrays.stream(server.getConnectors()).forEach(
-      connector -> connector.addBean(new EIServerRequestIDs())
+      connector -> connector.addBean(new EIServerRequestDecoration(services))
     );
 
+    server.setRequestLog(new EIServerRequestLog(services, "public"));
     server.setHandler(statsHandler);
     server.start();
     LOG.info("[{}] public server started", address);
@@ -296,9 +297,10 @@ public final class EIServer implements EIServerType
      */
 
     Arrays.stream(server.getConnectors()).forEach(
-      connector -> connector.addBean(new EIServerRequestIDs())
+      connector -> connector.addBean(new EIServerRequestDecoration(services))
     );
 
+    server.setRequestLog(new EIServerRequestLog(services, "admin"));
     server.setHandler(statsHandler);
     server.start();
     LOG.info("[{}] admin server started", address);

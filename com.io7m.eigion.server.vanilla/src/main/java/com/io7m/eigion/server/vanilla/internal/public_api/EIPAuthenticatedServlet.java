@@ -39,7 +39,7 @@ import java.net.URI;
 import java.util.Objects;
 import java.util.UUID;
 
-import static com.io7m.eigion.server.vanilla.internal.EIServerRequestIDs.requestIdFor;
+import static com.io7m.eigion.server.vanilla.internal.EIServerRequestDecoration.requestIdFor;
 import static org.eclipse.jetty.http.HttpStatus.INTERNAL_SERVER_ERROR_500;
 
 /**
@@ -192,6 +192,8 @@ public abstract class EIPAuthenticatedServlet extends HttpServlet
     throws ServletException, IOException
   {
     MDC.put("client", clientOf(request));
+    MDC.put("request", requestIdFor(request).toString());
+
     this.clientURI = makeClientURI(request);
     this.response = servletResponse;
 
@@ -244,6 +246,7 @@ public abstract class EIPAuthenticatedServlet extends HttpServlet
       throw new IOException(e);
     } finally {
       MDC.remove("client");
+      MDC.remove("request");
     }
   }
 }

@@ -22,6 +22,7 @@ import com.io7m.eigion.model.EIPasswordException;
 import com.io7m.eigion.server.api.EIServerClosed;
 import com.io7m.eigion.server.api.EIServerConfiguration;
 import com.io7m.eigion.server.api.EIServerEventType;
+import com.io7m.eigion.server.api.EIServerRequestProcessed;
 import com.io7m.eigion.server.api.EIServerStarted;
 import com.io7m.eigion.server.api.EIServerStarting;
 import com.io7m.eigion.server.api.EIServerType;
@@ -99,6 +100,9 @@ public abstract class EIServerContract
     }
     if (item instanceof EIServerUserLoggedIn userLoggedIn) {
       return "USER_LOGGED_IN " + userLoggedIn.userName();
+    }
+    if (item instanceof EIServerRequestProcessed requestProcessed) {
+      return "REQUEST_PROCESSED " + requestProcessed.requestLine() + " " + requestProcessed.status();
     }
 
     throw new IllegalStateException("Unrecognized event: " + item);

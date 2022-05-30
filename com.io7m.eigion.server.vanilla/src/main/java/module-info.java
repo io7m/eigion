@@ -40,4 +40,5 @@ module com.io7m.eigion.server.vanilla
     to com.io7m.jxtrand.vanilla;
 
   exports com.io7m.eigion.server.vanilla;
+  exports com.io7m.eigion.server.vanilla.internal;
 }

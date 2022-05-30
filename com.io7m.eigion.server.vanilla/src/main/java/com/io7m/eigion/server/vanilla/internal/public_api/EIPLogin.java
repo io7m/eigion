@@ -42,7 +42,7 @@ import java.io.IOException;
 import java.util.Objects;
 
 import static com.io7m.eigion.server.database.api.EIServerDatabaseRole.EIGION;
-import static com.io7m.eigion.server.vanilla.internal.EIServerRequestIDs.requestIdFor;
+import static com.io7m.eigion.server.vanilla.internal.EIServerRequestDecoration.requestIdFor;
 import static org.eclipse.jetty.http.HttpStatus.BAD_REQUEST_400;
 import static org.eclipse.jetty.http.HttpStatus.INTERNAL_SERVER_ERROR_500;
 import static org.eclipse.jetty.http.HttpStatus.METHOD_NOT_ALLOWED_405;
@@ -111,6 +111,7 @@ public final class EIPLogin extends HttpServlet
     throws IOException
   {
     MDC.put("client", clientOf(request));
+    MDC.put("request", requestIdFor(request).toString());
 
     try {
       if (!Objects.equals(request.getMethod(), "POST")) {
@@ -160,6 +161,7 @@ public final class EIPLogin extends HttpServlet
       );
     } finally {
       MDC.remove("client");
+      MDC.remove("request");
     }
   }
 

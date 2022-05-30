@@ -36,7 +36,7 @@ import java.util.Iterator;
 import java.util.UUID;
 
 import static com.io7m.eigion.server.database.api.EIServerDatabaseRole.EIGION;
-import static com.io7m.eigion.server.vanilla.internal.EIServerRequestIDs.requestIdFor;
+import static com.io7m.eigion.server.vanilla.internal.EIServerRequestDecoration.requestIdFor;
 import static org.eclipse.jetty.http.HttpStatus.BAD_REQUEST_400;
 
 /**

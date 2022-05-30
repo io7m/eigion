@@ -55,6 +55,15 @@ public final class EIServerClock implements EIServiceType
 
   public OffsetDateTime now()
   {
-    return OffsetDateTime.now(this.clock).withNano(0);
+    return this.nowPrecise().withNano(0);
+  }
+
+  /**
+   * @return The current time
+   */
+
+  public OffsetDateTime nowPrecise()
+  {
+    return OffsetDateTime.now(this.clock);
   }
 }

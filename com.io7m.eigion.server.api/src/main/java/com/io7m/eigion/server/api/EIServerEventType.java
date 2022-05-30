@@ -24,6 +24,7 @@ import java.time.OffsetDateTime;
 
 public sealed interface EIServerEventType
   permits EIServerClosed,
+  EIServerRequestProcessed,
   EIServerStarted,
   EIServerStarting,
   EIServerUserLoggedIn
