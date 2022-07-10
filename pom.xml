@@ -62,7 +62,7 @@
     <jetty.version>11.0.11</jetty.version>
     <jooq.version>3.17.2</jooq.version>
     <org.apache.derby.version>10.16.1.1</org.apache.derby.version>
-    <testcontainers.version>1.16.3</testcontainers.version>
+    <testcontainers.version>1.17.3</testcontainers.version>
   </properties>
 
   <licenses>
