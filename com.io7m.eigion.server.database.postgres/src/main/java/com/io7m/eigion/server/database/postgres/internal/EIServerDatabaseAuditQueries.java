@@ -60,18 +60,19 @@ final class EIServerDatabaseAuditQueries
     Objects.requireNonNull(fromInclusive, "fromInclusive");
     Objects.requireNonNull(toInclusive, "toInclusive");
 
-    final var context = this.transaction().createContext();
-    try {
-      try (var auditRecords = context.selectFrom(AUDIT)) {
+    try (var transaction = this.transaction()) {
+      final var context = transaction.createContext();
+      try {
+        final var auditRecords = context.selectFrom(AUDIT);
         return auditRecords
           .where(AUDIT.TIME.ge(fromInclusive))
           .and(AUDIT.TIME.le(toInclusive))
           .stream()
           .map(EIServerDatabaseAuditQueries::toAuditEvent)
           .toList();
+      } catch (final DataAccessException e) {
+        throw handleDatabaseException(transaction, e);
       }
-    } catch (final DataAccessException e) {
-      throw handleDatabaseException(this.transaction(), e);
     }
   }
 }
