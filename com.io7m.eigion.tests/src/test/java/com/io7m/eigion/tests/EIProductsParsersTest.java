@@ -22,11 +22,10 @@ import com.io7m.anethum.common.SerializeException;
 import com.io7m.eigion.model.EIProductBundleDependency;
 import com.io7m.eigion.model.EIProductCategory;
 import com.io7m.eigion.model.EIProductDependency;
-import com.io7m.eigion.model.EIProductHash;
+import com.io7m.eigion.hash.EIHash;
 import com.io7m.eigion.model.EIProductIdentifier;
 import com.io7m.eigion.model.EIProductVersion;
 import com.io7m.eigion.model.EIProducts;
-import com.io7m.eigion.product.parser.EIProductReleaseSerializers;
 import com.io7m.eigion.product.parser.EIProductsParsers;
 import com.io7m.eigion.product.parser.EIProductsSerializers;
 import com.io7m.eigion.product.parser.api.EIProductsSerializerConfiguration;
@@ -86,7 +85,7 @@ public final class EIProductsParsersTest
         "com.io7m.ex"
       ),
       new EIProductVersion(ONE, ZERO, ZERO, empty()),
-      new EIProductHash(
+      new EIHash(
         "SHA-256",
         "5891B5B522D5DF086D0FF0B110FBD9D21BB4FC7163AF34D08286A2E846F6BE03"
       ),

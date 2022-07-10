@@ -15,15 +15,13 @@
  */
 
 /**
- * Application runtime management (Data model)
+ * Application runtime management (Hash)
  */
 
-module com.io7m.eigion.model
+module com.io7m.eigion.hash
 {
   requires static org.osgi.annotation.bundle;
   requires static org.osgi.annotation.versioning;
 
-  requires transitive com.io7m.eigion.hash;
-
-  exports com.io7m.eigion.model;
+  exports com.io7m.eigion.hash;
 }

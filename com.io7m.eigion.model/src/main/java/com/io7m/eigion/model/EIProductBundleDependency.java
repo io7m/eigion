@@ -16,6 +16,8 @@
 
 package com.io7m.eigion.model;
 
+import com.io7m.eigion.hash.EIHash;
+
 import java.net.URI;
 import java.util.List;
 import java.util.Objects;
@@ -33,7 +35,7 @@ import java.util.Objects;
 public record EIProductBundleDependency(
   EIProductIdentifier identifier,
   EIProductVersion version,
-  EIProductHash hash,
+  EIHash hash,
   List<URI> links)
 {
   /**

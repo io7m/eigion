@@ -22,7 +22,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.io7m.anethum.common.ParseSeverity;
 import com.io7m.anethum.common.ParseStatus;
-import com.io7m.eigion.model.EIProductHash;
+import com.io7m.eigion.hash.EIHash;
 import com.io7m.jlexing.core.LexicalPositions;
 
 import java.net.URI;
@@ -39,7 +39,7 @@ import java.util.function.Consumer;
 @JsonSerialize
 @JsonDeserialize
 public final class EIv1ProductHash
-  implements EIv1FromV1Type<EIProductHash>
+  implements EIv1FromV1Type<EIHash>
 {
   @JsonProperty(value = "Algorithm", required = true)
   public final String algorithm;
@@ -58,12 +58,12 @@ public final class EIv1ProductHash
   }
 
   @Override
-  public Optional<EIProductHash> toProduct(
+  public Optional<EIHash> toProduct(
     final URI source,
     final Consumer<ParseStatus> errorConsumer)
   {
     try {
-      return Optional.of(new EIProductHash(this.algorithm, this.hash));
+      return Optional.of(new EIHash(this.algorithm, this.hash));
     } catch (final IllegalArgumentException e) {
       errorConsumer.accept(
         ParseStatus.builder()

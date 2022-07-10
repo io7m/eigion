@@ -29,7 +29,7 @@ import com.io7m.eigion.model.EIProductBundleDependency;
 import com.io7m.eigion.model.EIProductCategory;
 import com.io7m.eigion.model.EIProductDependency;
 import com.io7m.eigion.model.EIProductDescription;
-import com.io7m.eigion.model.EIProductHash;
+import com.io7m.eigion.hash.EIHash;
 import com.io7m.eigion.model.EIProductIdentifier;
 import com.io7m.eigion.model.EIProductRelease;
 import com.io7m.eigion.model.EIProductVersion;
@@ -182,7 +182,7 @@ public final class EIv1ProductsSerializer implements EIProductsSerializerType
   }
 
   private static EIv1ProductHash convertHash(
-    final EIProductHash hash)
+    final EIHash hash)
   {
     return new EIv1ProductHash(hash.algorithm(), hash.hash());
   }

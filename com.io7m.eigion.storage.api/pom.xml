@@ -12,10 +12,10 @@
     <version>0.0.1-SNAPSHOT</version>
   </parent>
 
-  <artifactId>com.io7m.eigion.model</artifactId>
+  <artifactId>com.io7m.eigion.storage.api</artifactId>
 
-  <name>com.io7m.eigion.model</name>
-  <description>Application runtime management (Data model)</description>
+  <name>com.io7m.eigion.storage.api</name>
+  <description>Application runtime management (Storage API)</description>
   <url>https://www.io7m.com/software/eigion</url>
 
   <dependencies>

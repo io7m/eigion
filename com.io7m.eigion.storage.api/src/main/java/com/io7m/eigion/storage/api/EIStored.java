@@ -14,40 +14,45 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-package com.io7m.eigion.model;
+package com.io7m.eigion.storage.api;
 
+import com.io7m.eigion.hash.EIHash;
+
+import java.io.InputStream;
 import java.util.Objects;
-import java.util.regex.Pattern;
 
 /**
- * The hash of an object.
+ * A stored object.
  *
- * @param hash      The ASCII-encoded hash
- * @param algorithm The JCE hash algorithm name (such as "SHA-256")
+ * @param name        The name
+ * @param contentType The content type
+ * @param contentSize The content size
+ * @param hash        A hash of the content
+ * @param data        The data
  */
 
-public record EIProductHash(
-  String algorithm,
-  String hash)
+public record EIStored(
+  EIStorageName name,
+  String contentType,
+  long contentSize,
+  EIHash hash,
+  InputStream data)
 {
-  private static final Pattern VALID_HASH =
-    Pattern.compile("[A-F0-9]{1,256}");
-
   /**
-   * The hash of an object.
+   * A stored object.
    *
-   * @param hash      The ASCII-encoded hash
-   * @param algorithm The JCE hash algorithm name (such as "SHA-256")
+   * @param name        The name
+   * @param contentType The content type
+   * @param contentSize The content size
+   * @param hash        A hash of the content
+   * @param data        The data
    */
 
-  public EIProductHash
+  public EIStored
   {
-    Objects.requireNonNull(algorithm, "algorithm");
+    Objects.requireNonNull(name, "name");
+    Objects.requireNonNull(contentType, "contentType");
     Objects.requireNonNull(hash, "hash");
-
-    if (!VALID_HASH.matcher(hash).matches()) {
-      throw new IllegalArgumentException(
-        String.format("Hash '%s' must match %s", hash, VALID_HASH));
-    }
+    Objects.requireNonNull(data, "data");
   }
 }

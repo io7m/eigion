@@ -14,16 +14,46 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+package com.io7m.eigion.storage.api;
+
+import java.util.List;
+
 /**
- * Application runtime management (Data model)
+ * A valid storage name.
+ *
+ * @param name The name
+ *
+ * @see EIStorageNames#check(String)
  */
 
-module com.io7m.eigion.model
+public record EIStorageName(String name)
 {
-  requires static org.osgi.annotation.bundle;
-  requires static org.osgi.annotation.versioning;
+  /**
+   * A valid storage name.
+   *
+   * @param name The name
+   *
+   * @see EIStorageNames#check(String)
+   */
 
-  requires transitive com.io7m.eigion.hash;
+  public EIStorageName(
+    final String name)
+  {
+    this.name = EIStorageNames.check(name);
+  }
 
-  exports com.io7m.eigion.model;
+  @Override
+  public String toString()
+  {
+    return this.name;
+  }
+
+  /**
+   * @return The name segments
+   */
+
+  public List<String> segments()
+  {
+    return List.of(this.name.split("/"));
+  }
 }

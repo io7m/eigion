@@ -27,7 +27,7 @@ import com.io7m.eigion.model.EIPasswordException;
 import com.io7m.eigion.model.EIProductBundleDependency;
 import com.io7m.eigion.model.EIProductCategory;
 import com.io7m.eigion.model.EIProductDependency;
-import com.io7m.eigion.model.EIProductHash;
+import com.io7m.eigion.hash.EIHash;
 import com.io7m.eigion.model.EIProductIdentifier;
 import com.io7m.eigion.model.EIProductRelease;
 import com.io7m.eigion.model.EIProductSummary;
@@ -62,11 +62,9 @@ import java.net.URI;
 import java.time.Clock;
 import java.time.OffsetDateTime;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import static com.io7m.eigion.model.EIRedaction.redactionOpt;
 import static com.io7m.eigion.model.EIRedactionRequest.redactionRequest;
@@ -1288,7 +1286,7 @@ public final class EIServerDatabaseTest
     final var v1 =
       new EIProductVersion(ONE, ONE, TWO, Optional.empty());
     final var hash0 =
-      new EIProductHash(
+      new EIHash(
         "SHA-256",
         "5891B5B522D5DF086D0FF0B110FBD9D21BB4FC7163AF34D08286A2E846F6BE03");
 
@@ -1381,7 +1379,7 @@ public final class EIServerDatabaseTest
     final var v1 =
       new EIProductVersion(ONE, ONE, TWO, Optional.empty());
     final var hash0 =
-      new EIProductHash(
+      new EIHash(
         "SHA-256",
         "5891B5B522D5DF086D0FF0B110FBD9D21BB4FC7163AF34D08286A2E846F6BE03");
 
