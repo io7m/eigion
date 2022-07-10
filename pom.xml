@@ -57,6 +57,7 @@
     <com.io7m.jxtrand.version>1.1.0</com.io7m.jxtrand.version>
     <com.io7m.trasco.version>0.0.2</com.io7m.trasco.version>
     <io7m.api.previousVersion>0.0.1-SNAPSHOT</io7m.api.previousVersion>
+    <jackson.version>2.13.3</jackson.version>
     <javafx.version>18.0.1</javafx.version>
     <jetty.version>11.0.11</jetty.version>
     <jooq.version>3.16.6</jooq.version>
@@ -297,17 +298,17 @@
       <dependency>
         <groupId>com.fasterxml.jackson.core</groupId>
         <artifactId>jackson-core</artifactId>
-        <version>2.13.2</version>
+        <version>${jackson.version}</version>
       </dependency>
       <dependency>
         <groupId>com.fasterxml.jackson.core</groupId>
         <artifactId>jackson-databind</artifactId>
-        <version>2.13.2.2</version>
+        <version>${jackson.version}</version>
       </dependency>
       <dependency>
         <groupId>com.fasterxml.jackson.core</groupId>
         <artifactId>jackson-annotations</artifactId>
-        <version>2.13.2</version>
+        <version>${jackson.version}</version>
       </dependency>
       <dependency>
         <groupId>com.io7m.dixmont</groupId>
