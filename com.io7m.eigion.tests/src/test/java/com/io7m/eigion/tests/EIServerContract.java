@@ -36,6 +36,7 @@ import com.io7m.eigion.server.protocol.public_api.v1.EISP1MessageType;
 import com.io7m.eigion.server.protocol.public_api.v1.EISP1Messages;
 import com.io7m.eigion.server.protocol.versions.EISVMessages;
 import com.io7m.eigion.server.vanilla.EIServers;
+import com.io7m.eigion.storage.api.EIStorageParameters;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.slf4j.Logger;
@@ -55,6 +56,7 @@ import java.time.Clock;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Locale;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.Flow;
 
@@ -85,6 +87,7 @@ public abstract class EIServerContract
   private Path directory;
   private CookieManager cookies;
   private EISVMessages messagesV;
+  private EIFakeStorageFactory storage;
 
   private static String describeEvent(
     final EIServerEventType item)
@@ -115,14 +118,19 @@ public abstract class EIServerContract
       .createHashed("12345678");
   }
 
-  protected final EICapturingDatabases databases()
-  {
-    return this.databases;
-  }
-
   protected static OffsetDateTime timeNow()
   {
     return OffsetDateTime.now(Clock.systemUTC()).withNano(0);
+  }
+
+  protected final EIFakeStorageFactory storage()
+  {
+    return this.storage;
+  }
+
+  protected final EICapturingDatabases databases()
+  {
+    return this.databases;
   }
 
   protected final HttpClient httpClient()
@@ -192,6 +200,8 @@ public abstract class EIServerContract
       new EIServers();
     this.databases =
       new EICapturingDatabases(new EIServerDatabases());
+    this.storage =
+      new EIFakeStorageFactory();
 
     this.server =
       this.createServer();
@@ -275,6 +285,8 @@ public abstract class EIServerContract
       new EIServerConfiguration(
         this.databases,
         databaseConfiguration,
+        this.storage,
+        new EIStorageParameters(Map.of()),
         new InetSocketAddress("localhost", 40000),
         new InetSocketAddress("localhost", 40001),
         this.directory,

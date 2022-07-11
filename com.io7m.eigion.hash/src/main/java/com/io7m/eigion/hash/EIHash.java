@@ -17,8 +17,13 @@
 package com.io7m.eigion.hash;
 
 import java.io.Serializable;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.HexFormat;
 import java.util.Objects;
 import java.util.regex.Pattern;
+
+import static java.util.Locale.ROOT;
 
 /**
  * The hash of an object.
@@ -50,6 +55,34 @@ public record EIHash(
     if (!VALID_HASH.matcher(hash).matches()) {
       throw new IllegalArgumentException(
         String.format("Hash '%s' must match %s", hash, VALID_HASH));
+    }
+  }
+
+  /**
+   * Create a SHA-256 hash of the given data.
+   *
+   * @param data The data
+   *
+   * @return The hash
+   */
+
+  public static EIHash sha256Of(
+    final byte[] data)
+  {
+    Objects.requireNonNull(data, "data");
+
+    try {
+      final var digest =
+        MessageDigest.getInstance("SHA-256");
+      final var digestData =
+        digest.digest(data);
+
+      return new EIHash(
+        "SHA-256",
+        HexFormat.of().formatHex(digestData).toUpperCase(ROOT)
+      );
+    } catch (final NoSuchAlgorithmException e) {
+      throw new IllegalStateException(e);
     }
   }
 

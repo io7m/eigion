@@ -100,18 +100,17 @@ create table audit (
 
     <Statement><![CDATA[
 create table images (
-  id            uuid                     not null primary key,
-  creator       uuid                     not null,
-  created       timestamp with time zone not null,
-  content_type  varchar(256)             not null,
-  image_data    bytea                    not null,
+  id         uuid                     not null primary key,
+  creator    uuid                     not null,
+  created    timestamp with time zone not null,
+  hash_algo  varchar(64)              not null,
+  hash_value varchar(256)             not null,
 
   foreign key (creator) references users (id)
 )
 ]]></Statement>
 
     <Statement>grant select, insert on images to eigion</Statement>
-    <Statement>grant update (image_data) on images to eigion</Statement>
 
     <Comment>
       The image_redactions table holds the set of images that have been redacted.

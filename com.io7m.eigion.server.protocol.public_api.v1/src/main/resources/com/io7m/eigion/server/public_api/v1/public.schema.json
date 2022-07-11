@@ -142,6 +142,60 @@
         "ID",
         "Title"
       ]
+    },
+
+    "Hash": {
+      "type": "object",
+
+      "properties": {
+        "%Schema": {
+          "$ref": "#/$defs/SchemaIdentifier"
+        },
+        "%Type": {
+          "type": "string",
+          "const": "Hash"
+        },
+        "Algorithm": {
+          "type": "string"
+        },
+        "Value": {
+          "type": "string"
+        }
+      },
+
+      "additionalProperties": false,
+      "required": [
+        "%Type",
+        "Algorithm",
+        "Value"
+      ]
+    },
+
+    "ImageInfo": {
+      "type": "object",
+
+      "properties": {
+        "%Schema": {
+          "$ref": "#/$defs/SchemaIdentifier"
+        },
+        "%Type": {
+          "type": "string",
+          "const": "ImageInfo"
+        },
+        "ID": {
+          "type": "string"
+        },
+        "Hash": {
+          "$ref": "#/$defs/Hash"
+        }
+      },
+
+      "additionalProperties": false,
+      "required": [
+        "%Type",
+        "ID",
+        "Hash"
+      ]
     }
   },
 
@@ -157,6 +211,9 @@
     },
     {
       "$ref": "#/$defs/ResponseProductList"
+    },
+    {
+      "$ref": "#/$defs/ImageInfo"
     }
   ]
 }

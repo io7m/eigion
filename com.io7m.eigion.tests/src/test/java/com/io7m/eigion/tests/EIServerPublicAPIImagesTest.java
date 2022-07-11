@@ -19,6 +19,7 @@ package com.io7m.eigion.tests;
 import com.io7m.eigion.server.protocol.public_api.v1.EISP1CommandLogin;
 import com.io7m.eigion.server.protocol.public_api.v1.EISP1ResponseError;
 import com.io7m.eigion.server.protocol.public_api.v1.EISP1ResponseImageCreated;
+import com.io7m.eigion.server.protocol.public_api.v1.EISP1ResponseImageGet;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -81,7 +82,24 @@ public final class EIServerPublicAPIImagesTest extends EIServerContract
       final var rk =
         this.getPublic("/public/1/0/image/get?id=" + created.imageId());
       assertEquals(200, rk.statusCode());
-      assertArrayEquals(data, rk.body());
+
+      final var got =
+        this.parsePublic(rk, EISP1ResponseImageGet.class);
+
+      assertEquals(created.imageId(), got.imageId());
+      assertEquals("SHA-256", got.hash().algorithm());
+      assertEquals("5A4061BE191DA45F2A29A33C9609F88CC89FE84C13525D3A80904B0455323FFF", got.hash().hash());
+    }
+
+    {
+      final var storage =
+        this.storage().storages().peek();
+      final var got =
+        storage.get("/images/%s.jpg".formatted(created.imageId()))
+          .orElseThrow();
+
+      assertEquals("SHA-256", got.hash().algorithm());
+      assertEquals("5A4061BE191DA45F2A29A33C9609F88CC89FE84C13525D3A80904B0455323FFF", got.hash().hash());
     }
   }
 

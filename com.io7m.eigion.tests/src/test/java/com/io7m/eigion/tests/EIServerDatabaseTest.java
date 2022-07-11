@@ -17,6 +17,7 @@
 
 package com.io7m.eigion.tests;
 
+import com.io7m.eigion.hash.EIHash;
 import com.io7m.eigion.model.EIChange;
 import com.io7m.eigion.model.EIChangeTicket;
 import com.io7m.eigion.model.EICreation;
@@ -27,7 +28,6 @@ import com.io7m.eigion.model.EIPasswordException;
 import com.io7m.eigion.model.EIProductBundleDependency;
 import com.io7m.eigion.model.EIProductCategory;
 import com.io7m.eigion.model.EIProductDependency;
-import com.io7m.eigion.hash.EIHash;
 import com.io7m.eigion.model.EIProductIdentifier;
 import com.io7m.eigion.model.EIProductRelease;
 import com.io7m.eigion.model.EIProductSummary;
@@ -77,9 +77,9 @@ import static com.io7m.eigion.server.database.api.EIServerDatabaseUpgrade.UPGRAD
 import static java.math.BigInteger.ONE;
 import static java.math.BigInteger.TEN;
 import static java.math.BigInteger.TWO;
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.time.OffsetDateTime.now;
 import static java.util.UUID.randomUUID;
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -526,7 +526,7 @@ public final class EIServerDatabaseTest
     final var password =
       createBadPassword();
 
-    var user =
+    final var user =
       users.userCreate(
         id,
         "someone",
@@ -1145,27 +1145,29 @@ public final class EIServerDatabaseTest
 
     transaction.userIdSet(user.id());
 
-    final var id = randomUUID();
+    final var id =
+      randomUUID();
+    final var hash =
+      EIHash.sha256Of("hello".getBytes(UTF_8));
     final var image =
-      images.imageCreate(id, "image/jpeg", new byte[23]);
+      images.imageCreate(id, hash);
 
     assertEquals(id, image.id());
-    assertEquals("image/jpeg", image.contentType());
+    assertEquals(hash, image.hash());
     assertEquals(user.id(), image.creation().creator());
 
     final var image2 =
       images.imageGet(id, INCLUDE_REDACTED)
         .orElseThrow();
 
-    assertEquals(image.contentType(), image2.contentType());
     assertEquals(image.creation(), image2.creation());
     assertEquals(image.id(), image2.id());
     assertEquals(image.redaction(), image2.redaction());
-    assertArrayEquals(image.data(), image2.data());
+    assertEquals(image.hash(), image2.hash());
 
     {
       final var ex = assertThrows(EIServerDatabaseException.class, () -> {
-        images.imageCreate(id, "image/jpeg", new byte[23]);
+        images.imageCreate(id, hash);
       });
       assertEquals("image-duplicate", ex.errorCode());
     }
@@ -1206,8 +1208,10 @@ public final class EIServerDatabaseTest
 
     final var imageId =
       randomUUID();
+    final var hash =
+      EIHash.sha256Of("hello".getBytes(UTF_8));
     final var image =
-      images.imageCreate(imageId, "image/jpeg", new byte[23]);
+      images.imageCreate(imageId, hash);
 
     assertTrue(images.imageGet(imageId, INCLUDE_REDACTED).isPresent());
     assertTrue(images.imageGet(imageId, EXCLUDE_REDACTED).isPresent());

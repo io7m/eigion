@@ -36,6 +36,8 @@ import static java.util.Map.entry;
 @JsonTypeIdResolver(EISP1ProductIdTypeResolver.class)
 public sealed interface EISP1JsonType
   permits EISP1CommandLoginJSON,
+  EISP1HashJSON,
+  EISP1ResponseImageGetJSON,
   EISP1ProductSummaryJSON,
   EISP1ResponseErrorJSON,
   EISP1ResponseImageCreatedJSON,
@@ -57,7 +59,13 @@ public sealed interface EISP1JsonType
         EISP1ResponseErrorJSON.TYPE_ID),
       entry(
         EISP1ResponseImageCreatedJSON.class,
-        EISP1ResponseImageCreatedJSON.TYPE_ID)
+        EISP1ResponseImageCreatedJSON.TYPE_ID),
+      entry(
+        EISP1ResponseImageGetJSON.class,
+        EISP1ResponseImageGetJSON.TYPE_ID),
+      entry(
+        EISP1HashJSON.class,
+        EISP1HashJSON.TYPE_ID)
     );
 
   Map<String, Class<?>> CLASS_FOR_TYPE_ID =

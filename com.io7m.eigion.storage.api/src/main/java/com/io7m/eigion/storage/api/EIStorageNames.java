@@ -26,7 +26,7 @@ import java.util.regex.Pattern;
 public final class EIStorageNames
 {
   private static final Pattern NAME_SEGMENT =
-    Pattern.compile("[a-z0-9][a-z0-9_\\-\\.]{1,253}");
+    Pattern.compile("[a-z0-9][a-z0-9_\\-\\.]{0,253}");
   private static final Pattern SLASHES =
     Pattern.compile("/+");
 
@@ -64,7 +64,7 @@ public final class EIStorageNames
 
     final var segments = normalized.split("/");
     for (int index = 0; index < segments.length; ++index) {
-      if (validName(segments[index])) {
+      if (!validName(segments[index])) {
         throw invalid(normalized);
       }
     }
@@ -74,6 +74,9 @@ public final class EIStorageNames
   private static boolean validName(
     final String segment)
   {
+    if (segment.isEmpty()) {
+      return true;
+    }
     return NAME_SEGMENT.matcher(segment).matches();
   }
 

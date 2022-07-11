@@ -22,15 +22,18 @@ import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.databind.module.SimpleDeserializers;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.io7m.dixmont.core.DmJsonRestrictedDeserializers;
+import com.io7m.eigion.hash.EIHash;
 import com.io7m.eigion.model.EIProductIdentifier;
 import com.io7m.eigion.model.EIProductSummary;
 import com.io7m.eigion.server.protocol.api.EIServerProtocolException;
 import com.io7m.eigion.server.protocol.api.EIServerProtocolMessagesType;
 import com.io7m.eigion.server.protocol.public_api.v1.dto.EISP1CommandLoginJSON;
+import com.io7m.eigion.server.protocol.public_api.v1.dto.EISP1HashJSON;
 import com.io7m.eigion.server.protocol.public_api.v1.dto.EISP1JsonType;
 import com.io7m.eigion.server.protocol.public_api.v1.dto.EISP1ProductSummaryJSON;
 import com.io7m.eigion.server.protocol.public_api.v1.dto.EISP1ResponseErrorJSON;
 import com.io7m.eigion.server.protocol.public_api.v1.dto.EISP1ResponseImageCreatedJSON;
+import com.io7m.eigion.server.protocol.public_api.v1.dto.EISP1ResponseImageGetJSON;
 import com.io7m.eigion.server.protocol.public_api.v1.dto.EISP1ResponseProductListJSON;
 import com.io7m.eigion.services.api.EIServiceType;
 
@@ -78,10 +81,12 @@ public final class EISP1Messages
       DmJsonRestrictedDeserializers.builder()
         .allowClass(BigInteger.class)
         .allowClass(EISP1CommandLoginJSON.class)
+        .allowClass(EISP1HashJSON.class)
         .allowClass(EISP1JsonType.class)
         .allowClass(EISP1ProductSummaryJSON.class)
         .allowClass(EISP1ResponseErrorJSON.class)
         .allowClass(EISP1ResponseImageCreatedJSON.class)
+        .allowClass(EISP1ResponseImageGetJSON.class)
         .allowClass(EISP1ResponseProductListJSON.class)
         .allowClass(String.class)
         .allowClass(UUID.class)
@@ -126,6 +131,22 @@ public final class EISP1Messages
       imageCreated.requestId(),
       imageCreated.imageID()
     );
+  }
+
+  private static EISP1MessageType mapImageGet(
+    final EISP1ResponseImageGetJSON imageGet)
+  {
+    return new EISP1ResponseImageGet(
+      imageGet.requestId(),
+      imageGet.id(),
+      mapHash(imageGet.hash())
+    );
+  }
+
+  private static EIHash mapHash(
+    final EISP1HashJSON hash)
+  {
+    return new EIHash(hash.algorithm(), hash.value());
   }
 
   private static EISP1MessageType mapError(
@@ -207,6 +228,9 @@ public final class EISP1Messages
     if (m instanceof EISP1ResponseProductListJSON productList) {
       return mapProductList(productList);
     }
+    if (m instanceof EISP1ResponseImageGetJSON imageGet) {
+      return mapImageGet(imageGet);
+    }
 
     throw new IllegalArgumentException(
       String.format("Unrecognized message: %s", m.getClass())
@@ -231,6 +255,9 @@ public final class EISP1Messages
       if (message instanceof EISP1ResponseProductList productList) {
         return this.serializeResponseProductList(productList);
       }
+      if (message instanceof EISP1ResponseImageGet imageGet) {
+        return this.serializeResponseImageGet(imageGet);
+      }
 
     } catch (final JsonProcessingException e) {
       throw new EIServerProtocolException(e.getMessage(), e);
@@ -238,6 +265,23 @@ public final class EISP1Messages
 
     throw new IllegalArgumentException(
       String.format("Unrecognized message: %s", message.getClass())
+    );
+  }
+
+  private byte[] serializeResponseImageGet(
+    final EISP1ResponseImageGet imageGet)
+    throws JsonProcessingException
+  {
+    return this.mapper.writeValueAsBytes(
+      new EISP1ResponseImageGetJSON(
+        schemaId(),
+        imageGet.requestId(),
+        imageGet.imageId(),
+        new EISP1HashJSON(
+          schemaId(),
+          imageGet.hash().algorithm(),
+          imageGet.hash().hash())
+      )
     );
   }
 

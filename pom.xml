@@ -47,6 +47,8 @@
     <module>com.io7m.eigion.server.vanilla</module>
     <module>com.io7m.eigion.services.api</module>
     <module>com.io7m.eigion.storage.api</module>
+    <module>com.io7m.eigion.storage.derby</module>
+    <module>com.io7m.eigion.storage.s3</module>
     <module>com.io7m.eigion.taskrecorder</module>
     <module>com.io7m.eigion.tests</module>
   </modules>

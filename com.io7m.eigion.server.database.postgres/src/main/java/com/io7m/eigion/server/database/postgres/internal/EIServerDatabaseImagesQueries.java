@@ -16,6 +16,7 @@
 
 package com.io7m.eigion.server.database.postgres.internal;
 
+import com.io7m.eigion.hash.EIHash;
 import com.io7m.eigion.model.EICreation;
 import com.io7m.eigion.model.EIImage;
 import com.io7m.eigion.model.EIRedaction;
@@ -58,13 +59,11 @@ final class EIServerDatabaseImagesQueries
   @EIServerDatabaseRequiresUser
   public EIImage imageCreate(
     final UUID id,
-    final String contentType,
-    final byte[] data)
+    final EIHash hash)
     throws EIServerDatabaseException
   {
     Objects.requireNonNull(id, "id");
-    Objects.requireNonNull(contentType, "contentType");
-    Objects.requireNonNull(data, "data");
+    Objects.requireNonNull(hash, "hash");
 
     final var owner =
       this.transaction().userId();
@@ -89,8 +88,8 @@ final class EIServerDatabaseImagesQueries
           .set(IMAGES.ID, id)
           .set(IMAGES.CREATED, time)
           .set(IMAGES.CREATOR, owner)
-          .set(IMAGES.CONTENT_TYPE, contentType)
-          .set(IMAGES.IMAGE_DATA, data)
+          .set(IMAGES.HASH_ALGO, hash.algorithm())
+          .set(IMAGES.HASH_VALUE, hash.hash())
           .execute();
 
       Preconditions.checkPreconditionV(
@@ -110,10 +109,9 @@ final class EIServerDatabaseImagesQueries
 
       return new EIImage(
         id,
-        contentType,
         new EICreation(owner, time),
         Optional.empty(),
-        data
+        hash
       );
     } catch (final DataAccessException e) {
       throw handleDatabaseException(this.transaction(), e);
@@ -146,7 +144,6 @@ final class EIServerDatabaseImagesQueries
       return imageOpt.map(ir -> {
         return new EIImage(
           id,
-          ir.getContentType(),
           new EICreation(ir.getCreator(), ir.getCreated()),
           imageRedactionOpt.map(re -> {
             return new EIRedaction(
@@ -154,7 +151,7 @@ final class EIServerDatabaseImagesQueries
               re.getCreated(),
               re.getReason());
           }),
-          ir.getImageData()
+          new EIHash(ir.getHashAlgo(), ir.getHashValue())
         );
       });
     } catch (final DataAccessException e) {

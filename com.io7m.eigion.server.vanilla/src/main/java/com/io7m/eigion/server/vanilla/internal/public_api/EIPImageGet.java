@@ -18,6 +18,7 @@ package com.io7m.eigion.server.vanilla.internal.public_api;
 
 import com.io7m.eigion.server.database.api.EIServerDatabaseImagesQueriesType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseType;
+import com.io7m.eigion.server.protocol.public_api.v1.EISP1ResponseImageGet;
 import com.io7m.eigion.server.vanilla.internal.EIHTTPErrorStatusException;
 import com.io7m.eigion.services.api.EIServiceDirectoryType;
 import jakarta.servlet.http.HttpServletRequest;
@@ -26,16 +27,14 @@ import jakarta.servlet.http.HttpSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Optional;
 import java.util.UUID;
 
 import static com.io7m.eigion.server.database.api.EIServerDatabaseIncludeRedacted.EXCLUDE_REDACTED;
 import static com.io7m.eigion.server.database.api.EIServerDatabaseRole.EIGION;
-import static org.eclipse.jetty.http.HttpStatus.BAD_REQUEST_400;
-import static org.eclipse.jetty.http.HttpStatus.NOT_FOUND_404;
+import static com.io7m.eigion.server.vanilla.internal.EIServerRequestDecoration.requestIdFor;
 
 /**
- * A servlet for retrieving images.
+ * A servlet for creating images.
  */
 
 public final class EIPImageGet extends EIPAuthenticatedServlet
@@ -46,7 +45,7 @@ public final class EIPImageGet extends EIPAuthenticatedServlet
   private final EIServerDatabaseType database;
 
   /**
-   * A servlet for retrieving images.
+   * A servlet for creating images.
    *
    * @param services The service directory
    */
@@ -73,23 +72,28 @@ public final class EIPImageGet extends EIPAuthenticatedServlet
     final HttpSession session)
     throws Exception
   {
-    final UUID imageId;
-    try {
-      imageId =
-        Optional.ofNullable(request.getParameter("id"))
-          .map(UUID::fromString)
-          .orElseThrow(() -> {
-            return new EIHTTPErrorStatusException(
-              BAD_REQUEST_400,
-              "parameter",
-              this.strings().format("missingParameter", "id")
-            );
-          });
-    } catch (final IllegalArgumentException e) {
+    final var requestId =
+      requestIdFor(request);
+
+    final var idRaw =
+      request.getParameter("id");
+
+    if (idRaw == null) {
       throw new EIHTTPErrorStatusException(
-        BAD_REQUEST_400,
-        "parameter",
-        this.strings().format("invalidParameter", "ImageID")
+        400,
+        "missingParameter",
+        this.strings().format("missingParameter", "id")
+      );
+    }
+
+    final UUID id;
+    try {
+      id = UUID.fromString(idRaw);
+    } catch (final Exception e) {
+      throw new EIHTTPErrorStatusException(
+        400,
+        "invalidParameter",
+        this.strings().format("invalidParameter", "id")
       );
     }
 
@@ -97,23 +101,32 @@ public final class EIPImageGet extends EIPAuthenticatedServlet
            this.database.openConnection(EIGION)) {
       try (var transaction =
              connection.openTransaction()) {
+
         final var images =
           transaction.queries(EIServerDatabaseImagesQueriesType.class);
+        final var imageOpt =
+          images.imageGet(id, EXCLUDE_REDACTED);
 
-        final var image =
-          images.imageGet(imageId, EXCLUDE_REDACTED)
-            .orElseThrow(() -> {
-              return new EIHTTPErrorStatusException(
-                NOT_FOUND_404,
-                "not-found",
-                this.strings().format("notFound")
-              );
-            });
-
-        servletResponse.setContentType(image.contentType());
-        servletResponse.setContentLength(image.data().length);
-        try (var output = servletResponse.getOutputStream()) {
-          output.write(image.data());
+        if (imageOpt.isPresent()) {
+          final var image = imageOpt.get();
+          this.sends()
+            .send(
+              servletResponse,
+              200,
+              new EISP1ResponseImageGet(
+                requestId,
+                image.id(),
+                image.hash())
+            );
+        } else {
+          this.sends()
+            .sendError(
+              servletResponse,
+              requestId,
+              404,
+              "nonexistent",
+              this.strings().format("notFound")
+            );
         }
       }
     }

@@ -17,8 +17,8 @@
 
 package com.io7m.eigion.tests;
 
+import com.io7m.eigion.hash.EIHash;
 import com.io7m.eigion.model.EICreation;
-import com.io7m.eigion.model.EIPassword;
 import com.io7m.eigion.model.EIPasswordAlgorithmPBKDF2HmacSHA256;
 import com.io7m.eigion.model.EIPasswordException;
 import com.io7m.eigion.model.EIProductCategory;
@@ -61,6 +61,7 @@ import static com.io7m.eigion.server.database.api.EIServerDatabaseRole.EIGION;
 import static com.io7m.eigion.server.database.api.EIServerDatabaseRole.NONE;
 import static com.io7m.eigion.server.database.api.EIServerDatabaseUpgrade.UPGRADE_DATABASE;
 import static java.math.BigInteger.ZERO;
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.time.OffsetDateTime.now;
 import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -190,8 +191,8 @@ public final class EIServerDatabaseUnprivilegedTest
             assertThrows(EIServerDatabaseException.class, () -> {
               images.imageCreate(
                 randomUUID(),
-                "text/plain",
-                new byte[23]);
+                EIHash.sha256Of("hello".getBytes(UTF_8))
+              );
             });
           assertEquals("operation-not-permitted", ex.errorCode());
         }
@@ -507,7 +508,7 @@ public final class EIServerDatabaseUnprivilegedTest
 
           final var ex =
             assertThrows(EIServerDatabaseException.class, () -> {
-              images.imageCreate(randomUUID(), "image/jpeg", new byte[32]);
+              images.imageCreate(randomUUID(), EIHash.sha256Of("hello".getBytes(UTF_8)));
             });
           assertEquals("operation-not-permitted", ex.errorCode());
         }

@@ -91,4 +91,11 @@ public final class EIRequestLimits implements EIServiceType
   {
     return "Request limiting service.";
   }
+
+  @Override
+  public String toString()
+  {
+    return "[EIRequestLimits 0x%s]"
+      .formatted(Long.toUnsignedString((long) this.hashCode()));
+  }
 }

@@ -121,6 +121,12 @@ public final class EIServer implements EIServerType
       services.register(EIServerStrings.class, strings);
       services.register(EIPSends.class, new EIPSends(pv1messages));
       services.register(EIRequestLimits.class, new EIRequestLimits(strings));
+      services.register(
+        EIServerImageStorage.class,
+        EIServerImageStorage.create(
+          this.configuration.imageStorageFactory(),
+          this.configuration.imageStorageParameters())
+      );
 
       final var adminServer = this.createAdminServer(services);
       this.resources.add(adminServer::stop);

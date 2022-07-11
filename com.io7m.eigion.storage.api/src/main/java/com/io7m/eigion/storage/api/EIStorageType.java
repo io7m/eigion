@@ -31,11 +31,10 @@ public interface EIStorageType
   /**
    * Create or update an object.
    *
-   * @param name          The name
-   * @param contentType   The content type
-   * @param contentLength The content length
-   * @param hash          A hash of the content
-   * @param data          The data
+   * @param name        The name
+   * @param contentType The content type
+   * @param hash        A hash of the content
+   * @param data        The data
    *
    * @throws IOException On errors
    */
@@ -43,7 +42,6 @@ public interface EIStorageType
   void put(
     EIStorageName name,
     String contentType,
-    long contentLength,
     EIHash hash,
     InputStream data)
     throws IOException;
@@ -51,11 +49,10 @@ public interface EIStorageType
   /**
    * Create or update an object.
    *
-   * @param name          The name
-   * @param contentType   The content type
-   * @param contentLength The content length
-   * @param hash          A hash of the content
-   * @param data          The data
+   * @param name        The name
+   * @param contentType The content type
+   * @param hash        A hash of the content
+   * @param data        The data
    *
    * @throws IOException On errors
    */
@@ -63,12 +60,11 @@ public interface EIStorageType
   default void put(
     final String name,
     final String contentType,
-    final long contentLength,
     final EIHash hash,
     final InputStream data)
     throws IOException
   {
-    this.put(new EIStorageName(name), contentType, contentLength, hash, data);
+    this.put(new EIStorageName(name), contentType, hash, data);
   }
 
   /**

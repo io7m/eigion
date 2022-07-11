@@ -66,4 +66,11 @@ public final class EIServerClock implements EIServiceType
   {
     return OffsetDateTime.now(this.clock);
   }
+
+  @Override
+  public String toString()
+  {
+    return "[EIServerClock 0x%s]"
+      .formatted(Long.toUnsignedString((long) this.hashCode()));
+  }
 }

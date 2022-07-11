@@ -17,6 +17,7 @@
 
 package com.io7m.eigion.server.database.api;
 
+import com.io7m.eigion.hash.EIHash;
 import com.io7m.eigion.model.EIImage;
 import com.io7m.eigion.model.EIRedactionRequest;
 
@@ -33,9 +34,8 @@ public non-sealed interface EIServerDatabaseImagesQueriesType
   /**
    * Create an image.
    *
-   * @param id          The image ID
-   * @param contentType The content type
-   * @param data        The image data
+   * @param id   The image ID
+   * @param hash The image hash
    *
    * @return A created image
    *
@@ -45,8 +45,7 @@ public non-sealed interface EIServerDatabaseImagesQueriesType
   @EIServerDatabaseRequiresUser
   EIImage imageCreate(
     UUID id,
-    String contentType,
-    byte[] data)
+    EIHash hash)
     throws EIServerDatabaseException;
 
   /**

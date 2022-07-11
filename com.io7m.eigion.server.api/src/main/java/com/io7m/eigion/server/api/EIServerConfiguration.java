@@ -18,6 +18,8 @@ package com.io7m.eigion.server.api;
 
 import com.io7m.eigion.server.database.api.EIServerDatabaseConfiguration;
 import com.io7m.eigion.server.database.api.EIServerDatabaseFactoryType;
+import com.io7m.eigion.storage.api.EIStorageFactoryType;
+import com.io7m.eigion.storage.api.EIStorageParameters;
 
 import java.net.InetSocketAddress;
 import java.nio.file.Path;
@@ -29,19 +31,24 @@ import java.util.Objects;
 /**
  * The configuration for a server.
  *
- * @param databases             The factory of databases that will be used for
- *                              the server
- * @param databaseConfiguration The database configuration for the server
- * @param adminAddress          The address upon which the admin API listens
- * @param publicAddress         The address upon which the public API listens
- * @param sessionDirectory      The server's persistent session directory
- * @param locale                The locale
- * @param clock                 The clock
+ * @param databases              The factory of databases that will be used for
+ *                               the server
+ * @param databaseConfiguration  The database configuration for the server
+ * @param adminAddress           The address upon which the admin API listens
+ * @param publicAddress          The address upon which the public API listens
+ * @param sessionDirectory       The server's persistent session directory
+ * @param locale                 The locale
+ * @param clock                  The clock
+ * @param imageStorageFactory    A factory of storage implementations for
+ *                               images
+ * @param imageStorageParameters Parameters for the image storage
  */
 
 public record EIServerConfiguration(
   EIServerDatabaseFactoryType databases,
   EIServerDatabaseConfiguration databaseConfiguration,
+  EIStorageFactoryType imageStorageFactory,
+  EIStorageParameters imageStorageParameters,
   InetSocketAddress adminAddress,
   InetSocketAddress publicAddress,
   Path sessionDirectory,
@@ -51,14 +58,18 @@ public record EIServerConfiguration(
   /**
    * The configuration for a server.
    *
-   * @param databases             The factory of databases that will be used for
-   *                              the server
-   * @param databaseConfiguration The database configuration for the server
-   * @param adminAddress          The address upon which the admin API listens
-   * @param publicAddress         The address upon which the public API listens
-   * @param sessionDirectory      The server's persistent session directory
-   * @param locale                The locale
-   * @param clock                 The clock
+   * @param databases              The factory of databases that will be used
+   *                               for the server
+   * @param databaseConfiguration  The database configuration for the server
+   * @param adminAddress           The address upon which the admin API listens
+   * @param publicAddress          The address upon which the public API
+   *                               listens
+   * @param sessionDirectory       The server's persistent session directory
+   * @param locale                 The locale
+   * @param clock                  The clock
+   * @param imageStorageFactory    A factory of storage implementations for
+   *                               images
+   * @param imageStorageParameters Parameters for the image storage
    */
 
   public EIServerConfiguration
@@ -70,6 +81,8 @@ public record EIServerConfiguration(
     Objects.requireNonNull(sessionDirectory, "sessionDirectory");
     Objects.requireNonNull(locale, "locale");
     Objects.requireNonNull(clock, "clock");
+    Objects.requireNonNull(imageStorageFactory, "imageStorageFactory");
+    Objects.requireNonNull(imageStorageParameters, "imageStorageParameters");
   }
 
   /**

@@ -74,4 +74,11 @@ public final class EIServerEventBus
   {
     return this.events;
   }
+
+  @Override
+  public String toString()
+  {
+    return "[EIServerEventBus 0x%s]"
+      .formatted(Long.toUnsignedString((long) this.hashCode()));
+  }
 }

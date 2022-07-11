@@ -16,6 +16,8 @@
 
 package com.io7m.eigion.model;
 
+import com.io7m.eigion.hash.EIHash;
+
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
@@ -23,37 +25,33 @@ import java.util.UUID;
 /**
  * An image.
  *
- * @param id          The image ID
- * @param contentType The image content type
- * @param creation    The creation info
- * @param redaction   The redaction info
- * @param data        The image data
+ * @param id        The image ID
+ * @param creation  The creation info
+ * @param redaction The redaction info
+ * @param hash      The image hash
  */
 
 public record EIImage(
   UUID id,
-  String contentType,
   EICreation creation,
   Optional<EIRedaction> redaction,
-  byte[] data)
+  EIHash hash)
   implements EIRedactableType, EICreatedType
 {
   /**
    * An image.
    *
-   * @param id          The image ID
-   * @param contentType The image content type
-   * @param creation    The creation info
-   * @param redaction   The redaction info
-   * @param data        The image data
+   * @param id        The image ID
+   * @param creation  The creation info
+   * @param redaction The redaction info
+   * @param hash      The image hash
    */
 
   public EIImage
   {
     Objects.requireNonNull(id, "id");
-    Objects.requireNonNull(contentType, "contentType");
     Objects.requireNonNull(creation, "creation");
     Objects.requireNonNull(redaction, "redaction");
-    Objects.requireNonNull(data, "data");
+    Objects.requireNonNull(hash, "hash");
   }
 }

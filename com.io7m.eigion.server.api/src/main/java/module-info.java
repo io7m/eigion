@@ -24,6 +24,7 @@ module com.io7m.eigion.server.api
   requires static org.osgi.annotation.versioning;
 
   requires transitive com.io7m.eigion.server.database.api;
+  requires transitive com.io7m.eigion.storage.api;
 
   exports com.io7m.eigion.server.api;
 }

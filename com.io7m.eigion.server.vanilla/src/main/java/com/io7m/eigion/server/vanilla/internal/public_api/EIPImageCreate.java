@@ -16,12 +16,15 @@
 
 package com.io7m.eigion.server.vanilla.internal.public_api;
 
+import com.io7m.eigion.hash.EIHash;
 import com.io7m.eigion.server.database.api.EIServerDatabaseImagesQueriesType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseType;
 import com.io7m.eigion.server.protocol.public_api.v1.EISP1ResponseImageCreated;
 import com.io7m.eigion.server.vanilla.internal.EIHTTPErrorStatusException;
 import com.io7m.eigion.server.vanilla.internal.EIRequestLimits;
+import com.io7m.eigion.server.vanilla.internal.EIServerImageStorage;
 import com.io7m.eigion.services.api.EIServiceDirectoryType;
+import com.io7m.eigion.storage.api.EIStorageName;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
@@ -29,10 +32,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.imageio.ImageIO;
-import javax.imageio.ImageReader;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.util.Iterator;
 import java.util.UUID;
 
 import static com.io7m.eigion.server.database.api.EIServerDatabaseRole.EIGION;
@@ -50,6 +51,7 @@ public final class EIPImageCreate extends EIPAuthenticatedServlet
 
   private final EIServerDatabaseType database;
   private final EIRequestLimits limits;
+  private final EIServerImageStorage imageStorage;
 
   /**
    * A servlet for creating images.
@@ -64,6 +66,8 @@ public final class EIPImageCreate extends EIPAuthenticatedServlet
 
     this.database =
       services.requireService(EIServerDatabaseType.class);
+    this.imageStorage =
+      services.requireService(EIServerImageStorage.class);
     this.limits =
       services.requireService(EIRequestLimits.class);
   }
@@ -81,8 +85,42 @@ public final class EIPImageCreate extends EIPAuthenticatedServlet
     final HttpSession session)
     throws Exception
   {
+    /*
+     * Read the image data. Image data is bounded to a sensible maximum
+     * to avoid resource exhaustion attacks.
+     */
+
     final var imageData = this.readImageData(request);
+
+    /*
+     * Check that the image data can actually be parsed as an image.
+     */
+
     this.checkImage(imageData);
+
+    /*
+     * Attempt to store the image.
+     */
+
+    final var imageId =
+      UUID.randomUUID();
+    final var hash =
+      EIHash.sha256Of(imageData);
+
+    final var imageName =
+      new EIStorageName("/images/%s.jpg".formatted(imageId));
+
+    this.imageStorage.put(
+      imageName,
+      "image/jpeg",
+      hash,
+      new ByteArrayInputStream(imageData)
+    );
+
+    /*
+     * Record that the image was stored. If this fails, the image will
+     * be left in the image storage unreferenced.
+     */
 
     try (var connection =
            this.database.openConnection(EIGION)) {
@@ -93,8 +131,7 @@ public final class EIPImageCreate extends EIPAuthenticatedServlet
         final var images =
           transaction.queries(EIServerDatabaseImagesQueriesType.class);
 
-        final var imageId = UUID.randomUUID();
-        images.imageCreate(imageId, "image/jpeg", imageData);
+        images.imageCreate(imageId, hash);
         transaction.commit();
 
         this.sends()
@@ -121,11 +158,11 @@ public final class EIPImageCreate extends EIPAuthenticatedServlet
     final byte[] data)
     throws EIHTTPErrorStatusException
   {
-    final Iterator<ImageReader> readers =
+    final var readers =
       ImageIO.getImageReadersByFormatName("jpg");
 
     while (readers.hasNext()) {
-      final ImageReader reader = readers.next();
+      final var reader = readers.next();
 
       try (var input =
              ImageIO.createImageInputStream(new ByteArrayInputStream(data))) {

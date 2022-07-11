@@ -22,6 +22,7 @@ import com.io7m.eigion.server.database.api.EIServerDatabaseCreate;
 import com.io7m.eigion.server.database.api.EIServerDatabaseUpgrade;
 import com.io7m.eigion.server.database.postgres.EIServerDatabases;
 import com.io7m.eigion.server.vanilla.EIServers;
+import com.io7m.eigion.storage.api.EIStorageParameters;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 
@@ -29,6 +30,7 @@ import java.net.InetSocketAddress;
 import java.nio.file.Files;
 import java.time.Clock;
 import java.util.Locale;
+import java.util.Map;
 
 public final class EIServerDemo
 {
@@ -60,6 +62,8 @@ public final class EIServerDemo
       new EIServerConfiguration(
         new EIServerDatabases(),
         databaseConfiguration,
+        new EIFakeStorageFactory(),
+        new EIStorageParameters(Map.of()),
         new InetSocketAddress("localhost", 40000),
         new InetSocketAddress("localhost", 40001),
         Files.createTempDirectory("eigion"),
