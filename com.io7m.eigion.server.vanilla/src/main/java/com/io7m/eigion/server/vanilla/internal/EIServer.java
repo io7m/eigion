@@ -185,11 +185,6 @@ public final class EIServer implements EIServerType
     services.register(EIServerStrings.class, strings);
 
     services.register(
-      EIServerSharedSecretService.class,
-      new EIServerSharedSecretService(this.configuration.adminSharedSecret())
-    );
-
-    services.register(
       EIPSends.class,
       new EIPSends(pv1messages)
     );

@@ -42,7 +42,6 @@ import java.util.Objects;
  * @param imageStorageFactory    A factory of storage implementations for
  *                               images
  * @param imageStorageParameters Parameters for the image storage
- * @param adminSharedSecret      The admin API shared secret
  */
 
 public record EIServerConfiguration(
@@ -50,7 +49,6 @@ public record EIServerConfiguration(
   EIServerDatabaseConfiguration databaseConfiguration,
   EIStorageFactoryType imageStorageFactory,
   EIStorageParameters imageStorageParameters,
-  EIServerAdminSharedSecret adminSharedSecret,
   InetSocketAddress adminAddress,
   InetSocketAddress publicAddress,
   Path sessionDirectory,
@@ -72,14 +70,12 @@ public record EIServerConfiguration(
    * @param imageStorageFactory    A factory of storage implementations for
    *                               images
    * @param imageStorageParameters Parameters for the image storage
-   * @param adminSharedSecret      The admin API shared secret
    */
 
   public EIServerConfiguration
   {
     Objects.requireNonNull(databases, "databases");
     Objects.requireNonNull(databaseConfiguration, "databaseConfiguration");
-    Objects.requireNonNull(adminSharedSecret, "adminSharedSecret");
     Objects.requireNonNull(adminAddress, "adminAddress");
     Objects.requireNonNull(publicAddress, "publicAddress");
     Objects.requireNonNull(sessionDirectory, "sessionDirectory");

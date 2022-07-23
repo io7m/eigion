@@ -18,7 +18,6 @@ package com.io7m.eigion.tests;
 
 import com.io7m.eigion.model.EIPasswordAlgorithmPBKDF2HmacSHA256;
 import com.io7m.eigion.model.EIPasswordException;
-import com.io7m.eigion.server.api.EIServerAdminSharedSecret;
 import com.io7m.eigion.server.api.EIServerConfiguration;
 import com.io7m.eigion.server.api.EIServerType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseAdminsQueriesType;
@@ -72,8 +71,6 @@ public final class EIServerDemo
         databaseConfiguration,
         new EIFakeStorageFactory(),
         new EIStorageParameters(Map.of()),
-        new EIServerAdminSharedSecret(
-          "8A8B93C04F67A3956AB6109F30063F1A6A7C6679787D72CC0730CC8390396F05"),
         new InetSocketAddress("localhost", 40000),
         new InetSocketAddress("localhost", 40001),
         Files.createTempDirectory("eigion"),

@@ -14,35 +14,36 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-package com.io7m.eigion.server.api;
+package com.io7m.eigion.tests;
 
-import java.util.Objects;
-import java.util.regex.Pattern;
+import com.io7m.eigion.protocol.admin_api.v1.EISA1Messages;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
-/**
- * A shared secret used to access admin functionality.
- *
- * @param value The secret
- */
+import java.io.IOException;
 
-public record EIServerAdminSharedSecret(String value)
+import static java.nio.charset.StandardCharsets.UTF_8;
+
+public final class EIV1AdminProtocolGarbage extends HttpServlet
 {
-  private static final Pattern VALID_SECRET =
-    Pattern.compile("[A-F0-9]{64}");
-
-  /**
-   * A shared secret used to access admin functionality.
-   *
-   * @param value The secret
-   */
-
-  public EIServerAdminSharedSecret
+  public EIV1AdminProtocolGarbage()
   {
-    Objects.requireNonNull(value, "secret");
 
-    if (!VALID_SECRET.matcher(value).matches()) {
-      throw new IllegalArgumentException(
-        String.format("Secret '%s' must match %s", value, VALID_SECRET));
+  }
+
+  @Override
+  protected void service(
+    final HttpServletRequest request,
+    final HttpServletResponse response)
+    throws IOException
+  {
+    response.setContentType(EISA1Messages.contentType());
+    response.setStatus(200);
+    response.setContentLength(7);
+
+    try (var output = response.getOutputStream()) {
+      output.write("hello\r\n".getBytes(UTF_8));
     }
   }
 }
