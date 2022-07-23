@@ -20,6 +20,7 @@ package com.io7m.eigion.tests;
 import com.io7m.eigion.model.EIPassword;
 import com.io7m.eigion.model.EIPasswordAlgorithmPBKDF2HmacSHA256;
 import com.io7m.eigion.model.EIPasswordException;
+import com.io7m.eigion.model.EISubsetMatch;
 import com.io7m.eigion.server.database.api.EIServerDatabaseAuditQueriesType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseConfiguration;
 import com.io7m.eigion.server.database.api.EIServerDatabaseException;
@@ -76,7 +77,13 @@ public final class EIServerDatabaseUsersTest
     final var audit =
       transaction.queries(EIServerDatabaseAuditQueriesType.class);
     final var events =
-      audit.auditEvents(timeNow().minusYears(1L), timeNow().plusYears(1L));
+      audit.auditEvents(
+        timeNow().minusYears(1L),
+        timeNow().plusYears(1L),
+        new EISubsetMatch<>("", ""),
+        new EISubsetMatch<>("", ""),
+        new EISubsetMatch<>("", "")
+      );
 
     for (var index = 0; index < expectedEvents.length; ++index) {
       final var event =

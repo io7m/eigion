@@ -51,7 +51,10 @@ public final class EIACmdAuditGetByTime
     final var events =
       auditQueries.auditEvents(
         command.fromInclusive(),
-        command.toInclusive()
+        command.toInclusive(),
+        command.owners().toSubsetMatch(),
+        command.types().toSubsetMatch(),
+        command.messages().toSubsetMatch()
       );
 
     return new EIACommandExecutionResult(

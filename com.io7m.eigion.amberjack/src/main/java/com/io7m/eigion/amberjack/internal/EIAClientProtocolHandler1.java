@@ -22,6 +22,7 @@ import com.io7m.eigion.model.EIAuditEvent;
 import com.io7m.eigion.model.EIPasswordAlgorithmPBKDF2HmacSHA256;
 import com.io7m.eigion.model.EIPasswordException;
 import com.io7m.eigion.model.EIService;
+import com.io7m.eigion.model.EISubsetMatch;
 import com.io7m.eigion.model.EIUser;
 import com.io7m.eigion.model.EIUserSummary;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1AuditEvent;
@@ -44,6 +45,7 @@ import com.io7m.eigion.protocol.admin_api.v1.EISA1ResponseType;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1ResponseUserCreate;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1ResponseUserGet;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1ResponseUserList;
+import com.io7m.eigion.protocol.admin_api.v1.EISA1SubsetMatch;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1UserSummary;
 import com.io7m.eigion.protocol.api.EIProtocolException;
 import org.slf4j.Logger;
@@ -207,16 +209,24 @@ public final class EIAClientProtocolHandler1
   @Override
   public List<EIAuditEvent> auditGet(
     final OffsetDateTime dateLower,
-    final OffsetDateTime dateUpper)
+    final OffsetDateTime dateUpper,
+    final EISubsetMatch<String> owner,
+    final EISubsetMatch<String> type,
+    final EISubsetMatch<String> message)
     throws EIAClientException, InterruptedException
   {
-    final var message =
+    final var response =
       this.sendCommand(
         EISA1ResponseAuditGet.class,
-        new EISA1CommandAuditGet(dateLower, dateUpper)
+        new EISA1CommandAuditGet(
+          dateLower,
+          dateUpper,
+          EISA1SubsetMatch.ofSubsetMatch(owner),
+          EISA1SubsetMatch.ofSubsetMatch(type),
+          EISA1SubsetMatch.ofSubsetMatch(message))
       );
 
-    return message.events()
+    return response.events()
       .stream()
       .map(EISA1AuditEvent::toAuditEvent)
       .toList();

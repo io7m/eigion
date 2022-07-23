@@ -17,9 +17,11 @@
 package com.io7m.eigion.server.database.api;
 
 import com.io7m.eigion.model.EIAuditEvent;
+import com.io7m.eigion.model.EISubsetMatch;
 
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * The database queries involving the audit log.
@@ -34,6 +36,9 @@ public non-sealed interface EIServerDatabaseAuditQueriesType
    *
    * @param fromInclusive The inclusive lower bound on the event times
    * @param toInclusive   The inclusive upper bound on the event times
+   * @param message       The subset of messages to include
+   * @param type          The subset of types to include
+   * @param owner         The subset of owners to include
    *
    * @return A series of audit events, sorted by time
    *
@@ -42,6 +47,27 @@ public non-sealed interface EIServerDatabaseAuditQueriesType
 
   List<EIAuditEvent> auditEvents(
     OffsetDateTime fromInclusive,
-    OffsetDateTime toInclusive)
+    OffsetDateTime toInclusive,
+    EISubsetMatch<String> owner,
+    EISubsetMatch<String> type,
+    EISubsetMatch<String> message)
+    throws EIServerDatabaseException;
+
+  /**
+   * Create an audit event.
+   *
+   * @param userId  The user ID of the event
+   * @param time    The event time
+   * @param type    The event type
+   * @param message The event message
+   *
+   * @throws EIServerDatabaseException On errors
+   */
+
+  void auditPut(
+    UUID userId,
+    OffsetDateTime time,
+    String type,
+    String message)
     throws EIServerDatabaseException;
 }

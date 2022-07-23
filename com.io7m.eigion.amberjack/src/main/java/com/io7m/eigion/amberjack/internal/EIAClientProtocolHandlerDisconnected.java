@@ -20,6 +20,7 @@ package com.io7m.eigion.amberjack.internal;
 import com.io7m.eigion.amberjack.api.EIAClientException;
 import com.io7m.eigion.model.EIAuditEvent;
 import com.io7m.eigion.model.EIService;
+import com.io7m.eigion.model.EISubsetMatch;
 import com.io7m.eigion.model.EIUser;
 import com.io7m.eigion.model.EIUserSummary;
 
@@ -115,7 +116,10 @@ public final class EIAClientProtocolHandlerDisconnected
   @Override
   public List<EIAuditEvent> auditGet(
     final OffsetDateTime dateLower,
-    final OffsetDateTime dateUpper)
+    final OffsetDateTime dateUpper,
+    final EISubsetMatch<String> owner,
+    final EISubsetMatch<String> type,
+    final EISubsetMatch<String> message)
     throws EIAClientException
   {
     throw this.notLoggedIn();

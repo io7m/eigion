@@ -135,6 +135,9 @@ public final class EIShell implements EIShellType
         if (text.isBlank()) {
           continue;
         }
+        if (text.startsWith("#")) {
+          continue;
+        }
 
         final var line =
           this.reader.getParsedLine();

@@ -59,7 +59,7 @@ public record EISA1Password(
   }
 
   /**
-   * Conver this to a model password.
+   * Convert this to a model password.
    *
    * @return The model password
    *
@@ -73,6 +73,24 @@ public record EISA1Password(
       EIPasswordAlgorithms.parse(this.algorithm),
       this.hash,
       this.salt
+    );
+  }
+
+  /**
+   * Convert a model password to a V1 password.
+   *
+   * @param password The model password
+   *
+   * @return A password
+   */
+
+  public static EISA1Password ofPassword(
+    final EIPassword password)
+  {
+    return new EISA1Password(
+      password.algorithm().identifier(),
+      password.hash(),
+      password.salt()
     );
   }
 }

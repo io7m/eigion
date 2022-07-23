@@ -159,6 +159,14 @@
       <groupId>org.testcontainers</groupId>
       <artifactId>postgresql</artifactId>
     </dependency>
+    <dependency>
+      <groupId>net.jqwik</groupId>
+      <artifactId>jqwik-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>net.jqwik</groupId>
+      <artifactId>jqwik-engine</artifactId>
+    </dependency>
   </dependencies>
 
   <build>

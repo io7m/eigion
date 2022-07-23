@@ -16,19 +16,31 @@
 
 package com.io7m.eigion.tests;
 
+import com.io7m.eigion.protocol.admin_api.v1.EISA1AuditEvent;
+import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandAuditGet;
+import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandLogin;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandServicesList;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandUserCreate;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandUserGet;
+import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandUserGetByEmail;
+import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandUserGetByName;
+import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandUserSearch;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1MessageType;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1Messages;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1Password;
+import com.io7m.eigion.protocol.admin_api.v1.EISA1ResponseAuditGet;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1ResponseError;
+import com.io7m.eigion.protocol.admin_api.v1.EISA1ResponseLogin;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1ResponseServiceList;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1ResponseUserCreate;
+import com.io7m.eigion.protocol.admin_api.v1.EISA1ResponseUserGet;
+import com.io7m.eigion.protocol.admin_api.v1.EISA1ResponseUserList;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1Service;
+import com.io7m.eigion.protocol.admin_api.v1.EISA1SubsetMatch;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1Transaction;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1TransactionResponse;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1User;
+import com.io7m.eigion.protocol.admin_api.v1.EISA1UserSummary;
 import com.io7m.eigion.protocol.api.EIProtocolException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DynamicTest;
@@ -87,19 +99,136 @@ public final class EISA1MessagesTest
         new EISA1Service("s2", "sd2")
       );
 
-    final var ruc =
-      new EISA1ResponseUserCreate(randomUUID(), user);
+    final var userSummary =
+      new EISA1UserSummary(randomUUID(), "name", "email");
 
     return Stream.<EISA1MessageType>of(
-      new EISA1CommandServicesList(),
-      new EISA1CommandUserCreate("x", "e", pass),
-      new EISA1CommandUserGet(randomUUID()),
-      ruc,
-      new EISA1ResponseServiceList(randomUUID(), services),
-      new EISA1ResponseError(randomUUID(), "e", "m"),
-      new EISA1Transaction(List.of(new EISA1CommandServicesList())),
-      new EISA1TransactionResponse(randomUUID(), List.of(ruc))
+      commandAuditGet(),
+      commandLogin(),
+      commandServicesList(),
+      commandUserCreate(pass),
+      commandUserGet(),
+      commandUserGetByEmail(),
+      commandUserGetByName(),
+      commandUserSearch(),
+      responseAuditGet(),
+      responseError(),
+      responseLogin(),
+      responseServiceList(services),
+      responseUserCreate(user),
+      responseUserCreate(user),
+      responseUserGet(user),
+      responseUserList(userSummary),
+      transaction(),
+      transactionResponse(user)
     ).map(this::dynamicTestOfRoundTrip);
+  }
+
+  private static EISA1TransactionResponse transactionResponse(
+    final EISA1User user)
+  {
+    return new EISA1TransactionResponse(
+      randomUUID(),
+      List.of(responseUserCreate(user)));
+  }
+
+  private static EISA1Transaction transaction()
+  {
+    return new EISA1Transaction(List.of(commandServicesList()));
+  }
+
+  private static EISA1ResponseUserList responseUserList(
+    final EISA1UserSummary userSummary)
+  {
+    return new EISA1ResponseUserList(
+      randomUUID(),
+      List.of(userSummary, userSummary));
+  }
+
+  private static EISA1ResponseUserGet responseUserGet(
+    final EISA1User user)
+  {
+    return new EISA1ResponseUserGet(randomUUID(), user);
+  }
+
+  private static EISA1ResponseServiceList responseServiceList(
+    final List<EISA1Service> services)
+  {
+    return new EISA1ResponseServiceList(randomUUID(), services);
+  }
+
+  private static EISA1ResponseLogin responseLogin()
+  {
+    return new EISA1ResponseLogin(randomUUID());
+  }
+
+  private static EISA1ResponseError responseError()
+  {
+    return new EISA1ResponseError(randomUUID(), "e", "m");
+  }
+
+  private static EISA1ResponseAuditGet responseAuditGet()
+  {
+    return new EISA1ResponseAuditGet(
+      randomUUID(),
+      List.of(new EISA1AuditEvent(23,
+                                  randomUUID(),
+                                  now(),
+                                  "type",
+                                  "message")));
+  }
+
+  private static EISA1ResponseUserCreate responseUserCreate(
+    final EISA1User user)
+  {
+    return new EISA1ResponseUserCreate(randomUUID(), user);
+  }
+
+  private static EISA1CommandUserSearch commandUserSearch()
+  {
+    return new EISA1CommandUserSearch("search");
+  }
+
+  private static EISA1CommandUserGetByEmail commandUserGetByEmail()
+  {
+    return new EISA1CommandUserGetByEmail("email");
+  }
+
+  private static EISA1CommandUserGetByName commandUserGetByName()
+  {
+    return new EISA1CommandUserGetByName("name");
+  }
+
+  private static EISA1CommandUserGet commandUserGet()
+  {
+    return new EISA1CommandUserGet(randomUUID());
+  }
+
+  private static EISA1CommandUserCreate commandUserCreate(
+    final EISA1Password pass)
+  {
+    return new EISA1CommandUserCreate("x", "e", pass);
+  }
+
+  private static EISA1CommandServicesList commandServicesList()
+  {
+    return new EISA1CommandServicesList();
+  }
+
+  private static EISA1CommandLogin commandLogin()
+  {
+    return new EISA1CommandLogin("someone", "12345678");
+  }
+
+  private static EISA1CommandAuditGet commandAuditGet()
+  {
+    return new EISA1CommandAuditGet(
+      now(),
+      now(),
+      new EISA1SubsetMatch<>("a", "b"),
+      new EISA1SubsetMatch<>("c", "d"),
+      new EISA1SubsetMatch<>("e", "f")
+    );
   }
 
   private DynamicTest dynamicTestOfRoundTrip(

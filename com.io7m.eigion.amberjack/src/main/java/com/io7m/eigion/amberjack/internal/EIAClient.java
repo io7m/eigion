@@ -21,6 +21,7 @@ import com.io7m.eigion.amberjack.api.EIAClientException;
 import com.io7m.eigion.amberjack.api.EIAClientType;
 import com.io7m.eigion.model.EIAuditEvent;
 import com.io7m.eigion.model.EIService;
+import com.io7m.eigion.model.EISubsetMatch;
 import com.io7m.eigion.model.EIUser;
 import com.io7m.eigion.model.EIUserSummary;
 
@@ -131,10 +132,13 @@ public final class EIAClient implements EIAClientType
   @Override
   public List<EIAuditEvent> auditGet(
     final OffsetDateTime dateLower,
-    final OffsetDateTime dateUpper)
+    final OffsetDateTime dateUpper,
+    final EISubsetMatch<String> owner,
+    final EISubsetMatch<String> type,
+    final EISubsetMatch<String> message)
     throws EIAClientException, InterruptedException
   {
-    return this.handler.auditGet(dateLower, dateUpper);
+    return this.handler.auditGet(dateLower, dateUpper, owner, type, message);
   }
 
   @Override

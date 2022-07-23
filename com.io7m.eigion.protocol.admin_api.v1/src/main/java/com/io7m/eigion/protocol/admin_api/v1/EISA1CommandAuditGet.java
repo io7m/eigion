@@ -28,6 +28,9 @@ import java.util.Objects;
  *
  * @param fromInclusive The inclusive lower bound of the date/time range
  * @param toInclusive   The inclusive upper bound of the date/time range
+ * @param messages      The messages to include/exclude
+ * @param owners        The owners to include/exclude
+ * @param types         The types to include/exclude
  */
 
 @JsonDeserialize
@@ -36,7 +39,13 @@ public record EISA1CommandAuditGet(
   @JsonProperty(value = "FromInclusive", required = true)
   OffsetDateTime fromInclusive,
   @JsonProperty(value = "ToInclusive", required = true)
-  OffsetDateTime toInclusive)
+  OffsetDateTime toInclusive,
+  @JsonProperty(value = "Owners", required = true)
+  EISA1SubsetMatch<String> owners,
+  @JsonProperty(value = "Types", required = true)
+  EISA1SubsetMatch<String> types,
+  @JsonProperty(value = "Messages", required = true)
+  EISA1SubsetMatch<String> messages)
   implements EISA1CommandType
 {
   /**
@@ -44,11 +53,17 @@ public record EISA1CommandAuditGet(
    *
    * @param fromInclusive The inclusive lower bound of the date/time range
    * @param toInclusive   The inclusive upper bound of the date/time range
+   * @param messages      The messages to include/exclude
+   * @param owners        The owners to include/exclude
+   * @param types         The types to include/exclude
    */
 
   public EISA1CommandAuditGet
   {
     Objects.requireNonNull(fromInclusive, "fromInclusive");
     Objects.requireNonNull(toInclusive, "toInclusive");
+    Objects.requireNonNull(owners, "owners");
+    Objects.requireNonNull(types, "types");
+    Objects.requireNonNull(messages, "messages");
   }
 }

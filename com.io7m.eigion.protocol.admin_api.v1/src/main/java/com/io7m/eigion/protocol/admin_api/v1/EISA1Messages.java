@@ -91,6 +91,7 @@ public final class EISA1Messages
         .allowClass(EISA1ResponseUserGet.class)
         .allowClass(EISA1ResponseUserList.class)
         .allowClass(EISA1Service.class)
+        .allowClass(EISA1SubsetMatch.class)
         .allowClass(EISA1Transaction.class)
         .allowClass(EISA1TransactionResponse.class)
         .allowClass(EISA1User.class)

@@ -18,6 +18,7 @@ package com.io7m.eigion.amberjack.cmdline.internal;
 
 import com.beust.jcommander.Parameter;
 import com.io7m.eigion.amberjack.api.EIAClientException;
+import com.io7m.eigion.model.EISubsetMatch;
 import org.jline.terminal.Terminal;
 
 import java.time.OffsetDateTime;
@@ -48,6 +49,42 @@ public final class EISCommandAudit
       names = "--dateUpper")
     private OffsetDateTime dateUpper = OffsetDateTime.now();
 
+    @Parameter(
+      description = "The owners to exclude (an empty string excludes nothing)",
+      required = false,
+      names = "--ownerExclude")
+    private String ownerExclude = "";
+
+    @Parameter(
+      description = "The owners to include (an empty string includes everything)",
+      required = false,
+      names = "--ownerInclude")
+    private String ownerInclude = "";
+
+    @Parameter(
+      description = "The types to exclude (an empty string excludes nothing)",
+      required = false,
+      names = "--typeExclude")
+    private String typeExclude = "";
+
+    @Parameter(
+      description = "The types to include (an empty string includes everything)",
+      required = false,
+      names = "--typeInclude")
+    private String typeInclude = "";
+
+    @Parameter(
+      description = "The messages to exclude (an empty string excludes nothing)",
+      required = false,
+      names = "--messageExclude")
+    private String messageExclude = "";
+
+    @Parameter(
+      description = "The messages to include (an empty string includes everything)",
+      required = false,
+      names = "--messageInclude")
+    private String messageInclude = "";
+
     Parameters()
     {
 
@@ -77,7 +114,7 @@ public final class EISCommandAudit
   @Override
   protected EISCommandResult runActual(
     final Terminal terminal,
-    final Parameters parameters)
+    final Parameters params)
     throws EIAClientException, InterruptedException
   {
     final var writer = terminal.writer();
@@ -85,7 +122,13 @@ public final class EISCommandAudit
     final var events =
       this.controller()
         .client()
-        .auditGet(parameters.dateLower, parameters.dateUpper);
+        .auditGet(
+          params.dateLower,
+          params.dateUpper,
+          new EISubsetMatch<>(params.ownerInclude, params.ownerExclude),
+          new EISubsetMatch<>(params.typeInclude, params.typeExclude),
+          new EISubsetMatch<>(params.messageInclude, params.messageExclude)
+        );
 
     if (!events.isEmpty()) {
       writer.println("# id | owner | time | type | message");

@@ -20,10 +20,8 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.io7m.eigion.model.EIPassword;
 import com.io7m.eigion.model.EIPasswordException;
 import com.io7m.eigion.model.EIUser;
-import com.io7m.eigion.model.EIUserBan;
 
 import java.time.OffsetDateTime;
 import java.util.Objects;
@@ -104,27 +102,8 @@ public record EISA1User(
       user.email(),
       user.created(),
       user.lastLoginTime(),
-      mapPassword(user.password()),
-      user.ban().map(EISA1User::mapBan)
-    );
-  }
-
-  private static EISA1UserBan mapBan(
-    final EIUserBan b)
-  {
-    return new EISA1UserBan(
-      b.expires(),
-      b.reason()
-    );
-  }
-
-  private static EISA1Password mapPassword(
-    final EIPassword password)
-  {
-    return new EISA1Password(
-      password.algorithm().identifier(),
-      password.hash(),
-      password.salt()
+      EISA1Password.ofPassword(user.password()),
+      user.ban().map(EISA1UserBan::ofBan)
     );
   }
 

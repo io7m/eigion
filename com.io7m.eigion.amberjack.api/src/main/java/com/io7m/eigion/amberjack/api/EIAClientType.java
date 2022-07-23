@@ -19,6 +19,7 @@ package com.io7m.eigion.amberjack.api;
 
 import com.io7m.eigion.model.EIAuditEvent;
 import com.io7m.eigion.model.EIService;
+import com.io7m.eigion.model.EISubsetMatch;
 import com.io7m.eigion.model.EIUser;
 import com.io7m.eigion.model.EIUserSummary;
 
@@ -124,6 +125,9 @@ public interface EIAClientType extends Closeable
    *
    * @param dateLower The lower date bound
    * @param dateUpper The upper date bound
+   * @param message   The subset of messages to include
+   * @param type      The subset of types to include
+   * @param owner     The subset of owners to include
    *
    * @return The audit events
    *
@@ -133,7 +137,10 @@ public interface EIAClientType extends Closeable
 
   List<EIAuditEvent> auditGet(
     OffsetDateTime dateLower,
-    OffsetDateTime dateUpper)
+    OffsetDateTime dateUpper,
+    EISubsetMatch<String> owner,
+    EISubsetMatch<String> type,
+    EISubsetMatch<String> message)
     throws EIAClientException, InterruptedException;
 
   /**

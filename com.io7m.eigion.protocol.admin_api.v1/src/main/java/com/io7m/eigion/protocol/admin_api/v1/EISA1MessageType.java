@@ -24,7 +24,6 @@ import com.fasterxml.jackson.databind.annotation.JsonTypeIdResolver;
 import com.io7m.eigion.protocol.api.EIProtocolMessageType;
 
 import java.util.Map;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.fasterxml.jackson.annotation.JsonProperty.Access.READ_ONLY;
@@ -98,7 +97,7 @@ public sealed interface EISA1MessageType
     return TYPE_ID_FOR_CLASS.entrySet()
       .stream()
       .map(e -> entry(e.getValue(), e.getKey()))
-      .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+      .collect(toUnmodifiableMap(Map.Entry::getKey, Map.Entry::getValue));
   }
 
   /**

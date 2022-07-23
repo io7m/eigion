@@ -63,4 +63,21 @@ public record EISA1UserBan(
   {
     return new EIUserBan(this.expires, this.reason);
   }
+
+  /**
+   * Convert a model ban to a V1 ban.
+   *
+   * @param ban The model ban
+   *
+   * @return A ban
+   */
+
+  public static EISA1UserBan ofBan(
+    final EIUserBan ban)
+  {
+    return new EISA1UserBan(
+      ban.expires(),
+      ban.reason()
+    );
+  }
 }
