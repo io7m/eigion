@@ -16,67 +16,78 @@
 
 package com.io7m.eigion.amberjack.cmdline.internal;
 
+import com.beust.jcommander.Parameter;
 import com.io7m.eigion.amberjack.api.EIAClientException;
-import com.io7m.eigion.model.EIUser;
-import org.jline.reader.Completer;
-import org.jline.reader.impl.completer.NullCompleter;
 import org.jline.terminal.Terminal;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
-
-import static com.io7m.eigion.amberjack.cmdline.internal.EISCommandResult.FAILURE;
 import static com.io7m.eigion.amberjack.cmdline.internal.EISCommandResult.SUCCESS;
-import static com.io7m.eigion.amberjack.cmdline.internal.EISUsers.showUser;
 
 /**
- * Find a user by their ID.
+ * Create a user.
  */
 
-public final class EISCommandUserById
-  extends EISAbstractCommand
+public final class EISCommandUserCreate
+  extends EISAbstractCommand<EISCommandUserCreate.Parameters>
 {
   /**
-   * Find a user by their ID.
+   * Create a user.
    *
    * @param inController The controller
    * @param inStrings    The string resources
    */
 
-  public EISCommandUserById(
+  public EISCommandUserCreate(
     final EISController inController,
     final EISStrings inStrings)
   {
-    super(inController, inStrings, "user-by-id");
+    super(inController, inStrings, "user-create");
   }
 
   @Override
-  public EISCommandResult run(
+  protected Parameters createEmptyParameters()
+  {
+    return new Parameters();
+  }
+
+  @Override
+  protected EISCommandResult runActual(
     final Terminal terminal,
-    final List<String> arguments)
+    final Parameters parameters)
     throws EIAClientException, InterruptedException
   {
-    final var writer = terminal.writer();
-    if (arguments.isEmpty()) {
-      writer.println(this.strings().format("user-by-id.missingId"));
-      return FAILURE;
-    }
-
-    final var id = arguments.get(0);
-    final Optional<EIUser> userOpt =
+    final var user =
       this.controller()
         .client()
-        .userById(id);
+        .userCreate(parameters.name, parameters.email, parameters.password);
 
-    userOpt.ifPresent(user -> showUser(this.strings(), terminal, user));
+    EISUsers.showUser(this.strings(), terminal, user);
     return SUCCESS;
   }
 
-  @Override
-  public List<Completer> argumentCompleters(
-    final Collection<EISCommandType> values)
+  protected static final class Parameters
+    implements EISParameterHolderType
   {
-    return List.of(new NullCompleter());
+    @Parameter(
+      description = "The email address.",
+      required = true,
+      names = "--email")
+    private String email;
+
+    @Parameter(
+      description = "The name.",
+      required = true,
+      names = "--name")
+    private String name;
+
+    @Parameter(
+      description = "The password.",
+      required = true,
+      names = "--password")
+    private String password;
+
+    Parameters()
+    {
+
+    }
   }
 }

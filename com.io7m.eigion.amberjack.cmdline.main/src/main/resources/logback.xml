@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<configuration xmlns="http://ch.qos.logback/xml/ns/logback"
+               debug="false">
+
+  <appender name="STDERR"
+            class="ch.qos.logback.core.ConsoleAppender">
+    <encoder class="ch.qos.logback.core.encoder.LayoutWrappingEncoder">
+      <layout class="com.io7m.eigion.amberjack.cmdline.main.EISLoggingPatternLayout"/>
+    </encoder>
+    <target>System.err</target>
+  </appender>
+
+  <root level="INFO">
+    <appender-ref ref="STDERR"/>
+  </root>
+
+</configuration>

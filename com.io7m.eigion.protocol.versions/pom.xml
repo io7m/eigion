@@ -15,7 +15,7 @@
   <artifactId>com.io7m.eigion.protocol.versions</artifactId>
 
   <name>com.io7m.eigion.protocol.versions</name>
-  <description>Application runtime management (Protocol versioning)</description>
+  <description>Eigion platform (Protocol versioning)</description>
   <url>https://www.io7m.com/software/eigion</url>
 
   <dependencies>

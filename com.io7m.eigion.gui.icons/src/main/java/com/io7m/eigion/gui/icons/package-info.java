@@ -15,7 +15,7 @@
  */
 
 /**
- * Application runtime management (Icon theme API)
+ * Eigion platform (Icon theme API)
  */
 
 @Export

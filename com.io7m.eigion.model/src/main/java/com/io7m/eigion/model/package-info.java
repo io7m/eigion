@@ -15,7 +15,7 @@
  */
 
 /**
- * Application runtime management (Data model)
+ * Eigion platform (Data model)
  */
 
 @Export

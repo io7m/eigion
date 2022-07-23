@@ -15,7 +15,7 @@
  */
 
 /**
- * Application runtime management (GUI [internal errors])
+ * Eigion platform (GUI [internal errors])
  */
 
 package com.io7m.eigion.gui.internal.errors;

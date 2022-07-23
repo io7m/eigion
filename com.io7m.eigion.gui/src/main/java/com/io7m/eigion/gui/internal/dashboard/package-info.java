@@ -15,7 +15,7 @@
  */
 
 /**
- * Application runtime management (GUI [internal dashboard])
+ * Eigion platform (GUI [internal dashboard])
  */
 
 package com.io7m.eigion.gui.internal.dashboard;

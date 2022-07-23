@@ -71,7 +71,7 @@ public final class EISA1Messages
       DmJsonRestrictedDeserializers.builder()
         .allowClass(BigInteger.class)
         .allowClass(EISA1AuditEvent.class)
-        .allowClass(EISA1CommandAuditGetByTime.class)
+        .allowClass(EISA1CommandAuditGet.class)
         .allowClass(EISA1CommandLogin.class)
         .allowClass(EISA1CommandServicesList.class)
         .allowClass(EISA1CommandType.class)

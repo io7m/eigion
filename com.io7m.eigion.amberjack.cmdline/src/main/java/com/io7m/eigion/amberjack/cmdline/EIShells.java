@@ -14,14 +14,11 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-
 package com.io7m.eigion.amberjack.cmdline;
 
-import com.io7m.eigion.amberjack.api.EIAClientType;
 import com.io7m.eigion.amberjack.cmdline.internal.EIShell;
 
 import java.io.IOException;
-import java.util.Locale;
 import java.util.Objects;
 
 /**
@@ -41,12 +38,10 @@ public final class EIShells implements EIShellFactoryType
 
   @Override
   public EIShellType create(
-    final Locale locale,
-    final EIAClientType client)
+    final EIShellConfiguration configuration)
     throws IOException
   {
-    Objects.requireNonNull(locale, "locale");
-    Objects.requireNonNull(client, "client");
-    return EIShell.create(locale, client);
+    Objects.requireNonNull(configuration, "configuration");
+    return EIShell.create(configuration);
   }
 }

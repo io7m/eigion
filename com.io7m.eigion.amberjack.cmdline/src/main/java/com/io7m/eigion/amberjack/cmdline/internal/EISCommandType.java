@@ -19,10 +19,8 @@ package com.io7m.eigion.amberjack.cmdline.internal;
 
 import com.io7m.eigion.amberjack.api.EIAClientException;
 import com.io7m.eigion.amberjack.cmdline.EISExitException;
-import org.jline.reader.Completer;
 import org.jline.terminal.Terminal;
 
-import java.util.Collection;
 import java.util.List;
 
 /**
@@ -36,15 +34,6 @@ public interface EISCommandType
    */
 
   String name();
-
-  /**
-   * @param commands The available commands
-   *
-   * @return A completer for the command
-   */
-
-  List<Completer> argumentCompleters(
-    Collection<EISCommandType> commands);
 
   /**
    * @return The help text for the command

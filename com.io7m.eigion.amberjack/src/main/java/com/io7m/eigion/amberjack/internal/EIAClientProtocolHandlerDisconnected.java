@@ -113,9 +113,19 @@ public final class EIAClientProtocolHandlerDisconnected
   }
 
   @Override
-  public List<EIAuditEvent> auditGetByTime(
+  public List<EIAuditEvent> auditGet(
     final OffsetDateTime dateLower,
     final OffsetDateTime dateUpper)
+    throws EIAClientException
+  {
+    throw this.notLoggedIn();
+  }
+
+  @Override
+  public EIUser userCreate(
+    final String name,
+    final String email,
+    final String password)
     throws EIAClientException
   {
     throw this.notLoggedIn();

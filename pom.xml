@@ -17,11 +17,12 @@
 
   <packaging>pom</packaging>
   <name>com.io7m.eigion</name>
-  <description>Application runtime management</description>
+  <description>Eigion platform</description>
   <url>https://www.io7m.com/software/eigion</url>
 
   <modules>
     <module>com.io7m.eigion.amberjack.api</module>
+    <module>com.io7m.eigion.amberjack.cmdline.main</module>
     <module>com.io7m.eigion.amberjack.cmdline</module>
     <module>com.io7m.eigion.amberjack</module>
     <module>com.io7m.eigion.client.api</module>
@@ -70,6 +71,7 @@
     <jooq.version>3.17.2</jooq.version>
     <logback.version>1.3.0-alpha16</logback.version>
     <org.apache.derby.version>10.16.1.1</org.apache.derby.version>
+    <org.jline.version>3.21.0</org.jline.version>
     <testcontainers.version>1.17.3</testcontainers.version>
   </properties>
 
@@ -437,7 +439,22 @@
       <dependency>
         <groupId>org.jline</groupId>
         <artifactId>jline</artifactId>
-        <version>3.21.0</version>
+        <version>${org.jline.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.jline</groupId>
+        <artifactId>jline-terminal</artifactId>
+        <version>${org.jline.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.jline</groupId>
+        <artifactId>jline-reader</artifactId>
+        <version>${org.jline.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.beust</groupId>
+        <artifactId>jcommander</artifactId>
+        <version>1.82</version>
       </dependency>
     </dependencies>
   </dependencyManagement>

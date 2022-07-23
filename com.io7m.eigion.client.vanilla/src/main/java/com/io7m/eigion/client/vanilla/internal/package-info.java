@@ -15,7 +15,7 @@
  */
 
 /**
- * Application runtime management (Client vanilla implementation [internal])
+ * Eigion platform (Client vanilla implementation [internal])
  */
 
 package com.io7m.eigion.client.vanilla.internal;

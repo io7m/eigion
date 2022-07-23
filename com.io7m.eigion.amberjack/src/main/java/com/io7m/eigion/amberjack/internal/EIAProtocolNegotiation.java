@@ -22,6 +22,8 @@ import com.io7m.eigion.protocol.api.EIProtocolException;
 import com.io7m.eigion.protocol.versions.EISVMessageType;
 import com.io7m.eigion.protocol.versions.EISVMessages;
 import com.io7m.eigion.protocol.versions.EISVProtocols;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.math.BigInteger;
@@ -44,6 +46,9 @@ import static java.util.function.Function.identity;
 
 public final class EIAProtocolNegotiation
 {
+  private static final Logger LOG =
+    LoggerFactory.getLogger(EIAProtocolNegotiation.class);
+
   private EIAProtocolNegotiation()
   {
 
@@ -95,6 +100,8 @@ public final class EIAProtocolNegotiation
     final EIAStrings strings)
     throws InterruptedException, EIAClientException
   {
+    LOG.debug("retrieving supported server protocols");
+
     final var vMessages =
       new EISVMessages();
 
@@ -109,6 +116,8 @@ public final class EIAProtocolNegotiation
     } catch (final IOException e) {
       throw new EIAClientException(e);
     }
+
+    LOG.debug("server: status {}", response.statusCode());
 
     if (response.statusCode() >= 400) {
       throw new EIAClientException(
@@ -172,6 +181,8 @@ public final class EIAProtocolNegotiation
     final var protocols =
       fetchSupportedVersions(base, httpClient, strings);
 
+    LOG.debug("server supports {} protocols", protocols.protocols().size());
+
     final var candidates =
       protocols.protocols()
         .stream()
@@ -182,10 +193,25 @@ public final class EIAProtocolNegotiation
       final var handlerFactory =
         handlerFactories.get(candidate.versionMajor());
 
+      LOG.debug(
+        "checking if protocol {} {}.{} is supported",
+        candidate.id(),
+        candidate.versionMajor(),
+        candidate.versionMinor()
+      );
+
       if (handlerFactory != null) {
         final var target =
           base.resolve(candidate.endpointPath())
             .normalize();
+
+        LOG.debug(
+          "using protocol {} {}.{} at endpoint {}",
+          candidate.id(),
+          candidate.versionMajor(),
+          candidate.versionMinor(),
+          target
+        );
 
         return handlerFactory.createHandler(
           httpClient,

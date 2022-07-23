@@ -15,7 +15,7 @@
  */
 
 /**
- * Application runtime management (Database [internals])
+ * Eigion platform (Database [internals])
  */
 
 package com.io7m.eigion.client.database.internal;

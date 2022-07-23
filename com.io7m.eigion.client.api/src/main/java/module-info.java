@@ -15,7 +15,7 @@
  */
 
 /**
- * Application runtime management (Client API)
+ * Eigion platform (Client API)
  */
 
 module com.io7m.eigion.client.api

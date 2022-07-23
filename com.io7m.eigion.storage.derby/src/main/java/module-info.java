@@ -15,7 +15,7 @@
  */
 
 /**
- * Application runtime management (Derby storage implementation)
+ * Eigion platform (Derby storage implementation)
  */
 
 module com.io7m.eigion.storage.derby

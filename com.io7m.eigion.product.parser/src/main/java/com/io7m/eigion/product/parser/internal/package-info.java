@@ -15,7 +15,7 @@
  */
 
 /**
- * Application runtime management (Product parser [internals])
+ * Eigion platform (Product parser [internals])
  */
 
 @Version("1.0.0")

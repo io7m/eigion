@@ -15,7 +15,7 @@
  */
 
 /**
- * Application runtime management (Admin protocol v1)
+ * Eigion platform (Admin protocol v1)
  */
 
 @Export

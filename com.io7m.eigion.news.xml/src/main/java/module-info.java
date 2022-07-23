@@ -15,7 +15,7 @@
  */
 
 /**
- * Application runtime management (News XML format)
+ * Eigion platform (News XML format)
  */
 
 module com.io7m.eigion.news.xml

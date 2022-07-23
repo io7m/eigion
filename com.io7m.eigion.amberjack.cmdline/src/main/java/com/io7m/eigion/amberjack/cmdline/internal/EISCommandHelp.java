@@ -16,13 +16,14 @@
 
 package com.io7m.eigion.amberjack.cmdline.internal;
 
-import org.jline.reader.Completer;
-import org.jline.reader.impl.completer.AggregateCompleter;
-import org.jline.reader.impl.completer.StringsCompleter;
+import com.beust.jcommander.Parameter;
 import org.jline.terminal.Terminal;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.util.Collection;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.io7m.eigion.amberjack.cmdline.internal.EISCommandResult.FAILURE;
 import static com.io7m.eigion.amberjack.cmdline.internal.EISCommandResult.SUCCESS;
@@ -32,8 +33,11 @@ import static com.io7m.eigion.amberjack.cmdline.internal.EISCommandResult.SUCCES
  */
 
 public final class EISCommandHelp
-  extends EISAbstractCommand
+  extends EISAbstractCommand<EISCommandHelp.Parameters>
 {
+  private static final Logger LOG =
+    LoggerFactory.getLogger(EISCommandHelp.class);
+
   /**
    * Show help for a command.
    *
@@ -49,41 +53,56 @@ public final class EISCommandHelp
   }
 
   @Override
-  public List<Completer> argumentCompleters(
-    final Collection<EISCommandType> values)
+  protected Parameters createEmptyParameters()
   {
-    final var candidates =
-      values.stream()
-        .map(EISCommandType::name)
-        .map(StringsCompleter::new)
-        .map(c -> (Completer) c)
-        .toList();
-
-    return List.of(new AggregateCompleter(candidates));
+    return new Parameters();
   }
 
   @Override
-  public EISCommandResult run(
+  protected EISCommandResult runActual(
     final Terminal terminal,
-    final List<String> arguments)
+    final Parameters parameters)
   {
-    if (arguments.isEmpty()) {
-      terminal.writer().println(this.help());
+    final var writer = terminal.writer();
+
+    if (parameters.commandNames.isEmpty()) {
+      writer.println(this.help());
       return SUCCESS;
     }
 
     final var commandName =
-      arguments.get(0);
+      parameters.commandNames.get(0);
     final var command =
       this.commands().get(commandName);
 
     if (command == null) {
-      terminal.writer()
-        .println(this.strings().format("noSuchCommand", commandName));
+      final var s = this.strings();
+      LOG.error("{}", s.format("noSuchCommand", commandName));
+      writer.println(s.format("helpCommands", this.listCommands()));
       return FAILURE;
     }
 
-    terminal.writer().println(command.help());
+    writer.println(command.help());
     return SUCCESS;
+  }
+
+  private String listCommands()
+  {
+    return this.commands().keySet()
+      .stream()
+      .sorted()
+      .collect(Collectors.joining(", ", "{ ", " }"));
+  }
+
+  protected static final class Parameters
+    implements EISParameterHolderType
+  {
+    @Parameter
+    private List<String> commandNames = new ArrayList<>();
+
+    Parameters()
+    {
+
+    }
   }
 }

@@ -15,7 +15,7 @@
  */
 
 /**
- * Application runtime management (Felix launcher)
+ * Eigion platform (Felix launcher)
  */
 
 module com.io7m.eigion.launcher.felix

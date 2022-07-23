@@ -15,7 +15,7 @@
  */
 
 /**
- * Application runtime management (Test suite)
+ * Eigion platform (Test suite)
  */
 
 package com.io7m.eigion.tests;

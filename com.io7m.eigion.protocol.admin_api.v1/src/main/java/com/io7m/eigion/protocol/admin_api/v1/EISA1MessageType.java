@@ -56,7 +56,7 @@ public sealed interface EISA1MessageType
 
   Map<Class<?>, String> TYPE_ID_FOR_CLASS =
     Stream.of(
-      EISA1CommandAuditGetByTime.class,
+      EISA1CommandAuditGet.class,
       EISA1CommandLogin.class,
       EISA1CommandServicesList.class,
       EISA1CommandUserCreate.class,

@@ -15,7 +15,7 @@
  */
 
 /**
- * Application runtime management (GUI Services API)
+ * Eigion platform (GUI Services API)
  */
 
 @Export

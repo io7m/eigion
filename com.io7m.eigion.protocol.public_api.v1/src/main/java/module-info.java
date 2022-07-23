@@ -15,7 +15,7 @@
  */
 
 /**
- * Application runtime management (Server public protocol v1)
+ * Eigion platform (Server public protocol v1)
  */
 
 module com.io7m.eigion.protocol.public_api.v1

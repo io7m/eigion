@@ -16,67 +16,64 @@
 
 package com.io7m.eigion.amberjack.cmdline.internal;
 
+import com.beust.jcommander.Parameter;
 import com.io7m.eigion.amberjack.api.EIAClientException;
-import com.io7m.eigion.model.EIUser;
-import org.jline.reader.Completer;
-import org.jline.reader.impl.completer.NullCompleter;
 import org.jline.terminal.Terminal;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
-
-import static com.io7m.eigion.amberjack.cmdline.internal.EISCommandResult.FAILURE;
+import static com.io7m.eigion.amberjack.cmdline.internal.EIControllerFlag.EXIT_ON_FAILED_COMMAND;
 import static com.io7m.eigion.amberjack.cmdline.internal.EISCommandResult.SUCCESS;
-import static com.io7m.eigion.amberjack.cmdline.internal.EISUsers.showUser;
 
 /**
- * Find a user by their email address.
+ * Find at most one user by different parameters.
  */
 
-public final class EISCommandUserByEmail
-  extends EISAbstractCommand
+public final class EISCommandSet
+  extends EISAbstractCommand<EISCommandSet.Parameters>
 {
   /**
-   * Find a user by their email address.
+   * Find at most one user by different parameters.
    *
    * @param inController The controller
    * @param inStrings    The string resources
    */
 
-  public EISCommandUserByEmail(
+  public EISCommandSet(
     final EISController inController,
     final EISStrings inStrings)
   {
-    super(inController, inStrings, "user-by-email");
+    super(inController, inStrings, "set");
   }
 
   @Override
-  public EISCommandResult run(
+  protected Parameters createEmptyParameters()
+  {
+    return new Parameters();
+  }
+
+  @Override
+  protected EISCommandResult runActual(
     final Terminal terminal,
-    final List<String> arguments)
+    final Parameters parameters)
     throws EIAClientException, InterruptedException
   {
-    final var writer = terminal.writer();
-    if (arguments.isEmpty()) {
-      writer.println(this.strings().format("user-by-email.missingEmail"));
-      return FAILURE;
-    }
-
-    final var email = arguments.get(0);
-    final Optional<EIUser> userOpt =
-      this.controller()
-        .client()
-        .userByEmail(email);
-
-    userOpt.ifPresent(user -> showUser(this.strings(), terminal, user));
+    final var c = this.controller();
+    c.setFlag(EXIT_ON_FAILED_COMMAND, parameters.exitOnFailedCommand);
     return SUCCESS;
   }
 
-  @Override
-  public List<Completer> argumentCompleters(
-    final Collection<EISCommandType> values)
+  protected static final class Parameters
+    implements EISParameterHolderType
   {
-    return List.of(new NullCompleter());
+    @Parameter(
+      description = "Enable/disable exiting on command failures.",
+      required = false,
+      arity = 1,
+      names = "--exit-on-failed-command")
+    private boolean exitOnFailedCommand;
+
+    Parameters()
+    {
+
+    }
   }
 }

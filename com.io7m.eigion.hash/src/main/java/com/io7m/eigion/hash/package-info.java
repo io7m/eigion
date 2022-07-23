@@ -15,7 +15,7 @@
  */
 
 /**
- * Application runtime management (Hash)
+ * Eigion platform (Hash)
  */
 
 @Export

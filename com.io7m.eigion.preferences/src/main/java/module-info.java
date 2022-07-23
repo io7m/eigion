@@ -15,7 +15,7 @@
  */
 
 /**
- * Application runtime management (Preferences)
+ * Eigion platform (Preferences)
  */
 
 module com.io7m.eigion.preferences

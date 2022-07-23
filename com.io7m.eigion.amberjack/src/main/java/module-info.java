@@ -14,8 +14,11 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+import com.io7m.eigion.amberjack.EIAClients;
+import com.io7m.eigion.amberjack.api.EIAClientFactoryType;
+
 /**
- * Application runtime management (Admin client)
+ * Eigion platform (Admin client)
  */
 
 module com.io7m.eigion.amberjack
@@ -29,6 +32,10 @@ module com.io7m.eigion.amberjack
 
   requires com.io7m.jxtrand.vanilla;
   requires java.net.http;
+  requires org.slf4j;
+
+  provides EIAClientFactoryType
+    with EIAClients;
 
   opens com.io7m.eigion.amberjack.internal
     to com.io7m.jxtrand.vanilla;

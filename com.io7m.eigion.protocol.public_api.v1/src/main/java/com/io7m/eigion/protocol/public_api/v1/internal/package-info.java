@@ -15,7 +15,7 @@
  */
 
 /**
- * Application runtime management (Server public protocol v1 [internals])
+ * Eigion platform (Server public protocol v1 [internals])
  */
 
 @Version("1.0.0")

@@ -17,12 +17,8 @@
 package com.io7m.eigion.amberjack.cmdline.internal;
 
 import com.io7m.eigion.amberjack.api.EIAClientException;
-import org.jline.reader.Completer;
-import org.jline.reader.impl.completer.NullCompleter;
+import com.io7m.eigion.amberjack.cmdline.EISExitException;
 import org.jline.terminal.Terminal;
-
-import java.util.Collection;
-import java.util.List;
 
 import static com.io7m.eigion.amberjack.cmdline.internal.EISCommandResult.SUCCESS;
 
@@ -31,7 +27,7 @@ import static com.io7m.eigion.amberjack.cmdline.internal.EISCommandResult.SUCCES
  */
 
 public final class EISCommandServices
-  extends EISAbstractCommand
+  extends EISAbstractCommand<EISCommandServices.Parameters>
 {
   /**
    * List services.
@@ -48,10 +44,16 @@ public final class EISCommandServices
   }
 
   @Override
-  public EISCommandResult run(
+  protected Parameters createEmptyParameters()
+  {
+    return new Parameters();
+  }
+
+  @Override
+  protected EISCommandResult runActual(
     final Terminal terminal,
-    final List<String> arguments)
-    throws EIAClientException, InterruptedException
+    final Parameters parameters)
+    throws EISExitException, EIAClientException, InterruptedException
   {
     final var services =
       this.controller().client().services();
@@ -63,10 +65,12 @@ public final class EISCommandServices
     return SUCCESS;
   }
 
-  @Override
-  public List<Completer> argumentCompleters(
-    final Collection<EISCommandType> values)
+  protected static final class Parameters
+    implements EISParameterHolderType
   {
-    return List.of(new NullCompleter());
+    Parameters()
+    {
+
+    }
   }
 }

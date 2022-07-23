@@ -15,7 +15,7 @@
  */
 
 /**
- * Application runtime management (Preferences)
+ * Eigion platform (Preferences)
  */
 
 package com.io7m.eigion.preferences.internal;

@@ -15,7 +15,7 @@
  */
 
 /**
- * Application runtime management (Server protocol versioning [DTOs])
+ * Eigion platform (Server protocol versioning [DTOs])
  */
 
 @Version("1.0.0")

@@ -15,7 +15,7 @@
  */
 
 /**
- * Application runtime management (Derby storage implementation)
+ * Eigion platform (Derby storage implementation)
  */
 
 @Export

@@ -15,7 +15,7 @@
  */
 
 /**
- * Application runtime management (Launcher API)
+ * Eigion platform (Launcher API)
  */
 
 module com.io7m.eigion.launcher.api

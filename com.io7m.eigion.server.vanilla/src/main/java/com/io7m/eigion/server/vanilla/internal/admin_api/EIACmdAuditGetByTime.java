@@ -18,7 +18,7 @@
 package com.io7m.eigion.server.vanilla.internal.admin_api;
 
 import com.io7m.eigion.protocol.admin_api.v1.EISA1AuditEvent;
-import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandAuditGetByTime;
+import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandAuditGet;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1ResponseAuditGet;
 import com.io7m.eigion.server.database.api.EIServerDatabaseAuditQueriesType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseException;
@@ -28,7 +28,7 @@ import com.io7m.eigion.server.database.api.EIServerDatabaseException;
  */
 
 public final class EIACmdAuditGetByTime
-  implements EIACommandExecutorType<EISA1CommandAuditGetByTime>
+  implements EIACommandExecutorType<EISA1CommandAuditGet>
 {
   /**
    * A command to retrieve audit logs by a time range.
@@ -42,7 +42,7 @@ public final class EIACmdAuditGetByTime
   @Override
   public EIACommandExecutionResult execute(
     final EIACommandContext context,
-    final EISA1CommandAuditGetByTime command)
+    final EISA1CommandAuditGet command)
     throws EIServerDatabaseException
   {
     final var auditQueries =

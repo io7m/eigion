@@ -15,7 +15,7 @@
  */
 
 /**
- * Application runtime management (Admin command-line access)
+ * Eigion platform (Admin command-line access)
  */
 
 @Export

@@ -15,7 +15,7 @@
  */
 
 /**
- * Application runtime management (Task recorder)
+ * Eigion platform (Task recorder)
  */
 
 @Export

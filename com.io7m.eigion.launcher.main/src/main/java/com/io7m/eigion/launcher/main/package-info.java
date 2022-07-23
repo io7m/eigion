@@ -15,7 +15,7 @@
  */
 
 /**
- * Application runtime management (Launcher main)
+ * Eigion platform (Launcher main)
  */
 
 package com.io7m.eigion.launcher.main;

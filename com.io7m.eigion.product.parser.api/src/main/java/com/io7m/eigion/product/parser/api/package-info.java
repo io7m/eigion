@@ -15,7 +15,7 @@
  */
 
 /**
- * Application runtime management (Product parser API)
+ * Eigion platform (Product parser API)
  */
 
 @Export

@@ -15,7 +15,7 @@
   <artifactId>com.io7m.eigion.storage.s3</artifactId>
 
   <name>com.io7m.eigion.storage.s3</name>
-  <description>Application runtime management (S3 storage implementation)</description>
+  <description>Eigion platform (S3 storage implementation)</description>
   <url>https://www.io7m.com/software/eigion</url>
 
   <dependencies>

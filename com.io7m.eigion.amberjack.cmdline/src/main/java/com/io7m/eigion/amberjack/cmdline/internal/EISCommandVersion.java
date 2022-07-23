@@ -16,21 +16,17 @@
 
 package com.io7m.eigion.amberjack.cmdline.internal;
 
-import org.jline.reader.Completer;
-import org.jline.reader.impl.completer.NullCompleter;
 import org.jline.terminal.Terminal;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.Collection;
-import java.util.List;
 
 /**
  * Show the application version.
  */
 
 public final class EISCommandVersion
-  extends EISAbstractCommand
+  extends EISAbstractCommand<EISCommandVersion.Parameters>
 {
   private static final String VERSION_TXT =
     "/com/io7m/eigion/amberjack/cmdline/internal/version.txt";
@@ -50,9 +46,15 @@ public final class EISCommandVersion
   }
 
   @Override
-  public EISCommandResult run(
+  protected Parameters createEmptyParameters()
+  {
+    return new Parameters();
+  }
+
+  @Override
+  protected EISCommandResult runActual(
     final Terminal terminal,
-    final List<String> arguments)
+    final Parameters parameters)
   {
     try {
       final var c = EISCommandVersion.class;
@@ -68,10 +70,12 @@ public final class EISCommandVersion
     return EISCommandResult.SUCCESS;
   }
 
-  @Override
-  public List<Completer> argumentCompleters(
-    final Collection<EISCommandType> values)
+  protected static final class Parameters
+    implements EISParameterHolderType
   {
-    return List.of(new NullCompleter());
+    Parameters()
+    {
+
+    }
   }
 }

@@ -10,21 +10,24 @@
   <entry key="notLoggedIn">Error: Not logged in!</entry>
 
   <entry key="errorContentType"><![CDATA[The server sent an unexpected content type.
-  Expected: {0}
-  Received: {1}
+  Command:  {0}
+  Expected: {1}
+  Received: {2}
 ]]></entry>
 
   <entry key="errorResponseType"><![CDATA[The server sent an unexpected message response type.
   Request ID: {0}
-  Expected:   {1}
-  Received:   {2}
+  Command:    {1}
+  Expected:   {2}
+  Received:   {3}
 ]]></entry>
 
   <entry key="errorResponse"><![CDATA[The server sent an error response.
   Request ID:    {0}
-  Status:        {1}
-  Error Code:    {2}
-  Error Message: {3}
+  Command:       {1}
+  Status:        {2}
+  Error Code:    {3}
+  Error Message: {4}
 ]]></entry>
 
   <entry key="errorMalformedParameter">Malformed parameter: {0}</entry>

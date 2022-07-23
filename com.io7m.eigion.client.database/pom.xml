@@ -15,7 +15,7 @@
   <artifactId>com.io7m.eigion.client.database</artifactId>
 
   <name>com.io7m.eigion.client.database</name>
-  <description>Application runtime management (Database)</description>
+  <description>Eigion platform (Database)</description>
   <url>https://www.io7m.com/software/eigion</url>
 
   <dependencies>

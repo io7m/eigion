@@ -16,20 +16,16 @@
 
 package com.io7m.eigion.amberjack.cmdline.internal;
 
+import com.beust.jcommander.Parameter;
 import com.io7m.eigion.amberjack.cmdline.EISExitException;
-import org.jline.reader.Completer;
-import org.jline.reader.impl.completer.NullCompleter;
 import org.jline.terminal.Terminal;
-
-import java.util.Collection;
-import java.util.List;
 
 /**
  * Exit the shell.
  */
 
 public final class EISCommandExit
-  extends EISAbstractCommand
+  extends EISAbstractCommand<EISCommandExit.Parameters>
 {
   /**
    * Exit the shell.
@@ -46,18 +42,32 @@ public final class EISCommandExit
   }
 
   @Override
-  public List<Completer> argumentCompleters(
-    final Collection<EISCommandType> values)
+  protected Parameters createEmptyParameters()
   {
-    return List.of(new NullCompleter());
+    return new Parameters();
   }
 
   @Override
-  public EISCommandResult run(
+  protected EISCommandResult runActual(
     final Terminal terminal,
-    final List<String> arguments)
+    final EISCommandExit.Parameters parameters)
     throws EISExitException
   {
-    throw new EISExitException();
+    throw new EISExitException(parameters.exitCode);
+  }
+
+  protected static final class Parameters
+    implements EISParameterHolderType
+  {
+    @Parameter(
+      description = "The exit code.",
+      required = false,
+      names = "--code")
+    private int exitCode;
+
+    Parameters()
+    {
+
+    }
   }
 }

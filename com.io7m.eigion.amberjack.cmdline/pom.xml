@@ -15,7 +15,7 @@
   <artifactId>com.io7m.eigion.amberjack.cmdline</artifactId>
 
   <name>com.io7m.eigion.amberjack.cmdline</name>
-  <description>Application runtime management (Admin command-line access)</description>
+  <description>Eigion platform (Admin command-line access)</description>
   <url>https://www.io7m.com/software/eigion</url>
 
   <dependencies>
@@ -31,16 +31,24 @@
     </dependency>
 
     <dependency>
-      <groupId>ch.qos.logback</groupId>
-      <artifactId>logback-classic</artifactId>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
     </dependency>
     <dependency>
       <groupId>org.jline</groupId>
-      <artifactId>jline</artifactId>
+      <artifactId>jline-terminal</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.jline</groupId>
+      <artifactId>jline-reader</artifactId>
     </dependency>
     <dependency>
       <groupId>com.io7m.jxtrand</groupId>
       <artifactId>com.io7m.jxtrand.vanilla</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.beust</groupId>
+      <artifactId>jcommander</artifactId>
     </dependency>
 
     <dependency>
@@ -62,44 +70,6 @@
         <filtering>true</filtering>
       </resource>
     </resources>
-
-    <pluginManagement>
-      <plugins>
-        <!-- Ignore dependencies that bytecode analysis gets wrong. -->
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-dependency-plugin</artifactId>
-          <configuration>
-            <failOnWarning>true</failOnWarning>
-            <ignoredUnusedDeclaredDependencies>
-              <ignoredUnusedDeclaredDependency>ch.qos.logback:logback-classic:*</ignoredUnusedDeclaredDependency>
-            </ignoredUnusedDeclaredDependencies>
-          </configuration>
-        </plugin>
-      </plugins>
-    </pluginManagement>
-
-    <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-assembly-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>distribution</id>
-            <goals>
-              <goal>single</goal>
-            </goals>
-            <phase>package</phase>
-            <configuration>
-              <finalName>eigion</finalName>
-              <descriptors>
-                <descriptor>src/main/assembly/distribution.xml</descriptor>
-              </descriptors>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-    </plugins>
   </build>
 
 </project>

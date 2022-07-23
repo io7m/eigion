@@ -15,7 +15,7 @@
  */
 
 /**
- * Application runtime management (GUI [internal services])
+ * Eigion platform (GUI [internal services])
  */
 
 package com.io7m.eigion.gui.internal.services;

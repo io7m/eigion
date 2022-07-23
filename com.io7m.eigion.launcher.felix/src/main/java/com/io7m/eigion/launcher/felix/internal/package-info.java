@@ -15,7 +15,7 @@
  */
 
 /**
- * Application runtime management (Felix launcher [internals])
+ * Eigion platform (Felix launcher [internals])
  */
 
 package com.io7m.eigion.launcher.felix.internal;

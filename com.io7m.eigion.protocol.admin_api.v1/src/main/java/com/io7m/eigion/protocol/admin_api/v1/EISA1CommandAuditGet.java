@@ -32,7 +32,7 @@ import java.util.Objects;
 
 @JsonDeserialize
 @JsonSerialize
-public record EISA1CommandAuditGetByTime(
+public record EISA1CommandAuditGet(
   @JsonProperty(value = "FromInclusive", required = true)
   OffsetDateTime fromInclusive,
   @JsonProperty(value = "ToInclusive", required = true)
@@ -46,7 +46,7 @@ public record EISA1CommandAuditGetByTime(
    * @param toInclusive   The inclusive upper bound of the date/time range
    */
 
-  public EISA1CommandAuditGetByTime
+  public EISA1CommandAuditGet
   {
     Objects.requireNonNull(fromInclusive, "fromInclusive");
     Objects.requireNonNull(toInclusive, "toInclusive");

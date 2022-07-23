@@ -15,7 +15,7 @@
  */
 
 /**
- * Application runtime management (Server database Postgresql implementation
+ * Eigion platform (Server database Postgresql implementation
  * [internals])
  */
 

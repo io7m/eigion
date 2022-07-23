@@ -15,7 +15,7 @@
  */
 
 /**
- * Application runtime management (GUI [internal login])
+ * Eigion platform (GUI [internal login])
  */
 
 package com.io7m.eigion.gui.internal.login;

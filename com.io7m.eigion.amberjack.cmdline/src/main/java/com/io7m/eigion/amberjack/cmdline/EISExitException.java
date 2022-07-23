@@ -23,12 +23,26 @@ package com.io7m.eigion.amberjack.cmdline;
 
 public final class EISExitException extends Throwable
 {
+  private final int code;
+
   /**
-   * A command wants the shell to exit.
+   * @return The exit code
    */
 
-  public EISExitException()
+  public int code()
   {
+    return this.code;
+  }
 
+  /**
+   * A command wants the shell to exit.
+   *
+   * @param exitCode The exit code
+   */
+
+  public EISExitException(
+    final int exitCode)
+  {
+    this.code = exitCode;
   }
 }

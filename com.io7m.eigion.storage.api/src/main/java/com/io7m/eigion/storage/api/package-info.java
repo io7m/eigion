@@ -15,7 +15,7 @@
  */
 
 /**
- * Application runtime management (Storage API)
+ * Eigion platform (Storage API)
  */
 
 @Export

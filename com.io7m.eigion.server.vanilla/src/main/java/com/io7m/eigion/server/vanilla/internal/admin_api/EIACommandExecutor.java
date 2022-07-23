@@ -17,7 +17,7 @@
 
 package com.io7m.eigion.server.vanilla.internal.admin_api;
 
-import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandAuditGetByTime;
+import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandAuditGet;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandServicesList;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandType;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandUserCreate;
@@ -49,7 +49,7 @@ public final class EIACommandExecutor
     final EISA1CommandType command)
     throws EIServerDatabaseException
   {
-    if (command instanceof EISA1CommandAuditGetByTime c) {
+    if (command instanceof EISA1CommandAuditGet c) {
       return new EIACmdAuditGetByTime().execute(context, c);
     }
     if (command instanceof EISA1CommandUserCreate c) {

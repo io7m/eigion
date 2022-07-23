@@ -14,8 +14,11 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+import com.io7m.eigion.amberjack.cmdline.EIShellFactoryType;
+import com.io7m.eigion.amberjack.cmdline.EIShells;
+
 /**
- * Application runtime management (Amberjack command-line access)
+ * Eigion platform (Amberjack command-line access)
  */
 
 module com.io7m.eigion.amberjack.cmdline
@@ -26,10 +29,16 @@ module com.io7m.eigion.amberjack.cmdline
   requires transitive com.io7m.eigion.amberjack.api;
 
   requires com.io7m.jxtrand.vanilla;
-  requires org.jline;
+  requires jcommander;
+  requires org.jline.reader;
+  requires org.jline.terminal;
+  requires org.slf4j;
+
+  provides EIShellFactoryType
+    with EIShells;
 
   opens com.io7m.eigion.amberjack.cmdline.internal
-    to com.io7m.jxtrand.vanilla;
+    to com.io7m.jxtrand.vanilla, jcommander;
 
   exports com.io7m.eigion.amberjack.cmdline;
 }

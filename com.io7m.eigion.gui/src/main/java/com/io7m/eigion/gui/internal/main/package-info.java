@@ -15,7 +15,7 @@
  */
 
 /**
- * Application runtime management (GUI [internal main screens])
+ * Eigion platform (GUI [internal main screens])
  */
 
 package com.io7m.eigion.gui.internal.main;

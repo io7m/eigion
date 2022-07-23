@@ -15,7 +15,7 @@
  */
 
 /**
- * Application runtime management (Server database API)
+ * Eigion platform (Server database API)
  */
 
 module com.io7m.eigion.server.database.api

@@ -15,7 +15,7 @@
  */
 
 /**
- * Application runtime management (Database)
+ * Eigion platform (Database)
  */
 
 module com.io7m.eigion.client.database

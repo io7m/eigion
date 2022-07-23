@@ -15,7 +15,7 @@
  */
 
 /**
- * Application runtime management (Server public protocol v1)
+ * Eigion platform (Server public protocol v1)
  */
 
 @Export

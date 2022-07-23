@@ -15,7 +15,7 @@
  */
 
 /**
- * Application runtime management (Vanilla icons)
+ * Eigion platform (Vanilla icons)
  */
 
 @Export

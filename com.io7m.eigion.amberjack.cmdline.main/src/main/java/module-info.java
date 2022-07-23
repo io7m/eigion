@@ -14,38 +14,28 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-package com.io7m.eigion.tests;
+import com.io7m.eigion.amberjack.api.EIAClientFactoryType;
+import com.io7m.eigion.amberjack.cmdline.EIShellFactoryType;
 
-import com.io7m.eigion.amberjack.EIAClients;
-import com.io7m.eigion.amberjack.cmdline.EISExitException;
-import com.io7m.eigion.amberjack.cmdline.internal.EIShell;
+/**
+ * Eigion platform (Amberjack command-line main distribution)
+ */
 
-import java.util.Locale;
-
-public final class EIShellMain
+open module com.io7m.eigion.amberjack.cmdline.main
 {
-  private EIShellMain()
-  {
+  requires static org.osgi.annotation.bundle;
+  requires static org.osgi.annotation.versioning;
 
-  }
+  requires com.io7m.eigion.amberjack.api;
+  requires com.io7m.eigion.amberjack.cmdline;
 
-  public static void main(
-    final String[] args)
-    throws Exception
-  {
-    final var clients =
-      new EIAClients();
-    final var locale =
-      Locale.getDefault();
+  requires ch.qos.logback.core;
+  requires ch.qos.logback.classic;
+  requires jcommander;
+  requires org.slf4j;
 
-    try (var client = clients.create(locale)) {
-      try (var shell = EIShell.create(locale, client)) {
-        try {
-          shell.run();
-        } catch (final EISExitException e) {
-          return;
-        }
-      }
-    }
-  }
+  uses EIAClientFactoryType;
+  uses EIShellFactoryType;
+
+  exports com.io7m.eigion.amberjack.cmdline.main;
 }

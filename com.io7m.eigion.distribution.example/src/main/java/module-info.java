@@ -15,7 +15,7 @@
  */
 
 /**
- * Application runtime management (Distribution example)
+ * Eigion platform (Distribution example)
  */
 
 module com.io7m.eigion.distribution.example

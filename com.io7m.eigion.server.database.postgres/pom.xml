@@ -15,7 +15,7 @@
   <artifactId>com.io7m.eigion.server.database.postgres</artifactId>
 
   <name>com.io7m.eigion.server.database.postgres</name>
-  <description>Application runtime management (Server database Postgresql implementation)</description>
+  <description>Eigion platform (Server database Postgresql implementation)</description>
   <url>https://www.io7m.com/software/eigion</url>
 
   <dependencies>

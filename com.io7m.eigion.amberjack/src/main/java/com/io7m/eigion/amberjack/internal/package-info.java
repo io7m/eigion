@@ -15,7 +15,7 @@
  */
 
 /**
- * Application runtime management (Admin client)
+ * Eigion platform (Admin client)
  */
 
 @Version("1.0.0")

@@ -129,11 +129,21 @@ public final class EIAClient implements EIAClientType
   }
 
   @Override
-  public List<EIAuditEvent> auditGetByTime(
+  public List<EIAuditEvent> auditGet(
     final OffsetDateTime dateLower,
     final OffsetDateTime dateUpper)
     throws EIAClientException, InterruptedException
   {
-    return this.handler.auditGetByTime(dateLower, dateUpper);
+    return this.handler.auditGet(dateLower, dateUpper);
+  }
+
+  @Override
+  public EIUser userCreate(
+    final String name,
+    final String email,
+    final String password)
+    throws EIAClientException, InterruptedException
+  {
+    return this.handler.userCreate(name, email, password);
   }
 }

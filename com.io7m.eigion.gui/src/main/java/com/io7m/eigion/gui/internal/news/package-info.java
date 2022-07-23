@@ -15,7 +15,7 @@
  */
 
 /**
- * Application runtime management (GUI [internal news])
+ * Eigion platform (GUI [internal news])
  */
 
 package com.io7m.eigion.gui.internal.news;

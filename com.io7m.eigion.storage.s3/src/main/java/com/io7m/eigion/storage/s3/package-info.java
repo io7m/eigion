@@ -15,7 +15,7 @@
  */
 
 /**
- * Application runtime management (S3 Storage)
+ * Eigion platform (S3 Storage)
  */
 
 @Export

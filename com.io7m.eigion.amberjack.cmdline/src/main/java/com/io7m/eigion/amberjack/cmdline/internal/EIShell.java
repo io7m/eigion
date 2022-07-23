@@ -17,20 +17,23 @@
 
 package com.io7m.eigion.amberjack.cmdline.internal;
 
-import com.io7m.eigion.amberjack.api.EIAClientType;
 import com.io7m.eigion.amberjack.cmdline.EISExitException;
+import com.io7m.eigion.amberjack.cmdline.EIShellConfiguration;
 import com.io7m.eigion.amberjack.cmdline.EIShellType;
 import org.jline.reader.EndOfFileException;
 import org.jline.reader.LineReader;
 import org.jline.reader.LineReaderBuilder;
 import org.jline.reader.UserInterruptException;
 import org.jline.reader.impl.DefaultParser;
+import org.jline.terminal.Size;
 import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
 
 import java.io.IOException;
-import java.util.Locale;
 import java.util.Objects;
+
+import static com.io7m.eigion.amberjack.cmdline.internal.EIControllerFlag.EXIT_ON_FAILED_COMMAND;
+import static com.io7m.eigion.amberjack.cmdline.internal.EISCommandResult.FAILURE;
 
 /**
  * A shell.
@@ -41,7 +44,7 @@ public final class EIShell implements EIShellType
   private final DefaultParser parser;
   private final Terminal terminal;
   private final LineReader reader;
-  private final EISController commands;
+  private final EISController controller;
 
   private EIShell(
     final DefaultParser inParser,
@@ -55,40 +58,43 @@ public final class EIShell implements EIShellType
       Objects.requireNonNull(inTerminal, "terminal");
     this.reader =
       Objects.requireNonNull(inReader, "reader");
-    this.commands =
+    this.controller =
       Objects.requireNonNull(inCommands, "commands");
   }
 
   /**
    * Create a shell.
    *
-   * @param locale The locale for error messages
-   * @param client The client
+   * @param configuration The configuration
    *
    * @return The shell
    *
    * @throws IOException On errors
    */
 
-  public static EIShell create(
-    final Locale locale,
-    final EIAClientType client)
+  public static EIShellType create(
+    final EIShellConfiguration configuration)
     throws IOException
   {
-    Objects.requireNonNull(locale, "locale");
-    Objects.requireNonNull(client, "client");
+    Objects.requireNonNull(configuration, "configuration");
 
     final var parser =
       new DefaultParser();
 
+    final var terminalBuilder =
+      TerminalBuilder.builder();
+
+    terminalBuilder.system(true);
+    terminalBuilder.color(true);
+
     final var terminal =
-      TerminalBuilder.builder()
-        .system(true)
-        .color(true)
-        .build();
+      terminalBuilder.build();
 
     final var commands =
-      EISController.create(locale, client);
+      EISController.create(
+        configuration.locale(),
+        configuration.client()
+      );
 
     final var reader =
       LineReaderBuilder.builder()
@@ -96,6 +102,20 @@ public final class EIShell implements EIShellType
         .completer(commands.completer())
         .parser(parser)
         .build();
+
+    final var width0 =
+      terminal.getWidth() == 0;
+    final var height0 =
+      terminal.getHeight() == 0;
+
+    if (width0 || height0) {
+      terminal.setSize(
+        new Size(
+          Math.max(terminal.getWidth(), 80),
+          Math.max(terminal.getHeight(), 25)
+        )
+      );
+    }
 
     return new EIShell(
       parser,
@@ -111,9 +131,7 @@ public final class EIShell implements EIShellType
   {
     while (true) {
       try {
-        final var text =
-          this.reader.readLine("amberjack# ").trim();
-
+        final var text = this.readLine();
         if (text.isBlank()) {
           continue;
         }
@@ -127,7 +145,13 @@ public final class EIShell implements EIShellType
           continue;
         }
 
-        this.commands.execute(this.terminal, words);
+        final var result =
+          this.controller.execute(this.terminal, words);
+
+        if (result == FAILURE
+            && this.controller.isFlagSet(EXIT_ON_FAILED_COMMAND)) {
+          throw new EISExitException(1);
+        }
       } catch (final UserInterruptException e) {
         continue;
       } catch (final EndOfFileException e) {
@@ -136,6 +160,11 @@ public final class EIShell implements EIShellType
         Thread.currentThread().interrupt();
       }
     }
+  }
+
+  private String readLine()
+  {
+    return this.reader.readLine("> ").trim();
   }
 
   @Override

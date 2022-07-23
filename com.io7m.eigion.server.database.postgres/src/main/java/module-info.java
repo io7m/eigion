@@ -20,7 +20,7 @@ import com.io7m.eigion.server.database.api.EIServerDatabaseFactoryType;
 import com.io7m.eigion.server.database.postgres.EIServerDatabases;
 
 /**
- * Application runtime management (Server database Postgresql implementation)
+ * Eigion platform (Server database Postgresql implementation)
  */
 
 module com.io7m.eigion.server.database.postgres

@@ -15,7 +15,7 @@
  */
 
 /**
- * Application runtime management (GUI [internal splash])
+ * Eigion platform (GUI [internal splash])
  */
 
 package com.io7m.eigion.gui.internal.splash;

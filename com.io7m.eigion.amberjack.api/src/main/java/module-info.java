@@ -15,7 +15,7 @@
  */
 
 /**
- * Application runtime management (Amberjack API)
+ * Eigion platform (Amberjack API)
  */
 
 module com.io7m.eigion.amberjack.api

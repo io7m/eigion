@@ -15,7 +15,7 @@
  */
 
 /**
- * Application runtime management (Admin command-line access)
+ * Eigion platform (Admin command-line access)
  */
 
 package com.io7m.eigion.amberjack.cmdline.internal;

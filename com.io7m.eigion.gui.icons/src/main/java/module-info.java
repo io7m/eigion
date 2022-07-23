@@ -15,7 +15,7 @@
  */
 
 /**
- * Application runtime management (Icon theme API)
+ * Eigion platform (Icon theme API)
  */
 
 module com.io7m.eigion.gui.icons

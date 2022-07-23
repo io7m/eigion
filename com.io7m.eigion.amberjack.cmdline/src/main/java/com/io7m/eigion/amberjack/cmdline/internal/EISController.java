@@ -22,13 +22,15 @@ import com.io7m.eigion.amberjack.api.EIAClientType;
 import com.io7m.eigion.amberjack.cmdline.EISExitException;
 import org.jline.reader.Completer;
 import org.jline.reader.impl.completer.AggregateCompleter;
-import org.jline.reader.impl.completer.ArgumentCompleter;
 import org.jline.reader.impl.completer.StringsCompleter;
 import org.jline.terminal.Terminal;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -46,8 +48,12 @@ import static java.util.stream.Collectors.toUnmodifiableMap;
 
 public final class EISController
 {
+  private static final Logger LOG =
+    LoggerFactory.getLogger(EISController.class);
+
   private final EISStrings strings;
   private final EIAClientType client;
+  private final EnumSet<EIControllerFlag> flags;
   private volatile Map<String, EISCommandType> commands;
   private volatile Completer rootCompleter;
 
@@ -59,6 +65,8 @@ public final class EISController
       Objects.requireNonNull(inStrings, "strings");
     this.client =
       Objects.requireNonNull(inClient, "client");
+    this.flags =
+      EnumSet.noneOf(EIControllerFlag.class);
   }
 
   /**
@@ -87,28 +95,21 @@ public final class EISController
     final var controller = new EISController(strings, client);
     final Map<String, EISCommandType> commandMap =
       Stream.of(
-        new EISCommandAuditGetByTime(controller, strings),
+        new EISCommandAudit(controller, strings),
         new EISCommandExit(controller, strings),
         new EISCommandHelp(controller, strings),
         new EISCommandLogin(controller, strings),
         new EISCommandServices(controller, strings),
-        new EISCommandUserByEmail(controller, strings),
-        new EISCommandUserById(controller, strings),
-        new EISCommandUserByName(controller, strings),
+        new EISCommandSet(controller, strings),
+        new EISCommandUserCreate(controller, strings),
+        new EISCommandUserGet(controller, strings),
         new EISCommandUserSearch(controller, strings),
         new EISCommandVersion(controller, strings)
       ).collect(toUnmodifiableMap(EISCommandType::name, identity()));
 
     final var completers = new ArrayList<Completer>();
     for (final var command : commandMap.values()) {
-      final var argCompleters =
-        new ArrayList<Completer>();
-      final var cmdCompleters =
-        command.argumentCompleters(commandMap.values());
-
-      argCompleters.add(new StringsCompleter(command.name()));
-      argCompleters.addAll(cmdCompleters);
-      completers.add(new ArgumentCompleter(argCompleters));
+      completers.add(new StringsCompleter(command.name()));
     }
 
     final var rootCompleter = new AggregateCompleter(completers);
@@ -174,9 +175,7 @@ public final class EISController
       this.commands.get(commandName);
 
     if (command == null) {
-      terminal.writer().println(
-        this.strings.format("noSuchCommand", commandName)
-      );
+      LOG.error("{}", this.strings.format("noSuchCommand", commandName));
       return FAILURE;
     }
 
@@ -190,8 +189,7 @@ public final class EISController
       }
       return command.run(terminal, List.of());
     } catch (final EIAClientException e) {
-      terminal.writer()
-        .println(this.strings.format("error", e.getMessage()));
+      LOG.error("{}", e.getMessage());
       return FAILURE;
     }
   }
@@ -203,5 +201,35 @@ public final class EISController
   public Map<String, EISCommandType> commands()
   {
     return this.commands;
+  }
+
+  /**
+   * Enable or disable the given flag.
+   *
+   * @param flag    The flag
+   * @param enabled {@code true} if the flag should be enabled
+   */
+
+  public void setFlag(
+    final EIControllerFlag flag,
+    final boolean enabled)
+  {
+    if (enabled) {
+      this.flags.add(flag);
+    } else {
+      this.flags.remove(flag);
+    }
+  }
+
+  /**
+   * @param flag The flag
+   *
+   * @return {@code true} if the given flag is enabled
+   */
+
+  public boolean isFlagSet(
+    final EIControllerFlag flag)
+  {
+    return this.flags.contains(flag);
   }
 }

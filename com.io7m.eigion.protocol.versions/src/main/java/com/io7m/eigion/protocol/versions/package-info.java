@@ -15,7 +15,7 @@
  */
 
 /**
- * Application runtime management (Server protocol versioning)
+ * Eigion platform (Server protocol versioning)
  */
 
 @Export

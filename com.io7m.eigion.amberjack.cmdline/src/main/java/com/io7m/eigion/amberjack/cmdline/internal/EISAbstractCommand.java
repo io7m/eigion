@@ -14,17 +14,27 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-
 package com.io7m.eigion.amberjack.cmdline.internal;
 
+import com.beust.jcommander.JCommander;
+import com.beust.jcommander.ParameterException;
+import com.io7m.eigion.amberjack.api.EIAClientException;
+import com.io7m.eigion.amberjack.cmdline.EISExitException;
+import org.jline.terminal.Terminal;
+
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+import static com.io7m.eigion.amberjack.cmdline.internal.EISCommandResult.FAILURE;
+
 /**
  * An abstract base class for commands.
+ *
+ * @param <T> The type of command-line parameters
  */
 
-public abstract class EISAbstractCommand
+public abstract class EISAbstractCommand<T extends EISParameterHolderType>
   implements EISCommandType
 {
   private final String name;
@@ -71,15 +81,26 @@ public abstract class EISAbstractCommand
   }
 
   @Override
-  public final String help()
-  {
-    return this.strings.format("%s.help".formatted(this.name));
-  }
-
-  @Override
   public final String name()
   {
     return this.name;
+  }
+
+  @Override
+  public final String help()
+  {
+    final var parameters =
+      this.createEmptyParameters();
+
+    final var commander =
+      JCommander.newBuilder()
+        .programName(this.name)
+        .addObject(parameters)
+        .build();
+
+    final var text = new StringBuilder(128);
+    commander.getUsageFormatter().usage(text);
+    return text.toString();
   }
 
   /**
@@ -89,5 +110,38 @@ public abstract class EISAbstractCommand
   protected final EISController controller()
   {
     return this.controller;
+  }
+
+  protected abstract T createEmptyParameters();
+
+  protected abstract EISCommandResult runActual(
+    Terminal terminal,
+    T parameters)
+    throws EISExitException, EIAClientException, InterruptedException;
+
+  @Override
+  public final EISCommandResult run(
+    final Terminal terminal,
+    final List<String> arguments)
+    throws EISExitException, EIAClientException, InterruptedException
+  {
+    final var parameters =
+      this.createEmptyParameters();
+
+    final var commander =
+      JCommander.newBuilder()
+        .programName(this.name)
+        .addObject(parameters)
+        .build();
+
+    final var writer = terminal.writer();
+    final var args = arguments.toArray(new String[0]);
+    try {
+      commander.parse(args);
+    } catch (final ParameterException e) {
+      writer.println(this.help());
+      return FAILURE;
+    }
+    return this.runActual(terminal, parameters);
   }
 }

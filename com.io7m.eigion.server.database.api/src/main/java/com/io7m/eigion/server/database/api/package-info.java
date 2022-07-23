@@ -15,7 +15,7 @@
  */
 
 /**
- * Application runtime management (Server database API)
+ * Eigion platform (Server database API)
  */
 
 @Export

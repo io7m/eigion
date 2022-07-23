@@ -15,7 +15,7 @@
  */
 
 /**
- * Application runtime management (Derby storage implementation [internals])
+ * Eigion platform (Derby storage implementation [internals])
  */
 
 @Version("1.0.0")

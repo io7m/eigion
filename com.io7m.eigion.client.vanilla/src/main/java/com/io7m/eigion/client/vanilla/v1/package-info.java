@@ -15,7 +15,7 @@
  */
 
 /**
- * Application runtime management (Client vanilla implementation [v1])
+ * Eigion platform (Client vanilla implementation [v1])
  */
 
 package com.io7m.eigion.client.vanilla.v1;

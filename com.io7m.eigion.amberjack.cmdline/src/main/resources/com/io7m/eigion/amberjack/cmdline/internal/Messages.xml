@@ -4,49 +4,10 @@
 
 <properties>
   <entry key="noSuchCommand">Unknown command: "{0}"</entry>
+  <entry key="helpCommands">Known commands: {0}</entry>
   <entry key="error">Error: {0}</entry>
 
-  <entry key="version.help"><![CDATA[Usage: version
-The 'version' command displays the current application version.
-]]></entry>
-
-  <entry key="help.help"><![CDATA[Usage: help [command]
-The 'help' command displays usage information for the given command.
-]]></entry>
-
-  <entry key="exit.help"><![CDATA[Usage: exit
-The 'exit' command closes the application.
-]]></entry>
-
-  <entry key="services.help"><![CDATA[Usage: services
-The 'services' command lists the available services on the server.
-]]></entry>
-
-  <entry key="user-by-id.help"><![CDATA[Usage: user-by-id [user-id]
-The 'user-by-id' command fetches information for a single user, given a user id.
-]]></entry>
-  <entry key="user-by-id.missingId">Error: A user ID is required.</entry>
-
-  <entry key="user-by-name.help"><![CDATA[Usage: user-by-name [username]
-The 'user-by-name' command fetches information for a single user, given a user name.
-]]></entry>
-  <entry key="user-by-name.missingId">Error: A user name is required.</entry>
-
-  <entry key="user-search.help"><![CDATA[Usage: user-search [query]
-The 'user-search' command searches users with the given query.
-]]></entry>
-  <entry key="user-search.missingQuery">Error: A query is required.</entry>
-
-  <entry key="login.help"><![CDATA[Usage: login [username] [password] [server-uri]
-The 'login' command logs in to a server.
-]]></entry>
-  <entry key="login.missingParameters">Error: A username, password, and server URI is required.</entry>
-
-  <entry key="audit-by-time.help"><![CDATA[Usage: audit-by-time [date-lower] [date-upper]?
-The 'audit-by-time' command retrieves audit events within a given time range. If
-the 'date-upper' value is not specified, it defaults to "now".
-]]></entry>
-  <entry key="audit-by-time.missingParameters">Error: A lower and upper date range is required.</entry>
+  <entry key="user-get.oneRequired">Error: A username, an email, or a user ID is required.</entry>
 
   <entry key="user.show.id">User.ID: {0}</entry>
   <entry key="user.show.name">User.Name: {0}</entry>

@@ -15,7 +15,7 @@
  */
 
 /**
- * Application runtime management (Protocol base types)
+ * Eigion platform (Protocol base types)
  */
 
 module com.io7m.eigion.protocol.api

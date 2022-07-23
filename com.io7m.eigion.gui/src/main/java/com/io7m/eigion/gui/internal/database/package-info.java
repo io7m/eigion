@@ -15,7 +15,7 @@
  */
 
 /**
- * Application runtime management (GUI [internal database])
+ * Eigion platform (GUI [internal database])
  */
 
 package com.io7m.eigion.gui.internal.database;

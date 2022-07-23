@@ -15,7 +15,7 @@
   <artifactId>com.io7m.eigion.product.parser.api</artifactId>
 
   <name>com.io7m.eigion.product.parser.api</name>
-  <description>Application runtime management (Product parser API)</description>
+  <description>Eigion platform (Product parser API)</description>
   <url>https://www.io7m.com/software/eigion</url>
 
   <dependencies>

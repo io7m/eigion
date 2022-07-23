@@ -15,7 +15,7 @@
  */
 
 /**
- * Application runtime management (GUI)
+ * Eigion platform (GUI)
  */
 
 module com.io7m.eigion.gui

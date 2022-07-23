@@ -15,7 +15,7 @@
  */
 
 /**
- * Application runtime management (Admin client)
+ * Eigion platform (Admin client)
  */
 
 @Export

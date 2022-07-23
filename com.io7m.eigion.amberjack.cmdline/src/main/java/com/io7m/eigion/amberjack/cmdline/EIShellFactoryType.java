@@ -17,10 +17,7 @@
 
 package com.io7m.eigion.amberjack.cmdline;
 
-import com.io7m.eigion.amberjack.api.EIAClientType;
-
 import java.io.IOException;
-import java.util.Locale;
 
 /**
  * A factory of shells.
@@ -31,16 +28,13 @@ public interface EIShellFactoryType
   /**
    * Create a new shell.
    *
-   * @param locale The locale for messages
-   * @param client The amberjack client
+   * @param configuration The shell configuration
    *
    * @return A new shell
    *
    * @throws IOException On errors
    */
 
-  EIShellType create(
-    Locale locale,
-    EIAClientType client)
+  EIShellType create(EIShellConfiguration configuration)
     throws IOException;
 }

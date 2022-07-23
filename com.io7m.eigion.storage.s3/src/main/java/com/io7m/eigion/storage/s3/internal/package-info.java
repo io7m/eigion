@@ -15,7 +15,7 @@
  */
 
 /**
- * Application runtime management (S3 Storage [internals])
+ * Eigion platform (S3 Storage [internals])
  */
 
 @Version("1.0.0")

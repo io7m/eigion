@@ -24,7 +24,7 @@ import com.io7m.eigion.product.parser.api.EIProductsParsersType;
 import com.io7m.eigion.product.parser.api.EIProductsSerializersType;
 
 /**
- * Application runtime management (Product parser)
+ * Eigion platform (Product parser)
  */
 
 module com.io7m.eigion.product.parser

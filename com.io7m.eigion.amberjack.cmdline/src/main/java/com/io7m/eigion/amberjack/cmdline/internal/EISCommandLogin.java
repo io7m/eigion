@@ -16,17 +16,13 @@
 
 package com.io7m.eigion.amberjack.cmdline.internal;
 
+import com.beust.jcommander.Parameter;
 import com.io7m.eigion.amberjack.api.EIAClientException;
-import org.jline.reader.Completer;
-import org.jline.reader.impl.completer.NullCompleter;
+import com.io7m.eigion.amberjack.cmdline.EISExitException;
 import org.jline.terminal.Terminal;
 
 import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.Collection;
-import java.util.List;
 
-import static com.io7m.eigion.amberjack.cmdline.internal.EISCommandResult.FAILURE;
 import static com.io7m.eigion.amberjack.cmdline.internal.EISCommandResult.SUCCESS;
 
 /**
@@ -34,7 +30,7 @@ import static com.io7m.eigion.amberjack.cmdline.internal.EISCommandResult.SUCCES
  */
 
 public final class EISCommandLogin
-  extends EISAbstractCommand
+  extends EISAbstractCommand<EISCommandLogin.Parameters>
 {
   /**
    * Log in!
@@ -51,37 +47,48 @@ public final class EISCommandLogin
   }
 
   @Override
-  public EISCommandResult run(
-    final Terminal terminal,
-    final List<String> arguments)
-    throws EIAClientException, InterruptedException
+  protected Parameters createEmptyParameters()
   {
-    final var writer = terminal.writer();
-    if (arguments.size() < 3) {
-      writer.println(this.strings().format("login.missingParameters"));
-      return FAILURE;
-    }
+    return new Parameters();
+  }
 
-    final var username = arguments.get(0);
-    final var password = arguments.get(1);
-    final var uri = arguments.get(2);
-
-    try {
-      this.controller()
-        .client()
-        .login(username, password, new URI(uri));
-    } catch (final URISyntaxException e) {
-      writer.write(this.strings().format("error", e.getMessage()));
-      return FAILURE;
-    }
+  @Override
+  protected EISCommandResult runActual(
+    final Terminal terminal,
+    final Parameters parameters)
+    throws EISExitException, EIAClientException, InterruptedException
+  {
+    this.controller()
+      .client()
+      .login(parameters.userName, parameters.password, parameters.server);
 
     return SUCCESS;
   }
 
-  @Override
-  public List<Completer> argumentCompleters(
-    final Collection<EISCommandType> values)
+  protected static final class Parameters
+    implements EISParameterHolderType
   {
-    return List.of(new NullCompleter());
+    @Parameter(
+      description = "The username.",
+      required = true,
+      names = "--username")
+    private String userName;
+
+    @Parameter(
+      description = "The password.",
+      required = true,
+      names = "--password")
+    private String password;
+
+    @Parameter(
+      description = "The server base URI.",
+      required = true,
+      names = "--server")
+    private URI server;
+
+    Parameters()
+    {
+
+    }
   }
 }

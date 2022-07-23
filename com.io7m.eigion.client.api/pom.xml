@@ -15,7 +15,7 @@
   <artifactId>com.io7m.eigion.client.api</artifactId>
 
   <name>com.io7m.eigion.client.api</name>
-  <description>Application runtime management (Client API)</description>
+  <description>Eigion platform (Client API)</description>
   <url>https://www.io7m.com/software/eigion</url>
 
   <dependencies>

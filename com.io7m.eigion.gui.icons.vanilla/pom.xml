@@ -15,7 +15,7 @@
   <artifactId>com.io7m.eigion.gui.icons.vanilla</artifactId>
 
   <name>com.io7m.eigion.gui.icons.vanilla</name>
-  <description>Application runtime management (Vanilla icon set)</description>
+  <description>Eigion platform (Vanilla icon set)</description>
   <url>https://www.io7m.com/software/eigion</url>
 
   <dependencies>

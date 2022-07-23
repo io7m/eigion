@@ -15,7 +15,7 @@
  */
 
 /**
- * Application runtime management (GUI [internal client])
+ * Eigion platform (GUI [internal client])
  */
 
 package com.io7m.eigion.gui.internal.client;

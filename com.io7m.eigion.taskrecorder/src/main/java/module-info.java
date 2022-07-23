@@ -15,7 +15,7 @@
  */
 
 /**
- * Application runtime management (Task recorder)
+ * Eigion platform (Task recorder)
  */
 
 module com.io7m.eigion.taskrecorder

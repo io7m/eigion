@@ -1,0 +1,12 @@
+#!/bin/sh
+
+if [ -z "${EIGION_AMBERJACK_HOME}" ]
+then
+  echo "EIGION_AMBERJACK_HOME is unset" 1>&2
+  exit 1
+fi
+
+exec /usr/bin/env java \
+-p "${EIGION_AMBERJACK_HOME}/lib" \
+-m com.io7m.eigion.amberjack.cmdline.main/com.io7m.eigion.amberjack.cmdline.main.EIShellMain \
+"$@"

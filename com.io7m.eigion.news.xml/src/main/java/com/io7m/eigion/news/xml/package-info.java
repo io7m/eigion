@@ -15,7 +15,7 @@
  */
 
 /**
- * Application runtime management (News XML format)
+ * Eigion platform (News XML format)
  */
 
 @Export

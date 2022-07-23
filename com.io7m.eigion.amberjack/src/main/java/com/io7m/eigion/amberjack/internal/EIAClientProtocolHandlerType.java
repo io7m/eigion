@@ -132,8 +132,27 @@ public interface EIAClientProtocolHandlerType
    * @throws InterruptedException On interruption
    */
 
-  List<EIAuditEvent> auditGetByTime(
+  List<EIAuditEvent> auditGet(
     OffsetDateTime dateLower,
     OffsetDateTime dateUpper)
+    throws EIAClientException, InterruptedException;
+
+  /**
+   * Create a new user.
+   *
+   * @param name     The user name
+   * @param email    The user email
+   * @param password The password
+   *
+   * @return The created user
+   *
+   * @throws EIAClientException   On errors
+   * @throws InterruptedException On interruption
+   */
+
+  EIUser userCreate(
+    String name,
+    String email,
+    String password)
     throws EIAClientException, InterruptedException;
 }

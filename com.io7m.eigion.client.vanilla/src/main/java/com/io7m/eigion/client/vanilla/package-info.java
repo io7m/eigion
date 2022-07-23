@@ -15,7 +15,7 @@
  */
 
 /**
- * Application runtime management (Client vanilla implementation)
+ * Eigion platform (Client vanilla implementation)
  */
 
 @Export

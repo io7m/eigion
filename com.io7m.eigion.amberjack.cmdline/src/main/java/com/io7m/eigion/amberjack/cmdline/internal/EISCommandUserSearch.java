@@ -16,16 +16,13 @@
 
 package com.io7m.eigion.amberjack.cmdline.internal;
 
+import com.beust.jcommander.Parameter;
 import com.io7m.eigion.amberjack.api.EIAClientException;
 import com.io7m.eigion.model.EIUserSummary;
-import org.jline.reader.Completer;
-import org.jline.reader.impl.completer.NullCompleter;
 import org.jline.terminal.Terminal;
 
-import java.util.Collection;
 import java.util.List;
 
-import static com.io7m.eigion.amberjack.cmdline.internal.EISCommandResult.FAILURE;
 import static com.io7m.eigion.amberjack.cmdline.internal.EISCommandResult.SUCCESS;
 
 /**
@@ -33,7 +30,7 @@ import static com.io7m.eigion.amberjack.cmdline.internal.EISCommandResult.SUCCES
  */
 
 public final class EISCommandUserSearch
-  extends EISAbstractCommand
+  extends EISAbstractCommand<EISCommandUserSearch.Parameters>
 {
   /**
    * Search for a user.
@@ -50,23 +47,23 @@ public final class EISCommandUserSearch
   }
 
   @Override
-  public EISCommandResult run(
+  protected Parameters createEmptyParameters()
+  {
+    return new Parameters();
+  }
+
+  @Override
+  protected EISCommandResult runActual(
     final Terminal terminal,
-    final List<String> arguments)
+    final Parameters parameters)
     throws EIAClientException, InterruptedException
   {
     final var writer = terminal.writer();
-    if (arguments.isEmpty()) {
-      writer.println(this.strings().format("user-search.missingQuery"));
-      return FAILURE;
-    }
-
-    final var query = arguments.get(0);
 
     final List<EIUserSummary> users =
       this.controller()
         .client()
-        .userSearch(query);
+        .userSearch(parameters.query);
 
     for (final var user : users) {
       writer.printf("%s | %s | %s%n", user.id(), user.name(), user.email());
@@ -75,10 +72,18 @@ public final class EISCommandUserSearch
     return SUCCESS;
   }
 
-  @Override
-  public List<Completer> argumentCompleters(
-    final Collection<EISCommandType> values)
+  protected static final class Parameters
+    implements EISParameterHolderType
   {
-    return List.of(new NullCompleter());
+    @Parameter(
+      description = "The search query.",
+      required = true,
+      names = "--query")
+    private String query;
+
+    Parameters()
+    {
+
+    }
   }
 }

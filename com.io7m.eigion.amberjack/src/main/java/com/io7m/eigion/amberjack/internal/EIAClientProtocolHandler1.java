@@ -19,29 +19,35 @@ package com.io7m.eigion.amberjack.internal;
 
 import com.io7m.eigion.amberjack.api.EIAClientException;
 import com.io7m.eigion.model.EIAuditEvent;
+import com.io7m.eigion.model.EIPasswordAlgorithmPBKDF2HmacSHA256;
 import com.io7m.eigion.model.EIPasswordException;
 import com.io7m.eigion.model.EIService;
 import com.io7m.eigion.model.EIUser;
 import com.io7m.eigion.model.EIUserSummary;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1AuditEvent;
-import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandAuditGetByTime;
+import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandAuditGet;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandLogin;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandServicesList;
+import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandUserCreate;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandUserGet;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandUserGetByEmail;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandUserGetByName;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandUserSearch;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1MessageType;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1Messages;
+import com.io7m.eigion.protocol.admin_api.v1.EISA1Password;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1ResponseAuditGet;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1ResponseError;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1ResponseLogin;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1ResponseServiceList;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1ResponseType;
+import com.io7m.eigion.protocol.admin_api.v1.EISA1ResponseUserCreate;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1ResponseUserGet;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1ResponseUserList;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1UserSummary;
 import com.io7m.eigion.protocol.api.EIProtocolException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.URI;
@@ -62,6 +68,9 @@ import static java.net.http.HttpResponse.BodyHandlers;
 public final class EIAClientProtocolHandler1
   extends EIAClientProtocolHandlerAbstract
 {
+  private static final Logger LOG =
+    LoggerFactory.getLogger(EIAClientProtocolHandler1.class);
+
   private final URI commandURI;
   private final URI transactionURI;
   private final EISA1Messages messages;
@@ -196,7 +205,7 @@ public final class EIAClientProtocolHandler1
   }
 
   @Override
-  public List<EIAuditEvent> auditGetByTime(
+  public List<EIAuditEvent> auditGet(
     final OffsetDateTime dateLower,
     final OffsetDateTime dateUpper)
     throws EIAClientException, InterruptedException
@@ -204,13 +213,44 @@ public final class EIAClientProtocolHandler1
     final var message =
       this.sendCommand(
         EISA1ResponseAuditGet.class,
-        new EISA1CommandAuditGetByTime(dateLower, dateUpper)
+        new EISA1CommandAuditGet(dateLower, dateUpper)
       );
 
     return message.events()
       .stream()
       .map(EISA1AuditEvent::toAuditEvent)
       .toList();
+  }
+
+  @Override
+  public EIUser userCreate(
+    final String name,
+    final String email,
+    final String password)
+    throws EIAClientException, InterruptedException
+  {
+    try {
+      final var hashedPassword =
+        EIPasswordAlgorithmPBKDF2HmacSHA256.create()
+          .createHashed(password);
+
+      final var v1Password =
+        new EISA1Password(
+          hashedPassword.algorithm().identifier(),
+          hashedPassword.hash(),
+          hashedPassword.salt()
+        );
+
+      final var message =
+        this.sendCommand(
+          EISA1ResponseUserCreate.class,
+          new EISA1CommandUserCreate(name, email, v1Password)
+        );
+
+      return message.user().toUser();
+    } catch (final EIPasswordException e) {
+      throw new EIAClientException(e);
+    }
   }
 
   private <T extends EISA1ResponseLogin> T sendLogin(
@@ -236,6 +276,9 @@ public final class EIAClientProtocolHandler1
     throws InterruptedException, EIAClientException
   {
     try {
+      final var commandType = message.getClass().getSimpleName();
+      LOG.debug("sending {} to {}", commandType, uri);
+
       final var sendBytes =
         this.messages.serialize(message);
 
@@ -247,6 +290,8 @@ public final class EIAClientProtocolHandler1
       final var response =
         this.httpClient()
           .send(request, BodyHandlers.ofByteArray());
+
+      LOG.debug("server: status {}", response.statusCode());
 
       final var responseHeaders =
         response.headers();
@@ -260,6 +305,7 @@ public final class EIAClientProtocolHandler1
           this.strings()
             .format(
               "errorContentType",
+              commandType,
               EISA1Messages.contentType(),
               contentType)
         );
@@ -274,6 +320,7 @@ public final class EIAClientProtocolHandler1
             .format(
               "errorResponseType",
               "(unavailable)",
+              commandType,
               EISA1ResponseType.class,
               responseMessage.getClass())
         );
@@ -286,6 +333,7 @@ public final class EIAClientProtocolHandler1
             .format(
               "errorResponse",
               error.requestId(),
+              commandType,
               Integer.valueOf(response.statusCode()),
               error.errorCode(),
               error.message())
@@ -298,6 +346,7 @@ public final class EIAClientProtocolHandler1
             .format(
               "errorResponseType",
               responseActual.requestId(),
+              commandType,
               responseClass,
               responseMessage.getClass())
         );
