@@ -18,14 +18,12 @@ package com.io7m.eigion.tests;
 
 import com.io7m.eigion.model.EIGroupName;
 import com.io7m.eigion.model.EIProductIdentifier;
+import com.io7m.eigion.protocol.public_api.v1.EISP1CommandLogin;
+import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseProductList;
 import com.io7m.eigion.server.database.api.EIServerDatabaseException;
 import com.io7m.eigion.server.database.api.EIServerDatabaseGroupsQueriesType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseProductsQueriesType;
-import com.io7m.eigion.server.protocol.public_api.v1.EISP1CommandLogin;
-import com.io7m.eigion.server.protocol.public_api.v1.EISP1ResponseProductList;
 import org.junit.jupiter.api.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.util.UUID;
@@ -37,9 +35,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @Testcontainers(disabledWithoutDocker = true)
 public final class EIServerPublicAPIProductsTest extends EIServerContract
 {
-  private static final Logger LOG =
-    LoggerFactory.getLogger(EIServerPublicAPIProductsTest.class);
-
   /**
    * Listing products in an empty database works.
    *
@@ -59,7 +54,7 @@ public final class EIServerPublicAPIProductsTest extends EIServerContract
       final var r =
         this.postPublicBytes(
           "/public/1/0/login",
-          this.messagesV1().serialize(
+          this.messagesPublicV1().serialize(
             new EISP1CommandLogin("someone", "12345678"))
         );
       assertEquals(200, r.statusCode());
@@ -93,7 +88,7 @@ public final class EIServerPublicAPIProductsTest extends EIServerContract
       final var r =
         this.postPublicBytes(
           "/public/1/0/login",
-          this.messagesV1().serialize(
+          this.messagesPublicV1().serialize(
             new EISP1CommandLogin("someone", "12345678"))
         );
       assertEquals(200, r.statusCode());
@@ -128,7 +123,7 @@ public final class EIServerPublicAPIProductsTest extends EIServerContract
       final var r =
         this.postPublicBytes(
           "/public/1/0/login",
-          this.messagesV1().serialize(
+          this.messagesPublicV1().serialize(
             new EISP1CommandLogin("someone", "12345678"))
         );
       assertEquals(200, r.statusCode());

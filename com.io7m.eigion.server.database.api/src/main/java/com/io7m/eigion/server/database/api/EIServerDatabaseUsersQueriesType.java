@@ -18,8 +18,10 @@ package com.io7m.eigion.server.database.api;
 
 import com.io7m.eigion.model.EIPassword;
 import com.io7m.eigion.model.EIUser;
+import com.io7m.eigion.model.EIUserSummary;
 
 import java.time.OffsetDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -154,5 +156,19 @@ public non-sealed interface EIServerDatabaseUsersQueriesType
   void userLogin(
     UUID id,
     String host)
+    throws EIServerDatabaseException;
+
+  /**
+   * Search for users that have an ID, email, or name that contains the
+   * given string, case-insensitive.
+   *
+   * @param query The user query
+   *
+   * @return A list of matching users
+   *
+   * @throws EIServerDatabaseException On errors
+   */
+
+  List<EIUserSummary> userSearch(String query)
     throws EIServerDatabaseException;
 }

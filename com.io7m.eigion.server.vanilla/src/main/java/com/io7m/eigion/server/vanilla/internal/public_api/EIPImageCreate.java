@@ -17,9 +17,12 @@
 package com.io7m.eigion.server.vanilla.internal.public_api;
 
 import com.io7m.eigion.hash.EIHash;
+import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseImageCreated;
 import com.io7m.eigion.server.database.api.EIServerDatabaseImagesQueriesType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseType;
-import com.io7m.eigion.server.protocol.public_api.v1.EISP1ResponseImageCreated;
+import com.io7m.eigion.server.security.EISecActionImageCreate;
+import com.io7m.eigion.server.security.EISecPolicyResultDenied;
+import com.io7m.eigion.server.security.EISecurity;
 import com.io7m.eigion.server.vanilla.internal.EIHTTPErrorStatusException;
 import com.io7m.eigion.server.vanilla.internal.EIRequestLimits;
 import com.io7m.eigion.server.vanilla.internal.EIServerImageStorage;
@@ -39,6 +42,7 @@ import java.util.UUID;
 import static com.io7m.eigion.server.database.api.EIServerDatabaseRole.EIGION;
 import static com.io7m.eigion.server.vanilla.internal.EIServerRequestDecoration.requestIdFor;
 import static org.eclipse.jetty.http.HttpStatus.BAD_REQUEST_400;
+import static org.eclipse.jetty.http.HttpStatus.FORBIDDEN_403;
 
 /**
  * A servlet for creating images.
@@ -85,6 +89,15 @@ public final class EIPImageCreate extends EIPAuthenticatedServlet
     final HttpSession session)
     throws Exception
   {
+    if (EISecurity.check(new EISecActionImageCreate(this.user()))
+      instanceof EISecPolicyResultDenied denied) {
+      throw new EIHTTPErrorStatusException(
+        FORBIDDEN_403,
+        "image",
+        denied.message()
+      );
+    }
+
     /*
      * Read the image data. Image data is bounded to a sensible maximum
      * to avoid resource exhaustion attacks.

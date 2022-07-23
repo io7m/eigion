@@ -106,6 +106,6 @@ public final class EIServerImageStorage
   public String toString()
   {
     return "[EIServerImageStorage 0x%s]"
-      .formatted(Long.toUnsignedString((long) this.hashCode()));
+      .formatted(Long.toUnsignedString(this.hashCode()));
   }
 }

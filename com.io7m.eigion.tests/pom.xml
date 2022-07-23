@@ -85,7 +85,7 @@
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
-      <artifactId>com.io7m.eigion.server.protocol.versions</artifactId>
+      <artifactId>com.io7m.eigion.protocol.versions</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
@@ -101,6 +101,21 @@
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>com.io7m.eigion.storage.s3</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>com.io7m.eigion.amberjack.cmdline</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>com.io7m.eigion.amberjack</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>com.io7m.eigion.amberjack.api</artifactId>
       <version>${project.version}</version>
     </dependency>
 

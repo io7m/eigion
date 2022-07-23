@@ -16,11 +16,11 @@
 
 package com.io7m.eigion.tests;
 
-import com.io7m.eigion.server.protocol.api.EIServerProtocolException;
-import com.io7m.eigion.server.protocol.public_api.v1.EISP1CommandLogin;
-import com.io7m.eigion.server.protocol.public_api.v1.EISP1MessageType;
-import com.io7m.eigion.server.protocol.public_api.v1.EISP1Messages;
-import com.io7m.eigion.server.protocol.public_api.v1.EISP1ResponseError;
+import com.io7m.eigion.protocol.api.EIProtocolException;
+import com.io7m.eigion.protocol.public_api.v1.EISP1CommandLogin;
+import com.io7m.eigion.protocol.public_api.v1.EISP1MessageType;
+import com.io7m.eigion.protocol.public_api.v1.EISP1Messages;
+import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseError;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.Test;
@@ -28,8 +28,6 @@ import org.junit.jupiter.api.TestFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.math.BigInteger;
 import java.util.stream.Stream;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -88,7 +86,7 @@ public final class EISP1MessagesTest
   public void testInvalid()
     throws Exception
   {
-    assertThrows(EIServerProtocolException.class, () -> {
+    assertThrows(EIProtocolException.class, () -> {
       this.messages.parse("{}".getBytes(UTF_8));
     });
   }

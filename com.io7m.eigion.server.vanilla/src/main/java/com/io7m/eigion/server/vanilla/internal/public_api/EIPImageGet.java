@@ -16,9 +16,12 @@
 
 package com.io7m.eigion.server.vanilla.internal.public_api;
 
+import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseImageGet;
 import com.io7m.eigion.server.database.api.EIServerDatabaseImagesQueriesType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseType;
-import com.io7m.eigion.server.protocol.public_api.v1.EISP1ResponseImageGet;
+import com.io7m.eigion.server.security.EISecActionImageRead;
+import com.io7m.eigion.server.security.EISecPolicyResultDenied;
+import com.io7m.eigion.server.security.EISecurity;
 import com.io7m.eigion.server.vanilla.internal.EIHTTPErrorStatusException;
 import com.io7m.eigion.services.api.EIServiceDirectoryType;
 import jakarta.servlet.http.HttpServletRequest;
@@ -32,6 +35,7 @@ import java.util.UUID;
 import static com.io7m.eigion.server.database.api.EIServerDatabaseIncludeRedacted.EXCLUDE_REDACTED;
 import static com.io7m.eigion.server.database.api.EIServerDatabaseRole.EIGION;
 import static com.io7m.eigion.server.vanilla.internal.EIServerRequestDecoration.requestIdFor;
+import static org.eclipse.jetty.http.HttpStatus.FORBIDDEN_403;
 
 /**
  * A servlet for creating images.
@@ -72,6 +76,15 @@ public final class EIPImageGet extends EIPAuthenticatedServlet
     final HttpSession session)
     throws Exception
   {
+    if (EISecurity.check(new EISecActionImageRead(this.user()))
+      instanceof EISecPolicyResultDenied denied) {
+      throw new EIHTTPErrorStatusException(
+        FORBIDDEN_403,
+        "operationNotPermitted",
+        denied.message()
+      );
+    }
+
     final var requestId =
       requestIdFor(request);
 

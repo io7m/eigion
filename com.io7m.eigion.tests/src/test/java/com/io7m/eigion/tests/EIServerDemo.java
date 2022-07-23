@@ -16,21 +16,29 @@
 
 package com.io7m.eigion.tests;
 
+import com.io7m.eigion.model.EIPasswordAlgorithmPBKDF2HmacSHA256;
+import com.io7m.eigion.model.EIPasswordException;
+import com.io7m.eigion.server.api.EIServerAdminSharedSecret;
 import com.io7m.eigion.server.api.EIServerConfiguration;
+import com.io7m.eigion.server.api.EIServerType;
+import com.io7m.eigion.server.database.api.EIServerDatabaseAdminsQueriesType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseConfiguration;
 import com.io7m.eigion.server.database.api.EIServerDatabaseCreate;
+import com.io7m.eigion.server.database.api.EIServerDatabaseException;
 import com.io7m.eigion.server.database.api.EIServerDatabaseUpgrade;
 import com.io7m.eigion.server.database.postgres.EIServerDatabases;
 import com.io7m.eigion.server.vanilla.EIServers;
 import com.io7m.eigion.storage.api.EIStorageParameters;
-import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.servlet.ServletContextHandler;
 
 import java.net.InetSocketAddress;
 import java.nio.file.Files;
 import java.time.Clock;
+import java.time.OffsetDateTime;
 import java.util.Locale;
 import java.util.Map;
+import java.util.UUID;
+
+import static com.io7m.eigion.server.database.api.EIServerDatabaseRole.EIGION;
 
 public final class EIServerDemo
 {
@@ -51,7 +59,7 @@ public final class EIServerDemo
         "postgres",
         "12345678",
         "localhost",
-        5432,
+        54320,
         "postgres",
         EIServerDatabaseCreate.CREATE_DATABASE,
         EIServerDatabaseUpgrade.UPGRADE_DATABASE,
@@ -64,6 +72,8 @@ public final class EIServerDemo
         databaseConfiguration,
         new EIFakeStorageFactory(),
         new EIStorageParameters(Map.of()),
+        new EIServerAdminSharedSecret(
+          "8A8B93C04F67A3956AB6109F30063F1A6A7C6679787D72CC0730CC8390396F05"),
         new InetSocketAddress("localhost", 40000),
         new InetSocketAddress("localhost", 40001),
         Files.createTempDirectory("eigion"),
@@ -75,9 +85,36 @@ public final class EIServerDemo
 
     try (var server = servers.createServer(serverConfiguration)) {
       server.start();
+      createInitialAdmin(server);
+
       while (true) {
         Thread.sleep(1_000L);
       }
+    }
+  }
+
+  private static void createInitialAdmin(
+    final EIServerType server)
+  {
+    try {
+      final var db = server.database();
+      try (var c = db.openConnection(EIGION)) {
+        try (var t = c.openTransaction()) {
+          final var q = t.queries(EIServerDatabaseAdminsQueriesType.class);
+          final var algo = EIPasswordAlgorithmPBKDF2HmacSHA256.create();
+          final var password = algo.createHashed("12345678");
+          q.adminCreateInitial(
+            UUID.randomUUID(),
+            "someone",
+            "someone@example.com",
+            OffsetDateTime.now(),
+            password
+          );
+          t.commit();
+        }
+      }
+    } catch (final EIServerDatabaseException | EIPasswordException e) {
+      // Don't care
     }
   }
 }

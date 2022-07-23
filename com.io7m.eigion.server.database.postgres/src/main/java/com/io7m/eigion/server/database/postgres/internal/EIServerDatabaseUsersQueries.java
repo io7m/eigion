@@ -22,6 +22,7 @@ import com.io7m.eigion.model.EIPasswordAlgorithms;
 import com.io7m.eigion.model.EIPasswordException;
 import com.io7m.eigion.model.EIUser;
 import com.io7m.eigion.model.EIUserBan;
+import com.io7m.eigion.model.EIUserSummary;
 import com.io7m.eigion.server.database.api.EIServerDatabaseException;
 import com.io7m.eigion.server.database.api.EIServerDatabaseRequiresUser;
 import com.io7m.eigion.server.database.api.EIServerDatabaseUsersQueriesType;
@@ -31,6 +32,8 @@ import org.jooq.DSLContext;
 import org.jooq.exception.DataAccessException;
 
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
@@ -38,6 +41,7 @@ import java.util.UUID;
 
 import static com.io7m.eigion.server.database.postgres.internal.EIServerDatabaseExceptions.handleDatabaseException;
 import static com.io7m.eigion.server.database.postgres.internal.Tables.USER_BANS;
+import static com.io7m.eigion.server.database.postgres.internal.Tables.USER_IDS;
 import static com.io7m.eigion.server.database.postgres.internal.tables.Audit.AUDIT;
 import static com.io7m.eigion.server.database.postgres.internal.tables.Users.USERS;
 
@@ -126,7 +130,7 @@ final class EIServerDatabaseUsersQueries
     try {
       {
         final var existing =
-          context.fetchOptional(USERS, USERS.ID.eq(id));
+          context.fetchOptional(USER_IDS, USER_IDS.ID.eq(id));
         if (existing.isPresent()) {
           throw new EIServerDatabaseException(
             "User ID already exists",
@@ -157,7 +161,13 @@ final class EIServerDatabaseUsersQueries
         }
       }
 
-      final var insert =
+      final var idCreate =
+        context.insertInto(USER_IDS)
+          .set(USER_IDS.ID, id);
+
+      idCreate.execute();
+
+      final var userCreate =
         context.insertInto(USERS)
           .set(USERS.ID, id)
           .set(USERS.NAME, userName)
@@ -168,7 +178,7 @@ final class EIServerDatabaseUsersQueries
           .set(USERS.PASSWORD_HASH, password.hash())
           .set(USERS.PASSWORD_SALT, password.salt());
 
-      insert.execute();
+      userCreate.execute();
 
       final var audit =
         context.insertInto(AUDIT)
@@ -352,6 +362,44 @@ final class EIServerDatabaseUsersQueries
           .set(AUDIT.MESSAGE, host);
 
       audit.execute();
+    } catch (final DataAccessException e) {
+      throw handleDatabaseException(this.transaction(), e);
+    }
+  }
+
+  @Override
+  public List<EIUserSummary> userSearch(
+    final String query)
+    throws EIServerDatabaseException
+  {
+    Objects.requireNonNull(query, "query");
+
+    final var context =
+      this.transaction().createContext();
+
+    try {
+      final var wildcardQuery =
+        "%%%s%%".formatted(query);
+
+      final var records =
+        context.selectFrom(USERS)
+          .where(USERS.NAME.likeIgnoreCase(wildcardQuery))
+          .or(USERS.EMAIL.likeIgnoreCase(wildcardQuery))
+          .or(USERS.ID.likeIgnoreCase(wildcardQuery))
+          .orderBy(USERS.NAME)
+          .fetch();
+
+      final var summaries = new ArrayList<EIUserSummary>(records.size());
+      for (final var record : records) {
+        summaries.add(
+          new EIUserSummary(
+            record.get(USERS.ID),
+            record.get(USERS.NAME),
+            record.get(USERS.EMAIL)
+          )
+        );
+      }
+      return List.copyOf(summaries);
     } catch (final DataAccessException e) {
       throw handleDatabaseException(this.transaction(), e);
     }

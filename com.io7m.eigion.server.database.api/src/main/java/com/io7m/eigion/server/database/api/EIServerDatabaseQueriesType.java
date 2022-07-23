@@ -22,7 +22,8 @@ package com.io7m.eigion.server.database.api;
  */
 
 public sealed interface EIServerDatabaseQueriesType
-  permits EIServerDatabaseAuditQueriesType,
+  permits EIServerDatabaseAdminsQueriesType,
+  EIServerDatabaseAuditQueriesType,
   EIServerDatabaseGroupsQueriesType,
   EIServerDatabaseImagesQueriesType,
   EIServerDatabaseProductsQueriesType,

@@ -24,11 +24,16 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.stream.Stream;
 
 public final class EIPasswordAlgorithmsTest
 {
+  private static final Logger LOG =
+    LoggerFactory.getLogger(EIPasswordAlgorithmsTest.class);
+
   @Test
   public void testPBKDF2()
     throws Exception
@@ -37,6 +42,26 @@ public final class EIPasswordAlgorithmsTest
       EIPasswordAlgorithmPBKDF2HmacSHA256.class,
       EIPasswordAlgorithms.parse("PBKDF2WithHmacSHA256:10000:256")
     );
+  }
+
+  @Test
+  public void testPBKDF2Execute()
+    throws Exception
+  {
+    final var algorithm =
+      EIPasswordAlgorithmPBKDF2HmacSHA256.create(10000, 256);
+
+    final byte[] salt = new byte[4];
+    salt[0] = (byte) 0x10;
+    salt[1] = (byte) 0x20;
+    salt[2] = (byte) 0x30;
+    salt[3] = (byte) 0x40;
+
+    final var password =
+      algorithm.createHashed("12345678", salt);
+
+    LOG.debug("hash: {}", password.hash());
+    LOG.debug("salt: {}", password.salt());
   }
 
   @TestFactory

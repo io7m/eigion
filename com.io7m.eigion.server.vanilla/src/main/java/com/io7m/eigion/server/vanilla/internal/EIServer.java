@@ -25,8 +25,13 @@ import com.io7m.eigion.server.api.EIServerStarting;
 import com.io7m.eigion.server.api.EIServerType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseException;
 import com.io7m.eigion.server.database.api.EIServerDatabaseType;
-import com.io7m.eigion.server.protocol.public_api.v1.EISP1Messages;
-import com.io7m.eigion.server.protocol.versions.EISVMessages;
+import com.io7m.eigion.protocol.admin_api.v1.EISA1Messages;
+import com.io7m.eigion.protocol.public_api.v1.EISP1Messages;
+import com.io7m.eigion.protocol.versions.EISVMessages;
+import com.io7m.eigion.server.vanilla.internal.admin_api.EIACommandServlet;
+import com.io7m.eigion.server.vanilla.internal.admin_api.EIALogin;
+import com.io7m.eigion.server.vanilla.internal.admin_api.EIASends;
+import com.io7m.eigion.server.vanilla.internal.admin_api.EIATransactionServlet;
 import com.io7m.eigion.server.vanilla.internal.admin_api.EIAVersions;
 import com.io7m.eigion.server.vanilla.internal.public_api.EIPImageCreate;
 import com.io7m.eigion.server.vanilla.internal.public_api.EIPImageGet;
@@ -34,8 +39,10 @@ import com.io7m.eigion.server.vanilla.internal.public_api.EIPLogin;
 import com.io7m.eigion.server.vanilla.internal.public_api.EIPProducts;
 import com.io7m.eigion.server.vanilla.internal.public_api.EIPSends;
 import com.io7m.eigion.server.vanilla.internal.public_api.EIPVersions;
+import com.io7m.eigion.server.vanilla.logging.EIServerRequestLog;
 import com.io7m.eigion.services.api.EIServiceDirectory;
 import com.io7m.eigion.services.api.EIServiceDirectoryType;
+import com.io7m.eigion.storage.api.EIStorageConfigurationException;
 import com.io7m.jmulticlose.core.CloseableCollection;
 import com.io7m.jmulticlose.core.CloseableCollectionType;
 import org.eclipse.jetty.jmx.MBeanContainer;
@@ -49,9 +56,11 @@ import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.util.Arrays;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.Flow;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -68,6 +77,7 @@ public final class EIServer implements EIServerType
   private final CloseableCollectionType<EIServerException> resources;
   private final AtomicBoolean closed;
   private final EIServerEventBus events;
+  private EIServerDatabaseType database;
 
   /**
    * The main server implementation.
@@ -105,28 +115,11 @@ public final class EIServer implements EIServerType
     }
 
     try {
-      final EIServerDatabaseType database =
+      this.database =
         this.resources.add(this.createDatabase());
 
-      final var services = new EIServiceDirectory();
-      services.register(EIServerEventBus.class, this.events);
-      services.register(EIServerDatabaseType.class, database);
-      final var clock = new EIServerClock(this.configuration.clock());
-      services.register(EIServerClock.class, clock);
-      final var messages = new EISVMessages();
-      services.register(EISVMessages.class, messages);
-      final var pv1messages = new EISP1Messages();
-      services.register(EISP1Messages.class, pv1messages);
-      final var strings = new EIServerStrings(this.configuration.locale());
-      services.register(EIServerStrings.class, strings);
-      services.register(EIPSends.class, new EIPSends(pv1messages));
-      services.register(EIRequestLimits.class, new EIRequestLimits(strings));
-      services.register(
-        EIServerImageStorage.class,
-        EIServerImageStorage.create(
-          this.configuration.imageStorageFactory(),
-          this.configuration.imageStorageParameters())
-      );
+      final var services =
+        this.createServiceDirectory(this.database);
 
       final var adminServer = this.createAdminServer(services);
       this.resources.add(adminServer::stop);
@@ -149,6 +142,75 @@ public final class EIServer implements EIServerType
       }
       throw new EIServerException(e.getMessage(), e, "startup");
     }
+  }
+
+  @Override
+  public EIServerDatabaseType database()
+  {
+    return Optional.ofNullable(this.database)
+      .orElseThrow(() -> {
+        return new IllegalStateException("Server is not started.");
+      });
+  }
+
+  private EIServiceDirectory createServiceDirectory(
+    final EIServerDatabaseType inDatabase)
+    throws IOException, EIStorageConfigurationException
+  {
+    final var services = new EIServiceDirectory();
+
+    services.register(
+      EIServerEventBus.class,
+      this.events
+    );
+
+    services.register(
+      EIServerDatabaseType.class,
+      inDatabase
+    );
+
+    final var clock = new EIServerClock(this.configuration.clock());
+    services.register(EIServerClock.class, clock);
+
+    final var messages = new EISVMessages();
+    services.register(EISVMessages.class, messages);
+
+    final var pv1messages = new EISP1Messages();
+    services.register(EISP1Messages.class, pv1messages);
+
+    final var av1messages = new EISA1Messages();
+    services.register(EISA1Messages.class, av1messages);
+
+    final var strings = new EIServerStrings(this.configuration.locale());
+    services.register(EIServerStrings.class, strings);
+
+    services.register(
+      EIServerSharedSecretService.class,
+      new EIServerSharedSecretService(this.configuration.adminSharedSecret())
+    );
+
+    services.register(
+      EIPSends.class,
+      new EIPSends(pv1messages)
+    );
+
+    services.register(
+      EIASends.class,
+      new EIASends(av1messages)
+    );
+
+    services.register(
+      EIRequestLimits.class,
+      new EIRequestLimits(strings)
+    );
+
+    services.register(
+      EIServerImageStorage.class,
+      EIServerImageStorage.create(
+        this.configuration.imageStorageFactory(),
+        this.configuration.imageStorageParameters())
+    );
+    return services;
   }
 
   @Override
@@ -238,6 +300,7 @@ public final class EIServer implements EIServerType
       connector -> connector.addBean(new EIServerRequestDecoration(services))
     );
 
+    server.setErrorHandler(new EIErrorHandler());
     server.setRequestLog(new EIServerRequestLog(services, "public"));
     server.setHandler(statsHandler);
     server.start();
@@ -262,6 +325,20 @@ public final class EIServer implements EIServerType
     servlets.addServlet(
       servletHolders.create(EIAVersions.class, EIAVersions::new),
       "/"
+    );
+    servlets.addServlet(
+      servletHolders.create(EIALogin.class, EIALogin::new),
+      "/admin/1/0/login"
+    );
+    servlets.addServlet(
+      servletHolders.create(EIACommandServlet.class, EIACommandServlet::new),
+      "/admin/1/0/command/*"
+    );
+    servlets.addServlet(
+      servletHolders.create(
+        EIATransactionServlet.class,
+        EIATransactionServlet::new),
+      "/admin/1/0/transaction/*"
     );
 
     /*
@@ -306,6 +383,7 @@ public final class EIServer implements EIServerType
       connector -> connector.addBean(new EIServerRequestDecoration(services))
     );
 
+    server.setErrorHandler(new EIErrorHandler());
     server.setRequestLog(new EIServerRequestLog(services, "admin"));
     server.setHandler(statsHandler);
     server.start();

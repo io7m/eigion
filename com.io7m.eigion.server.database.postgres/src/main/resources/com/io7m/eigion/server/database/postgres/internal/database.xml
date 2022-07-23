@@ -38,6 +38,39 @@ create table schema_version (
 
   <Schema versionCurrent="1">
     <Comment>
+      The user_ids table stores the ids for users and admins.
+    </Comment>
+
+    <Statement><![CDATA[
+create table user_ids (
+  id uuid not null primary key
+)
+]]></Statement>
+
+    <Statement>grant select, insert on user_ids to eigion</Statement>
+
+    <Comment>
+      The admins table stores the current set of admins.
+    </Comment>
+
+    <Statement><![CDATA[
+create table admins (
+  id               uuid                     not null primary key,
+  name             varchar(64)              not null unique,
+  email            varchar(256)             not null unique,
+  created          timestamp with time zone not null,
+  last_login_time  timestamp with time zone not null,
+  password_algo    varchar(64)              not null,
+  password_hash    varchar(256)             not null,
+  password_salt    varchar(64)              not null,
+
+  foreign key (id) references user_ids (id)
+)
+]]></Statement>
+
+    <Statement>grant select, insert, update on admins to eigion</Statement>
+
+    <Comment>
       The users table stores the current set of users.
     </Comment>
 
@@ -50,12 +83,52 @@ create table users (
   last_login_time  timestamp with time zone not null,
   password_algo    varchar(64)              not null,
   password_hash    varchar(256)             not null,
-  password_salt    varchar(64)              not null
+  password_salt    varchar(64)              not null,
+
+  foreign key (id) references user_ids (id)
 )
 ]]></Statement>
 
     <Statement>grant select, insert, update on users to eigion</Statement>
     <Statement>grant select (id) on users to eigion_none</Statement>
+
+    <Comment>
+      The user_user_complaints table stores the current set of complaints that have been lodged by users against other
+      users. This could be, for example, due to a user adopting an offensive display name.
+    </Comment>
+
+    <Statement><![CDATA[
+create type complaint_status as enum ('UNRESOLVED', 'RESOLVED_INVALID', 'RESOLVED_VALID');
+]]></Statement>
+
+    <Statement><![CDATA[
+create table user_user_complaints (
+  id               bigint                   not null primary key generated always as identity,
+  user_complainer  uuid                     not null,
+  user_target      uuid                     not null,
+  created          timestamp with time zone not null,
+  reason           varchar(1024)            not null,
+
+  resolved           complaint_status not null,
+  resolution_admin   uuid,
+  resolution_reason  varchar(1024),
+  resolution_time    timestamp with time zone,
+
+  constraint resolution_valid check (
+        ((resolved != 'UNRESOLVED') = (resolution_admin is not null))
+    and ((resolved != 'UNRESOLVED') = (resolution_reason is not null))
+    and ((resolved != 'UNRESOLVED') = (resolution_time is not null))
+  ),
+
+  unique (user_complainer, user_target),
+
+  foreign key (resolution_admin) references admins (id),
+  foreign key (user_complainer)  references users (id),
+  foreign key (user_target)      references users (id)
+)
+]]></Statement>
+
+    <Statement>grant select, insert, update on user_user_complaints to eigion</Statement>
 
     <Comment>
       The user_bans table stores the set of users that might be banned for any reason.
@@ -75,6 +148,22 @@ create table user_bans (
     <Statement>grant select, insert, update, delete on user_bans to eigion</Statement>
 
     <Comment>
+      The groups table holds groups. A product is produced by exactly one group, and users may be in zero or more
+      groups.
+    </Comment>
+
+    <Statement><![CDATA[
+create table groups (
+  id       bigint                   not null primary key generated always as identity,
+  name     varchar(1024)            not null unique,
+  creator  uuid                     not null,
+  created  timestamp with time zone not null,
+
+  foreign key (creator) references users (id)
+)
+]]></Statement>
+
+    <Comment>
       The audit table stores a list of auditable events. Who did it? What did they do? When did they do it?
     </Comment>
 
@@ -86,7 +175,7 @@ create table audit (
   type    varchar(64)              not null,
   message varchar(8192)            not null,
 
-  foreign key (user_id) references users (id)
+  foreign key (user_id) references user_ids (id)
 )
 ]]></Statement>
 
@@ -162,22 +251,6 @@ create table category_redactions (
 
     <Statement>grant select, delete, insert on category_redactions to eigion</Statement>
 
-    <Comment>
-      The groups table holds product groups. A product is produced by exactly one group, and users may
-      be in zero or more groups.
-    </Comment>
-
-    <Statement><![CDATA[
-create table groups (
-  id       bigint                   not null primary key generated always as identity,
-  name     varchar(1024)            not null unique,
-  creator  uuid                     not null,
-  created  timestamp with time zone not null,
-
-  foreign key (creator) references users (id)
-)
-]]></Statement>
-
     <Statement>grant select, insert on groups to eigion</Statement>
 
     <Comment>
@@ -203,8 +276,8 @@ create table products (
 ]]></Statement>
 
     <Statement>grant select, insert on products to eigion</Statement>
-    <Statement>grant update (product_title)            on products to eigion</Statement>
-    <Statement>grant update (product_description)      on products to eigion</Statement>
+    <Statement>grant update (product_title) on products to eigion</Statement>
+    <Statement>grant update (product_description) on products to eigion</Statement>
     <Statement>grant update (product_description_type) on products to eigion</Statement>
 
     <Comment>

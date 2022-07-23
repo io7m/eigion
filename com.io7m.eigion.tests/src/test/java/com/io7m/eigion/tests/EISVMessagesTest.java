@@ -16,16 +16,15 @@
 
 package com.io7m.eigion.tests;
 
-import com.io7m.eigion.server.protocol.api.EIServerProtocolException;
-import com.io7m.eigion.server.protocol.versions.EISVMessages;
-import com.io7m.eigion.server.protocol.versions.EISVProtocolSupported;
-import com.io7m.eigion.server.protocol.versions.EISVProtocols;
+import com.io7m.eigion.protocol.api.EIProtocolException;
+import com.io7m.eigion.protocol.versions.EISVMessages;
+import com.io7m.eigion.protocol.versions.EISVProtocolSupported;
+import com.io7m.eigion.protocol.versions.EISVProtocols;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.util.List;
 
 import static java.math.BigInteger.ONE;
@@ -89,7 +88,7 @@ public final class EISVMessagesTest
   public void testInvalid()
     throws Exception
   {
-    assertThrows(EIServerProtocolException.class, () -> {
+    assertThrows(EIProtocolException.class, () -> {
       this.messages.parse("{}".getBytes(UTF_8));
     });
   }

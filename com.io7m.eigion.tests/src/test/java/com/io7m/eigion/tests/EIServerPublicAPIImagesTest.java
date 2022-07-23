@@ -16,29 +16,23 @@
 
 package com.io7m.eigion.tests;
 
-import com.io7m.eigion.server.protocol.public_api.v1.EISP1CommandLogin;
-import com.io7m.eigion.server.protocol.public_api.v1.EISP1ResponseError;
-import com.io7m.eigion.server.protocol.public_api.v1.EISP1ResponseImageCreated;
-import com.io7m.eigion.server.protocol.public_api.v1.EISP1ResponseImageGet;
+import com.io7m.eigion.protocol.public_api.v1.EISP1CommandLogin;
+import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseError;
+import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseImageCreated;
+import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseImageGet;
 import org.junit.jupiter.api.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.net.URI;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Testcontainers(disabledWithoutDocker = true)
 public final class EIServerPublicAPIImagesTest extends EIServerContract
 {
-  private static final Logger LOG =
-    LoggerFactory.getLogger(EIServerPublicAPIImagesTest.class);
-
   /**
    * Creating images works.
    *
@@ -65,7 +59,7 @@ public final class EIServerPublicAPIImagesTest extends EIServerContract
       final var r =
         this.postPublicBytes(
           "/public/1/0/login",
-          this.messagesV1().serialize(
+          this.messagesPublicV1().serialize(
             new EISP1CommandLogin("someone", "12345678"))
         );
       assertEquals(200, r.statusCode());
@@ -122,7 +116,7 @@ public final class EIServerPublicAPIImagesTest extends EIServerContract
       final var r =
         this.postPublicBytes(
           "/public/1/0/login",
-          this.messagesV1().serialize(
+          this.messagesPublicV1().serialize(
             new EISP1CommandLogin("someone", "12345678"))
         );
       assertEquals(200, r.statusCode());
@@ -154,7 +148,7 @@ public final class EIServerPublicAPIImagesTest extends EIServerContract
       final var r =
         this.postPublicBytes(
           "/public/1/0/login",
-          this.messagesV1().serialize(
+          this.messagesPublicV1().serialize(
             new EISP1CommandLogin("someone", "12345678"))
         );
       assertEquals(200, r.statusCode());
@@ -236,7 +230,7 @@ public final class EIServerPublicAPIImagesTest extends EIServerContract
       final var r =
         this.postPublicBytes(
           "/public/1/0/login",
-          this.messagesV1().serialize(
+          this.messagesPublicV1().serialize(
             new EISP1CommandLogin("someone", "12345678"))
         );
       assertEquals(200, r.statusCode());

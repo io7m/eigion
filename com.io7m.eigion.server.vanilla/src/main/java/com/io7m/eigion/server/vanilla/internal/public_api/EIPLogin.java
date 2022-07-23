@@ -22,9 +22,9 @@ import com.io7m.eigion.server.api.EIServerUserLoggedIn;
 import com.io7m.eigion.server.database.api.EIServerDatabaseException;
 import com.io7m.eigion.server.database.api.EIServerDatabaseType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseUsersQueriesType;
-import com.io7m.eigion.server.protocol.api.EIServerProtocolException;
-import com.io7m.eigion.server.protocol.public_api.v1.EISP1CommandLogin;
-import com.io7m.eigion.server.protocol.public_api.v1.EISP1Messages;
+import com.io7m.eigion.protocol.api.EIProtocolException;
+import com.io7m.eigion.protocol.public_api.v1.EISP1CommandLogin;
+import com.io7m.eigion.protocol.public_api.v1.EISP1Messages;
 import com.io7m.eigion.server.vanilla.internal.EIHTTPErrorStatusException;
 import com.io7m.eigion.server.vanilla.internal.EIRequestLimits;
 import com.io7m.eigion.server.vanilla.internal.EIServerClock;
@@ -36,13 +36,13 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.MDC;
 
 import java.io.IOException;
 import java.util.Objects;
 
 import static com.io7m.eigion.server.database.api.EIServerDatabaseRole.EIGION;
 import static com.io7m.eigion.server.vanilla.internal.EIServerRequestDecoration.requestIdFor;
+import static com.io7m.eigion.server.vanilla.logging.EIServerMDCRequestProcessor.mdcForRequest;
 import static org.eclipse.jetty.http.HttpStatus.BAD_REQUEST_400;
 import static org.eclipse.jetty.http.HttpStatus.INTERNAL_SERVER_ERROR_500;
 import static org.eclipse.jetty.http.HttpStatus.METHOD_NOT_ALLOWED_405;
@@ -92,76 +92,61 @@ public final class EIPLogin extends HttpServlet
       inServices.requireService(EIRequestLimits.class);
   }
 
-  private static String clientOf(
-    final HttpServletRequest request)
-  {
-    return new StringBuilder(64)
-      .append('[')
-      .append(request.getRemoteAddr())
-      .append(':')
-      .append(request.getRemotePort())
-      .append(']')
-      .toString();
-  }
-
   @Override
   protected void service(
     final HttpServletRequest request,
     final HttpServletResponse response)
     throws IOException
   {
-    MDC.put("client", clientOf(request));
-    MDC.put("request", requestIdFor(request).toString());
+    try (var ignored0 = mdcForRequest(request)) {
+      try {
+        if (!Objects.equals(request.getMethod(), "POST")) {
+          throw new EIHTTPErrorStatusException(
+            METHOD_NOT_ALLOWED_405,
+            "http",
+            this.strings.format("methodNotAllowed")
+          );
+        }
 
-    try {
-      if (!Objects.equals(request.getMethod(), "POST")) {
-        throw new EIHTTPErrorStatusException(
-          METHOD_NOT_ALLOWED_405,
-          "http",
-          this.strings.format("methodNotAllowed")
+        final var login =
+          this.readLoginCommand(request);
+
+        try (var connection = this.database.openConnection(EIGION)) {
+          try (var transaction = connection.openTransaction()) {
+            final var users =
+              transaction.queries(EIServerDatabaseUsersQueriesType.class);
+            this.tryLogin(request, response, users, login);
+            transaction.commit();
+          }
+        }
+
+      } catch (final EIHTTPErrorStatusException e) {
+        this.errors.sendError(
+          response,
+          requestIdFor(request),
+          e.statusCode(),
+          e.errorCode(),
+          e.getMessage()
+        );
+      } catch (final EIPasswordException e) {
+        LOG.debug("password: ", e);
+        this.errors.sendError(
+          response,
+          requestIdFor(request),
+          INTERNAL_SERVER_ERROR_500,
+          "password",
+          e.getMessage()
+        );
+      } catch (final EIServerDatabaseException e) {
+        LOG.debug("database: ", e);
+        this.errors.sendError(
+          response,
+          requestIdFor(request),
+          INTERNAL_SERVER_ERROR_500,
+          "database",
+          e.getMessage()
         );
       }
-
-      final var login =
-        this.readLoginCommand(request);
-
-      try (var connection = this.database.openConnection(EIGION)) {
-        try (var transaction = connection.openTransaction()) {
-          final var users =
-            transaction.queries(EIServerDatabaseUsersQueriesType.class);
-          this.tryLogin(request, response, users, login);
-        }
-      }
-
-    } catch (final EIHTTPErrorStatusException e) {
-      this.errors.sendError(
-        response,
-        requestIdFor(request),
-        e.statusCode(),
-        e.errorCode(),
-        e.getMessage()
-      );
-    } catch (final EIPasswordException e) {
-      LOG.debug("password: ", e);
-      this.errors.sendError(
-        response,
-        requestIdFor(request),
-        INTERNAL_SERVER_ERROR_500,
-        "password",
-        e.getMessage()
-      );
-    } catch (final EIServerDatabaseException e) {
-      LOG.debug("database: ", e);
-      this.errors.sendError(
-        response,
-        requestIdFor(request),
-        INTERNAL_SERVER_ERROR_500,
-        "database",
-        e.getMessage()
-      );
-    } finally {
-      MDC.remove("client");
-      MDC.remove("request");
     }
   }
 
@@ -226,7 +211,7 @@ public final class EIPLogin extends HttpServlet
       if (message instanceof EISP1CommandLogin login) {
         return login;
       }
-    } catch (final EIServerProtocolException e) {
+    } catch (final EIProtocolException e) {
       throw new EIHTTPErrorStatusException(
         BAD_REQUEST_400,
         "protocol",

@@ -16,6 +16,8 @@
 
 package com.io7m.eigion.server.api;
 
+import com.io7m.eigion.server.database.api.EIServerDatabaseType;
+
 import java.util.concurrent.Flow;
 
 /**
@@ -32,6 +34,12 @@ public interface EIServerType extends AutoCloseable
 
   void start()
     throws EIServerException;
+
+  /**
+   * @return The server's database instance
+   */
+
+  EIServerDatabaseType database();
 
   /**
    * @return A stream of server events

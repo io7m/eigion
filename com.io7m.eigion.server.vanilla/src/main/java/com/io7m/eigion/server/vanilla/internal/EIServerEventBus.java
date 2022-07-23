@@ -79,6 +79,6 @@ public final class EIServerEventBus
   public String toString()
   {
     return "[EIServerEventBus 0x%s]"
-      .formatted(Long.toUnsignedString((long) this.hashCode()));
+      .formatted(Long.toUnsignedString(this.hashCode()));
   }
 }

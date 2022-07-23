@@ -16,25 +16,16 @@
 
 package com.io7m.eigion.tests;
 
-import com.io7m.eigion.server.protocol.api.EIServerProtocolException;
-import com.io7m.eigion.server.protocol.versions.EISVProtocols;
+import com.io7m.eigion.protocol.versions.EISVProtocols;
 import org.junit.jupiter.api.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-import java.net.http.HttpResponse;
-
-import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Testcontainers(disabledWithoutDocker = true)
 public final class EIServerPublicAPIVersionsTest extends EIServerContract
 {
-  private static final Logger LOG =
-    LoggerFactory.getLogger(EIServerPublicAPIVersionsTest.class);
-
   /**
    * Touching the base URL works.
    *
@@ -54,16 +45,6 @@ public final class EIServerPublicAPIVersionsTest extends EIServerContract
     assertEquals(200, response.statusCode());
 
     final var message =
-      this.parse(response, EISVProtocols.class);
-  }
-
-  private <T> T parse(
-    final HttpResponse<byte[]> response,
-    final Class<T> clazz)
-    throws EIServerProtocolException
-  {
-    final var bodyText = response.body();
-    LOG.debug("received: {}", new String(bodyText, UTF_8));
-    return clazz.cast(this.messagesV().parse(bodyText));
+      this.parseV(response, EISVProtocols.class);
   }
 }

@@ -25,9 +25,15 @@ module com.io7m.eigion.server.vanilla
 
   requires transitive com.io7m.eigion.server.api;
 
-  requires com.io7m.eigion.server.protocol.public_api.v1;
-  requires com.io7m.eigion.server.protocol.versions;
+  requires com.io7m.eigion.protocol.admin_api.v1;
+  requires com.io7m.eigion.protocol.public_api.v1;
+  requires com.io7m.eigion.protocol.versions;
+  requires com.io7m.eigion.server.security;
   requires com.io7m.eigion.services.api;
+
+  requires ch.qos.logback.classic;
+  requires ch.qos.logback.core;
+  requires com.fasterxml.jackson.databind;
   requires com.io7m.jmulticlose.core;
   requires com.io7m.jxtrand.vanilla;
   requires java.desktop;
@@ -40,5 +46,8 @@ module com.io7m.eigion.server.vanilla
     to com.io7m.jxtrand.vanilla;
 
   exports com.io7m.eigion.server.vanilla;
-  exports com.io7m.eigion.server.vanilla.internal;
+  exports com.io7m.eigion.server.vanilla.logging;
+
+  opens com.io7m.eigion.server.vanilla.logging
+    to com.io7m.jxtrand.vanilla;
 }

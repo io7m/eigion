@@ -51,6 +51,27 @@ public interface EIServerDatabaseTransactionType extends AutoCloseable
     throws EIServerDatabaseException;
 
   /**
+   * Set the admin ID for the transaction. This is the ID that will typically
+   * end up in audit events.
+   *
+   * @param adminId The admin ID
+   *
+   * @throws EIServerDatabaseException On errors
+   */
+
+  void adminIdSet(UUID adminId)
+    throws EIServerDatabaseException;
+
+  /**
+   * @return The current admin ID
+   *
+   * @throws EIServerDatabaseException On errors
+   */
+
+  UUID adminId()
+    throws EIServerDatabaseException;
+
+  /**
    * Obtain queries for the transaction.
    *
    * @param queryClass The query type

@@ -19,7 +19,7 @@ package com.io7m.eigion.server.vanilla.internal.public_api;
 
 import com.io7m.eigion.model.EIPasswordException;
 import com.io7m.eigion.server.database.api.EIServerDatabaseException;
-import com.io7m.eigion.server.protocol.public_api.v1.EISP1Messages;
+import com.io7m.eigion.protocol.public_api.v1.EISP1Messages;
 import com.io7m.eigion.server.vanilla.internal.EIHTTPErrorStatusException;
 import com.io7m.eigion.server.vanilla.internal.EIServerClock;
 import com.io7m.eigion.server.vanilla.internal.EIServerEventBus;
@@ -31,15 +31,15 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import org.eclipse.jetty.http.HttpStatus;
+import org.eclipse.jetty.server.Request;
 import org.slf4j.Logger;
-import org.slf4j.MDC;
 
 import java.io.IOException;
-import java.net.URI;
 import java.util.Objects;
 import java.util.UUID;
 
 import static com.io7m.eigion.server.vanilla.internal.EIServerRequestDecoration.requestIdFor;
+import static com.io7m.eigion.server.vanilla.logging.EIServerMDCRequestProcessor.mdcForRequest;
 import static org.eclipse.jetty.http.HttpStatus.INTERNAL_SERVER_ERROR_500;
 
 /**
@@ -54,9 +54,7 @@ public abstract class EIPAuthenticatedServlet extends HttpServlet
   private final EIServerEventBus events;
   private final EIServerStrings strings;
   private final EISP1Messages messages;
-  private URI clientURI;
-  private HttpServletResponse response;
-  private UUID userId;
+  private EIPUser user;
 
   /**
    * A servlet that checks that a user is authenticated before delegating
@@ -82,65 +80,18 @@ public abstract class EIPAuthenticatedServlet extends HttpServlet
       services.requireService(EIPSends.class);
   }
 
-  private static String clientOf(
-    final HttpServletRequest servletRequest,
-    final UUID user)
-  {
-    return new StringBuilder(64)
-      .append('[')
-      .append(servletRequest.getRemoteAddr())
-      .append(':')
-      .append(servletRequest.getRemotePort())
-      .append(' ')
-      .append(user)
-      .append(']')
-      .toString();
-  }
+  /**
+   * @return The authenticated user
+   */
 
-  private static String clientOf(
-    final HttpServletRequest servletRequest)
+  protected final EIPUser user()
   {
-    return new StringBuilder(64)
-      .append('[')
-      .append(servletRequest.getRemoteAddr())
-      .append(':')
-      .append(servletRequest.getRemotePort())
-      .append(']')
-      .toString();
-  }
-
-  private static URI makeClientURI(
-    final HttpServletRequest servletRequest)
-  {
-    return URI.create(
-      new StringBuilder(64)
-        .append("client:")
-        .append(servletRequest.getRemoteAddr())
-        .append(":")
-        .append(servletRequest.getRemotePort())
-        .toString()
-    );
-  }
-
-  private static URI makeClientURI(
-    final HttpServletRequest servletRequest,
-    final UUID user)
-  {
-    return URI.create(
-      new StringBuilder(64)
-        .append("client:")
-        .append(servletRequest.getRemoteAddr())
-        .append(":")
-        .append(servletRequest.getRemotePort())
-        .append(":")
-        .append(user)
-        .toString()
-    );
+    return this.user;
   }
 
   protected final UUID userId()
   {
-    return this.userId;
+    return this.user().id();
   }
 
   protected final EIPSends sends()
@@ -176,77 +127,61 @@ public abstract class EIPAuthenticatedServlet extends HttpServlet
     HttpSession session)
     throws Exception;
 
-  /**
-   * @return The current client URI
-   */
-
-  public final URI clientURI()
-  {
-    return this.clientURI;
-  }
-
   @Override
   protected final void service(
     final HttpServletRequest request,
     final HttpServletResponse servletResponse)
     throws ServletException, IOException
   {
-    MDC.put("client", clientOf(request));
-    MDC.put("request", requestIdFor(request).toString());
+    try (var ignored0 = mdcForRequest((Request) request)) {
 
-    this.clientURI = makeClientURI(request);
-    this.response = servletResponse;
+      try {
+        final var session = request.getSession(false);
+        if (session != null) {
+          final var userId = (UUID) session.getAttribute("UserID");
+          this.user = new EIPUser(userId);
+          this.serviceAuthenticated(request, servletResponse, session);
+          return;
+        }
 
-    try {
-      final var session = request.getSession(false);
-      if (session != null) {
-        this.userId = (UUID) session.getAttribute("UserID");
-        MDC.put("client", clientOf(request, this.userId));
-        this.clientURI = makeClientURI(request, this.userId);
-        this.serviceAuthenticated(request, servletResponse, session);
-        return;
+        this.logger().debug("unauthenticated!");
+        this.sends.sendError(
+          servletResponse,
+          requestIdFor(request),
+          HttpStatus.UNAUTHORIZED_401,
+          "unauthorized",
+          this.strings.format("unauthorized")
+        );
+      } catch (final EIHTTPErrorStatusException e) {
+        this.sends.sendError(
+          servletResponse,
+          requestIdFor(request),
+          e.statusCode(),
+          e.errorCode(),
+          e.getMessage()
+        );
+      } catch (final EIPasswordException e) {
+        this.logger().debug("password: ", e);
+        this.sends.sendError(
+          servletResponse,
+          requestIdFor(request),
+          INTERNAL_SERVER_ERROR_500,
+          "password",
+          e.getMessage()
+        );
+      } catch (final EIServerDatabaseException e) {
+        this.logger().debug("database: ", e);
+        this.sends.sendError(
+          servletResponse,
+          requestIdFor(request),
+          INTERNAL_SERVER_ERROR_500,
+          "database",
+          e.getMessage()
+        );
+      } catch (final Exception e) {
+        this.logger().trace("exception: ", e);
+        throw new IOException(e);
       }
-
-      this.logger().debug("unauthenticated!");
-      this.sends.sendError(
-        servletResponse,
-        requestIdFor(request),
-        HttpStatus.UNAUTHORIZED_401,
-        "unauthorized",
-        this.strings.format("unauthorized")
-      );
-    } catch (final EIHTTPErrorStatusException e) {
-      this.sends.sendError(
-        servletResponse,
-        requestIdFor(request),
-        e.statusCode(),
-        e.errorCode(),
-        e.getMessage()
-      );
-    } catch (final EIPasswordException e) {
-      this.logger().debug("password: ", e);
-      this.sends.sendError(
-        servletResponse,
-        requestIdFor(request),
-        INTERNAL_SERVER_ERROR_500,
-        "password",
-        e.getMessage()
-      );
-    } catch (final EIServerDatabaseException e) {
-      this.logger().debug("database: ", e);
-      this.sends.sendError(
-        servletResponse,
-        requestIdFor(request),
-        INTERNAL_SERVER_ERROR_500,
-        "database",
-        e.getMessage()
-      );
-    } catch (final Exception e) {
-      this.logger().trace("exception: ", e);
-      throw new IOException(e);
-    } finally {
-      MDC.remove("client");
-      MDC.remove("request");
     }
   }
 }

@@ -19,6 +19,13 @@ package com.io7m.eigion.tests;
 import com.io7m.eigion.model.EIPassword;
 import com.io7m.eigion.model.EIPasswordAlgorithmPBKDF2HmacSHA256;
 import com.io7m.eigion.model.EIPasswordException;
+import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandLogin;
+import com.io7m.eigion.protocol.admin_api.v1.EISA1Messages;
+import com.io7m.eigion.protocol.api.EIProtocolException;
+import com.io7m.eigion.protocol.public_api.v1.EISP1MessageType;
+import com.io7m.eigion.protocol.public_api.v1.EISP1Messages;
+import com.io7m.eigion.protocol.versions.EISVMessages;
+import com.io7m.eigion.server.api.EIServerAdminSharedSecret;
 import com.io7m.eigion.server.api.EIServerClosed;
 import com.io7m.eigion.server.api.EIServerConfiguration;
 import com.io7m.eigion.server.api.EIServerEventType;
@@ -27,14 +34,11 @@ import com.io7m.eigion.server.api.EIServerStarted;
 import com.io7m.eigion.server.api.EIServerStarting;
 import com.io7m.eigion.server.api.EIServerType;
 import com.io7m.eigion.server.api.EIServerUserLoggedIn;
+import com.io7m.eigion.server.database.api.EIServerDatabaseAdminsQueriesType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseConfiguration;
 import com.io7m.eigion.server.database.api.EIServerDatabaseException;
 import com.io7m.eigion.server.database.api.EIServerDatabaseUsersQueriesType;
 import com.io7m.eigion.server.database.postgres.EIServerDatabases;
-import com.io7m.eigion.server.protocol.api.EIServerProtocolException;
-import com.io7m.eigion.server.protocol.public_api.v1.EISP1MessageType;
-import com.io7m.eigion.server.protocol.public_api.v1.EISP1Messages;
-import com.io7m.eigion.server.protocol.versions.EISVMessages;
 import com.io7m.eigion.server.vanilla.EIServers;
 import com.io7m.eigion.storage.api.EIStorageParameters;
 import org.junit.jupiter.api.AfterEach;
@@ -64,6 +68,7 @@ import static com.io7m.eigion.server.database.api.EIServerDatabaseCreate.CREATE_
 import static com.io7m.eigion.server.database.api.EIServerDatabaseRole.EIGION;
 import static com.io7m.eigion.server.database.api.EIServerDatabaseUpgrade.UPGRADE_DATABASE;
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @Testcontainers(disabledWithoutDocker = true)
 public abstract class EIServerContract
@@ -78,16 +83,17 @@ public abstract class EIServerContract
       .withUsername("postgres")
       .withPassword("12345678");
 
-  private EIServers servers;
-  private EIServerType server;
-  private EICapturingDatabases databases;
-  private HttpClient httpClient;
   private ArrayList<String> events;
-  private EISP1Messages messagesV1;
-  private Path directory;
   private CookieManager cookies;
-  private EISVMessages messagesV;
+  private EICapturingDatabases databases;
   private EIFakeStorageFactory storage;
+  private EISA1Messages messagesAdminV1;
+  private EISP1Messages messagesPublicV1;
+  private EISVMessages messagesV;
+  private EIServerType server;
+  private EIServers servers;
+  private HttpClient httpClient;
+  private Path directory;
 
   private static String describeEvent(
     final EIServerEventType item)
@@ -180,9 +186,14 @@ public abstract class EIServerContract
     return this.server;
   }
 
-  public final EISP1Messages messagesV1()
+  public final EISP1Messages messagesPublicV1()
   {
-    return this.messagesV1;
+    return this.messagesPublicV1;
+  }
+
+  public final EISA1Messages messagesAdminV1()
+  {
+    return this.messagesAdminV1;
   }
 
   public final Path directory()
@@ -207,8 +218,10 @@ public abstract class EIServerContract
       this.createServer();
     this.events =
       new ArrayList<String>();
-    this.messagesV1 =
+    this.messagesPublicV1 =
       new EISP1Messages();
+    this.messagesAdminV1 =
+      new EISA1Messages();
     this.messagesV =
       new EISVMessages();
 
@@ -287,6 +300,8 @@ public abstract class EIServerContract
         databaseConfiguration,
         this.storage,
         new EIStorageParameters(Map.of()),
+        new EIServerAdminSharedSecret(
+          "8A8B93C04F67A3956AB6109F30063F1A6A7C6679787D72CC0730CC8390396F05"),
         new InetSocketAddress("localhost", 40000),
         new InetSocketAddress("localhost", 40001),
         this.directory,
@@ -339,13 +354,37 @@ public abstract class EIServerContract
     );
   }
 
-  protected final HttpResponse<byte[]> getAdmin(
-    final String endpoint)
+  protected final <T extends EISP1MessageType> T parsePublic(
+    final HttpResponse<byte[]> response,
+    final Class<T> clazz)
+    throws EIProtocolException
+  {
+    final var bodyText = response.body();
+    LOG.debug("received: {}", new String(bodyText, UTF_8));
+    return clazz.cast(this.messagesPublicV1().parse(bodyText));
+  }
+
+  protected final HttpResponse<byte[]> postAdminText(
+    final String endpoint,
+    final String text)
+    throws Exception
+  {
+    return this.postAdminBytes(
+      endpoint, text.getBytes(UTF_8)
+    );
+  }
+
+  protected final HttpResponse<byte[]> postAdminBytes(
+    final String endpoint,
+    final byte[] text)
     throws Exception
   {
     final var request =
       HttpRequest.newBuilder()
-        .GET()
+        .header(
+          "Eigion-Admin-Secret",
+          "8A8B93C04F67A3956AB6109F30063F1A6A7C6679787D72CC0730CC8390396F05")
+        .POST(HttpRequest.BodyPublishers.ofByteArray(text))
         .uri(URI.create("http://localhost:40000" + endpoint))
         .build();
 
@@ -355,13 +394,83 @@ public abstract class EIServerContract
     );
   }
 
-  protected final <T extends EISP1MessageType> T parsePublic(
+  protected final HttpResponse<byte[]> getAdmin(
+    final String endpoint)
+    throws Exception
+  {
+    final var request =
+      HttpRequest.newBuilder()
+        .GET()
+        .header(
+          "Eigion-Admin-Secret",
+          "8A8B93C04F67A3956AB6109F30063F1A6A7C6679787D72CC0730CC8390396F05")
+        .uri(URI.create("http://localhost:40000" + endpoint))
+        .build();
+
+    return this.httpClient.send(
+      request,
+      HttpResponse.BodyHandlers.ofByteArray()
+    );
+  }
+
+  protected final <T> T parseAdmin(
     final HttpResponse<byte[]> response,
     final Class<T> clazz)
-    throws EIServerProtocolException
+    throws EIProtocolException
   {
     final var bodyText = response.body();
-    LOG.debug("received: {}", bodyText);
-    return clazz.cast(this.messagesV1().parse(bodyText));
+    LOG.debug("received: {}", new String(bodyText, UTF_8));
+    return clazz.cast(this.messagesAdminV1().parse(bodyText));
+  }
+
+  protected final <T> T parseV(
+    final HttpResponse<byte[]> response,
+    final Class<T> clazz)
+    throws EIProtocolException
+  {
+    final var bodyText = response.body();
+    LOG.debug("received: {}", new String(bodyText, UTF_8));
+    return clazz.cast(this.messagesV().parse(bodyText));
+  }
+
+  protected final void doLoginAdmin(
+    final String user,
+    final String pass)
+    throws Exception
+  {
+    final var r =
+      this.postAdminBytes(
+        "/admin/1/0/login",
+        this.messagesAdminV1().serialize(
+          new EISA1CommandLogin(user, pass))
+      );
+    assertEquals(200, r.statusCode());
+  }
+
+  protected final void createAdminInitial(
+    final String user,
+    final String pass)
+    throws Exception
+  {
+    final var database = this.databases.mostRecent();
+    try (var c = database.openConnection(EIGION)) {
+      try (var t = c.openTransaction()) {
+        final var q =
+          t.queries(EIServerDatabaseAdminsQueriesType.class);
+
+        final var password =
+          EIPasswordAlgorithmPBKDF2HmacSHA256.create()
+            .createHashed(pass);
+
+        q.adminCreateInitial(
+          UUID.randomUUID(),
+          user,
+          UUID.randomUUID() + "@example.com",
+          OffsetDateTime.now(),
+          password
+        );
+        t.commit();
+      }
+    }
   }
 }

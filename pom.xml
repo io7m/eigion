@@ -21,6 +21,9 @@
   <url>https://www.io7m.com/software/eigion</url>
 
   <modules>
+    <module>com.io7m.eigion.amberjack.api</module>
+    <module>com.io7m.eigion.amberjack.cmdline</module>
+    <module>com.io7m.eigion.amberjack</module>
     <module>com.io7m.eigion.client.api</module>
     <module>com.io7m.eigion.client.database.api</module>
     <module>com.io7m.eigion.client.database</module>
@@ -38,12 +41,14 @@
     <module>com.io7m.eigion.preferences</module>
     <module>com.io7m.eigion.product.parser.api</module>
     <module>com.io7m.eigion.product.parser</module>
+    <module>com.io7m.eigion.protocol.admin_api.v1</module>
+    <module>com.io7m.eigion.protocol.api</module>
+    <module>com.io7m.eigion.protocol.public_api.v1</module>
+    <module>com.io7m.eigion.protocol.versions</module>
     <module>com.io7m.eigion.server.api</module>
     <module>com.io7m.eigion.server.database.api</module>
     <module>com.io7m.eigion.server.database.postgres</module>
-    <module>com.io7m.eigion.server.protocol.api</module>
-    <module>com.io7m.eigion.server.protocol.public_api.v1</module>
-    <module>com.io7m.eigion.server.protocol.versions</module>
+    <module>com.io7m.eigion.server.security</module>
     <module>com.io7m.eigion.server.vanilla</module>
     <module>com.io7m.eigion.services.api</module>
     <module>com.io7m.eigion.storage.api</module>
@@ -150,6 +155,11 @@
       <dependency>
         <groupId>ch.qos.logback</groupId>
         <artifactId>logback-classic</artifactId>
+        <version>${logback.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>ch.qos.logback</groupId>
+        <artifactId>logback-core</artifactId>
         <version>${logback.version}</version>
       </dependency>
       <dependency>
@@ -315,6 +325,16 @@
         <version>${jackson.version}</version>
       </dependency>
       <dependency>
+        <groupId>com.fasterxml.jackson.datatype</groupId>
+        <artifactId>jackson-datatype-jsr310</artifactId>
+        <version>${jackson.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.fasterxml.jackson.datatype</groupId>
+        <artifactId>jackson-datatype-jdk8</artifactId>
+        <version>${jackson.version}</version>
+      </dependency>
+      <dependency>
         <groupId>com.io7m.dixmont</groupId>
         <artifactId>com.io7m.dixmont.core</artifactId>
         <version>0.0.1</version>
@@ -413,6 +433,11 @@
         <groupId>com.io7m.junreachable</groupId>
         <artifactId>com.io7m.junreachable.core</artifactId>
         <version>4.0.0</version>
+      </dependency>
+      <dependency>
+        <groupId>org.jline</groupId>
+        <artifactId>jline</artifactId>
+        <version>3.21.0</version>
       </dependency>
     </dependencies>
   </dependencyManagement>

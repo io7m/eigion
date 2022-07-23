@@ -130,4 +130,11 @@ public final class EIServerDatabase implements EIServerDatabaseType
   {
     return "Server database service.";
   }
+
+  @Override
+  public String toString()
+  {
+    return "[EIServerDatabase 0x%s]"
+      .formatted(Long.toUnsignedString(this.hashCode()));
+  }
 }

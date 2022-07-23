@@ -16,7 +16,6 @@
 
 package com.io7m.eigion.tests;
 
-import com.io7m.eigion.model.EIPassword;
 import com.io7m.eigion.model.EIPasswordAlgorithmPBKDF2HmacSHA256;
 import com.io7m.eigion.server.database.api.EIServerDatabaseConfiguration;
 import com.io7m.eigion.server.database.api.EIServerDatabaseUsersQueriesType;

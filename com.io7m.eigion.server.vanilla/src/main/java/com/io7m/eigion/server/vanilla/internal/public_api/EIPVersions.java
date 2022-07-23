@@ -16,11 +16,11 @@
 
 package com.io7m.eigion.server.vanilla.internal.public_api;
 
-import com.io7m.eigion.server.protocol.api.EIServerProtocolException;
-import com.io7m.eigion.server.protocol.public_api.v1.EISP1Messages;
-import com.io7m.eigion.server.protocol.versions.EISVMessages;
-import com.io7m.eigion.server.protocol.versions.EISVProtocolSupported;
-import com.io7m.eigion.server.protocol.versions.EISVProtocols;
+import com.io7m.eigion.protocol.api.EIProtocolException;
+import com.io7m.eigion.protocol.public_api.v1.EISP1Messages;
+import com.io7m.eigion.protocol.versions.EISVMessages;
+import com.io7m.eigion.protocol.versions.EISVProtocolSupported;
+import com.io7m.eigion.protocol.versions.EISVProtocols;
 import com.io7m.eigion.services.api.EIServiceDirectoryType;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -85,7 +85,7 @@ public final class EIPVersions extends HttpServlet
       try (var output = response.getOutputStream()) {
         output.write(data);
       }
-    } catch (final EIServerProtocolException e) {
+    } catch (final EIProtocolException e) {
       throw new IOException(e);
     }
   }

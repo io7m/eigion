@@ -17,10 +17,10 @@
 
 package com.io7m.eigion.server.vanilla.internal.public_api;
 
-import com.io7m.eigion.server.protocol.api.EIServerProtocolException;
-import com.io7m.eigion.server.protocol.public_api.v1.EISP1MessageType;
-import com.io7m.eigion.server.protocol.public_api.v1.EISP1Messages;
-import com.io7m.eigion.server.protocol.public_api.v1.EISP1ResponseError;
+import com.io7m.eigion.protocol.api.EIProtocolException;
+import com.io7m.eigion.protocol.public_api.v1.EISP1MessageType;
+import com.io7m.eigion.protocol.public_api.v1.EISP1Messages;
+import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseError;
 import com.io7m.eigion.services.api.EIServiceType;
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -96,11 +96,13 @@ public final class EIPSends implements EIServiceType
 
     try {
       final var data = this.messages.serialize(message);
-      response.setContentLength(data.length);
+      response.setContentLength(data.length + 2);
       try (var output = response.getOutputStream()) {
         output.write(data);
+        output.write('\r');
+        output.write('\n');
       }
-    } catch (final EIServerProtocolException e) {
+    } catch (final EIProtocolException e) {
       throw new IOException(e);
     }
   }
@@ -109,5 +111,12 @@ public final class EIPSends implements EIServiceType
   public String description()
   {
     return "Public errors service.";
+  }
+
+  @Override
+  public String toString()
+  {
+    return "[EIPSends 0x%s]"
+      .formatted(Long.toUnsignedString(this.hashCode()));
   }
 }

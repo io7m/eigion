@@ -18,6 +18,7 @@ package com.io7m.eigion.server.database.postgres.internal;
 
 import com.io7m.eigion.product.parser.api.EIProductReleaseParsersType;
 import com.io7m.eigion.product.parser.api.EIProductReleaseSerializersType;
+import com.io7m.eigion.server.database.api.EIServerDatabaseAdminsQueriesType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseAuditQueriesType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseException;
 import com.io7m.eigion.server.database.api.EIServerDatabaseGroupsQueriesType;
@@ -37,6 +38,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
+import static com.io7m.eigion.server.database.postgres.internal.Tables.ADMINS;
 import static com.io7m.eigion.server.database.postgres.internal.Tables.USERS;
 import static org.jooq.SQLDialect.POSTGRES;
 
@@ -45,6 +47,7 @@ final class EIServerDatabaseTransaction
 {
   private final EIServerDatabaseConnection connection;
   private UUID currentUserId;
+  private UUID currentAdminId;
 
   EIServerDatabaseTransaction(
     final EIServerDatabaseConnection inConnection)
@@ -103,6 +106,7 @@ final class EIServerDatabaseTransaction
       }
 
       this.currentUserId = userId;
+      this.currentAdminId = null;
     } catch (final DataAccessException e) {
       throw new EIServerDatabaseException(e.getMessage(), e, "sql-error");
     }
@@ -125,6 +129,10 @@ final class EIServerDatabaseTransaction
     final Class<T> qClass)
     throws EIServerDatabaseException
   {
+    if (Objects.equals(qClass, EIServerDatabaseAdminsQueriesType.class)) {
+      return qClass.cast(new EIServerDatabaseAdminsQueries(this));
+    }
+
     if (Objects.equals(qClass, EIServerDatabaseUsersQueriesType.class)) {
       return qClass.cast(new EIServerDatabaseUsersQueries(this));
     }
@@ -196,6 +204,7 @@ final class EIServerDatabaseTransaction
     throws EIServerDatabaseException
   {
     this.currentUserId = null;
+    this.currentAdminId = null;
     this.rollback();
   }
 
@@ -207,5 +216,48 @@ final class EIServerDatabaseTransaction
   public EIProductReleaseParsersType productReleaseParsers()
   {
     return this.connection.database().productReleaseParsers();
+  }
+
+  @Override
+  public void adminIdSet(
+    final UUID adminId)
+    throws EIServerDatabaseException
+  {
+    Objects.requireNonNull(adminId, "adminId");
+
+    final var context = this.createContext();
+
+    try {
+      final var adminOpt =
+        context.select(ADMINS.ID)
+          .from(ADMINS)
+          .where(ADMINS.ID.eq(adminId))
+          .fetchOptional()
+          .map(r -> r.getValue(ADMINS.ID));
+
+      if (adminOpt.isEmpty()) {
+        throw new EIServerDatabaseException(
+          "No such admin: " + adminId,
+          "admin-nonexistent"
+        );
+      }
+
+      this.currentUserId = null;
+      this.currentAdminId = adminId;
+    } catch (final DataAccessException e) {
+      throw new EIServerDatabaseException(e.getMessage(), e, "sql-error");
+    }
+  }
+
+  @Override
+  public UUID adminId()
+    throws EIServerDatabaseException
+  {
+    return Optional.ofNullable(this.currentAdminId).orElseThrow(() -> {
+      return new EIServerDatabaseException(
+        "An admin must be set before calling this method.",
+        "admin-unset"
+      );
+    });
   }
 }

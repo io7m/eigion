@@ -71,6 +71,6 @@ public final class EIServerClock implements EIServiceType
   public String toString()
   {
     return "[EIServerClock 0x%s]"
-      .formatted(Long.toUnsignedString((long) this.hashCode()));
+      .formatted(Long.toUnsignedString(this.hashCode()));
   }
 }
