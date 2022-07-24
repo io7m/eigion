@@ -61,4 +61,28 @@ public final class EIServerAdminAPIServicesTest extends EIServerContract
 
     assertNotEquals(0, rm.services().size());
   }
+
+  /**
+   * Getting services fails if not authenticated.
+   *
+   * @throws Exception On errors
+   */
+
+  @Test
+  public void testGetServicesUnauthenticated()
+    throws Exception
+  {
+    assertTrue(this.container().isRunning());
+    this.server().start();
+
+    this.createAdminInitial("someone", "12345678");
+
+    final var rCreate =
+      this.postAdminText("/admin/1/0/command", """
+{
+  "%Type": "CommandServicesList"
+}""");
+
+    assertEquals(401, rCreate.statusCode());
+  }
 }
