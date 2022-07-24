@@ -32,6 +32,61 @@ import static com.io7m.eigion.amberjack.cmdline.internal.EISCommandResult.SUCCES
 public final class EISCommandAudit
   extends EISAbstractCommand<EISCommandAudit.Parameters>
 {
+  /**
+   * A command to retrieve audit logs by a time range.
+   *
+   * @param inController The controller
+   * @param inStrings    The string resources
+   */
+
+  public EISCommandAudit(
+    final EISController inController,
+    final EISStrings inStrings)
+  {
+    super(inController, inStrings, "audit");
+  }
+
+  @Override
+  protected Parameters createEmptyParameters()
+  {
+    return new Parameters();
+  }
+
+  @Override
+  protected EISCommandResult runActual(
+    final Terminal terminal,
+    final Parameters params)
+    throws EIAClientException, InterruptedException
+  {
+    final var writer = terminal.writer();
+
+    final var events =
+      this.controller()
+        .client()
+        .auditGet(
+          params.dateLower,
+          params.dateUpper,
+          new EISubsetMatch<>(params.ownerInclude, params.ownerExclude),
+          new EISubsetMatch<>(params.typeInclude, params.typeExclude),
+          new EISubsetMatch<>(params.messageInclude, params.messageExclude)
+        );
+
+    if (!events.isEmpty()) {
+      writer.println("# id | owner | time | type | message");
+      for (final var event : events) {
+        writer.printf(
+          "%s | %s | %s | %s | %s%n",
+          Long.toUnsignedString(event.id()),
+          event.owner(),
+          event.time(),
+          event.type(),
+          event.message()
+        );
+      }
+    }
+    return SUCCESS;
+  }
+
   protected static final class Parameters
     implements EISParameterHolderType
   {
@@ -89,60 +144,5 @@ public final class EISCommandAudit
     {
 
     }
-  }
-
-  /**
-   * A command to retrieve audit logs by a time range.
-   *
-   * @param inController The controller
-   * @param inStrings    The string resources
-   */
-
-  public EISCommandAudit(
-    final EISController inController,
-    final EISStrings inStrings)
-  {
-    super(inController, inStrings, "audit");
-  }
-
-  @Override
-  protected Parameters createEmptyParameters()
-  {
-    return new Parameters();
-  }
-
-  @Override
-  protected EISCommandResult runActual(
-    final Terminal terminal,
-    final Parameters params)
-    throws EIAClientException, InterruptedException
-  {
-    final var writer = terminal.writer();
-
-    final var events =
-      this.controller()
-        .client()
-        .auditGet(
-          params.dateLower,
-          params.dateUpper,
-          new EISubsetMatch<>(params.ownerInclude, params.ownerExclude),
-          new EISubsetMatch<>(params.typeInclude, params.typeExclude),
-          new EISubsetMatch<>(params.messageInclude, params.messageExclude)
-        );
-
-    if (!events.isEmpty()) {
-      writer.println("# id | owner | time | type | message");
-      for (final var event : events) {
-        writer.printf(
-          "%s | %s | %s | %s | %s%n",
-          Long.toUnsignedString(event.id()),
-          event.owner(),
-          event.time(),
-          event.type(),
-          event.message()
-        );
-      }
-    }
-    return SUCCESS;
   }
 }

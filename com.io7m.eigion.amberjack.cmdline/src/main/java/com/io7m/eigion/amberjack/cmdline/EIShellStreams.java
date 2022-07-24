@@ -14,35 +14,37 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-
 package com.io7m.eigion.amberjack.cmdline;
 
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.Objects;
+
 /**
- * A command wants the shell to exit.
+ * Replacement shell streams.
+ *
+ * @param inputStream  The input stream to use in place of the default
+ *                     controlling terminal
+ * @param outputStream The output stream to use in place of the default
+ *                     controlling terminal
  */
 
-public final class EISExitException extends Exception
+public record EIShellStreams(
+  InputStream inputStream,
+  OutputStream outputStream)
 {
-  private final int code;
-
   /**
-   * @return The exit code
-   */
-
-  public int code()
-  {
-    return this.code;
-  }
-
-  /**
-   * A command wants the shell to exit.
+   * Replacement shell streams.
    *
-   * @param exitCode The exit code
+   * @param inputStream  The input stream to use in place of the default
+   *                     controlling terminal
+   * @param outputStream The output stream to use in place of the default
+   *                     controlling terminal
    */
 
-  public EISExitException(
-    final int exitCode)
+  public EIShellStreams
   {
-    this.code = exitCode;
+    Objects.requireNonNull(inputStream, "inputStream");
+    Objects.requireNonNull(outputStream, "outputStream");
   }
 }

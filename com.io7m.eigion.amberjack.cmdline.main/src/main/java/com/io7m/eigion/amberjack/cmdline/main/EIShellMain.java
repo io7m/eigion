@@ -32,7 +32,9 @@ import java.io.IOException;
 import java.util.Locale;
 import java.util.ServiceConfigurationError;
 import java.util.ServiceLoader;
+import java.util.function.Consumer;
 
+import static java.util.Optional.empty;
 import static org.slf4j.Logger.ROOT_LOGGER_NAME;
 
 /**
@@ -43,6 +45,8 @@ public final class EIShellMain
 {
   private static final Logger LOG =
     LoggerFactory.getLogger(EIShellMain.class);
+  private static final Consumer<String> IGNORE = s -> {
+  };
 
   private EIShellMain()
   {
@@ -130,7 +134,8 @@ public final class EIShellMain
 
     final var locale = Locale.getDefault();
     try (var client = clients.create(locale)) {
-      final var shellConfiguration = new EIShellConfiguration(client, locale);
+      final var shellConfiguration =
+        new EIShellConfiguration(client, empty(), IGNORE, locale);
       try (var shell = shells.create(shellConfiguration)) {
         shell.run();
       } catch (final EISExitException e) {

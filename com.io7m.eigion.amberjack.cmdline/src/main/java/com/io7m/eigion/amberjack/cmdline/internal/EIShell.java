@@ -31,6 +31,8 @@ import org.jline.terminal.TerminalBuilder;
 
 import java.io.IOException;
 import java.util.Objects;
+import java.util.Set;
+import java.util.function.Consumer;
 
 import static com.io7m.eigion.amberjack.cmdline.internal.EIControllerFlag.EXIT_ON_FAILED_COMMAND;
 import static com.io7m.eigion.amberjack.cmdline.internal.EISCommandResult.FAILURE;
@@ -45,12 +47,14 @@ public final class EIShell implements EIShellType
   private final Terminal terminal;
   private final LineReader reader;
   private final EISController controller;
+  private final Consumer<String> onExec;
 
   private EIShell(
     final DefaultParser inParser,
     final Terminal inTerminal,
     final LineReader inReader,
-    final EISController inCommands)
+    final EISController inCommands,
+    final Consumer<String> inOnExec)
   {
     this.parser =
       Objects.requireNonNull(inParser, "parser");
@@ -60,6 +64,8 @@ public final class EIShell implements EIShellType
       Objects.requireNonNull(inReader, "reader");
     this.controller =
       Objects.requireNonNull(inCommands, "commands");
+    this.onExec =
+      Objects.requireNonNull(inOnExec, "inOnExec");
   }
 
   /**
@@ -86,6 +92,15 @@ public final class EIShell implements EIShellType
 
     terminalBuilder.system(true);
     terminalBuilder.color(true);
+
+    configuration.streams()
+      .ifPresent(streams -> {
+        terminalBuilder.system(false);
+        terminalBuilder.dumb(true);
+        terminalBuilder.color(false);
+        terminalBuilder.type("dumb");
+        terminalBuilder.streams(streams.inputStream(), streams.outputStream());
+      });
 
     final var terminal =
       terminalBuilder.build();
@@ -121,7 +136,8 @@ public final class EIShell implements EIShellType
       parser,
       terminal,
       reader,
-      commands
+      commands,
+      configuration.executedLines()
     );
   }
 
@@ -151,6 +167,12 @@ public final class EIShell implements EIShellType
         final var result =
           this.controller.execute(this.terminal, words);
 
+        try {
+          this.onExec.accept(text);
+        } catch (final Exception e) {
+          // Don't care
+        }
+
         if (result == FAILURE
             && this.controller.isFlagSet(EXIT_ON_FAILED_COMMAND)) {
           throw new EISExitException(1);
@@ -163,6 +185,12 @@ public final class EIShell implements EIShellType
         Thread.currentThread().interrupt();
       }
     }
+  }
+
+  @Override
+  public Set<String> commandsSupported()
+  {
+    return Set.copyOf(this.controller.commands().keySet());
   }
 
   private String readLine()

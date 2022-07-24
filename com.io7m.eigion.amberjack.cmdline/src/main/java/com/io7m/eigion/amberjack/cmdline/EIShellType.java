@@ -18,6 +18,7 @@
 package com.io7m.eigion.amberjack.cmdline;
 
 import java.io.Closeable;
+import java.util.Set;
 
 /**
  * A shell.
@@ -35,4 +36,12 @@ public interface EIShellType extends Closeable
 
   void run()
     throws EISExitException;
+
+  /**
+   * Retrieve the commands supported by this shell.
+   *
+   * @return The supported commands
+   */
+
+  Set<String> commandsSupported();
 }

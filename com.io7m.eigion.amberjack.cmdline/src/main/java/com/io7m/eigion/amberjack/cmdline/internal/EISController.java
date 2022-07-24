@@ -35,6 +35,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Stream;
 
 import static com.io7m.eigion.amberjack.cmdline.internal.EISCommandResult.FAILURE;
@@ -50,6 +51,20 @@ public final class EISController
 {
   private static final Logger LOG =
     LoggerFactory.getLogger(EISController.class);
+
+  private static final Set<Class<? extends EISCommandType>> COMMAND_TYPES =
+    Set.of(
+      EISCommandAudit.class,
+      EISCommandExit.class,
+      EISCommandHelp.class,
+      EISCommandLogin.class,
+      EISCommandServices.class,
+      EISCommandSet.class,
+      EISCommandUserCreate.class,
+      EISCommandUserGet.class,
+      EISCommandUserSearch.class,
+      EISCommandVersion.class
+    );
 
   private final EISStrings strings;
   private final EIAClientType client;

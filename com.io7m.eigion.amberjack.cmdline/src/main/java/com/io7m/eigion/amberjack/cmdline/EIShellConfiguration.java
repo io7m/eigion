@@ -20,28 +20,42 @@ import com.io7m.eigion.amberjack.api.EIAClientType;
 
 import java.util.Locale;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.function.Consumer;
 
 /**
  * The configuration for a shell.
  *
- * @param client The client
- * @param locale The locale
+ * @param client        The client
+ * @param streams       The streams to use in place of the default controlling
+ *                      terminal
+ * @param executedLines A function that receives each line when executing it has
+ *                      completed
+ * @param locale        The locale
  */
 
 public record EIShellConfiguration(
   EIAClientType client,
+  Optional<EIShellStreams> streams,
+  Consumer<String> executedLines,
   Locale locale)
 {
   /**
    * The configuration for a shell.
    *
-   * @param client The client
-   * @param locale The locale
+   * @param client        The client
+   * @param streams       The streams to use in place of the default controlling
+   *                      terminal
+   * @param executedLines A function that receives each line when executing it
+   *                      has completed
+   * @param locale        The locale
    */
 
   public EIShellConfiguration
   {
     Objects.requireNonNull(client, "client");
+    Objects.requireNonNull(streams, "streams");
     Objects.requireNonNull(locale, "locale");
+    Objects.requireNonNull(executedLines, "executedLines");
   }
 }
