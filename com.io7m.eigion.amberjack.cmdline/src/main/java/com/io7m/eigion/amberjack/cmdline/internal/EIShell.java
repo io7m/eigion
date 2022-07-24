@@ -18,6 +18,7 @@
 package com.io7m.eigion.amberjack.cmdline.internal;
 
 import com.io7m.eigion.amberjack.cmdline.EISExitException;
+import com.io7m.eigion.amberjack.cmdline.EIShellCommandExecuted;
 import com.io7m.eigion.amberjack.cmdline.EIShellConfiguration;
 import com.io7m.eigion.amberjack.cmdline.EIShellType;
 import org.jline.reader.EndOfFileException;
@@ -36,6 +37,7 @@ import java.util.function.Consumer;
 
 import static com.io7m.eigion.amberjack.cmdline.internal.EIControllerFlag.EXIT_ON_FAILED_COMMAND;
 import static com.io7m.eigion.amberjack.cmdline.internal.EISCommandResult.FAILURE;
+import static com.io7m.eigion.amberjack.cmdline.internal.EISCommandResult.SUCCESS;
 
 /**
  * A shell.
@@ -47,14 +49,14 @@ public final class EIShell implements EIShellType
   private final Terminal terminal;
   private final LineReader reader;
   private final EISController controller;
-  private final Consumer<String> onExec;
+  private final Consumer<EIShellCommandExecuted> onExec;
 
   private EIShell(
     final DefaultParser inParser,
     final Terminal inTerminal,
     final LineReader inReader,
     final EISController inCommands,
-    final Consumer<String> inOnExec)
+    final Consumer<EIShellCommandExecuted> inOnExec)
   {
     this.parser =
       Objects.requireNonNull(inParser, "parser");
@@ -168,7 +170,9 @@ public final class EIShell implements EIShellType
           this.controller.execute(this.terminal, words);
 
         try {
-          this.onExec.accept(text);
+          this.onExec.accept(
+            new EIShellCommandExecuted(text, result == SUCCESS)
+          );
         } catch (final Exception e) {
           // Don't care
         }

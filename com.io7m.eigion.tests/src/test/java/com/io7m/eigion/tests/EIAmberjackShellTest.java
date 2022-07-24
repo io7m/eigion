@@ -19,6 +19,7 @@ package com.io7m.eigion.tests;
 import com.io7m.eigion.amberjack.EIAClients;
 import com.io7m.eigion.amberjack.api.EIAClientType;
 import com.io7m.eigion.amberjack.cmdline.EISExitException;
+import com.io7m.eigion.amberjack.cmdline.EIShellCommandExecuted;
 import com.io7m.eigion.amberjack.cmdline.EIShellConfiguration;
 import com.io7m.eigion.amberjack.cmdline.EIShellStreams;
 import com.io7m.eigion.amberjack.cmdline.EIShellType;
@@ -32,7 +33,6 @@ import org.slf4j.LoggerFactory;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Locale;
 import java.util.Optional;
@@ -41,6 +41,7 @@ import java.util.function.Consumer;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -58,7 +59,7 @@ public final class EIAmberjackShellTest extends EIWithServerContract
   private EIShells shells;
   private ByteArrayOutputStream output;
   private EIShellType shell;
-  private ArrayList<String> commands;
+  private ArrayList<EIShellCommandExecuted> commands;
 
   @BeforeEach
   public void setup()
@@ -86,7 +87,7 @@ public final class EIAmberjackShellTest extends EIWithServerContract
 
   private EIShellType createShell(
     final String text,
-    final Consumer<String> executedLines)
+    final Consumer<EIShellCommandExecuted> executedLines)
     throws IOException
   {
     final var input =
@@ -103,10 +104,10 @@ public final class EIAmberjackShellTest extends EIWithServerContract
   }
 
   private void onExec(
-    final String command)
+    final EIShellCommandExecuted executed)
   {
-    LOG.debug("executed {}", command);
-    this.commands.add(command);
+    LOG.debug("executed {}", executed);
+    this.commands.add(executed);
   }
 
   /**
@@ -120,7 +121,8 @@ public final class EIAmberjackShellTest extends EIWithServerContract
     throws Exception
   {
     final Set<String> commands;
-    try (var tempShell = this.createShell("", s -> {})) {
+    try (var tempShell = this.createShell("", s -> {
+    })) {
       commands = tempShell.commandsSupported();
     }
 
@@ -135,6 +137,47 @@ public final class EIAmberjackShellTest extends EIWithServerContract
     this.shell.run();
 
     assertEquals(10, this.commands.size());
+    assertTrue(this.commands.stream().allMatch(EIShellCommandExecuted::succeeded));
+  }
+
+  /**
+   * Help works.
+   *
+   * @throws Exception On errors
+   */
+
+  @Test
+  public void testHelpSelf()
+    throws Exception
+  {
+    final var buffer = new StringBuilder(256);
+    buffer.append("help\n");
+
+    this.shell = this.createShell(buffer.toString(), this::onExec);
+    this.shell.run();
+
+    assertEquals(1, this.commands.size());
+    assertTrue(this.commands.stream().allMatch(EIShellCommandExecuted::succeeded));
+  }
+
+  /**
+   * Help rejects nonexistent commands.
+   *
+   * @throws Exception On errors
+   */
+
+  @Test
+  public void testHelpNonexistent()
+    throws Exception
+  {
+    final var buffer = new StringBuilder(256);
+    buffer.append("help nonexistent\n");
+
+    this.shell = this.createShell(buffer.toString(), this::onExec);
+    this.shell.run();
+
+    assertEquals(1, this.commands.size());
+    assertTrue(this.commands.stream().noneMatch(EIShellCommandExecuted::succeeded));
   }
 
   /**
@@ -159,6 +202,7 @@ public final class EIAmberjackShellTest extends EIWithServerContract
     this.shell.run();
 
     assertEquals(2, this.commands.size());
+    assertTrue(this.commands.stream().allMatch(EIShellCommandExecuted::succeeded));
   }
 
   /**
@@ -182,5 +226,194 @@ public final class EIAmberjackShellTest extends EIWithServerContract
     final var ex = assertThrows(EISExitException.class, () -> this.shell.run());
     assertEquals(1, ex.code());
     assertEquals(2, this.commands.size());
+  }
+
+  /**
+   * Almost all commands will fail if not logged in.
+   *
+   * @throws Exception On errors
+   */
+
+  @Test
+  public void testNotLoggedInExhaustive()
+    throws Exception
+  {
+    this.serverCreateAdminInitial("someone", "12345678");
+
+    final var buffer = new StringBuilder(256);
+    buffer.append("audit --dateLower 2022-07-01\n");
+    buffer.append(
+      "user-create --name someone --email someone@example.com --password 12345678\n");
+    buffer.append("user-get --name someone\n");
+    buffer.append("user-get --email someone@example.com\n");
+    buffer.append("user-get --id 97fdf688-d0fd-44e9-804e-4100c30d0ce1\n");
+    buffer.append("user-search --query someone\n");
+    buffer.append("services\n");
+
+    this.shell = this.createShell(buffer.toString(), this::onExec);
+    this.shell.run();
+
+    assertEquals(7, this.commands.size());
+    assertTrue(this.commands.stream().noneMatch(EIShellCommandExecuted::succeeded));
+  }
+
+  /**
+   * Creating and retrieving a user works.
+   *
+   * @throws Exception On errors
+   */
+
+  @Test
+  public void testUserCreateGet()
+    throws Exception
+  {
+    this.serverCreateAdminInitial("someone", "12345678");
+
+    final var buffer = new StringBuilder(256);
+    buffer.append("set --exit-on-failed-command true\n");
+    buffer.append(
+      "login --username someone --password 12345678 --server %s\n"
+        .formatted(this.serverAdminURI()));
+    buffer.append(
+      "user-create --name u --email ex@example.com --password 12345678\n"
+    );
+    buffer.append(
+      "user-get --name u\n"
+    );
+    buffer.append(
+      "user-get --email ex@example.com\n"
+    );
+    buffer.append(
+      "user-search --query ex@example.com\n"
+    );
+
+    this.shell = this.createShell(buffer.toString(), this::onExec);
+    this.shell.run();
+
+    assertEquals(6, this.commands.size());
+    assertTrue(this.commands.stream().allMatch(EIShellCommandExecuted::succeeded));
+  }
+
+  /**
+   * Retrieving a user requires an argument.
+   *
+   * @throws Exception On errors
+   */
+
+  @Test
+  public void testUserGetNoArguments()
+    throws Exception
+  {
+    this.serverCreateAdminInitial("someone", "12345678");
+
+    final var buffer = new StringBuilder(256);
+    buffer.append("user-get\n");
+
+    this.shell = this.createShell(buffer.toString(), this::onExec);
+    this.shell.run();
+
+    assertEquals(1, this.commands.size());
+    assertFalse(this.commands.get(0).succeeded());
+  }
+
+  /**
+   * Exiting works.
+   *
+   * @throws Exception On errors
+   */
+
+  @Test
+  public void testExit()
+    throws Exception
+  {
+    final var buffer = new StringBuilder(256);
+    buffer.append("exit --code 1\n");
+
+    this.shell = this.createShell(buffer.toString(), this::onExec);
+
+    final var ex =
+      assertThrows(EISExitException.class, () -> this.shell.run());
+    assertEquals(1, ex.code());
+  }
+
+  /**
+   * Fetching audit records works.
+   *
+   * @throws Exception On errors
+   */
+
+  @Test
+  public void testAuditGet()
+    throws Exception
+  {
+    this.serverCreateAdminInitial("someone", "12345678");
+
+    final var buffer = new StringBuilder(256);
+    buffer.append("set --exit-on-failed-command true\n");
+    buffer.append(
+      "login --username someone --password 12345678 --server %s\n"
+        .formatted(this.serverAdminURI()));
+    buffer.append(
+      "user-create --name u --email ex@example.com --password 12345678\n"
+    );
+    buffer.append(
+      "audit --dateLower 2022-07-01\n"
+    );
+
+    this.shell = this.createShell(buffer.toString(), this::onExec);
+    this.shell.run();
+
+    assertEquals(4, this.commands.size());
+    assertTrue(this.commands.stream().allMatch(EIShellCommandExecuted::succeeded));
+  }
+
+  /**
+   * Fetching services works.
+   *
+   * @throws Exception On errors
+   */
+
+  @Test
+  public void testServicesGet()
+    throws Exception
+  {
+    this.serverCreateAdminInitial("someone", "12345678");
+
+    final var buffer = new StringBuilder(256);
+    buffer.append("set --exit-on-failed-command true\n");
+    buffer.append(
+      "login --username someone --password 12345678 --server %s\n"
+        .formatted(this.serverAdminURI()));
+    buffer.append(
+      "services\n"
+    );
+
+    this.shell = this.createShell(buffer.toString(), this::onExec);
+    this.shell.run();
+
+    assertEquals(3, this.commands.size());
+    assertTrue(this.commands.stream().allMatch(EIShellCommandExecuted::succeeded));
+  }
+
+  /**
+   * Showing the application version works.
+   *
+   * @throws Exception On errors
+   */
+
+  @Test
+  public void testVersion()
+    throws Exception
+  {
+    this.serverCreateAdminInitial("someone", "12345678");
+
+    final var buffer = new StringBuilder(256);
+    buffer.append("version\n");
+
+    this.shell = this.createShell(buffer.toString(), this::onExec);
+    this.shell.run();
+
+    assertEquals(1, this.commands.size());
+    assertTrue(this.commands.stream().allMatch(EIShellCommandExecuted::succeeded));
   }
 }

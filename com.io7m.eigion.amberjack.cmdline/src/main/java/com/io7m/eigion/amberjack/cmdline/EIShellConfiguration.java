@@ -37,7 +37,7 @@ import java.util.function.Consumer;
 public record EIShellConfiguration(
   EIAClientType client,
   Optional<EIShellStreams> streams,
-  Consumer<String> executedLines,
+  Consumer<EIShellCommandExecuted> executedLines,
   Locale locale)
 {
   /**

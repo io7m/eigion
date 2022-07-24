@@ -23,6 +23,7 @@ import com.beust.jcommander.Parameter;
 import com.io7m.eigion.amberjack.api.EIAClientException;
 import com.io7m.eigion.amberjack.api.EIAClientFactoryType;
 import com.io7m.eigion.amberjack.cmdline.EISExitException;
+import com.io7m.eigion.amberjack.cmdline.EIShellCommandExecuted;
 import com.io7m.eigion.amberjack.cmdline.EIShellConfiguration;
 import com.io7m.eigion.amberjack.cmdline.EIShellFactoryType;
 import org.slf4j.Logger;
@@ -45,7 +46,8 @@ public final class EIShellMain
 {
   private static final Logger LOG =
     LoggerFactory.getLogger(EIShellMain.class);
-  private static final Consumer<String> IGNORE = s -> {
+
+  private static final Consumer<EIShellCommandExecuted> IGNORE = s -> {
   };
 
   private EIShellMain()
