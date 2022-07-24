@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.io7m.anethum.common.SerializeException;
+import com.io7m.eigion.hash.EIHash;
 import com.io7m.eigion.model.EIChange;
 import com.io7m.eigion.model.EIChangeTicket;
 import com.io7m.eigion.model.EILink;
@@ -29,7 +30,6 @@ import com.io7m.eigion.model.EIProductBundleDependency;
 import com.io7m.eigion.model.EIProductCategory;
 import com.io7m.eigion.model.EIProductDependency;
 import com.io7m.eigion.model.EIProductDescription;
-import com.io7m.eigion.hash.EIHash;
 import com.io7m.eigion.model.EIProductIdentifier;
 import com.io7m.eigion.model.EIProductRelease;
 import com.io7m.eigion.model.EIProductVersion;
@@ -200,7 +200,7 @@ public final class EIv1ProductsSerializer implements EIProductsSerializerType
   {
     return new EIv1ProductId(
       id.name(),
-      id.group()
+      id.group().value()
     );
   }
 

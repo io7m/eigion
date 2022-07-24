@@ -64,7 +64,7 @@ public final class EIv1ProductHash
   {
     try {
       return Optional.of(new EIHash(this.algorithm, this.hash));
-    } catch (final IllegalArgumentException e) {
+    } catch (final Exception e) {
       errorConsumer.accept(
         ParseStatus.builder()
           .setSeverity(ParseSeverity.PARSE_ERROR)

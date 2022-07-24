@@ -49,7 +49,7 @@ public record EIProductCategory(
 
     final var matcher = VALID_CATEGORY.matcher(value);
     if (!matcher.matches()) {
-      throw new IllegalArgumentException(
+      throw new EIValidityException(
         String.format("Category '%s' must match %s", value, VALID_CATEGORY));
     }
   }

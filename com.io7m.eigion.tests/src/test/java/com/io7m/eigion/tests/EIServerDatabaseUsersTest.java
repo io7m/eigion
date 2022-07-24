@@ -96,33 +96,33 @@ public final class EIServerDatabaseUsersTest extends EIWithDatabaseContract
         password
       );
 
-    assertEquals("someone", user.name());
+    assertEquals("someone", user.name().value());
     assertEquals(reqId, user.id());
-    assertEquals("someone@example.com", user.email());
+    assertEquals("someone@example.com", user.email().value());
     assertEquals(now.toEpochSecond(), user.created().toEpochSecond());
     assertEquals(now.toEpochSecond(), user.lastLoginTime().toEpochSecond());
     assertFalse(user.ban().isPresent());
 
     user = users.userGet(reqId).orElseThrow();
-    assertEquals("someone", user.name());
+    assertEquals("someone", user.name().value());
     assertEquals(reqId, user.id());
-    assertEquals("someone@example.com", user.email());
+    assertEquals("someone@example.com", user.email().value());
     assertEquals(now.toEpochSecond(), user.created().toEpochSecond());
     assertEquals(now.toEpochSecond(), user.lastLoginTime().toEpochSecond());
     assertFalse(user.ban().isPresent());
 
     user = users.userGetForEmail("someone@example.com").orElseThrow();
-    assertEquals("someone", user.name());
+    assertEquals("someone", user.name().value());
     assertEquals(reqId, user.id());
-    assertEquals("someone@example.com", user.email());
+    assertEquals("someone@example.com", user.email().value());
     assertEquals(now.toEpochSecond(), user.created().toEpochSecond());
     assertEquals(now.toEpochSecond(), user.lastLoginTime().toEpochSecond());
     assertFalse(user.ban().isPresent());
 
     user = users.userGetForName("someone").orElseThrow();
-    assertEquals("someone", user.name());
+    assertEquals("someone", user.name().value());
     assertEquals(reqId, user.id());
-    assertEquals("someone@example.com", user.email());
+    assertEquals("someone@example.com", user.email().value());
     assertEquals(now.toEpochSecond(), user.created().toEpochSecond());
     assertEquals(now.toEpochSecond(), user.lastLoginTime().toEpochSecond());
     assertFalse(user.ban().isPresent());

@@ -29,8 +29,8 @@ import java.util.UUID;
 
 public record EIUserSummary(
   UUID id,
-  String name,
-  String email)
+  EIUserDisplayName name,
+  EIUserEmail email)
 {
   /**
    * A summary of the "identifier" parts of a user.

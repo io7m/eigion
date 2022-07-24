@@ -52,7 +52,7 @@ public record EIProductDescription(
     Objects.requireNonNull(links, "links");
 
     if (title.length() > 128) {
-      throw new IllegalArgumentException(
+      throw new EIValidityException(
         "Product titles must be <= 128 characters");
     }
   }

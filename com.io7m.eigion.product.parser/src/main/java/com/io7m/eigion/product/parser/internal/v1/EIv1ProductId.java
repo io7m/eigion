@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.io7m.anethum.common.ParseSeverity;
 import com.io7m.anethum.common.ParseStatus;
+import com.io7m.eigion.model.EIGroupName;
 import com.io7m.eigion.model.EIProductIdentifier;
 import com.io7m.jlexing.core.LexicalPositions;
 
@@ -63,7 +64,8 @@ public final class EIv1ProductId
     final Consumer<ParseStatus> errorConsumer)
   {
     try {
-      return Optional.of(new EIProductIdentifier(this.group, this.name));
+      return Optional.of(
+        new EIProductIdentifier(new EIGroupName(this.group), this.name));
     } catch (final Exception e) {
       errorConsumer.accept(
         ParseStatus.builder()

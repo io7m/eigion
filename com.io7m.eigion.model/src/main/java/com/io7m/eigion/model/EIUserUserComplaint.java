@@ -17,14 +17,16 @@
 package com.io7m.eigion.model;
 
 import java.time.OffsetDateTime;
+import java.util.Objects;
 import java.util.UUID;
 
 /**
  * A complaint made about a {@code userTarget} by {@code userComplainer}.
+ *
  * @param userComplainer The complaining user
- * @param userTarget The target user
- * @param created The creation time
- * @param reason The complaint reason
+ * @param userTarget     The target user
+ * @param created        The creation time
+ * @param reason         The complaint reason
  */
 
 public record EIUserUserComplaint(
@@ -33,5 +35,28 @@ public record EIUserUserComplaint(
   OffsetDateTime created,
   String reason)
 {
+  /**
+   * A complaint made about a {@code userTarget} by {@code userComplainer}.
+   *
+   * @param userComplainer The complaining user
+   * @param userTarget     The target user
+   * @param created        The creation time
+   * @param reason         The complaint reason
+   */
 
+  public EIUserUserComplaint
+  {
+    Objects.requireNonNull(userComplainer, "userComplainer");
+    Objects.requireNonNull(userTarget, "userTarget");
+    Objects.requireNonNull(created, "created");
+    Objects.requireNonNull(reason, "reason");
+
+    final var length = reason.length();
+    if (length > 4096) {
+      throw new EIValidityException(
+        "Complaint reason length %d must be <= 4096"
+          .formatted(Integer.valueOf(length))
+      );
+    }
+  }
 }

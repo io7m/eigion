@@ -49,7 +49,7 @@ public record EIRedaction(
     Objects.requireNonNull(reason, "reason");
 
     if (reason.length() >= 256) {
-      throw new IllegalArgumentException(
+      throw new EIValidityException(
         "Redaction reasons must be < 256 characters");
     }
   }

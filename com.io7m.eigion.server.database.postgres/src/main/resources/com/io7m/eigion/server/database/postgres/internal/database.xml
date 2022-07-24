@@ -56,13 +56,13 @@ create table user_ids (
     <Statement><![CDATA[
 create table admins (
   id               uuid                     not null primary key,
-  name             varchar(64)              not null unique,
-  email            varchar(256)             not null unique,
+  name             varchar(1000000)         not null unique,
+  email            varchar(1000000)         not null unique,
   created          timestamp with time zone not null,
   last_login_time  timestamp with time zone not null,
-  password_algo    varchar(64)              not null,
-  password_hash    varchar(256)             not null,
-  password_salt    varchar(64)              not null,
+  password_algo    varchar(1000000)         not null,
+  password_hash    varchar(1000000)         not null,
+  password_salt    varchar(1000000)         not null,
 
   foreign key (id) references user_ids (id)
 )
@@ -78,13 +78,13 @@ create table admins (
     <Statement><![CDATA[
 create table users (
   id               uuid                     not null primary key,
-  name             varchar(64)              not null unique,
-  email            varchar(256)             not null unique,
+  name             varchar(1000000)         not null unique,
+  email            varchar(1000000)         not null unique,
   created          timestamp with time zone not null,
   last_login_time  timestamp with time zone not null,
-  password_algo    varchar(64)              not null,
-  password_hash    varchar(256)             not null,
-  password_salt    varchar(64)              not null,
+  password_algo    varchar(1000000)         not null,
+  password_hash    varchar(1000000)         not null,
+  password_salt    varchar(1000000)         not null,
 
   foreign key (id) references user_ids (id)
 )
@@ -108,11 +108,11 @@ create table user_user_complaints (
   user_complainer  uuid                     not null,
   user_target      uuid                     not null,
   created          timestamp with time zone not null,
-  reason           varchar(1024)            not null,
+  reason           varchar(1000000)         not null,
 
   resolved           complaint_status not null,
   resolution_admin   uuid,
-  resolution_reason  varchar(1024),
+  resolution_reason  varchar(1000000),
   resolution_time    timestamp with time zone,
 
   constraint resolution_valid check (
@@ -140,7 +140,7 @@ create table user_bans (
   id       bigint                    not null primary key generated always as identity,
   user_id  uuid                      not null unique,
   expires  timestamp with time zone,
-  reason   varchar(256)              not null,
+  reason   varchar(1000000)          not null,
 
   foreign key (user_id) references users (id)
 )
@@ -157,7 +157,7 @@ create table user_bans (
     <Statement><![CDATA[
 create table groups (
   id             bigint                    not null primary key generated always as identity,
-  name           varchar(1024)             not null unique,
+  name           varchar(1000000)          not null unique,
   creator_admin  uuid                      not null,
   creator_user   uuid                      not null,
   created        timestamp with time zone  not null,
@@ -176,10 +176,10 @@ create table groups (
 
     <Statement><![CDATA[
 create table group_users (
-  id        bigint        not null primary key generated always as identity,
-  user_id   uuid          not null,
-  group_id  bigint        not null,
-  roles     varchar(1024) not null,
+  id        bigint           not null primary key generated always as identity,
+  user_id   uuid             not null,
+  group_id  bigint           not null,
+  roles     varchar(1000000) not null,
 
   unique (user_id, group_id),
 
@@ -200,8 +200,8 @@ create table audit (
   id      bigint                   not null primary key generated always as identity,
   user_id uuid                     not null,
   time    timestamp with time zone not null,
-  type    varchar(64)              not null,
-  message varchar(8192)            not null,
+  type    varchar(1000000)         not null,
+  message varchar(1000000)         not null,
 
   foreign key (user_id) references user_ids (id)
 )
@@ -220,8 +220,8 @@ create table images (
   id         uuid                     not null primary key,
   creator    uuid                     not null,
   created    timestamp with time zone not null,
-  hash_algo  varchar(64)              not null,
-  hash_value varchar(256)             not null,
+  hash_algo  varchar(1000000)         not null,
+  hash_value varchar(1000000)         not null,
 
   foreign key (creator) references users (id)
 )
@@ -236,7 +236,7 @@ create table images (
     <Statement><![CDATA[
 create table image_redactions (
   image   uuid                     not null unique,
-  reason  varchar(256)             not null,
+  reason  varchar(1000000)         not null,
   creator uuid                     not null,
   created timestamp with time zone not null,
 
@@ -254,7 +254,7 @@ create table image_redactions (
     <Statement><![CDATA[
 create table categories (
   id      bigint                   not null primary key generated always as identity,
-  name    varchar(64)              not null unique,
+  name    varchar(1000000)         not null unique,
   created timestamp with time zone not null
 )
 ]]></Statement>
@@ -268,7 +268,7 @@ create table categories (
     <Statement><![CDATA[
 create table category_redactions (
   category  bigint                   not null unique,
-  reason    varchar(256)             not null,
+  reason    varchar(1000000)         not null,
   creator   uuid                     not null,
   created   timestamp with time zone not null,
 
@@ -289,10 +289,10 @@ create table category_redactions (
 create table products (
   id                        bigint                   not null primary key generated always as identity,
   product_group             bigint                   not null,
-  product_name              varchar(1024)            not null,
-  product_title             varchar(128)             not null,
-  product_description       text                     not null,
-  product_description_type  varchar(128)             not null,
+  product_name              varchar(1000000)         not null,
+  product_title             varchar(1000000)         not null,
+  product_description       varchar(1000000)         not null,
+  product_description_type  varchar(1000000)         not null,
   created_by                uuid                     not null,
   created                   timestamp with time zone not null,
 
@@ -314,9 +314,9 @@ create table products (
 
     <Statement><![CDATA[
 create table product_links (
-  product        bigint        not null,
-  link_relation  varchar(128)  not null,
-  link_location  varchar(2048) not null,
+  product        bigint           not null,
+  link_relation  varchar(1000000) not null,
+  link_location  varchar(1000000) not null,
 
   foreign key (product) references products (id)
 )
@@ -331,7 +331,7 @@ create table product_links (
     <Statement><![CDATA[
 create table product_redactions (
   product  bigint                   not null unique,
-  reason   varchar(256)             not null,
+  reason   varchar(1000000)         not null,
   creator  uuid                     not null,
   created  timestamp with time zone not null,
 
@@ -353,9 +353,9 @@ create table product_releases (
   version_major       bigint                   not null,
   version_minor       bigint                   not null,
   version_patch       bigint                   not null,
-  version_qualifier   varchar(64)              not null,
+  version_qualifier   varchar(1000000)         not null,
   manifest            bytea                    not null,
-  manifest_type       varchar(256)             not null,
+  manifest_type       varchar(1000000)         not null,
   created_by          uuid                     not null,
   created             timestamp with time zone not null,
 
@@ -375,7 +375,7 @@ create table product_releases (
     <Statement><![CDATA[
 create table product_release_redactions (
   release  bigint                   not null unique,
-  reason   varchar(256)             not null,
+  reason   varchar(1000000)         not null,
   creator  uuid                     not null,
   created  timestamp with time zone not null,
 

@@ -20,6 +20,7 @@ import com.io7m.anethum.common.ParseException;
 import com.io7m.anethum.common.ParseStatus;
 import com.io7m.anethum.common.SerializeException;
 import com.io7m.eigion.hash.EIHash;
+import com.io7m.eigion.model.EIGroupName;
 import com.io7m.eigion.model.EIProductBundleDependency;
 import com.io7m.eigion.model.EIProductCategory;
 import com.io7m.eigion.model.EIProductDependency;
@@ -65,14 +66,14 @@ public final class EIProductsParsersTest
 
   private static final EIProductIdentifier EXAMPLE_ID =
     new EIProductIdentifier(
-      "com.io7m.eigion",
+      new EIGroupName("com.io7m.eigion"),
       "com.io7m.eigion.api"
     );
 
   private static final EIProductDependency PRODUCT_DEPENDENCY_0 =
     new EIProductDependency(
       new EIProductIdentifier(
-        "com.io7m.zed",
+        new EIGroupName("com.io7m.zed"),
         "com.io7m.zed"
       ),
       new EIProductVersion(TWO, ZERO, ZERO, empty())
@@ -81,7 +82,7 @@ public final class EIProductsParsersTest
   private static final EIProductBundleDependency BUNDLE_DEPENDENCY_0 =
     new EIProductBundleDependency(
       new EIProductIdentifier(
-        "com.io7m.ex",
+        new EIGroupName("com.io7m.ex"),
         "com.io7m.ex"
       ),
       new EIProductVersion(ONE, ZERO, ZERO, empty()),

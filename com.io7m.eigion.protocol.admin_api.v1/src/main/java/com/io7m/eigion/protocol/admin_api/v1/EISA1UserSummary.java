@@ -19,6 +19,8 @@ package com.io7m.eigion.protocol.admin_api.v1;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.io7m.eigion.model.EIUserDisplayName;
+import com.io7m.eigion.model.EIUserEmail;
 import com.io7m.eigion.model.EIUserSummary;
 
 import java.util.Objects;
@@ -70,8 +72,8 @@ public record EISA1UserSummary(
   {
     return new EISA1UserSummary(
       u.id(),
-      u.name(),
-      u.email()
+      u.name().value(),
+      u.email().value()
     );
   }
 
@@ -85,8 +87,8 @@ public record EISA1UserSummary(
   {
     return new EIUserSummary(
       this.id,
-      this.name,
-      this.email
+      new EIUserDisplayName(this.name),
+      new EIUserEmail(this.email)
     );
   }
 }

@@ -24,6 +24,8 @@ import com.io7m.eigion.model.EIGroupName;
 import com.io7m.eigion.model.EIGroupRole;
 import com.io7m.eigion.model.EIPasswordException;
 import com.io7m.eigion.model.EIUser;
+import com.io7m.eigion.model.EIUserDisplayName;
+import com.io7m.eigion.model.EIUserEmail;
 
 import java.time.OffsetDateTime;
 import java.util.Map;
@@ -108,8 +110,8 @@ public record EISA1User(
     Objects.requireNonNull(user, "user");
     return new EISA1User(
       user.id(),
-      user.name(),
-      user.email(),
+      user.name().value(),
+      user.email().value(),
       user.created(),
       user.lastLoginTime(),
       EISA1Password.ofPassword(user.password()),
@@ -185,8 +187,8 @@ public record EISA1User(
   {
     return new EIUser(
       this.id,
-      this.name,
-      this.email,
+      new EIUserDisplayName(this.name),
+      new EIUserEmail(this.email),
       this.created,
       this.lastLoginTime,
       this.password.toPassword(),

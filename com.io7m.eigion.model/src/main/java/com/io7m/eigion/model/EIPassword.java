@@ -55,10 +55,10 @@ public record EIPassword(
     Objects.requireNonNull(salt, "salt");
 
     if (!VALID_HEX.matcher(hash).matches()) {
-      throw new IllegalArgumentException("Hash must match " + VALID_HEX);
+      throw new EIValidityException("Hash must match " + VALID_HEX);
     }
     if (!VALID_HEX.matcher(salt).matches()) {
-      throw new IllegalArgumentException("Salt must match " + VALID_HEX);
+      throw new EIValidityException("Salt must match " + VALID_HEX);
     }
   }
 

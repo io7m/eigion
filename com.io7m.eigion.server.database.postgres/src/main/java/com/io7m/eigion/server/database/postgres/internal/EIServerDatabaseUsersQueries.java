@@ -24,6 +24,8 @@ import com.io7m.eigion.model.EIPasswordAlgorithms;
 import com.io7m.eigion.model.EIPasswordException;
 import com.io7m.eigion.model.EIUser;
 import com.io7m.eigion.model.EIUserBan;
+import com.io7m.eigion.model.EIUserDisplayName;
+import com.io7m.eigion.model.EIUserEmail;
 import com.io7m.eigion.model.EIUserSummary;
 import com.io7m.eigion.server.database.api.EIServerDatabaseException;
 import com.io7m.eigion.server.database.api.EIServerDatabaseRequiresAdmin;
@@ -72,8 +74,8 @@ final class EIServerDatabaseUsersQueries
   {
     return new EIUser(
       userRecord.getId(),
-      userRecord.getName(),
-      userRecord.getEmail(),
+      new EIUserDisplayName(userRecord.getName()),
+      new EIUserEmail(userRecord.getEmail()),
       userRecord.getCreated(),
       userRecord.getLastLoginTime(),
       new EIPassword(
@@ -445,8 +447,8 @@ final class EIServerDatabaseUsersQueries
         summaries.add(
           new EIUserSummary(
             record.get(USERS.ID),
-            record.get(USERS.NAME),
-            record.get(USERS.EMAIL)
+            new EIUserDisplayName(record.get(USERS.NAME)),
+            new EIUserEmail(record.get(USERS.EMAIL))
           )
         );
       }

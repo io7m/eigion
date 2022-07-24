@@ -56,7 +56,7 @@ public record EIProductVersion(
 
   public static final Pattern VALID_QUALIFIER =
     Pattern.compile(
-      "[\\p{Alnum}]+",
+      "[\\p{Alnum}]{1,64}",
       UNICODE_CHARACTER_CLASS
     );
 
@@ -80,22 +80,22 @@ public record EIProductVersion(
     Objects.requireNonNull(qualifier, "qualifier");
 
     if (major.compareTo(ZERO) < 0) {
-      throw new IllegalArgumentException(
+      throw new EIValidityException(
         "Major version %s must be non-negative".formatted(major));
     }
     if (minor.compareTo(ZERO) < 0) {
-      throw new IllegalArgumentException(
+      throw new EIValidityException(
         "Minor version %s must be non-negative".formatted(minor));
     }
     if (patch.compareTo(ZERO) < 0) {
-      throw new IllegalArgumentException(
+      throw new EIValidityException(
         "Patch version %s must be non-negative".formatted(patch));
     }
 
     qualifier.ifPresent(q -> {
       final var matcher = VALID_QUALIFIER.matcher(q);
       if (!matcher.matches()) {
-        throw new IllegalArgumentException(
+        throw new EIValidityException(
           String.format("Qualifier '%s' must match '%s'", q, VALID_QUALIFIER));
       }
     });
@@ -154,7 +154,7 @@ public record EIProductVersion(
 
     final var versionMatcher = VALID_VERSION.matcher(text);
     if (!versionMatcher.matches()) {
-      throw new IllegalArgumentException(
+      throw new EIValidityException(
         String.format("Version '%s' must match %s", text, VALID_VERSION));
     }
 

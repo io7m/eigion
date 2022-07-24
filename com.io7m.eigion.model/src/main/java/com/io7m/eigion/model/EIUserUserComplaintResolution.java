@@ -45,5 +45,13 @@ public record EIUserUserComplaintResolution(
     Objects.requireNonNull(resolved, "resolved");
     Objects.requireNonNull(time, "time");
     Objects.requireNonNull(reason, "reason");
+
+    final var length = reason.length();
+    if (length > 4096) {
+      throw new EIValidityException(
+        "Complaint resolution reason length %d must be <= 4096"
+          .formatted(Integer.valueOf(length))
+      );
+    }
   }
 }

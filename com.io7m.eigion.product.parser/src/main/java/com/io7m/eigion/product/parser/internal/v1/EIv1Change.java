@@ -23,6 +23,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.io7m.anethum.common.ParseSeverity;
 import com.io7m.anethum.common.ParseStatus;
 import com.io7m.eigion.model.EIChange;
+import com.io7m.eigion.model.EIValidityException;
 import com.io7m.jlexing.core.LexicalPositions;
 
 import java.net.URI;
@@ -82,7 +83,7 @@ public final class EIv1Change
             .map(Optional::orElseThrow)
             .toList())
       );
-    } catch (final IllegalArgumentException e) {
+    } catch (final EIValidityException e) {
       errorConsumer.accept(
         ParseStatus.builder()
           .setSeverity(ParseSeverity.PARSE_ERROR)

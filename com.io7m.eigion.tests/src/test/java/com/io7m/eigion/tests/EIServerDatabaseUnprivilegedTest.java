@@ -19,6 +19,7 @@ package com.io7m.eigion.tests;
 
 import com.io7m.eigion.hash.EIHash;
 import com.io7m.eigion.model.EICreation;
+import com.io7m.eigion.model.EIGroupName;
 import com.io7m.eigion.model.EIPasswordAlgorithmPBKDF2HmacSHA256;
 import com.io7m.eigion.model.EIProductCategory;
 import com.io7m.eigion.model.EIProductIdentifier;
@@ -56,6 +57,11 @@ import static org.junit.jupiter.api.DynamicTest.dynamicTest;
 @Testcontainers(disabledWithoutDocker = true)
 public final class EIServerDatabaseUnprivilegedTest extends EIWithDatabaseContract
 {
+  private static final EIGroupName EXAMPLE_GROUP =
+    new EIGroupName("com.io7m.ex");
+  private static final String EXAMPLE_ARTIFACT =
+    "com.q";
+
   private EIUser createTestUser(
     final UUID adminId)
     throws Exception
@@ -153,7 +159,7 @@ public final class EIServerDatabaseUnprivilegedTest extends EIWithDatabaseContra
           transaction.userIdSet(user.id());
 
           final var id =
-            new EIProductIdentifier("com.io7m.ex", "com.q");
+            new EIProductIdentifier(EXAMPLE_GROUP, EXAMPLE_ARTIFACT);
           final var category0 =
             new EIProductCategory("Cat0", Optional.empty());
 
@@ -172,7 +178,7 @@ public final class EIServerDatabaseUnprivilegedTest extends EIWithDatabaseContra
           transaction.userIdSet(user.id());
 
           final var id =
-            new EIProductIdentifier("com.io7m.ex", "com.q");
+            new EIProductIdentifier(EXAMPLE_GROUP, EXAMPLE_ARTIFACT);
           final var category0 =
             new EIProductCategory("Cat0", Optional.empty());
 
@@ -205,7 +211,7 @@ public final class EIServerDatabaseUnprivilegedTest extends EIWithDatabaseContra
           transaction.userIdSet(user.id());
 
           final var id =
-            new EIProductIdentifier("com.io7m.ex", "com.q");
+            new EIProductIdentifier(EXAMPLE_GROUP, EXAMPLE_ARTIFACT);
           final var redaction =
             redactionRequest(timeNow(), "X");
 
@@ -224,7 +230,7 @@ public final class EIServerDatabaseUnprivilegedTest extends EIWithDatabaseContra
           transaction.userIdSet(user.id());
 
           final var id =
-            new EIProductIdentifier("com.io7m.ex", "com.q");
+            new EIProductIdentifier(EXAMPLE_GROUP, EXAMPLE_ARTIFACT);
 
           final var ex =
             assertThrows(EIServerDatabaseException.class, () -> {
@@ -378,7 +384,7 @@ public final class EIServerDatabaseUnprivilegedTest extends EIWithDatabaseContra
           transaction.userIdSet(user.id());
 
           final var id =
-            new EIProductIdentifier("com.io7m.ex", "com.q");
+            new EIProductIdentifier(EXAMPLE_GROUP, EXAMPLE_ARTIFACT);
           final var ex =
             assertThrows(EIServerDatabaseException.class, () -> {
               products.productSetTitle(id, "title");
@@ -394,7 +400,7 @@ public final class EIServerDatabaseUnprivilegedTest extends EIWithDatabaseContra
           transaction.userIdSet(user.id());
 
           final var id =
-            new EIProductIdentifier("com.io7m.ex", "com.q");
+            new EIProductIdentifier(EXAMPLE_GROUP, EXAMPLE_ARTIFACT);
           final var ex =
             assertThrows(EIServerDatabaseException.class, () -> {
               products.productSetDescription(id, new EIRichText("x", "y"));
@@ -410,7 +416,7 @@ public final class EIServerDatabaseUnprivilegedTest extends EIWithDatabaseContra
           transaction.userIdSet(user.id());
 
           final var id =
-            new EIProductIdentifier("com.io7m.ex", "com.q");
+            new EIProductIdentifier(EXAMPLE_GROUP, EXAMPLE_ARTIFACT);
           final var ex =
             assertThrows(EIServerDatabaseException.class, () -> {
               products.product(id, INCLUDE_REDACTED);
@@ -454,7 +460,7 @@ public final class EIServerDatabaseUnprivilegedTest extends EIWithDatabaseContra
           transaction.userIdSet(user.id());
 
           final var id =
-            new EIProductIdentifier("com.io7m.ex", "com.q");
+            new EIProductIdentifier(EXAMPLE_GROUP, EXAMPLE_ARTIFACT);
 
           final var ex =
             assertThrows(EIServerDatabaseException.class, () -> {

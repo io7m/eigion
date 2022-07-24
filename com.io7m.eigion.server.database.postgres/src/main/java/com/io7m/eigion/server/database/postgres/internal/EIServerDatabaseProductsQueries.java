@@ -19,6 +19,7 @@ package com.io7m.eigion.server.database.postgres.internal;
 import com.io7m.anethum.common.ParseException;
 import com.io7m.anethum.common.SerializeException;
 import com.io7m.eigion.model.EICreation;
+import com.io7m.eigion.model.EIGroupName;
 import com.io7m.eigion.model.EILink;
 import com.io7m.eigion.model.EIProduct;
 import com.io7m.eigion.model.EIProductCategory;
@@ -207,7 +208,7 @@ final class EIServerDatabaseProductsQueries
       productRec.<Long>get(PRODUCTS.ID).longValue(),
       new EIProduct(
         new EIProductIdentifier(
-          productRec.get(GROUPS.NAME),
+          new EIGroupName(productRec.get(GROUPS.NAME)),
           productRec.get(PRODUCTS.PRODUCT_NAME)
         ),
         releases,
@@ -334,7 +335,7 @@ final class EIServerDatabaseProductsQueries
         .from(PRODUCTS)
         .join(GROUPS)
         .on(GROUPS.ID.eq(PRODUCTS.PRODUCT_GROUP))
-        .where(GROUPS.NAME.eq(id.group())
+        .where(GROUPS.NAME.eq(id.group().value())
                  .and(PRODUCTS.PRODUCT_NAME.eq(id.name())))
         .fetchOptional();
 
@@ -405,7 +406,8 @@ final class EIServerDatabaseProductsQueries
         .leftOuterJoin(PRODUCT_REDACTIONS)
         .on(PRODUCT_REDACTIONS.PRODUCT.eq(PRODUCTS.ID))
         .where(
-          GROUPS.NAME.eq(id.group()).and(PRODUCTS.PRODUCT_NAME.eq(id.name()))
+          GROUPS.NAME.eq(id.group().value())
+            .and(PRODUCTS.PRODUCT_NAME.eq(id.name()))
         ).fetchAny();
 
     if (productRec == null) {
@@ -727,7 +729,7 @@ final class EIServerDatabaseProductsQueries
       }
 
       final var group =
-        context.fetchOptional(GROUPS, GROUPS.NAME.eq(id.group()))
+        context.fetchOptional(GROUPS, GROUPS.NAME.eq(id.group().value()))
           .orElseThrow(() -> {
             return new EIServerDatabaseException(
               "Group does not exist",
@@ -1255,7 +1257,7 @@ final class EIServerDatabaseProductsQueries
           .on(PRODUCT_REDACTIONS.PRODUCT.eq(PRODUCTS.ID))
           .where(PRODUCT_REDACTIONS.REASON.isNull())
           .orderBy(GROUPS.NAME, PRODUCTS.PRODUCT_NAME)
-          .seek(id.group(), id.name())
+          .seek(id.group().value(), id.name())
           .limit(limit);
       } else {
         baseQuery = context.select()
@@ -1274,7 +1276,7 @@ final class EIServerDatabaseProductsQueries
           .map(r -> {
             return new EIProductSummary(
               new EIProductIdentifier(
-                r.get(GROUPS.NAME),
+                new EIGroupName(r.get(GROUPS.NAME)),
                 r.get(PRODUCTS.PRODUCT_NAME)
               ),
               r.get(PRODUCTS.PRODUCT_TITLE),

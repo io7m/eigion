@@ -16,9 +16,11 @@
 
 package com.io7m.eigion.model;
 
+import java.util.Comparator;
 import java.util.Objects;
+import java.util.regex.Pattern;
 
-import static com.io7m.eigion.model.EIProductIdentifier.VALID_GROUP_NAME;
+import static java.util.regex.Pattern.UNICODE_CHARACTER_CLASS;
 
 /**
  * The name of a group.
@@ -27,7 +29,18 @@ import static com.io7m.eigion.model.EIProductIdentifier.VALID_GROUP_NAME;
  */
 
 public record EIGroupName(String value)
+  implements Comparable<EIGroupName>
 {
+  /**
+   * The pattern that defines a valid group name.
+   */
+
+  public static final Pattern VALID_GROUP_NAME =
+    Pattern.compile(
+      "([\\p{Alpha}][\\p{Alpha}\\p{Digit}_-]{0,64})(\\.[\\p{Alpha}][\\p{Alpha}\\p{Digit}_-]{0,64}){0,8}",
+      UNICODE_CHARACTER_CLASS
+    );
+
   /**
    * The name of a group.
    *
@@ -39,7 +52,7 @@ public record EIGroupName(String value)
     Objects.requireNonNull(value, "value");
 
     if (!VALID_GROUP_NAME.matcher(value).matches()) {
-      throw new IllegalArgumentException(
+      throw new EIValidityException(
         String.format(
           "Group name '%s' must match %s", value, VALID_GROUP_NAME));
     }
@@ -49,5 +62,12 @@ public record EIGroupName(String value)
   public String toString()
   {
     return this.value;
+  }
+
+  @Override
+  public int compareTo(final EIGroupName other)
+  {
+    return Comparator.comparing(EIGroupName::value)
+      .compare(this, other);
   }
 }

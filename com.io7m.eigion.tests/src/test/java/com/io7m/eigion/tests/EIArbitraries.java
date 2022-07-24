@@ -32,6 +32,7 @@ import com.io7m.eigion.protocol.admin_api.v1.EISA1UserSummary;
 import net.jqwik.api.Arbitraries;
 import net.jqwik.api.Arbitrary;
 import net.jqwik.api.Combinators;
+import net.jqwik.api.arbitraries.StringArbitrary;
 
 import java.time.Instant;
 import java.time.OffsetDateTime;
@@ -125,7 +126,12 @@ public final class EIArbitraries
 
   public static Arbitrary<EISA1UserBan> userBanV1()
   {
-    return Combinators.combine(offsetDateTimes(), Arbitraries.strings())
+    final var text =
+      Arbitraries.strings()
+        .ofMaxLength(4096)
+        .filter(s -> !s.isBlank());
+
+    return Combinators.combine(offsetDateTimes(), text)
       .as((t, s) -> new EISA1UserBan(Optional.of(t), s));
   }
 
@@ -162,7 +168,9 @@ public final class EIArbitraries
     final var times =
       offsetDateTimes();
     final var text =
-      Arbitraries.strings();
+      Arbitraries.strings()
+        .ofMaxLength(64)
+        .filter(s -> !s.isBlank());
     final var groups =
       userGroupsV1();
 
@@ -193,7 +201,9 @@ public final class EIArbitraries
     final var uuids =
       uuids();
     final var text =
-      Arbitraries.strings();
+      Arbitraries.strings()
+        .ofMaxLength(64)
+        .filter(s -> !s.isBlank());
 
     return Combinators.combine(uuids, text, text)
       .as(EISA1UserSummary::new);

@@ -43,8 +43,12 @@ public record EIRichText(
     Objects.requireNonNull(contentType, "contentType");
     Objects.requireNonNull(text, "text");
 
+    if (contentType.isBlank()) {
+      throw new EIValidityException(
+        "Content types cannot be blank.");
+    }
     if (contentType.length() > 128) {
-      throw new IllegalArgumentException(
+      throw new EIValidityException(
         "Content types must be <= 128 characters");
     }
   }

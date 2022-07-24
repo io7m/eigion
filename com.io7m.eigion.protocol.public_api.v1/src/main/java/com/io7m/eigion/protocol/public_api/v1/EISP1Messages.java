@@ -23,6 +23,7 @@ import com.fasterxml.jackson.databind.module.SimpleDeserializers;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.io7m.dixmont.core.DmJsonRestrictedDeserializers;
 import com.io7m.eigion.hash.EIHash;
+import com.io7m.eigion.model.EIGroupName;
 import com.io7m.eigion.model.EIProductIdentifier;
 import com.io7m.eigion.model.EIProductSummary;
 import com.io7m.eigion.protocol.api.EIProtocolException;
@@ -185,7 +186,7 @@ public final class EISP1Messages
   {
     return new EIProductSummary(
       new EIProductIdentifier(
-        summary.group(),
+        new EIGroupName(summary.group()),
         summary.name()
       ),
       summary.title(),
@@ -198,7 +199,7 @@ public final class EISP1Messages
   {
     return new EISP1ProductSummaryJSON(
       schemaId(),
-      summary.id().group(),
+      summary.id().group().value(),
       summary.id().name(),
       summary.title()
     );

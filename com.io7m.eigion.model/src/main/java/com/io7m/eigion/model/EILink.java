@@ -43,7 +43,7 @@ public record EILink(
     Objects.requireNonNull(location, "location");
 
     if (relation.length() > 128) {
-      throw new IllegalArgumentException(
+      throw new EIValidityException(
         "Link relations must be <= 128 characters");
     }
   }

@@ -23,6 +23,7 @@ import com.io7m.eigion.hash.EIHash;
 import com.io7m.eigion.model.EIChange;
 import com.io7m.eigion.model.EIChangeTicket;
 import com.io7m.eigion.model.EICreation;
+import com.io7m.eigion.model.EIGroupName;
 import com.io7m.eigion.model.EIProductBundleDependency;
 import com.io7m.eigion.model.EIProductDependency;
 import com.io7m.eigion.model.EIProductIdentifier;
@@ -66,8 +67,8 @@ public final class EIProductReleaseParsersTest
   private static final EIProductDependency PRODUCT_DEPENDENCY_0 =
     new EIProductDependency(
       new EIProductIdentifier(
-        "com.io7m.zed",
-        "com.io7m.zed"
+        new EIGroupName("com.io7m.zed"),
+                        "com.io7m.zed"
       ),
       new EIProductVersion(TWO, ZERO, ZERO, empty())
     );
@@ -75,7 +76,7 @@ public final class EIProductReleaseParsersTest
   private static final EIProductBundleDependency BUNDLE_DEPENDENCY_0 =
     new EIProductBundleDependency(
       new EIProductIdentifier(
-        "com.io7m.ex",
+        new EIGroupName("com.io7m.ex"),
         "com.io7m.ex"
       ),
       new EIProductVersion(ONE, ZERO, ZERO, empty()),

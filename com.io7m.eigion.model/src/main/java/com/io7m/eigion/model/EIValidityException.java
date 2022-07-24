@@ -14,45 +14,27 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+
 package com.io7m.eigion.model;
 
-import java.time.OffsetDateTime;
 import java.util.Objects;
-import java.util.Optional;
 
 /**
- * The reason a user is banned.
- *
- * @param expires The expiration date of the ban, if any
- * @param reason  The ban reason
+ * An exception indicating that parameters given to a model type are invalid.
+ * This is a more strongly-typed replacement for
+ * {@link IllegalArgumentException}.
  */
 
-public record EIUserBan(
-  Optional<OffsetDateTime> expires,
-  String reason)
+public final class EIValidityException extends RuntimeException
 {
   /**
-   * The reason a user is banned.
+   * Construct an exception.
    *
-   * @param expires The expiration date of the ban, if any
-   * @param reason  The ban reason
+   * @param message The message
    */
 
-  public EIUserBan
+  public EIValidityException(final String message)
   {
-    Objects.requireNonNull(expires, "expires");
-    Objects.requireNonNull(reason, "reason");
-
-    if (reason.isBlank()) {
-      throw new IllegalArgumentException("Ban reasons cannot be blank.");
-    }
-
-    final var length = reason.length();
-    if (length > 4096) {
-      throw new EIValidityException(
-        "Ban reason length %d must be <= 4096"
-          .formatted(Integer.valueOf(length))
-      );
-    }
+    super(Objects.requireNonNull(message, "message"));
   }
 }

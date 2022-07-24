@@ -17,6 +17,7 @@
 package com.io7m.eigion.tests;
 
 import com.io7m.eigion.model.EIProductVersion;
+import com.io7m.eigion.model.EIValidityException;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigInteger;
@@ -107,7 +108,7 @@ public final class EIProductVersionTest
   @Test
   public void testInvalid0()
   {
-    assertThrows(IllegalArgumentException.class, () -> {
+    assertThrows(EIValidityException.class, () -> {
       new EIProductVersion(new BigInteger("-1"), ZERO, ZERO, empty());
     });
   }
@@ -115,7 +116,7 @@ public final class EIProductVersionTest
   @Test
   public void testInvalid1()
   {
-    assertThrows(IllegalArgumentException.class, () -> {
+    assertThrows(EIValidityException.class, () -> {
       new EIProductVersion(ZERO, new BigInteger("-1"), ZERO, empty());
     });
   }
@@ -123,7 +124,7 @@ public final class EIProductVersionTest
   @Test
   public void testInvalid2()
   {
-    assertThrows(IllegalArgumentException.class, () -> {
+    assertThrows(EIValidityException.class, () -> {
       new EIProductVersion(ZERO, ZERO, new BigInteger("-1"), empty());
     });
   }
@@ -131,7 +132,7 @@ public final class EIProductVersionTest
   @Test
   public void testInvalid3()
   {
-    assertThrows(IllegalArgumentException.class, () -> {
+    assertThrows(EIValidityException.class, () -> {
       new EIProductVersion(ZERO, ZERO, ZERO, of("-"));
     });
   }

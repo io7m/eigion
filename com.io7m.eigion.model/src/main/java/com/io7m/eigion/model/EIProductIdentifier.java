@@ -32,20 +32,10 @@ import static java.util.regex.Pattern.UNICODE_CHARACTER_CLASS;
  */
 
 public record EIProductIdentifier(
-  String group,
+  EIGroupName group,
   String name)
   implements Comparable<EIProductIdentifier>
 {
-  /**
-   * The pattern that defines a valid group name.
-   */
-
-  public static final Pattern VALID_GROUP_NAME =
-    Pattern.compile(
-      "([\\p{Alpha}][\\p{Alpha}\\p{Digit}_-]{0,64})(\\.[\\p{Alpha}][\\p{Alpha}\\p{Digit}_-]{0,64}){0,8}",
-      UNICODE_CHARACTER_CLASS
-    );
-
   /**
    * The pattern that defines a valid artifact name.
    */
@@ -68,13 +58,8 @@ public record EIProductIdentifier(
     Objects.requireNonNull(group, "groupName");
     Objects.requireNonNull(name, "artifactName");
 
-    if (!VALID_GROUP_NAME.matcher(group).matches()) {
-      throw new IllegalArgumentException(
-        String.format(
-          "Group name '%s' must match %s", group, VALID_GROUP_NAME));
-    }
     if (!VALID_ARTIFACT_NAME.matcher(name).matches()) {
-      throw new IllegalArgumentException(
+      throw new EIValidityException(
         String.format(
           "Artifact name '%s' must match %s", group, VALID_ARTIFACT_NAME));
     }
@@ -99,7 +84,10 @@ public record EIProductIdentifier(
     if (segments.size() != 2) {
       throw new ParseException(text, 0);
     }
-    return new EIProductIdentifier(segments.get(0), segments.get(1));
+    return new EIProductIdentifier(
+      new EIGroupName(segments.get(0)),
+      segments.get(1)
+    );
   }
 
   /**
@@ -118,14 +106,5 @@ public record EIProductIdentifier(
     return Comparator.comparing(EIProductIdentifier::group)
       .thenComparing(EIProductIdentifier::name)
       .compare(this, other);
-  }
-
-  /**
-   * @return The group name
-   */
-
-  public EIGroupName groupName()
-  {
-    return new EIGroupName(this.group);
   }
 }

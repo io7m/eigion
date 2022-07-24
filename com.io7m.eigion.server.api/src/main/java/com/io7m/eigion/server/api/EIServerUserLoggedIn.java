@@ -16,6 +16,8 @@
 
 package com.io7m.eigion.server.api;
 
+import com.io7m.eigion.model.EIUserDisplayName;
+
 import java.time.OffsetDateTime;
 import java.util.Objects;
 import java.util.UUID;
@@ -34,7 +36,7 @@ public record EIServerUserLoggedIn(
   OffsetDateTime time,
   UUID requestId,
   UUID userId,
-  String userName,
+  EIUserDisplayName userName,
   String host)
   implements EIServerEventType
 {

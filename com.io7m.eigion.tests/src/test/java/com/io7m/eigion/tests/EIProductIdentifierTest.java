@@ -17,15 +17,17 @@
 
 package com.io7m.eigion.tests;
 
+import com.io7m.eigion.model.EIGroupName;
 import com.io7m.eigion.model.EIProductIdentifier;
 import com.io7m.eigion.model.EIProductVersion;
+import com.io7m.eigion.model.EIValidityException;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
 
 import java.util.stream.Stream;
 
+import static com.io7m.eigion.model.EIGroupName.VALID_GROUP_NAME;
 import static com.io7m.eigion.model.EIProductIdentifier.VALID_ARTIFACT_NAME;
-import static com.io7m.eigion.model.EIProductIdentifier.VALID_GROUP_NAME;
 import static com.io7m.eigion.model.EIProductVersion.VALID_VERSION;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -53,8 +55,8 @@ public final class EIProductIdentifierTest
         final var matcher = VALID_GROUP_NAME.matcher(text);
         assertFalse(matcher.matches());
 
-        assertThrows(IllegalArgumentException.class, () -> {
-          new EIProductIdentifier(text, "x");
+        assertThrows(EIValidityException.class, () -> {
+          new EIProductIdentifier(new EIGroupName(text), "x");
         });
       });
   }
@@ -79,8 +81,8 @@ public final class EIProductIdentifierTest
         final var matcher = VALID_ARTIFACT_NAME.matcher(text);
         assertFalse(matcher.matches());
 
-        assertThrows(IllegalArgumentException.class, () -> {
-          new EIProductIdentifier("x", text);
+        assertThrows(EIValidityException.class, () -> {
+          new EIProductIdentifier(new EIGroupName("x"), text);
         });
       });
   }
@@ -105,7 +107,7 @@ public final class EIProductIdentifierTest
         final var matcher = VALID_VERSION.matcher(text);
         assertFalse(matcher.matches());
 
-        assertThrows(IllegalArgumentException.class, () -> {
+        assertThrows(EIValidityException.class, () -> {
           EIProductVersion.parse(text);
         });
       });

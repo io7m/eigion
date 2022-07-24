@@ -18,6 +18,7 @@
 package com.io7m.eigion.tests;
 
 import com.io7m.eigion.model.EIGroupPrefix;
+import com.io7m.eigion.model.EIValidityException;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
 
@@ -60,7 +61,7 @@ public final class EIGroupPrefixTest
     final String s)
   {
     return DynamicTest.dynamicTest("testInvalid_" + s, () -> {
-      assertThrows(IllegalArgumentException.class, () -> {
+      assertThrows(EIValidityException.class, () -> {
         new EIGroupPrefix(s);
       });
     });

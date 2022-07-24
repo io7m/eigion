@@ -38,8 +38,8 @@ import java.util.UUID;
 
 public record EIUser(
   UUID id,
-  String name,
-  String email,
+  EIUserDisplayName name,
+  EIUserEmail email,
   OffsetDateTime created,
   OffsetDateTime lastLoginTime,
   EIPassword password,

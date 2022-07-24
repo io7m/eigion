@@ -21,6 +21,8 @@ import com.io7m.eigion.model.EIAdminSummary;
 import com.io7m.eigion.model.EIPassword;
 import com.io7m.eigion.model.EIPasswordAlgorithms;
 import com.io7m.eigion.model.EIPasswordException;
+import com.io7m.eigion.model.EIUserDisplayName;
+import com.io7m.eigion.model.EIUserEmail;
 import com.io7m.eigion.server.database.api.EIServerDatabaseAdminsQueriesType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseException;
 import com.io7m.eigion.server.database.postgres.internal.tables.records.AdminsRecord;
@@ -55,8 +57,8 @@ final class EIServerDatabaseAdminsQueries
   {
     return new EIAdmin(
       adminRecord.getId(),
-      adminRecord.getName(),
-      adminRecord.getEmail(),
+      new EIUserDisplayName(adminRecord.getName()),
+      new EIUserEmail(adminRecord.getEmail()),
       adminRecord.getCreated(),
       adminRecord.getLastLoginTime(),
       new EIPassword(
@@ -359,8 +361,8 @@ final class EIServerDatabaseAdminsQueries
         summaries.add(
           new EIAdminSummary(
             record.get(ADMINS.ID),
-            record.get(ADMINS.NAME),
-            record.get(ADMINS.EMAIL)
+            new EIUserDisplayName(record.get(ADMINS.NAME)),
+            new EIUserEmail(record.get(ADMINS.EMAIL))
           )
         );
       }

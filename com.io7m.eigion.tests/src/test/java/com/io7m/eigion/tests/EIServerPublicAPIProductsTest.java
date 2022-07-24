@@ -169,7 +169,7 @@ public final class EIServerPublicAPIProductsTest extends EIServerContract
         final var identifier =
           createProductIdentifier(number);
 
-        final var groupName = new EIGroupName(identifier.group());
+        final var groupName = identifier.group();
         if (!groups.groupExists(groupName)) {
           transaction.adminIdSet(adminId);
           groups.groupCreate(groupName, user);
@@ -192,7 +192,7 @@ public final class EIServerPublicAPIProductsTest extends EIServerContract
     final int number)
   {
     return new EIProductIdentifier(
-      "com.eigion.tests",
+      new EIGroupName("com.eigion.tests"),
       String.format("product%04d", Integer.valueOf(number))
     );
   }

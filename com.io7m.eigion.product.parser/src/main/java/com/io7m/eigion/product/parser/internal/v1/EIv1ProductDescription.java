@@ -24,6 +24,7 @@ import com.io7m.anethum.common.ParseSeverity;
 import com.io7m.anethum.common.ParseStatus;
 import com.io7m.eigion.model.EIProductCategory;
 import com.io7m.eigion.model.EIProductDescription;
+import com.io7m.eigion.model.EIValidityException;
 import com.io7m.jlexing.core.LexicalPositions;
 
 import java.net.URI;
@@ -138,7 +139,7 @@ public final class EIv1ProductDescription
     for (final var name : this.categories) {
       try {
         categories.add(EIProductCategory.category(name));
-      } catch (final IllegalArgumentException e) {
+      } catch (final EIValidityException e) {
         anyFailed = true;
         errorConsumer.accept(
           ParseStatus.builder()

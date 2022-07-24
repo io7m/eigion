@@ -92,30 +92,30 @@ public final class EIServerDatabaseAdminsTest extends EIWithDatabaseContract
         password
       );
 
-    assertEquals("someone", admin.name());
+    assertEquals("someone", admin.name().value());
     assertEquals(reqId, admin.id());
-    assertEquals("someone@example.com", admin.email());
+    assertEquals("someone@example.com", admin.email().value());
     assertEquals(now.toEpochSecond(), admin.created().toEpochSecond());
     assertEquals(now.toEpochSecond(), admin.lastLoginTime().toEpochSecond());
 
     admin = admins.adminGet(reqId).orElseThrow();
-    assertEquals("someone", admin.name());
+    assertEquals("someone", admin.name().value());
     assertEquals(reqId, admin.id());
-    assertEquals("someone@example.com", admin.email());
+    assertEquals("someone@example.com", admin.email().value());
     assertEquals(now.toEpochSecond(), admin.created().toEpochSecond());
     assertEquals(now.toEpochSecond(), admin.lastLoginTime().toEpochSecond());
 
     admin = admins.adminGetForEmail("someone@example.com").orElseThrow();
-    assertEquals("someone", admin.name());
+    assertEquals("someone", admin.name().value());
     assertEquals(reqId, admin.id());
-    assertEquals("someone@example.com", admin.email());
+    assertEquals("someone@example.com", admin.email().value());
     assertEquals(now.toEpochSecond(), admin.created().toEpochSecond());
     assertEquals(now.toEpochSecond(), admin.lastLoginTime().toEpochSecond());
 
     admin = admins.adminGetForName("someone").orElseThrow();
-    assertEquals("someone", admin.name());
+    assertEquals("someone", admin.name().value());
     assertEquals(reqId, admin.id());
-    assertEquals("someone@example.com", admin.email());
+    assertEquals("someone@example.com", admin.email().value());
     assertEquals(now.toEpochSecond(), admin.created().toEpochSecond());
     assertEquals(now.toEpochSecond(), admin.lastLoginTime().toEpochSecond());
 
