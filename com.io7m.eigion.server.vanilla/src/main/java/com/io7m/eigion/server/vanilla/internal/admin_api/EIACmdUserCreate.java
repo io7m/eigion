@@ -114,16 +114,8 @@ public final class EIACmdUserCreate
       );
     }
 
-    try {
-      groupQueries.groupCreate(name, createdUser.id());
-      groupQueries.groupMembershipSet(name, createdUser.id(), Set.of(FOUNDER));
-    } catch (final EIServerDatabaseException e) {
-      return context.resultError(
-        500,
-        e.errorCode(),
-        e.getMessage()
-      );
-    }
+    groupQueries.groupCreate(name, createdUser.id());
+    groupQueries.groupMembershipSet(name, createdUser.id(), Set.of(FOUNDER));
 
     final var userWithGroups =
       new EIUser(
