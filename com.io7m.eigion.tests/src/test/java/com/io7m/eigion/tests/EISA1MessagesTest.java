@@ -50,8 +50,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Stream;
 
+import static com.io7m.eigion.protocol.admin_api.v1.EISA1GroupRole.FOUNDER;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.time.OffsetDateTime.now;
 import static java.util.Optional.empty;
@@ -90,7 +93,10 @@ public final class EISA1MessagesTest
         now(),
         now(),
         pass,
-        empty());
+        empty(),
+        Map.ofEntries(
+          Map.entry("com.example.group", Set.of(FOUNDER))
+        ));
 
     final var services =
       List.of(

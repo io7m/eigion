@@ -46,7 +46,10 @@ public final class EIServerPublicAPIImagesTest extends EIServerContract
     assertTrue(this.container().isRunning());
     this.server().start();
 
-    this.createUserSomeone();
+    final var adminId =
+      this.createAdminInitial("someone", "12345678");
+
+    this.createUserSomeone(adminId);
 
     final byte[] data =
       EITestDirectories.resourceBytesOf(
@@ -110,7 +113,10 @@ public final class EIServerPublicAPIImagesTest extends EIServerContract
     assertTrue(this.container().isRunning());
     this.server().start();
 
-    this.createUserSomeone();
+    final var adminId =
+      this.createAdminInitial("someone", "12345678");
+
+    this.createUserSomeone(adminId);
 
     {
       final var r =
@@ -142,7 +148,10 @@ public final class EIServerPublicAPIImagesTest extends EIServerContract
     assertTrue(this.container().isRunning());
     this.server().start();
 
-    this.createUserSomeone();
+    final var adminId =
+      this.createAdminInitial("someone", "12345678");
+
+    this.createUserSomeone(adminId);
 
     {
       final var r =
@@ -186,7 +195,10 @@ public final class EIServerPublicAPIImagesTest extends EIServerContract
     assertTrue(this.container().isRunning());
     this.server().start();
 
-    this.createUserSomeone();
+    final var adminId =
+      this.createAdminInitial("someone", "12345678");
+
+    this.createUserSomeone(adminId);
 
     {
       final var request =
@@ -217,7 +229,10 @@ public final class EIServerPublicAPIImagesTest extends EIServerContract
     assertTrue(this.container().isRunning());
     this.server().start();
 
-    this.createUserSomeone();
+    final var adminId =
+      this.createAdminInitial("someone", "12345678");
+
+    this.createUserSomeone(adminId);
 
     final byte[] data =
       EITestDirectories.resourceBytesOf(

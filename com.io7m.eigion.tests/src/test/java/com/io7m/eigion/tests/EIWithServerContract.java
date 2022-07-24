@@ -16,6 +16,7 @@
 
 package com.io7m.eigion.tests;
 
+import com.io7m.eigion.model.EIGroupPrefix;
 import com.io7m.eigion.model.EIPassword;
 import com.io7m.eigion.model.EIPasswordAlgorithmPBKDF2HmacSHA256;
 import com.io7m.eigion.model.EIPasswordException;
@@ -186,15 +187,14 @@ public abstract class EIWithServerContract
 
     return this.servers.createServer(
       new EIServerConfiguration(
-        this.databases,
+        Locale.getDefault(), Clock.systemUTC(), this.databases,
         databaseConfiguration,
         this.storage,
         new EIStorageParameters(Map.of()),
         adminAddress,
         publicAddress,
         this.directory,
-        Locale.getDefault(),
-        Clock.systemUTC()
+        new EIGroupPrefix("com.eigion.users.")
       )
     );
   }

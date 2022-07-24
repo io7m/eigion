@@ -20,46 +20,30 @@ package com.io7m.eigion.tests;
 import com.io7m.eigion.hash.EIHash;
 import com.io7m.eigion.model.EICreation;
 import com.io7m.eigion.model.EIPasswordAlgorithmPBKDF2HmacSHA256;
-import com.io7m.eigion.model.EIPasswordException;
 import com.io7m.eigion.model.EIProductCategory;
 import com.io7m.eigion.model.EIProductIdentifier;
 import com.io7m.eigion.model.EIProductRelease;
 import com.io7m.eigion.model.EIProductVersion;
 import com.io7m.eigion.model.EIRichText;
 import com.io7m.eigion.model.EIUser;
-import com.io7m.eigion.server.database.api.EIServerDatabaseConfiguration;
 import com.io7m.eigion.server.database.api.EIServerDatabaseException;
 import com.io7m.eigion.server.database.api.EIServerDatabaseImagesQueriesType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseProductsQueriesType;
-import com.io7m.eigion.server.database.api.EIServerDatabaseRole;
-import com.io7m.eigion.server.database.api.EIServerDatabaseTransactionType;
-import com.io7m.eigion.server.database.api.EIServerDatabaseType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseUsersQueriesType;
-import com.io7m.eigion.server.database.postgres.EIServerDatabases;
-import com.io7m.jmulticlose.core.CloseableCollection;
-import com.io7m.jmulticlose.core.CloseableCollectionType;
-import com.io7m.jmulticlose.core.ClosingResourceFailedException;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-import java.time.Clock;
-import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Stream;
 
 import static com.io7m.eigion.model.EIRedactionRequest.redactionRequest;
 import static com.io7m.eigion.model.EIRedactionRequest.redactionRequestOpt;
-import static com.io7m.eigion.server.database.api.EIServerDatabaseCreate.CREATE_DATABASE;
 import static com.io7m.eigion.server.database.api.EIServerDatabaseIncludeRedacted.INCLUDE_REDACTED;
 import static com.io7m.eigion.server.database.api.EIServerDatabaseRole.EIGION;
 import static com.io7m.eigion.server.database.api.EIServerDatabaseRole.NONE;
-import static com.io7m.eigion.server.database.api.EIServerDatabaseUpgrade.UPGRADE_DATABASE;
 import static java.math.BigInteger.ZERO;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.time.OffsetDateTime.now;
@@ -70,85 +54,19 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.DynamicTest.dynamicTest;
 
 @Testcontainers(disabledWithoutDocker = true)
-public final class EIServerDatabaseUnprivilegedTest
+public final class EIServerDatabaseUnprivilegedTest extends EIWithDatabaseContract
 {
-  private static final EIServerDatabases DATABASES =
-    new EIServerDatabases();
-
-  @Container
-  private final PostgreSQLContainer<?> container =
-    new PostgreSQLContainer<>("postgres")
-      .withDatabaseName("postgres")
-      .withUsername("postgres")
-      .withPassword("12345678");
-
-  private CloseableCollectionType<ClosingResourceFailedException> resources;
-
-  private static OffsetDateTime timeNow()
-  {
-    /*
-     * Postgres doesn't store times at as high a resolution as the JVM,
-     * so trim the nanoseconds off in order to ensure we can correctly
-     * compare results returned from the database.
-     */
-
-    return now().withNano(0);
-  }
-
-  private EIServerDatabaseType databaseOf(
-    final PostgreSQLContainer<?> container)
-    throws EIServerDatabaseException
-  {
-    return this.resources.add(
-      DATABASES.open(
-        new EIServerDatabaseConfiguration(
-          "postgres",
-          "12345678",
-          container.getContainerIpAddress(),
-          container.getFirstMappedPort().intValue(),
-          "postgres",
-          CREATE_DATABASE,
-          UPGRADE_DATABASE,
-          Clock.systemUTC()
-        ),
-        message -> {
-
-        }
-      ));
-  }
-
-  private EIServerDatabaseTransactionType transactionOf(
-    final EIServerDatabaseRole role)
-    throws EIServerDatabaseException
-  {
-    final var database =
-      this.databaseOf(this.container);
-    final var connection =
-      this.resources.add(database.openConnection(role));
-    return this.resources.add(connection.openTransaction());
-  }
-
-  @BeforeEach
-  public void setup()
-  {
-    this.resources = CloseableCollection.create();
-  }
-
-  @AfterEach
-  public void tearDown()
-    throws ClosingResourceFailedException
-  {
-    this.resources.close();
-  }
-
-  private EIUser createTestUser()
-    throws EIServerDatabaseException,
-    EIPasswordException
+  private EIUser createTestUser(
+    final UUID adminId)
+    throws Exception
   {
     final EIUser user;
     {
       final var transaction =
         this.transactionOf(EIGION);
+
+      transaction.adminIdSet(adminId);
+
       final var users =
         transaction.queries(EIServerDatabaseUsersQueriesType.class);
       final var p =
@@ -171,14 +89,16 @@ public final class EIServerDatabaseUnprivilegedTest
   public Stream<DynamicTest> testUnprivileged()
     throws Exception
   {
-    assertTrue(this.container.isRunning());
+    assertTrue(this.containerIsRunning());
 
-    final var user = this.createTestUser();
+    final var adminId =
+      this.databaseCreateAdminInitial("someone", "12345678");
 
-    final var database =
-      this.databaseOf(this.container);
+    final var user =
+      this.createTestUser(adminId);
+
     final var c =
-      this.resources.add(database.openConnection(NONE));
+      this.connectionOf(NONE);
 
     return Stream.<ExecutableType>of(
       () -> {
@@ -362,7 +282,7 @@ public final class EIServerDatabaseUnprivilegedTest
         try (var transaction = c.openTransaction()) {
           final var users =
             transaction.queries(EIServerDatabaseUsersQueriesType.class);
-          transaction.userIdSet(user.id());
+          transaction.adminIdSet(adminId);
 
           final var ex =
             assertThrows(EIServerDatabaseException.class, () -> {
@@ -383,7 +303,6 @@ public final class EIServerDatabaseUnprivilegedTest
         try (var transaction = c.openTransaction()) {
           final var users =
             transaction.queries(EIServerDatabaseUsersQueriesType.class);
-          transaction.userIdSet(user.id());
 
           final var ex =
             assertThrows(EIServerDatabaseException.class, () -> {
@@ -425,7 +344,7 @@ public final class EIServerDatabaseUnprivilegedTest
         try (var transaction = c.openTransaction()) {
           final var users =
             transaction.queries(EIServerDatabaseUsersQueriesType.class);
-          transaction.userIdSet(user.id());
+          transaction.adminIdSet(adminId);
 
           final var ex =
             assertThrows(EIServerDatabaseException.class, () -> {
@@ -442,7 +361,7 @@ public final class EIServerDatabaseUnprivilegedTest
         try (var transaction = c.openTransaction()) {
           final var users =
             transaction.queries(EIServerDatabaseUsersQueriesType.class);
-          transaction.userIdSet(user.id());
+          transaction.adminIdSet(adminId);
 
           final var ex =
             assertThrows(EIServerDatabaseException.class, () -> {

@@ -178,7 +178,7 @@ public final class EIALogin extends HttpServlet
 
     LOG.info("admin '{}' logged in", login.userName());
     final var session = request.getSession();
-    session.setAttribute("UserID", admin.id());
+    session.setAttribute("AdminID", admin.id());
     admins.adminLogin(admin.id(), request.getRemoteAddr());
 
     this.sendLoginResponse(request, response);

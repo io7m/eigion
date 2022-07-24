@@ -63,5 +63,11 @@ public final class EISUsers
       p.algorithm().identifier()));
     w.println(s.format("user.show.password.hash", p.hash()));
     w.println(s.format("user.show.password.salt", p.salt()));
+
+    for (final var e : u.groupMembership().entrySet()) {
+      final var groupName = e.getKey();
+      final var groupRoles = e.getValue();
+      w.println(s.format("user.show.group.role", groupName, groupRoles));
+    }
   }
 }

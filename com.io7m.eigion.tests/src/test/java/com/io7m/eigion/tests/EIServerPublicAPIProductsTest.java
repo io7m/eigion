@@ -48,7 +48,10 @@ public final class EIServerPublicAPIProductsTest extends EIServerContract
     assertTrue(this.container().isRunning());
     this.server().start();
 
-    this.createUserSomeone();
+    final var adminId =
+      this.createAdminInitial("someone", "12345678");
+
+    this.createUserSomeone(adminId);
 
     {
       final var r =
@@ -82,7 +85,10 @@ public final class EIServerPublicAPIProductsTest extends EIServerContract
     assertTrue(this.container().isRunning());
     this.server().start();
 
-    this.createUserSomeone();
+    final var adminId =
+      this.createAdminInitial("someone", "12345678");
+
+    this.createUserSomeone(adminId);
 
     {
       final var r =
@@ -114,10 +120,14 @@ public final class EIServerPublicAPIProductsTest extends EIServerContract
     assertTrue(this.container().isRunning());
     this.server().start();
 
+    final var adminId =
+      this.createAdminInitial("someone", "12345678");
+
     final var user =
-      this.createUserSomeone();
+      this.createUserSomeone(adminId);
+
     final var product =
-      this.createProduct(user, 0);
+      this.createProduct(adminId, user, 0);
 
     {
       final var r =
@@ -143,6 +153,7 @@ public final class EIServerPublicAPIProductsTest extends EIServerContract
   }
 
   private EIProductIdentifier createProduct(
+    final UUID adminId,
     final UUID user,
     final int number)
     throws EIServerDatabaseException
@@ -155,16 +166,16 @@ public final class EIServerPublicAPIProductsTest extends EIServerContract
         final var products =
           transaction.queries(EIServerDatabaseProductsQueriesType.class);
 
-        transaction.userIdSet(user);
-
         final var identifier =
           createProductIdentifier(number);
 
         final var groupName = new EIGroupName(identifier.group());
         if (!groups.groupExists(groupName)) {
-          groups.groupCreate(groupName);
+          transaction.adminIdSet(adminId);
+          groups.groupCreate(groupName, user);
         }
 
+        transaction.userIdSet(user);
         products.productCreate(identifier);
         products.productSetTitle(
           identifier,

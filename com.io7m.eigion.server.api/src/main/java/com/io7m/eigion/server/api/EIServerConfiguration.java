@@ -16,6 +16,7 @@
 
 package com.io7m.eigion.server.api;
 
+import com.io7m.eigion.model.EIGroupPrefix;
 import com.io7m.eigion.server.database.api.EIServerDatabaseConfiguration;
 import com.io7m.eigion.server.database.api.EIServerDatabaseFactoryType;
 import com.io7m.eigion.storage.api.EIStorageFactoryType;
@@ -31,45 +32,47 @@ import java.util.Objects;
 /**
  * The configuration for a server.
  *
+ * @param locale                 The locale
+ * @param clock                  The clock
  * @param databases              The factory of databases that will be used for
  *                               the server
  * @param databaseConfiguration  The database configuration for the server
- * @param adminAddress           The address upon which the admin API listens
- * @param publicAddress          The address upon which the public API listens
- * @param sessionDirectory       The server's persistent session directory
- * @param locale                 The locale
- * @param clock                  The clock
  * @param imageStorageFactory    A factory of storage implementations for
  *                               images
  * @param imageStorageParameters Parameters for the image storage
+ * @param adminAddress           The address upon which the admin API listens
+ * @param publicAddress          The address upon which the public API listens
+ * @param sessionDirectory       The server's persistent session directory
+ * @param userGroupPrefix        The prefix used to generate user group names
  */
 
 public record EIServerConfiguration(
-  EIServerDatabaseFactoryType databases,
+  Locale locale,
+  Clock clock, EIServerDatabaseFactoryType databases,
   EIServerDatabaseConfiguration databaseConfiguration,
   EIStorageFactoryType imageStorageFactory,
   EIStorageParameters imageStorageParameters,
   InetSocketAddress adminAddress,
   InetSocketAddress publicAddress,
   Path sessionDirectory,
-  Locale locale,
-  Clock clock)
+  EIGroupPrefix userGroupPrefix)
 {
   /**
    * The configuration for a server.
    *
+   * @param locale                 The locale
+   * @param clock                  The clock
    * @param databases              The factory of databases that will be used
    *                               for the server
    * @param databaseConfiguration  The database configuration for the server
+   * @param imageStorageFactory    A factory of storage implementations for
+   *                               images
+   * @param imageStorageParameters Parameters for the image storage
    * @param adminAddress           The address upon which the admin API listens
    * @param publicAddress          The address upon which the public API
    *                               listens
    * @param sessionDirectory       The server's persistent session directory
-   * @param locale                 The locale
-   * @param clock                  The clock
-   * @param imageStorageFactory    A factory of storage implementations for
-   *                               images
-   * @param imageStorageParameters Parameters for the image storage
+   * @param userGroupPrefix        The prefix used to generate user group names
    */
 
   public EIServerConfiguration
@@ -83,6 +86,7 @@ public record EIServerConfiguration(
     Objects.requireNonNull(clock, "clock");
     Objects.requireNonNull(imageStorageFactory, "imageStorageFactory");
     Objects.requireNonNull(imageStorageParameters, "imageStorageParameters");
+    Objects.requireNonNull(userGroupPrefix, "userGroupPrefix");
   }
 
   /**

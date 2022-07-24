@@ -17,6 +17,7 @@
 
 package com.io7m.eigion.server.vanilla.internal.admin_api;
 
+import com.io7m.eigion.model.EIGroupName;
 import com.io7m.eigion.model.EIPassword;
 import com.io7m.eigion.model.EIPasswordException;
 import com.io7m.eigion.model.EIUser;
@@ -24,10 +25,16 @@ import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandUserCreate;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1ResponseUserCreate;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1User;
 import com.io7m.eigion.server.database.api.EIServerDatabaseException;
+import com.io7m.eigion.server.database.api.EIServerDatabaseGroupsQueriesType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseUsersQueriesType;
+import com.io7m.eigion.server.vanilla.internal.EIServerConfigurations;
 
+import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
+
+import static com.io7m.eigion.model.EIGroupRole.FOUNDER;
 
 /**
  * A command to create users.
@@ -51,8 +58,20 @@ public final class EIACmdUserCreate
     final EISA1CommandUserCreate command)
     throws EIServerDatabaseException
   {
+    final var userGroupPrefix =
+      context.services()
+        .requireService(EIServerConfigurations.class)
+        .configuration()
+        .userGroupPrefix();
+
+    final var transaction =
+      context.transaction();
     final var userQueries =
-      context.transaction().queries(EIServerDatabaseUsersQueriesType.class);
+      transaction.queries(EIServerDatabaseUsersQueriesType.class);
+    final var groupQueries =
+      transaction.queries(EIServerDatabaseGroupsQueriesType.class);
+
+    transaction.adminIdSet(context.adminId());
 
     final EIPassword password;
     try {
@@ -81,11 +100,48 @@ public final class EIACmdUserCreate
       throw e;
     }
 
+    final var gid =
+      Math.addExact(groupQueries.groupIdentifierLast(), 1L);
+
+    final EIGroupName name;
+    try {
+      name = userGroupPrefix.toGroupName(gid);
+    } catch (final IllegalArgumentException e) {
+      return context.resultError(
+        500,
+        "group-name-invalid",
+        e.getMessage()
+      );
+    }
+
+    try {
+      groupQueries.groupCreate(name, createdUser.id());
+      groupQueries.groupMembershipSet(name, createdUser.id(), Set.of(FOUNDER));
+    } catch (final EIServerDatabaseException e) {
+      return context.resultError(
+        500,
+        e.errorCode(),
+        e.getMessage()
+      );
+    }
+
+    final var userWithGroups =
+      new EIUser(
+        createdUser.id(),
+        createdUser.name(),
+        createdUser.email(),
+        createdUser.created(),
+        createdUser.lastLoginTime(),
+        createdUser.password(),
+        createdUser.ban(),
+        Map.of(name, Set.of(FOUNDER))
+      );
+
     return new EIACommandExecutionResult(
       200,
       new EISA1ResponseUserCreate(
         context.requestId(),
-        EISA1User.ofUser(createdUser)
+        EISA1User.ofUser(userWithGroups)
       )
     );
   }

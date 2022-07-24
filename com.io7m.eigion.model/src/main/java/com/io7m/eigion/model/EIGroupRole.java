@@ -16,38 +16,15 @@
 
 package com.io7m.eigion.model;
 
-import java.util.Objects;
-
-import static com.io7m.eigion.model.EIProductIdentifier.VALID_GROUP_NAME;
-
 /**
- * The name of a group.
- *
- * @param value The name
+ * The role of a user within a group.
  */
 
-public record EIGroupName(String value)
+public enum EIGroupRole
 {
   /**
-   * The name of a group.
-   *
-   * @param value The name
+   * The user is the founder of the group.
    */
 
-  public EIGroupName
-  {
-    Objects.requireNonNull(value, "value");
-
-    if (!VALID_GROUP_NAME.matcher(value).matches()) {
-      throw new IllegalArgumentException(
-        String.format(
-          "Group name '%s' must match %s", value, VALID_GROUP_NAME));
-    }
-  }
-
-  @Override
-  public String toString()
-  {
-    return this.value;
-  }
+  FOUNDER
 }

@@ -44,6 +44,7 @@ public non-sealed interface EIServerDatabaseUsersQueriesType
    * @throws EIServerDatabaseException On errors
    */
 
+  @EIServerDatabaseRequiresAdmin
   default EIUser userCreate(
     final String userName,
     final String email,
@@ -73,6 +74,7 @@ public non-sealed interface EIServerDatabaseUsersQueriesType
    * @throws EIServerDatabaseException On errors
    */
 
+  @EIServerDatabaseRequiresAdmin
   EIUser userCreate(
     UUID id,
     String userName,
@@ -124,7 +126,7 @@ public non-sealed interface EIServerDatabaseUsersQueriesType
    * @throws EIServerDatabaseException On errors
    */
 
-  @EIServerDatabaseRequiresUser
+  @EIServerDatabaseRequiresAdmin
   void userBan(
     UUID id,
     Optional<OffsetDateTime> expires,
@@ -139,7 +141,7 @@ public non-sealed interface EIServerDatabaseUsersQueriesType
    * @throws EIServerDatabaseException On errors
    */
 
-  @EIServerDatabaseRequiresUser
+  @EIServerDatabaseRequiresAdmin
   void userUnban(
     UUID id)
     throws EIServerDatabaseException;

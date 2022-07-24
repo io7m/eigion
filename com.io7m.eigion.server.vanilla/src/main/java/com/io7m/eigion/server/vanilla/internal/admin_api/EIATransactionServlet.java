@@ -151,7 +151,8 @@ public final class EIATransactionServlet extends EIAAuthenticatedServlet
         this.strings(),
         requestId,
         transaction,
-        this.clock()
+        this.clock(),
+        this.admin()
       );
 
     final var subCommands =

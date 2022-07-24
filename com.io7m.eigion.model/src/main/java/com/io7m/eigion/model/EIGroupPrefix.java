@@ -17,37 +17,57 @@
 package com.io7m.eigion.model;
 
 import java.util.Objects;
+import java.util.regex.Pattern;
 
-import static com.io7m.eigion.model.EIProductIdentifier.VALID_GROUP_NAME;
+import static java.util.regex.Pattern.UNICODE_CHARACTER_CLASS;
 
 /**
- * The name of a group.
+ * The prefix of a group.
  *
  * @param value The name
  */
 
-public record EIGroupName(String value)
+public record EIGroupPrefix(String value)
 {
   /**
-   * The name of a group.
+   * The pattern that defines a valid group prefix.
+   */
+
+  public static final Pattern VALID_GROUP_PREFIX =
+    Pattern.compile(
+      "([\\p{Alpha}][\\p{Alpha}\\p{Digit}_-]{0,64})(\\.[\\p{Alpha}][\\p{Alpha}\\p{Digit}_-]{0,64}){0,3}\\.",
+      UNICODE_CHARACTER_CLASS
+    );
+
+  /**
+   * The prefix of a group.
    *
    * @param value The name
    */
 
-  public EIGroupName
+  public EIGroupPrefix
   {
     Objects.requireNonNull(value, "value");
 
-    if (!VALID_GROUP_NAME.matcher(value).matches()) {
+    if (!VALID_GROUP_PREFIX.matcher(value).matches()) {
       throw new IllegalArgumentException(
         String.format(
-          "Group name '%s' must match %s", value, VALID_GROUP_NAME));
+          "Group prefix '%s' must match %s", value, VALID_GROUP_PREFIX));
     }
   }
 
-  @Override
-  public String toString()
+  /**
+   * Generate a group name based on this prefix and the given integer.
+   *
+   * @param id The ID value
+   *
+   * @return A group name
+   */
+
+  public EIGroupName toGroupName(final long id)
   {
-    return this.value;
+    return new EIGroupName(
+      "%su%s".formatted(this.value, Long.toUnsignedString(id))
+    );
   }
 }

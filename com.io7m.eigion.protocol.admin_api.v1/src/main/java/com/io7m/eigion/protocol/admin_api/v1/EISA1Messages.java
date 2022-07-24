@@ -61,6 +61,25 @@ public final class EISA1Messages
   private final SimpleDeserializers serializers;
   private final JsonMapper mapper;
 
+  private static String listOf(
+    final Class<?> clazz)
+  {
+    return "java.util.List<%s>".formatted(clazz.getCanonicalName());
+  }
+
+  private static String setOf(
+    final Class<?> clazz)
+  {
+    return "java.util.Set<%s>".formatted(clazz.getCanonicalName());
+  }
+
+  private static String mapOf(
+    final Class<?> keyClazz, final String valClazz)
+  {
+    return "java.util.Map<%s,%s>"
+      .formatted(keyClazz.getCanonicalName(), valClazz);
+  }
+
   /**
    * The Admin API v1 message protocol.
    */
@@ -80,6 +99,7 @@ public final class EISA1Messages
         .allowClass(EISA1CommandUserGetByEmail.class)
         .allowClass(EISA1CommandUserGetByName.class)
         .allowClass(EISA1CommandUserSearch.class)
+        .allowClass(EISA1GroupRole.class)
         .allowClass(EISA1MessageType.class)
         .allowClass(EISA1Password.class)
         .allowClass(EISA1ResponseAuditGet.class)
@@ -100,12 +120,14 @@ public final class EISA1Messages
         .allowClass(String.class)
         .allowClass(UUID.class)
         .allowClass(long.class)
-        .allowClassName("java.util.List<com.io7m.eigion.protocol.admin_api.v1.EISA1AuditEvent>")
-        .allowClassName("java.util.List<com.io7m.eigion.protocol.admin_api.v1.EISA1CommandType>")
-        .allowClassName("java.util.List<com.io7m.eigion.protocol.admin_api.v1.EISA1ResponseType>")
-        .allowClassName("java.util.List<com.io7m.eigion.protocol.admin_api.v1.EISA1Service>")
-        .allowClassName("java.util.List<com.io7m.eigion.protocol.admin_api.v1.EISA1User>")
-        .allowClassName("java.util.List<com.io7m.eigion.protocol.admin_api.v1.EISA1UserSummary>")
+        .allowClassName(listOf(EISA1AuditEvent.class))
+        .allowClassName(listOf(EISA1CommandType.class))
+        .allowClassName(listOf(EISA1ResponseType.class))
+        .allowClassName(listOf(EISA1Service.class))
+        .allowClassName(listOf(EISA1User.class))
+        .allowClassName(listOf(EISA1UserSummary.class))
+        .allowClassName(mapOf(String.class, setOf(EISA1GroupRole.class)))
+        .allowClassName(setOf(EISA1GroupRole.class))
         .build();
 
     this.mapper =

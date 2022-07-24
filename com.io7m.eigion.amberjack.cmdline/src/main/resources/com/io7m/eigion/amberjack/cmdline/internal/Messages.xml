@@ -17,4 +17,5 @@
   <entry key="user.show.password.algorithm">User.Password.Algorithm: {0}</entry>
   <entry key="user.show.password.hash">User.Password.Hash: {0}</entry>
   <entry key="user.show.password.salt">User.Password.Salt: {0}</entry>
+  <entry key="user.show.group.role">User.Group.Roles: {0} = {1}</entry>
 </properties>

@@ -66,7 +66,10 @@ public final class EIServerPublicAPILoginTest extends EIServerContract
     assertTrue(this.container().isRunning());
     this.server().start();
 
-    this.createUserSomeone();
+    final var adminId =
+      this.createAdminInitial("someone", "12345678");
+
+    this.createUserSomeone(adminId);
 
     final var response =
       this.postPublicBytes(
@@ -98,7 +101,10 @@ public final class EIServerPublicAPILoginTest extends EIServerContract
     assertTrue(this.container().isRunning());
     this.server().start();
 
-    this.createUserSomeone();
+    final var adminId =
+      this.createAdminInitial("someone", "12345678");
+
+    this.createUserSomeone(adminId);
 
     final var response =
       this.postPublicBytes(
@@ -129,7 +135,10 @@ public final class EIServerPublicAPILoginTest extends EIServerContract
     assertTrue(this.container().isRunning());
     this.server().start();
 
-    this.createUserSomeone();
+    final var adminId =
+      this.createAdminInitial("someone", "12345678");
+
+    this.createUserSomeone(adminId);
 
     final var response =
       this.postPublicBytes(
@@ -160,7 +169,10 @@ public final class EIServerPublicAPILoginTest extends EIServerContract
     assertTrue(this.container().isRunning());
     this.server().start();
 
-    this.createUserSomeone();
+    final var adminId =
+      this.createAdminInitial("someone", "12345678");
+
+    this.createUserSomeone(adminId);
 
     final var response =
       this.postPublicBytes(
@@ -225,7 +237,10 @@ public final class EIServerPublicAPILoginTest extends EIServerContract
     assertTrue(this.container().isRunning());
     this.server().start();
 
-    this.createUserSomeone();
+    final var adminId =
+      this.createAdminInitial("someone", "12345678");
+
+    this.createUserSomeone(adminId);
 
     final var response =
       this.getPublic("/public/1/0/login");

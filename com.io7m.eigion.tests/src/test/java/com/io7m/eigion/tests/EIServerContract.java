@@ -16,6 +16,7 @@
 
 package com.io7m.eigion.tests;
 
+import com.io7m.eigion.model.EIGroupPrefix;
 import com.io7m.eigion.model.EIPassword;
 import com.io7m.eigion.model.EIPasswordAlgorithmPBKDF2HmacSHA256;
 import com.io7m.eigion.model.EIPasswordException;
@@ -148,12 +149,15 @@ public abstract class EIServerContract
     return this.messagesV;
   }
 
-  protected final UUID createUserSomeone()
+  protected final UUID createUserSomeone(
+    final UUID adminId)
     throws EIServerDatabaseException, EIPasswordException
   {
     final var database = this.databases.mostRecent();
     try (var connection = database.openConnection(EIGION)) {
       try (var transaction = connection.openTransaction()) {
+        transaction.adminIdSet(adminId);
+
         final var users =
           transaction.queries(EIServerDatabaseUsersQueriesType.class);
         final var userId = UUID.randomUUID();
@@ -295,15 +299,14 @@ public abstract class EIServerContract
 
     return this.servers.createServer(
       new EIServerConfiguration(
-        this.databases,
+        Locale.getDefault(), Clock.systemUTC(), this.databases,
         databaseConfiguration,
         this.storage,
         new EIStorageParameters(Map.of()),
         new InetSocketAddress("localhost", 40000),
         new InetSocketAddress("localhost", 40001),
         this.directory,
-        Locale.getDefault(),
-        Clock.systemUTC()
+        new EIGroupPrefix("com.eigion.users.")
       )
     );
   }
@@ -444,7 +447,7 @@ public abstract class EIServerContract
     assertEquals(200, r.statusCode());
   }
 
-  protected final void createAdminInitial(
+  protected final UUID createAdminInitial(
     final String user,
     final String pass)
     throws Exception
@@ -459,14 +462,16 @@ public abstract class EIServerContract
           EIPasswordAlgorithmPBKDF2HmacSHA256.create()
             .createHashed(pass);
 
+        final var adminId = UUID.randomUUID();
         q.adminCreateInitial(
-          UUID.randomUUID(),
+          adminId,
           user,
           UUID.randomUUID() + "@example.com",
           OffsetDateTime.now(),
           password
         );
         t.commit();
+        return adminId;
       }
     }
   }

@@ -69,6 +69,7 @@ create table admins (
 ]]></Statement>
 
     <Statement>grant select, insert, update on admins to eigion</Statement>
+    <Statement>grant select (id) on admins to eigion_none</Statement>
 
     <Comment>
       The users table stores the current set of users.
@@ -148,20 +149,47 @@ create table user_bans (
     <Statement>grant select, insert, update, delete on user_bans to eigion</Statement>
 
     <Comment>
-      The groups table holds groups. A product is produced by exactly one group, and users may be in zero or more
-      groups.
+      The groups table holds groups. A product is produced by exactly one group, and users may be in one or more
+      groups. Users cannot create groups directly, so a creator_admin will have created each group on behalf of
+      creator_user.
     </Comment>
 
     <Statement><![CDATA[
 create table groups (
-  id       bigint                   not null primary key generated always as identity,
-  name     varchar(1024)            not null unique,
-  creator  uuid                     not null,
-  created  timestamp with time zone not null,
+  id             bigint                    not null primary key generated always as identity,
+  name           varchar(1024)             not null unique,
+  creator_admin  uuid                      not null,
+  creator_user   uuid                      not null,
+  created        timestamp with time zone  not null,
 
-  foreign key (creator) references users (id)
+  foreign key (creator_user) references users (id),
+  foreign key (creator_admin) references admins (id)
 )
 ]]></Statement>
+
+    <Statement>grant select, insert on groups to eigion</Statement>
+
+    <Comment>
+      The group_users table associates users with groups. A group always has at least one user; the user that
+      created the group is marked as the "founder" and may not ever leave the group.
+    </Comment>
+
+    <Statement><![CDATA[
+create table group_users (
+  id        bigint        not null primary key generated always as identity,
+  user_id   uuid          not null,
+  group_id  bigint        not null,
+  roles     varchar(1024) not null,
+
+  unique (user_id, group_id),
+
+  foreign key (user_id) references users (id),
+  foreign key (group_id) references groups (id)
+)
+]]></Statement>
+
+    <Statement>grant insert, select, delete on group_users to eigion</Statement>
+    <Statement>grant update (roles) on group_users to eigion</Statement>
 
     <Comment>
       The audit table stores a list of auditable events. Who did it? What did they do? When did they do it?

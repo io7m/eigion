@@ -20,6 +20,7 @@ package com.io7m.eigion.tests;
 import com.io7m.eigion.model.EIPasswordException;
 import com.io7m.eigion.model.EISubsetMatch;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1AuditEvent;
+import com.io7m.eigion.protocol.admin_api.v1.EISA1GroupRole;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1Password;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1SubsetMatch;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1User;
@@ -70,6 +71,12 @@ public final class EIIdentities
     return EIArbitraries.userSummaryV1();
   }
 
+  @Provide
+  public Arbitrary<EISA1GroupRole> groupRoleV1()
+  {
+    return EIArbitraries.groupRoleV1();
+  }
+
   @Property
   public void testEISA1SubsetMatch(
     @ForAll("subsetsV1") final EISA1SubsetMatch<String> x)
@@ -105,5 +112,12 @@ public final class EIIdentities
     @ForAll("userSummaryV1") final EISA1UserSummary x)
   {
     assertEquals(x, EISA1UserSummary.ofUserSummary(x.toUserSummary()));
+  }
+
+  @Property
+  public void testEISA1GroupRole(
+    @ForAll("groupRoleV1") final EISA1GroupRole x)
+  {
+    assertEquals(x, EISA1GroupRole.ofGroupRole(x.toGroupRole()));
   }
 }

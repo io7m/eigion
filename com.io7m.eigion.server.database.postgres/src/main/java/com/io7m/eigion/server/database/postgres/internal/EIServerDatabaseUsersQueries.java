@@ -17,6 +17,8 @@
 
 package com.io7m.eigion.server.database.postgres.internal;
 
+import com.io7m.eigion.model.EIGroupName;
+import com.io7m.eigion.model.EIGroupRole;
 import com.io7m.eigion.model.EIPassword;
 import com.io7m.eigion.model.EIPasswordAlgorithms;
 import com.io7m.eigion.model.EIPasswordException;
@@ -24,7 +26,7 @@ import com.io7m.eigion.model.EIUser;
 import com.io7m.eigion.model.EIUserBan;
 import com.io7m.eigion.model.EIUserSummary;
 import com.io7m.eigion.server.database.api.EIServerDatabaseException;
-import com.io7m.eigion.server.database.api.EIServerDatabaseRequiresUser;
+import com.io7m.eigion.server.database.api.EIServerDatabaseRequiresAdmin;
 import com.io7m.eigion.server.database.api.EIServerDatabaseUsersQueriesType;
 import com.io7m.eigion.server.database.postgres.internal.tables.records.UserBansRecord;
 import com.io7m.eigion.server.database.postgres.internal.tables.records.UsersRecord;
@@ -33,13 +35,20 @@ import org.jooq.exception.DataAccessException;
 
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import static com.io7m.eigion.server.database.postgres.internal.EIServerDatabaseExceptions.handleDatabaseException;
+import static com.io7m.eigion.server.database.postgres.internal.Tables.GROUPS;
+import static com.io7m.eigion.server.database.postgres.internal.Tables.GROUP_USERS;
 import static com.io7m.eigion.server.database.postgres.internal.Tables.USER_BANS;
 import static com.io7m.eigion.server.database.postgres.internal.Tables.USER_IDS;
 import static com.io7m.eigion.server.database.postgres.internal.tables.Audit.AUDIT;
@@ -57,7 +66,8 @@ final class EIServerDatabaseUsersQueries
 
   private static EIUser userRecordToUser(
     final UsersRecord userRecord,
-    final Optional<UserBansRecord> banOpt)
+    final Optional<UserBansRecord> banOpt,
+    final Map<EIGroupName, Set<EIGroupRole>> memberships)
     throws EIPasswordException
   {
     return new EIUser(
@@ -76,13 +86,15 @@ final class EIServerDatabaseUsersQueries
           Optional.ofNullable(userBansRecord.getExpires()),
           userBansRecord.getReason()
         );
-      })
+      }),
+      memberships
     );
   }
 
   private static Optional<EIUser> userMap(
     final DSLContext context,
-    final Optional<UsersRecord> recordOpt)
+    final Optional<UsersRecord> recordOpt,
+    final Map<EIGroupName, Set<EIGroupRole>> memberships)
     throws EIPasswordException
   {
     if (recordOpt.isPresent()) {
@@ -92,7 +104,7 @@ final class EIServerDatabaseUsersQueries
         context.fetchOptional(
           USER_BANS,
           USER_BANS.USER_ID.eq(userRecord.getId()));
-      return Optional.of(userRecordToUser(userRecord, banOpt));
+      return Optional.of(userRecordToUser(userRecord, banOpt, memberships));
     }
 
     return Optional.empty();
@@ -108,7 +120,33 @@ final class EIServerDatabaseUsersQueries
     );
   }
 
+  private static Map<EIGroupName, Set<EIGroupRole>> userGetGroupMemberships(
+    final DSLContext context,
+    final UUID id)
+  {
+    final var groupMemberships =
+      context.select()
+        .from(GROUP_USERS)
+        .join(GROUPS)
+        .on(GROUPS.ID.eq(GROUP_USERS.GROUP_ID))
+        .where(GROUP_USERS.USER_ID.eq(id))
+        .fetch();
+
+    final var memberships = new HashMap<EIGroupName, Set<EIGroupRole>>();
+    for (final var membership : groupMemberships) {
+      final var name = new EIGroupName(membership.get(GROUPS.NAME));
+      final var roles =
+        Arrays.stream(membership.get(GROUP_USERS.ROLES).split(","))
+          .filter(s -> !s.isBlank())
+          .map(EIGroupRole::valueOf)
+          .collect(Collectors.toUnmodifiableSet());
+      memberships.put(name, roles);
+    }
+    return Map.copyOf(memberships);
+  }
+
   @Override
+  @EIServerDatabaseRequiresAdmin
   public EIUser userCreate(
     final UUID id,
     final String userName,
@@ -124,8 +162,9 @@ final class EIServerDatabaseUsersQueries
     Objects.requireNonNull(created, "created");
     Objects.requireNonNull(password, "password");
 
-    final var context =
-      this.transaction().createContext();
+    final var transaction = this.transaction();
+    final var context = transaction.createContext();
+    final var admin = transaction.adminId();
 
     try {
       {
@@ -184,13 +223,13 @@ final class EIServerDatabaseUsersQueries
         context.insertInto(AUDIT)
           .set(AUDIT.TIME, this.currentTime())
           .set(AUDIT.TYPE, "USER_CREATED")
-          .set(AUDIT.USER_ID, id)
+          .set(AUDIT.USER_ID, admin)
           .set(AUDIT.MESSAGE, id.toString());
 
       audit.execute();
       return this.userGet(id).orElseThrow();
     } catch (final DataAccessException e) {
-      throw handleDatabaseException(this.transaction(), e);
+      throw handleDatabaseException(transaction, e);
     }
   }
 
@@ -203,7 +242,13 @@ final class EIServerDatabaseUsersQueries
 
     final var context = this.transaction().createContext();
     try {
-      return userMap(context, context.fetchOptional(USERS, USERS.ID.eq(id)));
+      final var record =
+        context.fetchOptional(USERS, USERS.ID.eq(id));
+      final var memberships =
+        record.map(r -> userGetGroupMemberships(context, r.getId()))
+          .orElse(Map.of());
+
+      return userMap(context, record, memberships);
     } catch (final DataAccessException e) {
       throw handleDatabaseException(this.transaction(), e);
     } catch (final EIPasswordException e) {
@@ -220,9 +265,13 @@ final class EIServerDatabaseUsersQueries
 
     final var context = this.transaction().createContext();
     try {
-      return userMap(
-        context,
-        context.fetchOptional(USERS, USERS.NAME.eq(name)));
+      final var record =
+        context.fetchOptional(USERS, USERS.NAME.eq(name));
+      final var memberships =
+        record.map(r -> userGetGroupMemberships(context, r.getId()))
+          .orElse(Map.of());
+
+      return userMap(context, record, memberships);
     } catch (final DataAccessException e) {
       throw handleDatabaseException(this.transaction(), e);
     } catch (final EIPasswordException e) {
@@ -239,9 +288,13 @@ final class EIServerDatabaseUsersQueries
 
     final var context = this.transaction().createContext();
     try {
-      return userMap(
-        context,
-        context.fetchOptional(USERS, USERS.EMAIL.eq(email)));
+      final var record =
+        context.fetchOptional(USERS, USERS.EMAIL.eq(email));
+      final var memberships =
+        record.map(r -> userGetGroupMemberships(context, r.getId()))
+          .orElse(Map.of());
+
+      return userMap(context, record, memberships);
     } catch (final DataAccessException e) {
       throw handleDatabaseException(this.transaction(), e);
     } catch (final EIPasswordException e) {
@@ -250,7 +303,7 @@ final class EIServerDatabaseUsersQueries
   }
 
   @Override
-  @EIServerDatabaseRequiresUser
+  @EIServerDatabaseRequiresAdmin
   public void userBan(
     final UUID id,
     final Optional<OffsetDateTime> expires,
@@ -261,10 +314,9 @@ final class EIServerDatabaseUsersQueries
     Objects.requireNonNull(expires, "expires");
     Objects.requireNonNull(reason, "reason");
 
-    final var owner =
-      this.transaction().userId();
-    final var context =
-      this.transaction().createContext();
+    final var transaction = this.transaction();
+    final var context = transaction.createContext();
+    final var owner = transaction.adminId();
 
     try {
       final var existingBanOpt =
@@ -297,16 +349,15 @@ final class EIServerDatabaseUsersQueries
   }
 
   @Override
-  @EIServerDatabaseRequiresUser
+  @EIServerDatabaseRequiresAdmin
   public void userUnban(final UUID id)
     throws EIServerDatabaseException
   {
     Objects.requireNonNull(id, "id");
 
-    final var owner =
-      this.transaction().userId();
-    final var context =
-      this.transaction().createContext();
+    final var transaction = this.transaction();
+    final var context = transaction.createContext();
+    final var owner = transaction.adminId();
 
     try {
       context.deleteFrom(USER_BANS)

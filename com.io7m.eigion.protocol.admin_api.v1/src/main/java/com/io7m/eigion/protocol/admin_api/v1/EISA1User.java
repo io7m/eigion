@@ -20,24 +20,30 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.io7m.eigion.model.EIGroupName;
+import com.io7m.eigion.model.EIGroupRole;
 import com.io7m.eigion.model.EIPasswordException;
 import com.io7m.eigion.model.EIUser;
 
 import java.time.OffsetDateTime;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * Information for a single user.
  *
- * @param id            The user's ID
- * @param name          The user's name
- * @param email         The user's email
- * @param password      The user's password
- * @param created       The date the user was created
- * @param lastLoginTime The date the user last logged in
- * @param ban           The user's ban, if one exists
+ * @param id              The user's ID
+ * @param name            The user's name
+ * @param email           The user's email
+ * @param password        The user's password
+ * @param created         The date the user was created
+ * @param lastLoginTime   The date the user last logged in
+ * @param ban             The user's ban, if one exists
+ * @param groupMembership The user's group membership
  */
 
 @JsonDeserialize
@@ -57,18 +63,21 @@ public record EISA1User(
   EISA1Password password,
   @JsonInclude(JsonInclude.Include.NON_ABSENT)
   @JsonProperty(value = "Ban", required = false)
-  Optional<EISA1UserBan> ban)
+  Optional<EISA1UserBan> ban,
+  @JsonProperty(value = "GroupMembership", required = true)
+  Map<String, Set<EISA1GroupRole>> groupMembership)
 {
   /**
    * Information for a single user.
    *
-   * @param id            The user's ID
-   * @param name          The user's name
-   * @param email         The user's email
-   * @param password      The user's password
-   * @param created       The date the user was created
-   * @param lastLoginTime The date the user last logged in
-   * @param ban           The user's ban, if one exists
+   * @param id              The user's ID
+   * @param name            The user's name
+   * @param email           The user's email
+   * @param password        The user's password
+   * @param created         The date the user was created
+   * @param lastLoginTime   The date the user last logged in
+   * @param ban             The user's ban, if one exists
+   * @param groupMembership The user's group membership
    */
 
   public EISA1User
@@ -80,6 +89,7 @@ public record EISA1User(
     Objects.requireNonNull(lastLoginTime, "lastLoginTime");
     Objects.requireNonNull(password, "password");
     Objects.requireNonNull(ban, "ban");
+    Objects.requireNonNull(groupMembership, "groupMembership");
   }
 
   /**
@@ -103,12 +113,66 @@ public record EISA1User(
       user.created(),
       user.lastLoginTime(),
       EISA1Password.ofPassword(user.password()),
-      user.ban().map(EISA1UserBan::ofBan)
+      user.ban().map(EISA1UserBan::ofBan),
+      mapGroupMembership(user.groupMembership())
     );
   }
 
+  private static Map<String, Set<EISA1GroupRole>> mapGroupMembership(
+    final Map<EIGroupName, Set<EIGroupRole>> groupMembership)
+  {
+    return groupMembership.entrySet()
+      .stream()
+      .map(EISA1User::mapEntry)
+      .collect(Collectors.toUnmodifiableMap(
+        Map.Entry::getKey,
+        Map.Entry::getValue));
+  }
+
+  private static Map.Entry<String, Set<EISA1GroupRole>> mapEntry(
+    final Map.Entry<EIGroupName, Set<EIGroupRole>> e)
+  {
+    return Map.entry(e.getKey().value(), mapGroupRoles(e.getValue()));
+  }
+
+  private static Set<EISA1GroupRole> mapGroupRoles(
+    final Set<EIGroupRole> roles)
+  {
+    return roles.stream()
+      .map(EISA1GroupRole::ofGroupRole)
+      .collect(Collectors.toUnmodifiableSet());
+  }
+
+  private static Map<EIGroupName, Set<EIGroupRole>> mapGroupMembershipV1(
+    final Map<String, Set<EISA1GroupRole>> groupMembership)
+  {
+    return groupMembership.entrySet()
+      .stream()
+      .map(EISA1User::mapEntryV1)
+      .collect(Collectors.toUnmodifiableMap(
+        Map.Entry::getKey,
+        Map.Entry::getValue));
+  }
+
+  private static Map.Entry<EIGroupName, Set<EIGroupRole>> mapEntryV1(
+    final Map.Entry<String, Set<EISA1GroupRole>> e)
+  {
+    return Map.entry(
+      new EIGroupName(e.getKey()),
+      mapGroupRolesV1(e.getValue())
+    );
+  }
+
+  private static Set<EIGroupRole> mapGroupRolesV1(
+    final Set<EISA1GroupRole> roles)
+  {
+    return roles.stream()
+      .map(EISA1GroupRole::toGroupRole)
+      .collect(Collectors.toUnmodifiableSet());
+  }
+
   /**
-   * Conver this to a model user.
+   * Convert this to a model user.
    *
    * @return This as a model user
    *
@@ -126,7 +190,8 @@ public record EISA1User(
       this.created,
       this.lastLoginTime,
       this.password.toPassword(),
-      this.ban.map(EISA1UserBan::toBan)
+      this.ban.map(EISA1UserBan::toBan),
+      mapGroupMembershipV1(this.groupMembership)
     );
   }
 }

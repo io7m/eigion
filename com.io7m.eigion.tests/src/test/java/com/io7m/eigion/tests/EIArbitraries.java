@@ -17,11 +17,13 @@
 
 package com.io7m.eigion.tests;
 
+import com.io7m.eigion.model.EIGroupName;
+import com.io7m.eigion.model.EIGroupRole;
 import com.io7m.eigion.model.EIPassword;
 import com.io7m.eigion.model.EIPasswordAlgorithmPBKDF2HmacSHA256;
-import com.io7m.eigion.model.EIPasswordAlgorithmType;
 import com.io7m.eigion.model.EISubsetMatch;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1AuditEvent;
+import com.io7m.eigion.protocol.admin_api.v1.EISA1GroupRole;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1Password;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1SubsetMatch;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1User;
@@ -30,12 +32,13 @@ import com.io7m.eigion.protocol.admin_api.v1.EISA1UserSummary;
 import net.jqwik.api.Arbitraries;
 import net.jqwik.api.Arbitrary;
 import net.jqwik.api.Combinators;
-import net.jqwik.api.Provide;
 
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 public final class EIArbitraries
@@ -126,6 +129,32 @@ public final class EIArbitraries
       .as((t, s) -> new EISA1UserBan(Optional.of(t), s));
   }
 
+  public static Arbitrary<EIGroupName> groupNames()
+  {
+    final var text =
+      Arbitraries.strings()
+        .withChars("abcdefghijklmnopqrstuvwxyz")
+        .ofMinLength(2)
+        .ofMaxLength(16);
+
+    return Combinators.combine(text, text, text).as((n0, n1, n2) -> {
+      return new EIGroupName("%s.%s.%s".formatted(n0, n1, n2));
+    });
+  }
+
+  public static Arbitrary<Set<EISA1GroupRole>> groupRoleSetsV1()
+  {
+    return Arbitraries.shuffle(EISA1GroupRole.FOUNDER).map(Set::copyOf);
+  }
+
+  public static Arbitrary<Map<String, Set<EISA1GroupRole>>> userGroupsV1()
+  {
+    return Arbitraries.maps(
+      groupNames().map(EIGroupName::value),
+      groupRoleSetsV1()
+    );
+  }
+
   public static Arbitrary<EISA1User> userV1()
   {
     final var uuids =
@@ -134,11 +163,29 @@ public final class EIArbitraries
       offsetDateTimes();
     final var text =
       Arbitraries.strings();
+    final var groups =
+      userGroupsV1();
 
-    return Combinators.combine(uuids, text, text, times, times, passwordsV1(), userBanV1())
-      .as((id, name, email, created, login, password, ban) -> {
-      return new EISA1User(id, name, email, created, login, password, Optional.of(ban));
-    });
+    return Combinators.combine(
+        uuids,
+        text,
+        text,
+        times,
+        times,
+        passwordsV1(),
+        userBanV1(),
+        groups)
+      .as((id, name, email, created, login, password, ban, g) -> {
+        return new EISA1User(
+          id,
+          name,
+          email,
+          created,
+          login,
+          password,
+          Optional.of(ban),
+          g);
+      });
   }
 
   public static Arbitrary<EISA1UserSummary> userSummaryV1()
@@ -150,5 +197,15 @@ public final class EIArbitraries
 
     return Combinators.combine(uuids, text, text)
       .as(EISA1UserSummary::new);
+  }
+
+  public static Arbitrary<EISA1GroupRole> groupRoleV1()
+  {
+    return Arbitraries.of(EISA1GroupRole.class);
+  }
+
+  public static Arbitrary<EIGroupRole> groupRole()
+  {
+    return Arbitraries.of(EIGroupRole.class);
   }
 }

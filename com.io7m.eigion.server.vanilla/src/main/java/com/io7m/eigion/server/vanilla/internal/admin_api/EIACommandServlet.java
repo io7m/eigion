@@ -148,7 +148,8 @@ public final class EIACommandServlet extends EIAAuthenticatedServlet
         this.strings(),
         requestId,
         transaction,
-        this.clock()
+        this.clock(),
+        this.admin()
       );
 
     final var result =

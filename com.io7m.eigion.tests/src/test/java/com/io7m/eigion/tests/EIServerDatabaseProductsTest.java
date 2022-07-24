@@ -22,8 +22,6 @@ import com.io7m.eigion.model.EIChange;
 import com.io7m.eigion.model.EIChangeTicket;
 import com.io7m.eigion.model.EICreation;
 import com.io7m.eigion.model.EIGroupName;
-import com.io7m.eigion.model.EIPassword;
-import com.io7m.eigion.model.EIPasswordAlgorithmPBKDF2HmacSHA256;
 import com.io7m.eigion.model.EIPasswordException;
 import com.io7m.eigion.model.EIProductBundleDependency;
 import com.io7m.eigion.model.EIProductCategory;
@@ -35,45 +33,27 @@ import com.io7m.eigion.model.EIProductVersion;
 import com.io7m.eigion.model.EIRedaction;
 import com.io7m.eigion.model.EIRedactionRequest;
 import com.io7m.eigion.model.EIRichText;
-import com.io7m.eigion.model.EISubsetMatch;
 import com.io7m.eigion.model.EIUser;
-import com.io7m.eigion.server.database.api.EIServerDatabaseAuditQueriesType;
-import com.io7m.eigion.server.database.api.EIServerDatabaseConfiguration;
 import com.io7m.eigion.server.database.api.EIServerDatabaseException;
 import com.io7m.eigion.server.database.api.EIServerDatabaseGroupsQueriesType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseProductsQueriesType;
-import com.io7m.eigion.server.database.api.EIServerDatabaseRole;
-import com.io7m.eigion.server.database.api.EIServerDatabaseTransactionType;
-import com.io7m.eigion.server.database.api.EIServerDatabaseType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseUsersQueriesType;
-import com.io7m.eigion.server.database.postgres.EIServerDatabases;
-import com.io7m.jmulticlose.core.CloseableCollection;
-import com.io7m.jmulticlose.core.CloseableCollectionType;
-import com.io7m.jmulticlose.core.ClosingResourceFailedException;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.utility.DockerImageName;
 
 import java.math.BigInteger;
 import java.net.URI;
-import java.time.Clock;
-import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 import java.util.function.Function;
 
 import static com.io7m.eigion.model.EIRedactionRequest.redactionRequest;
 import static com.io7m.eigion.model.EIRedactionRequest.redactionRequestOpt;
-import static com.io7m.eigion.server.database.api.EIServerDatabaseCreate.CREATE_DATABASE;
 import static com.io7m.eigion.server.database.api.EIServerDatabaseIncludeRedacted.EXCLUDE_REDACTED;
 import static com.io7m.eigion.server.database.api.EIServerDatabaseIncludeRedacted.INCLUDE_REDACTED;
 import static com.io7m.eigion.server.database.api.EIServerDatabaseRole.EIGION;
-import static com.io7m.eigion.server.database.api.EIServerDatabaseUpgrade.UPGRADE_DATABASE;
 import static java.math.BigInteger.ONE;
 import static java.math.BigInteger.TEN;
 import static java.math.BigInteger.TWO;
@@ -83,130 +63,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Testcontainers(disabledWithoutDocker = true)
-public final class EIServerDatabaseProductsTest
+public final class EIServerDatabaseProductsTest extends EIWithDatabaseContract
 {
-  private static final EIServerDatabases DATABASES =
-    new EIServerDatabases();
-
-  @Container
-  private final PostgreSQLContainer<?> container =
-    new PostgreSQLContainer<>(DockerImageName.parse("postgres").withTag("14.4"))
-      .withDatabaseName("postgres")
-      .withUsername("postgres")
-      .withPassword("12345678");
-
-  private CloseableCollectionType<ClosingResourceFailedException> resources;
-
-  private static void checkAuditLog(
-    final EIServerDatabaseTransactionType transaction,
-    final ExpectedEvent... expectedEvents)
-    throws EIServerDatabaseException
-  {
-    final var audit =
-      transaction.queries(EIServerDatabaseAuditQueriesType.class);
-    final var events =
-      audit.auditEvents(
-        timeNow().minusYears(1L),
-        timeNow().plusYears(1L),
-        new EISubsetMatch<>("", ""),
-        new EISubsetMatch<>("", ""),
-        new EISubsetMatch<>("", "")
-      );
-
-    for (var index = 0; index < expectedEvents.length; ++index) {
-      final var event =
-        events.get(index);
-      final var expect =
-        expectedEvents[index];
-
-      assertEquals(
-        expect.type,
-        event.type(),
-        String.format(
-          "Event [%d] %s type must be %s",
-          Integer.valueOf(index),
-          event,
-          expect.type)
-      );
-
-      if (expect.message != null) {
-        assertEquals(
-          expect.message,
-          event.message(),
-          String.format(
-            "Event [%d] %s message must be %s",
-            Integer.valueOf(index),
-            event,
-            expect.message)
-        );
-      }
-    }
-  }
-
-  private static OffsetDateTime timeNow()
-  {
-    /*
-     * Postgres doesn't store times at as high a resolution as the JVM,
-     * so trim the nanoseconds off in order to ensure we can correctly
-     * compare results returned from the database.
-     */
-
-    return now().withNano(0);
-  }
-
-  private EIServerDatabaseType databaseOf(
-    final PostgreSQLContainer<?> container)
-    throws EIServerDatabaseException
-  {
-    return this.resources.add(
-      DATABASES.open(
-        new EIServerDatabaseConfiguration(
-          "postgres",
-          "12345678",
-          container.getContainerIpAddress(),
-          container.getFirstMappedPort().intValue(),
-          "postgres",
-          CREATE_DATABASE,
-          UPGRADE_DATABASE,
-          Clock.systemUTC()
-        ),
-        message -> {
-
-        }
-      ));
-  }
-
-  private EIServerDatabaseTransactionType transactionOf(
-    final EIServerDatabaseRole role)
-    throws EIServerDatabaseException
-  {
-    final var database =
-      this.databaseOf(this.container);
-    final var connection =
-      this.resources.add(database.openConnection(role));
-    return this.resources.add(connection.openTransaction());
-  }
-
-  @BeforeEach
-  public void setup()
-  {
-    this.resources = CloseableCollection.create();
-  }
-
-  @AfterEach
-  public void tearDown()
-    throws ClosingResourceFailedException
-  {
-    this.resources.close();
-  }
-
-  private static EIPassword createBadPassword()
-    throws EIPasswordException
-  {
-    return EIPasswordAlgorithmPBKDF2HmacSHA256.create()
-      .createHashed("12345678");
-  }
-
   /**
    * Creating and redacting categories works.
    *
@@ -217,10 +75,16 @@ public final class EIServerDatabaseProductsTest
   public void testCategories()
     throws Exception
   {
-    assertTrue(this.container.isRunning());
+    assertTrue(this.containerIsRunning());
+
+    final var adminId =
+      this.databaseCreateAdminInitial("someone", "12345678");
 
     final var transaction =
       this.transactionOf(EIGION);
+
+    transaction.adminIdSet(adminId);
+
     final var products =
       transaction.queries(EIServerDatabaseProductsQueriesType.class);
     final var users =
@@ -230,7 +94,7 @@ public final class EIServerDatabaseProductsTest
       users.userCreate(
         "someone",
         "someone@example.com",
-        createBadPassword()
+        databaseGenerateBadPassword()
       );
 
     transaction.userIdSet(user.id());
@@ -313,6 +177,7 @@ public final class EIServerDatabaseProductsTest
 
     checkAuditLog(
       transaction,
+      new ExpectedEvent("ADMIN_CREATED", adminId.toString()),
       new ExpectedEvent("USER_CREATED", user.id().toString()),
       new ExpectedEvent("CATEGORY_CREATED", "Category 0"),
       new ExpectedEvent("CATEGORY_CREATED", "Category 1"),
@@ -333,10 +198,16 @@ public final class EIServerDatabaseProductsTest
   public void testProductCreation()
     throws Exception
   {
-    assertTrue(this.container.isRunning());
+    assertTrue(this.containerIsRunning());
+
+    final var adminId =
+      this.databaseCreateAdminInitial("someone", "12345678");
 
     final var transaction =
       this.transactionOf(EIGION);
+
+    transaction.adminIdSet(adminId);
+
     final var products =
       transaction.queries(EIServerDatabaseProductsQueriesType.class);
     final var users =
@@ -351,11 +222,11 @@ public final class EIServerDatabaseProductsTest
       users.userCreate(
         "someone",
         "someone@example.com",
-        createBadPassword());
+        databaseGenerateBadPassword());
+
+    groups.groupCreate(id.groupName(), user.id());
 
     transaction.userIdSet(user.id());
-
-    groups.groupCreate(id.groupName());
     final var product = products.productCreate(id);
 
     assertEquals(id, product.id());
@@ -365,6 +236,7 @@ public final class EIServerDatabaseProductsTest
 
     checkAuditLog(
       transaction,
+      new ExpectedEvent("ADMIN_CREATED", adminId.toString()),
       new ExpectedEvent("USER_CREATED", user.id().toString()),
       new ExpectedEvent("GROUP_CREATED", "com.io7m.ex"),
       new ExpectedEvent("PRODUCT_CREATED", "com.io7m.ex:com.q")
@@ -381,10 +253,16 @@ public final class EIServerDatabaseProductsTest
   public void testProductCreationDuplicate()
     throws Exception
   {
-    assertTrue(this.container.isRunning());
+    assertTrue(this.containerIsRunning());
+
+    final var adminId =
+      this.databaseCreateAdminInitial("someone", "12345678");
 
     final var transaction =
       this.transactionOf(EIGION);
+
+    transaction.adminIdSet(adminId);
+
     final var products =
       transaction.queries(EIServerDatabaseProductsQueriesType.class);
     final var users =
@@ -398,11 +276,11 @@ public final class EIServerDatabaseProductsTest
       users.userCreate(
         "someone",
         "someone@example.com",
-        createBadPassword());
+        databaseGenerateBadPassword());
+
+    groups.groupCreate(id.groupName(), user.id());
 
     transaction.userIdSet(user.id());
-
-    groups.groupCreate(id.groupName());
     final var product = products.productCreate(id);
 
     assertEquals(
@@ -422,7 +300,8 @@ public final class EIServerDatabaseProductsTest
     assertEquals("product-duplicate", ex.errorCode());
   }
 
-  private EIUser createTestUser()
+  private EIUser createTestUser(
+    final UUID adminId)
     throws EIServerDatabaseException,
     EIPasswordException
   {
@@ -430,10 +309,13 @@ public final class EIServerDatabaseProductsTest
     {
       final var transaction =
         this.transactionOf(EIGION);
+
+      transaction.adminIdSet(adminId);
+
       final var users =
         transaction.queries(EIServerDatabaseUsersQueriesType.class);
       final var p =
-        createBadPassword();
+        databaseGenerateBadPassword();
       user =
         users.userCreate("someone", "someone@example.com", p);
       transaction.commit();
@@ -451,12 +333,18 @@ public final class EIServerDatabaseProductsTest
   public void testProductRedactionNonexistent()
     throws Exception
   {
-    assertTrue(this.container.isRunning());
+    assertTrue(this.containerIsRunning());
 
-    final var user =
-      this.createTestUser();
+    final var adminId =
+      this.databaseCreateAdminInitial("someone", "12345678");
+
     final var transaction =
       this.transactionOf(EIGION);
+
+    transaction.adminIdSet(adminId);
+
+    final var user =
+      this.createTestUser(adminId);
     final var products =
       transaction.queries(EIServerDatabaseProductsQueriesType.class);
 
@@ -494,10 +382,16 @@ public final class EIServerDatabaseProductsTest
   public void testProductRedaction()
     throws Exception
   {
-    assertTrue(this.container.isRunning());
+    assertTrue(this.containerIsRunning());
+
+    final var adminId =
+      this.databaseCreateAdminInitial("someone", "12345678");
 
     final var transaction =
       this.transactionOf(EIGION);
+
+    transaction.adminIdSet(adminId);
+
     final var products =
       transaction.queries(EIServerDatabaseProductsQueriesType.class);
     final var users =
@@ -511,11 +405,11 @@ public final class EIServerDatabaseProductsTest
       users.userCreate(
         "someone",
         "someone@example.com",
-        createBadPassword());
+        databaseGenerateBadPassword());
+
+    groups.groupCreate(id.groupName(), user.id());
 
     transaction.userIdSet(user.id());
-
-    groups.groupCreate(id.groupName());
     final var product = products.productCreate(id);
 
     assertEquals(
@@ -556,6 +450,7 @@ public final class EIServerDatabaseProductsTest
 
     checkAuditLog(
       transaction,
+      new ExpectedEvent("ADMIN_CREATED", adminId.toString()),
       new ExpectedEvent("USER_CREATED", user.id().toString()),
       new ExpectedEvent("GROUP_CREATED", "com.io7m.ex"),
       new ExpectedEvent("PRODUCT_CREATED", "com.io7m.ex:com.q"),
@@ -574,10 +469,16 @@ public final class EIServerDatabaseProductsTest
   public void testProductCategories()
     throws Exception
   {
-    assertTrue(this.container.isRunning());
+    assertTrue(this.containerIsRunning());
+
+    final var adminId =
+      this.databaseCreateAdminInitial("someone", "12345678");
 
     final var transaction =
       this.transactionOf(EIGION);
+
+    transaction.adminIdSet(adminId);
+
     final var products =
       transaction.queries(EIServerDatabaseProductsQueriesType.class);
     final var users =
@@ -592,12 +493,11 @@ public final class EIServerDatabaseProductsTest
       users.userCreate(
         "someone",
         "someone@example.com",
-        createBadPassword());
+        databaseGenerateBadPassword());
+
+    groups.groupCreate(id.groupName(), user.id());
 
     transaction.userIdSet(user.id());
-
-    groups.groupCreate(id.groupName());
-
     final var product = products.productCreate(id);
     assertEquals(id, product.id());
     assertEquals(List.of(), product.releases());
@@ -643,6 +543,7 @@ public final class EIServerDatabaseProductsTest
 
     checkAuditLog(
       transaction,
+      new ExpectedEvent("ADMIN_CREATED", adminId.toString()),
       new ExpectedEvent("USER_CREATED", user.id().toString()),
       new ExpectedEvent("GROUP_CREATED", "com.io7m.ex"),
       new ExpectedEvent("PRODUCT_CREATED", "com.io7m.ex:com.q"),
@@ -666,24 +567,29 @@ public final class EIServerDatabaseProductsTest
   public void testProductTitleSet()
     throws Exception
   {
-    assertTrue(this.container.isRunning());
+    assertTrue(this.containerIsRunning());
 
-    final var user =
-      this.createTestUser();
+    final var adminId =
+      this.databaseCreateAdminInitial("someone", "12345678");
 
     final var transaction =
       this.transactionOf(EIGION);
+
+    final var user =
+      this.createTestUser(adminId);
+
     final var products =
       transaction.queries(EIServerDatabaseProductsQueriesType.class);
     final var groups =
       transaction.queries(EIServerDatabaseGroupsQueriesType.class);
 
-    transaction.userIdSet(user.id());
-
     final var id =
       new EIProductIdentifier("com.io7m.ex", "com.q");
 
-    groups.groupCreate(id.groupName());
+    transaction.adminIdSet(adminId);
+    groups.groupCreate(id.groupName(), user.id());
+
+    transaction.userIdSet(user.id());
     products.productCreate(id);
     products.productSetTitle(id, "Title");
 
@@ -694,6 +600,7 @@ public final class EIServerDatabaseProductsTest
 
     checkAuditLog(
       transaction,
+      new ExpectedEvent("ADMIN_CREATED", adminId.toString()),
       new ExpectedEvent("USER_CREATED", user.id().toString()),
       new ExpectedEvent("GROUP_CREATED", "com.io7m.ex"),
       new ExpectedEvent("PRODUCT_CREATED", "com.io7m.ex:com.q"),
@@ -711,24 +618,30 @@ public final class EIServerDatabaseProductsTest
   public void testProductDescriptionSet()
     throws Exception
   {
-    assertTrue(this.container.isRunning());
+    assertTrue(this.containerIsRunning());
 
-    final var user =
-      this.createTestUser();
+    final var adminId =
+      this.databaseCreateAdminInitial("someone", "12345678");
 
     final var transaction =
       this.transactionOf(EIGION);
+
+    transaction.adminIdSet(adminId);
+
+    final var user =
+      this.createTestUser(adminId);
+
     final var products =
       transaction.queries(EIServerDatabaseProductsQueriesType.class);
     final var groups =
       transaction.queries(EIServerDatabaseGroupsQueriesType.class);
 
-    transaction.userIdSet(user.id());
-
     final var id =
       new EIProductIdentifier("com.io7m.ex", "com.q");
 
-    groups.groupCreate(id.groupName());
+    groups.groupCreate(id.groupName(), user.id());
+
+    transaction.userIdSet(user.id());
     products.productCreate(id);
     products.productSetDescription(
       id,
@@ -743,6 +656,7 @@ public final class EIServerDatabaseProductsTest
 
     checkAuditLog(
       transaction,
+      new ExpectedEvent("ADMIN_CREATED", adminId.toString()),
       new ExpectedEvent("USER_CREATED", user.id().toString()),
       new ExpectedEvent("GROUP_CREATED", "com.io7m.ex"),
       new ExpectedEvent("PRODUCT_CREATED", "com.io7m.ex:com.q"),
@@ -760,19 +674,23 @@ public final class EIServerDatabaseProductsTest
   public void testProductReleaseCreate()
     throws Exception
   {
-    assertTrue(this.container.isRunning());
+    assertTrue(this.containerIsRunning());
 
-    final var user =
-      this.createTestUser();
+    final var adminId =
+      this.databaseCreateAdminInitial("someone", "12345678");
 
     final var transaction =
       this.transactionOf(EIGION);
+
+    transaction.adminIdSet(adminId);
+
+    final var user =
+      this.createTestUser(adminId);
+
     final var products =
       transaction.queries(EIServerDatabaseProductsQueriesType.class);
     final var groups =
       transaction.queries(EIServerDatabaseGroupsQueriesType.class);
-
-    transaction.userIdSet(user.id());
 
     final var id =
       new EIProductIdentifier("com.io7m.ex", "com.q");
@@ -781,7 +699,9 @@ public final class EIServerDatabaseProductsTest
     final var dep1 =
       new EIProductIdentifier("com.io7m.ex", "com.x");
 
-    groups.groupCreate(id.groupName());
+    groups.groupCreate(id.groupName(), user.id());
+
+    transaction.userIdSet(user.id());
     products.productCreate(id);
 
     final var v0 =
@@ -836,6 +756,7 @@ public final class EIServerDatabaseProductsTest
 
     checkAuditLog(
       transaction,
+      new ExpectedEvent("ADMIN_CREATED", adminId.toString()),
       new ExpectedEvent("USER_CREATED", user.id().toString()),
       new ExpectedEvent("GROUP_CREATED", "com.io7m.ex"),
       new ExpectedEvent("PRODUCT_CREATED", "com.io7m.ex:com.q"),
@@ -853,19 +774,23 @@ public final class EIServerDatabaseProductsTest
   public void testProductReleaseRedaction()
     throws Exception
   {
-    assertTrue(this.container.isRunning());
+    assertTrue(this.containerIsRunning());
 
-    final var user =
-      this.createTestUser();
+    final var adminId =
+      this.databaseCreateAdminInitial("someone", "12345678");
 
     final var transaction =
       this.transactionOf(EIGION);
+
+    transaction.adminIdSet(adminId);
+
+    final var user =
+      this.createTestUser(adminId);
+
     final var products =
       transaction.queries(EIServerDatabaseProductsQueriesType.class);
     final var groups =
       transaction.queries(EIServerDatabaseGroupsQueriesType.class);
-
-    transaction.userIdSet(user.id());
 
     final var id =
       new EIProductIdentifier("com.io7m.ex", "com.q");
@@ -874,7 +799,9 @@ public final class EIServerDatabaseProductsTest
     final var dep1 =
       new EIProductIdentifier("com.io7m.ex", "com.x");
 
-    groups.groupCreate(id.groupName());
+    groups.groupCreate(id.groupName(), user.id());
+
+    transaction.userIdSet(user.id());
     products.productCreate(id);
 
     final var v0 =
@@ -932,6 +859,7 @@ public final class EIServerDatabaseProductsTest
 
     checkAuditLog(
       transaction,
+      new ExpectedEvent("ADMIN_CREATED", adminId.toString()),
       new ExpectedEvent("USER_CREATED", user.id().toString()),
       new ExpectedEvent("GROUP_CREATED", "com.io7m.ex"),
       new ExpectedEvent("PRODUCT_CREATED", "com.io7m.ex:com.q"),
@@ -949,22 +877,27 @@ public final class EIServerDatabaseProductsTest
   public void testProductSummaries()
     throws Exception
   {
-    assertTrue(this.container.isRunning());
+    assertTrue(this.containerIsRunning());
 
-    final var user =
-      this.createTestUser();
+    final var adminId =
+      this.databaseCreateAdminInitial("someone", "12345678");
 
     final var transaction =
       this.transactionOf(EIGION);
+
+    transaction.adminIdSet(adminId);
+
+    final var user =
+      this.createTestUser(adminId);
+
     final var products =
       transaction.queries(EIServerDatabaseProductsQueriesType.class);
     final var groups =
       transaction.queries(EIServerDatabaseGroupsQueriesType.class);
 
+    groups.groupCreate(new EIGroupName("com.io7m.ex"), user.id());
+
     transaction.userIdSet(user.id());
-
-    groups.groupCreate(new EIGroupName("com.io7m.ex"));
-
     final Function<Integer, EIProductIdentifier> idFor = i -> {
       return new EIProductIdentifier(
         "com.io7m.ex",
@@ -1054,12 +987,5 @@ public final class EIServerDatabaseProductsTest
       );
       assertEquals(Optional.empty(), page.lastKey());
     }
-  }
-
-  private record ExpectedEvent(
-    String type,
-    String message)
-  {
-
   }
 }

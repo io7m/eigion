@@ -172,6 +172,9 @@ public final class EIServer implements EIServerType
     final var clock = new EIServerClock(this.configuration.clock());
     services.register(EIServerClock.class, clock);
 
+    final var config = new EIServerConfigurations(this.configuration);
+    services.register(EIServerConfigurations.class, config);
+
     final var messages = new EISVMessages();
     services.register(EISVMessages.class, messages);
 

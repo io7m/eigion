@@ -17,6 +17,11 @@
 package com.io7m.eigion.server.database.api;
 
 import com.io7m.eigion.model.EIGroupName;
+import com.io7m.eigion.model.EIGroupRole;
+
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
 
 /**
  * The database queries involving groups.
@@ -26,15 +31,76 @@ public non-sealed interface EIServerDatabaseGroupsQueriesType
   extends EIServerDatabaseQueriesType
 {
   /**
-   * Create a group, failing if one already exists with the given name.
-   *
-   * @param name The group
+   * @return The highest existing identifier
    *
    * @throws EIServerDatabaseException On errors
    */
 
-  @EIServerDatabaseRequiresUser
-  void groupCreate(EIGroupName name)
+  long groupIdentifierLast()
+    throws EIServerDatabaseException;
+
+  /**
+   * Create a group, failing if one already exists with the given name.
+   *
+   * @param name        The group
+   * @param userFounder The founding user
+   *
+   * @throws EIServerDatabaseException On errors
+   */
+
+  @EIServerDatabaseRequiresAdmin
+  void groupCreate(
+    EIGroupName name,
+    UUID userFounder)
+    throws EIServerDatabaseException;
+
+  /**
+   * Set the given user as a member of the given group, with the given roles.
+   *
+   * @param name   The group
+   * @param userId The user
+   * @param roles  The roles
+   *
+   * @throws EIServerDatabaseException On errors
+   */
+
+  @EIServerDatabaseRequiresAdmin
+  void groupMembershipSet(
+    EIGroupName name,
+    UUID userId,
+    Set<EIGroupRole> roles)
+    throws EIServerDatabaseException;
+
+  /**
+   * Get the membership of the given user within the given group. Returns
+   * nothing if the user is not a member of the group.
+   *
+   * @param name   The group
+   * @param userId The user
+   *
+   * @return A non-empty value if the user is a member
+   *
+   * @throws EIServerDatabaseException On errors
+   */
+
+  Optional<Set<EIGroupRole>> groupMembershipGet(
+    EIGroupName name,
+    UUID userId)
+    throws EIServerDatabaseException;
+
+  /**
+   * Remove the given user as a member of the given group.
+   *
+   * @param name   The group
+   * @param userId The user
+   *
+   * @throws EIServerDatabaseException On errors
+   */
+
+  @EIServerDatabaseRequiresAdmin
+  void groupMembershipRemove(
+    EIGroupName name,
+    UUID userId)
     throws EIServerDatabaseException;
 
   /**

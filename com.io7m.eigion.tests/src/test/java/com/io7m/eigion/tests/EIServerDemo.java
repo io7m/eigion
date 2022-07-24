@@ -16,6 +16,7 @@
 
 package com.io7m.eigion.tests;
 
+import com.io7m.eigion.model.EIGroupPrefix;
 import com.io7m.eigion.model.EIPasswordAlgorithmPBKDF2HmacSHA256;
 import com.io7m.eigion.model.EIPasswordException;
 import com.io7m.eigion.server.api.EIServerConfiguration;
@@ -67,15 +68,14 @@ public final class EIServerDemo
 
     final var serverConfiguration =
       new EIServerConfiguration(
-        new EIServerDatabases(),
+        Locale.getDefault(), Clock.systemUTC(), new EIServerDatabases(),
         databaseConfiguration,
         new EIFakeStorageFactory(),
         new EIStorageParameters(Map.of()),
         new InetSocketAddress("localhost", 40000),
         new InetSocketAddress("localhost", 40001),
         Files.createTempDirectory("eigion"),
-        Locale.getDefault(),
-        Clock.systemUTC()
+        new EIGroupPrefix("com.eigion.users.")
       );
 
     final var servers = new EIServers();

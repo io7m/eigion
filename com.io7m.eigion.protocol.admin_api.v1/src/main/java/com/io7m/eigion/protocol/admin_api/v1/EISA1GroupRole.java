@@ -14,40 +14,46 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-package com.io7m.eigion.model;
+package com.io7m.eigion.protocol.admin_api.v1;
 
-import java.util.Objects;
-
-import static com.io7m.eigion.model.EIProductIdentifier.VALID_GROUP_NAME;
+import com.io7m.eigion.model.EIGroupRole;
 
 /**
- * The name of a group.
- *
- * @param value The name
+ * The role of a user within a group.
  */
 
-public record EIGroupName(String value)
+public enum EISA1GroupRole
 {
   /**
-   * The name of a group.
-   *
-   * @param value The name
+   * The user is the founder of the group.
    */
 
-  public EIGroupName
-  {
-    Objects.requireNonNull(value, "value");
+  FOUNDER;
 
-    if (!VALID_GROUP_NAME.matcher(value).matches()) {
-      throw new IllegalArgumentException(
-        String.format(
-          "Group name '%s' must match %s", value, VALID_GROUP_NAME));
-    }
+  /**
+   * @return This v1 group role as a model group role
+   */
+
+  public EIGroupRole toGroupRole()
+  {
+    return switch (this) {
+      case FOUNDER -> EIGroupRole.FOUNDER;
+    };
   }
 
-  @Override
-  public String toString()
+  /**
+   * Convert a model role to a v1 role.
+   *
+   * @param role The model role
+   *
+   * @return The model role as a v1 role
+   */
+
+  public static EISA1GroupRole ofGroupRole(
+    final EIGroupRole role)
   {
-    return this.value;
+    return switch (role) {
+      case FOUNDER -> FOUNDER;
+    };
   }
 }
