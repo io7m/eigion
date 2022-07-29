@@ -19,7 +19,14 @@ package com.io7m.eigion.server.vanilla.internal.admin_api;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandServicesList;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1ResponseServiceList;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1Service;
+import com.io7m.eigion.server.security.EISecActionServicesRead;
+import com.io7m.eigion.server.security.EISecPolicyResultDenied;
+import com.io7m.eigion.server.security.EISecurity;
+import com.io7m.eigion.server.security.EISecurityException;
+import com.io7m.eigion.server.vanilla.internal.EIHTTPErrorStatusException;
 import com.io7m.eigion.services.api.EIServiceType;
+
+import static org.eclipse.jetty.http.HttpStatus.FORBIDDEN_403;
 
 /**
  * A command to retrieve services.
@@ -49,7 +56,17 @@ public final class EIACmdServicesList
   public EIACommandExecutionResult execute(
     final EIACommandContext context,
     final EISA1CommandServicesList command)
+    throws EIHTTPErrorStatusException, EISecurityException
   {
+    if (EISecurity.check(new EISecActionServicesRead(context.admin()))
+      instanceof EISecPolicyResultDenied denied) {
+      throw new EIHTTPErrorStatusException(
+        FORBIDDEN_403,
+        "service-read",
+        denied.message()
+      );
+    }
+
     return new EIACommandExecutionResult(
       200,
       new EISA1ResponseServiceList(

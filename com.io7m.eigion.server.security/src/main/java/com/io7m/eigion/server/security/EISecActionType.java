@@ -18,16 +18,13 @@ package com.io7m.eigion.server.security;
 
 /**
  * A view of an action within the security policy. An <i>action</i> may (or may
- * not) be performed by a  <i>user</i> according to the security policy.
+ * not) be performed by a <i>user</i> or <i>admin</i> according to the security
+ * policy.
  */
 
-public sealed interface EISecActionType permits EISecActionImageCreate,
-  EISecActionImageRead,
-  EISecActionUserUserComplaintCreate
+public sealed interface EISecActionType
+  permits EISecActionAdminType,
+  EISecActionUserType
 {
-  /**
-   * @return The user attempting to perform the action
-   */
 
-  EISecUserType user();
 }

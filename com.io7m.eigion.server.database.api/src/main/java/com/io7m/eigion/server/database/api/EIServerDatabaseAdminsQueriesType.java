@@ -17,12 +17,14 @@
 package com.io7m.eigion.server.database.api;
 
 import com.io7m.eigion.model.EIAdmin;
+import com.io7m.eigion.model.EIAdminPermission;
 import com.io7m.eigion.model.EIAdminSummary;
 import com.io7m.eigion.model.EIPassword;
 
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -34,9 +36,9 @@ public non-sealed interface EIServerDatabaseAdminsQueriesType
 {
   /**
    * Create an (initial) admin. This method behaves exactly the same as
-   * {@link #adminCreate(String, String, EIPassword)}, except that it does not
-   * require an existing admin account and does not write to the audit log. The
-   * method will fail if any admin account already exists,
+   * {@link #adminCreate(String, String, EIPassword, Set)} except that it does
+   * not require an existing admin account and does not write to the audit log.
+   * The method will fail if any admin account already exists,
    *
    * @param id        The admin ID
    * @param created   The creation time
@@ -60,9 +62,10 @@ public non-sealed interface EIServerDatabaseAdminsQueriesType
   /**
    * Create an admin.
    *
-   * @param adminName The admin name
-   * @param email     The admin email
-   * @param password  The hashed password
+   * @param adminName   The admin name
+   * @param email       The admin email
+   * @param password    The hashed password
+   * @param permissions The permissions the created admin will have
    *
    * @return The created admin
    *
@@ -73,7 +76,8 @@ public non-sealed interface EIServerDatabaseAdminsQueriesType
   default EIAdmin adminCreate(
     final String adminName,
     final String email,
-    final EIPassword password)
+    final EIPassword password,
+    final Set<EIAdminPermission> permissions)
     throws EIServerDatabaseException
   {
     return this.adminCreate(
@@ -81,18 +85,20 @@ public non-sealed interface EIServerDatabaseAdminsQueriesType
       adminName,
       email,
       OffsetDateTime.now(),
-      password
+      password,
+      permissions
     );
   }
 
   /**
    * Create an admin.
    *
-   * @param id        The admin ID
-   * @param created   The creation time
-   * @param adminName The admin name
-   * @param email     The admin email
-   * @param password  The hashed password
+   * @param id          The admin ID
+   * @param created     The creation time
+   * @param adminName   The admin name
+   * @param email       The admin email
+   * @param password    The hashed password
+   * @param permissions The permissions the created admin will have
    *
    * @return The created admin
    *
@@ -105,7 +111,8 @@ public non-sealed interface EIServerDatabaseAdminsQueriesType
     String adminName,
     String email,
     OffsetDateTime created,
-    EIPassword password)
+    EIPassword password,
+    Set<EIAdminPermission> permissions)
     throws EIServerDatabaseException;
 
   /**

@@ -19,6 +19,9 @@ package com.io7m.eigion.tests;
 
 import com.io7m.eigion.model.EIPasswordException;
 import com.io7m.eigion.model.EISubsetMatch;
+import com.io7m.eigion.protocol.admin_api.v1.EISA1Admin;
+import com.io7m.eigion.protocol.admin_api.v1.EISA1AdminPermission;
+import com.io7m.eigion.protocol.admin_api.v1.EISA1AdminSummary;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1AuditEvent;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1GroupRole;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1Password;
@@ -66,15 +69,33 @@ public final class EIIdentities
   }
 
   @Provide
+  public Arbitrary<EISA1Admin> adminV1()
+  {
+    return EIArbitraries.adminV1();
+  }
+
+  @Provide
   public Arbitrary<EISA1UserSummary> userSummaryV1()
   {
     return EIArbitraries.userSummaryV1();
   }
 
   @Provide
+  public Arbitrary<EISA1AdminSummary> adminSummaryV1()
+  {
+    return EIArbitraries.adminSummaryV1();
+  }
+
+  @Provide
   public Arbitrary<EISA1GroupRole> groupRoleV1()
   {
     return EIArbitraries.groupRoleV1();
+  }
+
+  @Provide
+  public Arbitrary<EISA1AdminPermission> adminPermissionV1()
+  {
+    return EIArbitraries.adminPermissionV1();
   }
 
   @Property
@@ -119,5 +140,27 @@ public final class EIIdentities
     @ForAll("groupRoleV1") final EISA1GroupRole x)
   {
     assertEquals(x, EISA1GroupRole.ofGroupRole(x.toGroupRole()));
+  }
+
+  @Property
+  public void testEISA1AdminPermission(
+    @ForAll("adminPermissionV1") final EISA1AdminPermission x)
+  {
+    assertEquals(x, EISA1AdminPermission.ofAdmin(x.toAdmin()));
+  }
+
+  @Property
+  public void testEISA1Admin(
+    @ForAll("adminV1") final EISA1Admin x)
+    throws EIPasswordException
+  {
+    assertEquals(x, EISA1Admin.ofAdmin(x.toAdmin()));
+  }
+
+  @Property
+  public void testEISA1AdminSummary(
+    @ForAll("adminSummaryV1") final EISA1AdminSummary x)
+  {
+    assertEquals(x, EISA1AdminSummary.ofAdminSummary(x.toAdminSummary()));
   }
 }

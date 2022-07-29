@@ -17,9 +17,12 @@
 
 package com.io7m.eigion.server.vanilla.internal.admin_api;
 
+import com.io7m.eigion.model.EIAdmin;
 import com.io7m.eigion.model.EIPasswordException;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1Messages;
+import com.io7m.eigion.server.database.api.EIServerDatabaseAdminsQueriesType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseException;
+import com.io7m.eigion.server.database.api.EIServerDatabaseType;
 import com.io7m.eigion.server.vanilla.internal.EIHTTPErrorStatusException;
 import com.io7m.eigion.server.vanilla.internal.EIServerClock;
 import com.io7m.eigion.server.vanilla.internal.EIServerEventBus;
@@ -38,6 +41,7 @@ import java.io.IOException;
 import java.util.Objects;
 import java.util.UUID;
 
+import static com.io7m.eigion.server.database.api.EIServerDatabaseRole.EIGION;
 import static com.io7m.eigion.server.vanilla.internal.EIServerRequestDecoration.requestIdFor;
 import static com.io7m.eigion.server.vanilla.logging.EIServerMDCRequestProcessor.mdcForRequest;
 import static org.eclipse.jetty.http.HttpStatus.INTERNAL_SERVER_ERROR_500;
@@ -50,11 +54,12 @@ import static org.eclipse.jetty.http.HttpStatus.INTERNAL_SERVER_ERROR_500;
 public abstract class EIAAuthenticatedServlet extends HttpServlet
 {
   private final EIASends sends;
+  private final EISA1Messages messages;
   private final EIServerClock clock;
+  private final EIServerDatabaseType database;
   private final EIServerEventBus events;
   private final EIServerStrings strings;
-  private final EISA1Messages messages;
-  private UUID admin;
+  private EIAdmin admin;
 
   /**
    * A servlet that checks that an admin is authenticated before delegating
@@ -70,6 +75,8 @@ public abstract class EIAAuthenticatedServlet extends HttpServlet
 
     this.messages =
       services.requireService(EISA1Messages.class);
+    this.database =
+      services.requireService(EIServerDatabaseType.class);
     this.strings =
       services.requireService(EIServerStrings.class);
     this.events =
@@ -84,7 +91,7 @@ public abstract class EIAAuthenticatedServlet extends HttpServlet
    * @return The authenticated admin
    */
 
-  protected final UUID admin()
+  protected final EIAdmin admin()
   {
     return this.admin;
   }
@@ -133,7 +140,8 @@ public abstract class EIAAuthenticatedServlet extends HttpServlet
       try {
         final var session = request.getSession(false);
         if (session != null) {
-          this.admin = (UUID) session.getAttribute("AdminID");
+          final var adminId = (UUID) session.getAttribute("AdminID");
+          this.admin = this.adminGet(adminId);
           this.serviceAuthenticated(request, servletResponse, session);
           return;
         }
@@ -175,6 +183,18 @@ public abstract class EIAAuthenticatedServlet extends HttpServlet
       } catch (final Exception e) {
         this.logger().trace("exception: ", e);
         throw new IOException(e);
+      }
+    }
+  }
+
+  private EIAdmin adminGet(final UUID id)
+    throws EIServerDatabaseException
+  {
+    try (var c = this.database.openConnection(EIGION)) {
+      try (var t = c.openTransaction()) {
+        final var q =
+          t.queries(EIServerDatabaseAdminsQueriesType.class);
+        return q.adminGet(id).orElseThrow(IllegalStateException::new);
       }
     }
   }

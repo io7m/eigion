@@ -24,7 +24,10 @@ import java.util.UUID;
  */
 
 public sealed interface EISA1ResponseType
-  extends EISA1MessageType permits EISA1ResponseAuditGet,
+  extends EISA1MessageType permits EISA1ResponseAdminCreate,
+  EISA1ResponseAdminGet,
+  EISA1ResponseAdminList,
+  EISA1ResponseAuditGet,
   EISA1ResponseError,
   EISA1ResponseLogin,
   EISA1ResponseServiceList,

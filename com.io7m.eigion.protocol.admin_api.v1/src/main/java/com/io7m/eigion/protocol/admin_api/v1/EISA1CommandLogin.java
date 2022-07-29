@@ -16,6 +16,10 @@
 
 package com.io7m.eigion.protocol.admin_api.v1;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+
 import java.util.Objects;
 
 /**
@@ -25,8 +29,12 @@ import java.util.Objects;
  * @param password The password
  */
 
+@JsonDeserialize
+@JsonSerialize
 public record EISA1CommandLogin(
+  @JsonProperty(value = "UserName", required = true)
   String userName,
+  @JsonProperty(value = "Password", required = true)
   String password)
   implements EISA1CommandType
 {

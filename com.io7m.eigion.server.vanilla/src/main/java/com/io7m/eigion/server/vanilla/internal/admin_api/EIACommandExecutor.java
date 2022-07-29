@@ -17,6 +17,11 @@
 
 package com.io7m.eigion.server.vanilla.internal.admin_api;
 
+import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandAdminCreate;
+import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandAdminGet;
+import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandAdminGetByEmail;
+import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandAdminGetByName;
+import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandAdminSearch;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandAuditGet;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandServicesList;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandType;
@@ -26,6 +31,8 @@ import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandUserGetByEmail;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandUserGetByName;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandUserSearch;
 import com.io7m.eigion.server.database.api.EIServerDatabaseException;
+import com.io7m.eigion.server.security.EISecurityException;
+import com.io7m.eigion.server.vanilla.internal.EIHTTPErrorStatusException;
 
 /**
  * A general executor for any command.
@@ -47,7 +54,10 @@ public final class EIACommandExecutor
   public EIACommandExecutionResult execute(
     final EIACommandContext context,
     final EISA1CommandType command)
-    throws EIServerDatabaseException
+    throws
+    EIServerDatabaseException,
+    EISecurityException,
+    EIHTTPErrorStatusException
   {
     if (command instanceof EISA1CommandAuditGet c) {
       return new EIACmdAuditGetByTime().execute(context, c);
@@ -69,6 +79,21 @@ public final class EIACommandExecutor
     }
     if (command instanceof EISA1CommandServicesList c) {
       return new EIACmdServicesList().execute(context, c);
+    }
+    if (command instanceof EISA1CommandAdminCreate c) {
+      return new EIACmdAdminCreate().execute(context, c);
+    }
+    if (command instanceof EISA1CommandAdminGet c) {
+      return new EIACmdAdminGet().execute(context, c);
+    }
+    if (command instanceof EISA1CommandAdminGetByName c) {
+      return new EIACmdAdminGetByName().execute(context, c);
+    }
+    if (command instanceof EISA1CommandAdminSearch c) {
+      return new EIACmdAdminSearch().execute(context, c);
+    }
+    if (command instanceof EISA1CommandAdminGetByEmail c) {
+      return new EIACmdAdminGetByEmail().execute(context, c);
     }
 
     throw new IllegalStateException();

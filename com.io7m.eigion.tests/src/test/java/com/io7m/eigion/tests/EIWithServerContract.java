@@ -209,7 +209,7 @@ public abstract class EIWithServerContract
     return URI.create("http://localhost:40000/");
   }
 
-  protected final void serverCreateAdminInitial(
+  protected final UUID serverCreateAdminInitial(
     final String user,
     final String pass)
     throws Exception
@@ -224,14 +224,16 @@ public abstract class EIWithServerContract
           EIPasswordAlgorithmPBKDF2HmacSHA256.create()
             .createHashed(pass);
 
+        final var id = UUID.randomUUID();
         q.adminCreateInitial(
-          UUID.randomUUID(),
+          id,
           user,
-          UUID.randomUUID() + "@example.com",
+          id + "@example.com",
           OffsetDateTime.now(),
           password
         );
         t.commit();
+        return id;
       }
     }
   }

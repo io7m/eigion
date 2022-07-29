@@ -19,6 +19,9 @@ package com.io7m.eigion.amberjack.internal;
 
 import com.io7m.eigion.amberjack.api.EIAClientException;
 import com.io7m.eigion.amberjack.api.EIAClientType;
+import com.io7m.eigion.model.EIAdmin;
+import com.io7m.eigion.model.EIAdminPermission;
+import com.io7m.eigion.model.EIAdminSummary;
 import com.io7m.eigion.model.EIAuditEvent;
 import com.io7m.eigion.model.EIService;
 import com.io7m.eigion.model.EISubsetMatch;
@@ -32,6 +35,7 @@ import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * The default client implementation.
@@ -149,5 +153,48 @@ public final class EIAClient implements EIAClientType
     throws EIAClientException, InterruptedException
   {
     return this.handler.userCreate(name, email, password);
+  }
+
+  @Override
+  public Optional<EIAdmin> adminById(
+    final String id)
+    throws EIAClientException, InterruptedException
+  {
+    return this.handler.adminById(id);
+  }
+
+  @Override
+  public Optional<EIAdmin> adminByName(
+    final String name)
+    throws EIAClientException, InterruptedException
+  {
+    return this.handler.adminByName(name);
+  }
+
+  @Override
+  public Optional<EIAdmin> adminByEmail(
+    final String email)
+    throws EIAClientException, InterruptedException
+  {
+    return this.handler.adminByEmail(email);
+  }
+
+  @Override
+  public List<EIAdminSummary> adminSearch(
+    final String query)
+    throws EIAClientException, InterruptedException
+  {
+    return this.handler.adminSearch(query);
+  }
+
+  @Override
+  public EIAdmin adminCreate(
+    final String name,
+    final String email,
+    final String password,
+    final Set<EIAdminPermission> permissions)
+    throws EIAClientException, InterruptedException
+  {
+    return this.handler.adminCreate(name, email, password, permissions);
   }
 }

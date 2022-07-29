@@ -18,6 +18,9 @@
 package com.io7m.eigion.amberjack.internal;
 
 import com.io7m.eigion.amberjack.api.EIAClientException;
+import com.io7m.eigion.model.EIAdmin;
+import com.io7m.eigion.model.EIAdminPermission;
+import com.io7m.eigion.model.EIAdminSummary;
 import com.io7m.eigion.model.EIAuditEvent;
 import com.io7m.eigion.model.EIPasswordAlgorithmPBKDF2HmacSHA256;
 import com.io7m.eigion.model.EIPasswordException;
@@ -25,7 +28,14 @@ import com.io7m.eigion.model.EIService;
 import com.io7m.eigion.model.EISubsetMatch;
 import com.io7m.eigion.model.EIUser;
 import com.io7m.eigion.model.EIUserSummary;
+import com.io7m.eigion.protocol.admin_api.v1.EISA1AdminPermission;
+import com.io7m.eigion.protocol.admin_api.v1.EISA1AdminSummary;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1AuditEvent;
+import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandAdminCreate;
+import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandAdminGet;
+import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandAdminGetByEmail;
+import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandAdminGetByName;
+import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandAdminSearch;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandAuditGet;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandLogin;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandServicesList;
@@ -37,6 +47,9 @@ import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandUserSearch;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1MessageType;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1Messages;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1Password;
+import com.io7m.eigion.protocol.admin_api.v1.EISA1ResponseAdminCreate;
+import com.io7m.eigion.protocol.admin_api.v1.EISA1ResponseAdminGet;
+import com.io7m.eigion.protocol.admin_api.v1.EISA1ResponseAdminList;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1ResponseAuditGet;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1ResponseError;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1ResponseLogin;
@@ -59,7 +72,9 @@ import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import static java.net.http.HttpResponse.BodyHandlers;
 
@@ -107,6 +122,17 @@ public final class EIAClientProtocolHandler1
         .normalize();
   }
 
+  private static <A, B, E extends Exception> Optional<B> mapPartial(
+    final Optional<A> o,
+    final FunctionType<A, B, E> f)
+    throws E
+  {
+    if (o.isPresent()) {
+      return Optional.of(f.apply(o.get()));
+    }
+    return Optional.empty();
+  }
+
   @Override
   public EIAClientProtocolHandlerType login(
     final String user,
@@ -142,12 +168,12 @@ public final class EIAClientProtocolHandler1
     throws EIAClientException, InterruptedException
   {
     try {
-      final var message =
-        this.sendCommand(
+      return mapPartial(
+        this.sendCommandOptional(
           EISA1ResponseUserGet.class,
-          new EISA1CommandUserGet(UUID.fromString(id)));
-
-      return Optional.of(message.user().toUser());
+          new EISA1CommandUserGet(UUID.fromString(id))),
+        message -> message.user().toUser()
+      );
     } catch (final EIPasswordException e) {
       throw new EIAClientException(e);
     } catch (final IllegalArgumentException e) {
@@ -163,28 +189,29 @@ public final class EIAClientProtocolHandler1
     throws EIAClientException, InterruptedException
   {
     try {
-      final var message =
-        this.sendCommand(
+      return mapPartial(
+        this.sendCommandOptional(
           EISA1ResponseUserGet.class,
-          new EISA1CommandUserGetByName(name));
-
-      return Optional.of(message.user().toUser());
+          new EISA1CommandUserGetByName(name)),
+        message -> message.user().toUser()
+      );
     } catch (final EIPasswordException e) {
       throw new EIAClientException(e);
     }
   }
 
   @Override
-  public Optional<EIUser> userByEmail(final String email)
+  public Optional<EIUser> userByEmail(
+    final String email)
     throws EIAClientException, InterruptedException
   {
     try {
-      final var message =
-        this.sendCommand(
+      return mapPartial(
+        this.sendCommandOptional(
           EISA1ResponseUserGet.class,
-          new EISA1CommandUserGetByEmail(email));
-
-      return Optional.of(message.user().toUser());
+          new EISA1CommandUserGetByEmail(email)),
+        message -> message.user().toUser()
+      );
     } catch (final EIPasswordException e) {
       throw new EIAClientException(e);
     }
@@ -223,8 +250,7 @@ public final class EIAClientProtocolHandler1
           dateUpper,
           EISA1SubsetMatch.ofSubsetMatch(owner),
           EISA1SubsetMatch.ofSubsetMatch(type),
-          EISA1SubsetMatch.ofSubsetMatch(message))
-      );
+          EISA1SubsetMatch.ofSubsetMatch(message)));
 
     return response.events()
       .stream()
@@ -254,8 +280,7 @@ public final class EIAClientProtocolHandler1
       final var message =
         this.sendCommand(
           EISA1ResponseUserCreate.class,
-          new EISA1CommandUserCreate(name, email, v1Password)
-        );
+          new EISA1CommandUserCreate(name, email, v1Password));
 
       return message.user().toUser();
     } catch (final EIPasswordException e) {
@@ -268,7 +293,8 @@ public final class EIAClientProtocolHandler1
     final EISA1CommandLogin message)
     throws InterruptedException, EIAClientException
   {
-    return this.send(this.loginURI, responseClass, message);
+    return this.send(this.loginURI, responseClass, message, false)
+      .orElseThrow(() -> new IllegalStateException("send() returned empty"));
   }
 
   private <T extends EISA1ResponseType> T sendCommand(
@@ -276,13 +302,23 @@ public final class EIAClientProtocolHandler1
     final EISA1MessageType message)
     throws InterruptedException, EIAClientException
   {
-    return this.send(this.commandURI, responseClass, message);
+    return this.send(this.commandURI, responseClass, message, false)
+      .orElseThrow(() -> new IllegalStateException("send() returned empty"));
   }
 
-  private <T extends EISA1ResponseType> T send(
-    final URI uri,
+  private <T extends EISA1ResponseType> Optional<T> sendCommandOptional(
     final Class<T> responseClass,
     final EISA1MessageType message)
+    throws InterruptedException, EIAClientException
+  {
+    return this.send(this.commandURI, responseClass, message, true);
+  }
+
+  private <T extends EISA1ResponseType> Optional<T> send(
+    final URI uri,
+    final Class<T> responseClass,
+    final EISA1MessageType message,
+    final boolean allowNotFound)
     throws InterruptedException, EIAClientException
   {
     try {
@@ -302,6 +338,10 @@ public final class EIAClientProtocolHandler1
           .send(request, BodyHandlers.ofByteArray());
 
       LOG.debug("server: status {}", response.statusCode());
+
+      if (response.statusCode() == 404 && allowNotFound) {
+        return Optional.empty();
+      }
 
       final var responseHeaders =
         response.headers();
@@ -362,9 +402,129 @@ public final class EIAClientProtocolHandler1
         );
       }
 
-      return responseClass.cast(responseMessage);
+      return Optional.of(responseClass.cast(responseMessage));
     } catch (final EIProtocolException | IOException e) {
       throw new EIAClientException(e);
+    }
+  }
+
+  @Override
+  public Optional<EIAdmin> adminById(
+    final String id)
+    throws EIAClientException, InterruptedException
+  {
+    try {
+      return mapPartial(
+        this.sendCommandOptional(
+          EISA1ResponseAdminGet.class,
+          new EISA1CommandAdminGet(UUID.fromString(id))),
+        message -> message.admin().toAdmin()
+      );
+    } catch (final EIPasswordException e) {
+      throw new EIAClientException(e);
+    } catch (final IllegalArgumentException e) {
+      throw new EIAClientException(
+        this.strings().format("errorMalformedParameter", e.getMessage())
+      );
+    }
+  }
+
+  @Override
+  public Optional<EIAdmin> adminByName(
+    final String name)
+    throws EIAClientException, InterruptedException
+  {
+    try {
+      return mapPartial(
+        this.sendCommandOptional(
+          EISA1ResponseAdminGet.class,
+          new EISA1CommandAdminGetByName(name)),
+        message -> message.admin().toAdmin()
+      );
+    } catch (final EIPasswordException e) {
+      throw new EIAClientException(e);
+    }
+  }
+
+  @Override
+  public Optional<EIAdmin> adminByEmail(
+    final String email)
+    throws EIAClientException, InterruptedException
+  {
+    try {
+      return mapPartial(
+        this.sendCommandOptional(
+          EISA1ResponseAdminGet.class,
+          new EISA1CommandAdminGetByEmail(email)),
+        message -> message.admin().toAdmin());
+    } catch (final EIPasswordException e) {
+      throw new EIAClientException(e);
+    }
+  }
+
+  @Override
+  public List<EIAdminSummary> adminSearch(
+    final String query)
+    throws EIAClientException, InterruptedException
+  {
+    final var message =
+      this.sendCommand(
+        EISA1ResponseAdminList.class,
+        new EISA1CommandAdminSearch(query));
+
+    return message.admins()
+      .stream()
+      .map(EISA1AdminSummary::toAdminSummary)
+      .toList();
+  }
+
+  @Override
+  public EIAdmin adminCreate(
+    final String name,
+    final String email,
+    final String password,
+    final Set<EIAdminPermission> permissions)
+    throws EIAClientException, InterruptedException
+  {
+    try {
+      final var hashedPassword =
+        EIPasswordAlgorithmPBKDF2HmacSHA256.create()
+          .createHashed(password);
+
+      final var v1Password =
+        new EISA1Password(
+          hashedPassword.algorithm().identifier(),
+          hashedPassword.hash(),
+          hashedPassword.salt()
+        );
+
+      final var v1Permissions =
+        permissions.stream()
+          .map(EISA1AdminPermission::ofAdmin)
+          .collect(Collectors.toUnmodifiableSet());
+
+      final var message =
+        this.sendCommand(
+          EISA1ResponseAdminCreate.class,
+          new EISA1CommandAdminCreate(name, email, v1Password, v1Permissions));
+
+      return message.admin().toAdmin();
+    } catch (final EIPasswordException e) {
+      throw new EIAClientException(e);
+    }
+  }
+
+  interface FunctionType<A, B, E extends Exception>
+  {
+    B apply(A x)
+      throws E;
+  }
+
+  private static final class NotFoundException extends Exception
+  {
+    NotFoundException()
+    {
+
     }
   }
 }

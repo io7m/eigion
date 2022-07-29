@@ -87,8 +87,12 @@ public final class EIServerMDCResponseProcessor
     MDC.put(
       MDC_RESPONSE_CONTENT_LENGTH,
       Long.toString(this.response.getContentLength()));
-    MDC.put(MDC_RESPONSE_CONTENT_TYPE, this.response.getContentType());
-    MDC.put(MDC_RESPONSE_DURATION, timeDuration.toString());
+    MDC.put(
+      MDC_RESPONSE_CONTENT_TYPE,
+      this.response.getContentType());
+    MDC.put(
+      MDC_RESPONSE_DURATION,
+      timeDuration.toString());
     MDC.put(
       MDC_RESPONSE_HTTP_STATUS,
       String.valueOf(this.response.getStatus()));

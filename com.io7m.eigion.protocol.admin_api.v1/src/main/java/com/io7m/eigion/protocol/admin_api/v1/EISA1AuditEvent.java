@@ -16,6 +16,9 @@
 
 package com.io7m.eigion.protocol.admin_api.v1;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.io7m.eigion.model.EIAuditEvent;
 
 import java.time.OffsetDateTime;
@@ -32,11 +35,18 @@ import java.util.UUID;
  * @param type    The event type
  */
 
+@JsonDeserialize
+@JsonSerialize
 public record EISA1AuditEvent(
+  @JsonProperty(value = "ID", required = true)
   long id,
+  @JsonProperty(value = "Owner", required = true)
   UUID owner,
+  @JsonProperty(value = "Time", required = true)
   OffsetDateTime time,
+  @JsonProperty(value = "Type", required = true)
   String type,
+  @JsonProperty(value = "Message", required = true)
   String message)
 {
   /**

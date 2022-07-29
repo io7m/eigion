@@ -54,6 +54,9 @@ public final class EISController
 
   private static final Set<Class<? extends EISCommandType>> COMMAND_TYPES =
     Set.of(
+      EISCommandAdminCreate.class,
+      EISCommandAdminGet.class,
+      EISCommandAdminSearch.class,
       EISCommandAudit.class,
       EISCommandExit.class,
       EISCommandHelp.class,
@@ -110,6 +113,9 @@ public final class EISController
     final var controller = new EISController(strings, client);
     final Map<String, EISCommandType> commandMap =
       Stream.of(
+        new EISCommandAdminCreate(controller, strings),
+        new EISCommandAdminGet(controller, strings),
+        new EISCommandAdminSearch(controller, strings),
         new EISCommandAudit(controller, strings),
         new EISCommandExit(controller, strings),
         new EISCommandHelp(controller, strings),

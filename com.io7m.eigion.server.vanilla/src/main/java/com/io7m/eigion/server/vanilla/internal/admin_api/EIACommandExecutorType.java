@@ -18,6 +18,8 @@ package com.io7m.eigion.server.vanilla.internal.admin_api;
 
 import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseException;
+import com.io7m.eigion.server.security.EISecurityException;
+import com.io7m.eigion.server.vanilla.internal.EIHTTPErrorStatusException;
 
 /**
  * The type of command executors.
@@ -41,5 +43,8 @@ public interface EIACommandExecutorType<C extends EISA1CommandType>
   EIACommandExecutionResult execute(
     EIACommandContext context,
     C command)
-    throws EIServerDatabaseException;
+    throws
+    EIServerDatabaseException,
+    EIHTTPErrorStatusException,
+    EISecurityException;
 }

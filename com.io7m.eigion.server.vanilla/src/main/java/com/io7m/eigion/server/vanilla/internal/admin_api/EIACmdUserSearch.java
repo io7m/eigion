@@ -21,6 +21,13 @@ import com.io7m.eigion.protocol.admin_api.v1.EISA1ResponseUserList;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1UserSummary;
 import com.io7m.eigion.server.database.api.EIServerDatabaseException;
 import com.io7m.eigion.server.database.api.EIServerDatabaseUsersQueriesType;
+import com.io7m.eigion.server.security.EISecActionUserRead;
+import com.io7m.eigion.server.security.EISecPolicyResultDenied;
+import com.io7m.eigion.server.security.EISecurity;
+import com.io7m.eigion.server.security.EISecurityException;
+import com.io7m.eigion.server.vanilla.internal.EIHTTPErrorStatusException;
+
+import static org.eclipse.jetty.http.HttpStatus.FORBIDDEN_403;
 
 /**
  * A command to retrieve users.
@@ -42,8 +49,20 @@ public final class EIACmdUserSearch
   public EIACommandExecutionResult execute(
     final EIACommandContext context,
     final EISA1CommandUserSearch command)
-    throws EIServerDatabaseException
+    throws
+    EIServerDatabaseException,
+    EISecurityException,
+    EIHTTPErrorStatusException
   {
+    if (EISecurity.check(new EISecActionUserRead(context.admin()))
+      instanceof EISecPolicyResultDenied denied) {
+      throw new EIHTTPErrorStatusException(
+        FORBIDDEN_403,
+        "user-read",
+        denied.message()
+      );
+    }
+
     final var q =
       context.transaction().queries(EIServerDatabaseUsersQueriesType.class);
     final var users =

@@ -108,6 +108,7 @@ public final class EISCommandUserGet
     @Parameter(
       description = "The ID.",
       required = false,
+      converter = EISUUIDConverter.class,
       names = "--id")
     private UUID id;
 

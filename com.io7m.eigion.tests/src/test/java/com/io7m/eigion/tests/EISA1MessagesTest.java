@@ -16,7 +16,14 @@
 
 package com.io7m.eigion.tests;
 
+import com.io7m.eigion.protocol.admin_api.v1.EISA1Admin;
+import com.io7m.eigion.protocol.admin_api.v1.EISA1AdminPermission;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1AuditEvent;
+import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandAdminCreate;
+import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandAdminGet;
+import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandAdminGetByEmail;
+import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandAdminGetByName;
+import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandAdminSearch;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandAuditGet;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandLogin;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandServicesList;
@@ -28,6 +35,8 @@ import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandUserSearch;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1MessageType;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1Messages;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1Password;
+import com.io7m.eigion.protocol.admin_api.v1.EISA1ResponseAdminCreate;
+import com.io7m.eigion.protocol.admin_api.v1.EISA1ResponseAdminGet;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1ResponseAuditGet;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1ResponseError;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1ResponseLogin;
@@ -49,6 +58,7 @@ import org.junit.jupiter.api.TestFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -98,6 +108,16 @@ public final class EISA1MessagesTest
           Map.entry("com.example.group", Set.of(FOUNDER))
         ));
 
+    final var admin =
+      new EISA1Admin(
+        randomUUID(),
+        "x",
+        "e",
+        now(),
+        now(),
+        pass,
+        EnumSet.allOf(EISA1AdminPermission.class));
+
     final var services =
       List.of(
         new EISA1Service("s0", "sd0"),
@@ -109,6 +129,11 @@ public final class EISA1MessagesTest
       new EISA1UserSummary(randomUUID(), "name", "email");
 
     return Stream.<EISA1MessageType>of(
+      commandAdminCreate(pass),
+      commandAdminGet(),
+      commandAdminGetByEmail(),
+      commandAdminGetByName(),
+      commandAdminSearch(),
       commandAuditGet(),
       commandLogin(),
       commandServicesList(),
@@ -117,6 +142,8 @@ public final class EISA1MessagesTest
       commandUserGetByEmail(),
       commandUserGetByName(),
       commandUserSearch(),
+      responseAdminCreate(admin),
+      responseAdminGet(admin),
       responseAuditGet(),
       responseError(),
       responseLogin(),
@@ -128,6 +155,23 @@ public final class EISA1MessagesTest
       transaction(),
       transactionResponse(user)
     ).map(this::dynamicTestOfRoundTrip);
+  }
+
+  private static EISA1MessageType responseAdminCreate(
+    final EISA1Admin admin)
+  {
+    return new EISA1ResponseAdminCreate(randomUUID(), admin);
+  }
+
+  private static EISA1MessageType commandAdminCreate(
+    final EISA1Password pass)
+  {
+    return new EISA1CommandAdminCreate(
+      "x",
+      "e",
+      pass,
+      EnumSet.allOf(EISA1AdminPermission.class)
+    );
   }
 
   private static EISA1TransactionResponse transactionResponse(
@@ -177,11 +221,12 @@ public final class EISA1MessagesTest
   {
     return new EISA1ResponseAuditGet(
       randomUUID(),
-      List.of(new EISA1AuditEvent(23,
-                                  randomUUID(),
-                                  now(),
-                                  "type",
-                                  "message")));
+      List.of(new EISA1AuditEvent(
+        23,
+        randomUUID(),
+        now(),
+        "type",
+        "message")));
   }
 
   private static EISA1ResponseUserCreate responseUserCreate(
@@ -248,6 +293,32 @@ public final class EISA1MessagesTest
         assertEquals(o, this.messages.parse(b));
       }
     );
+  }
+
+  private static EISA1CommandAdminSearch commandAdminSearch()
+  {
+    return new EISA1CommandAdminSearch("search");
+  }
+
+  private static EISA1CommandAdminGetByEmail commandAdminGetByEmail()
+  {
+    return new EISA1CommandAdminGetByEmail("email");
+  }
+
+  private static EISA1CommandAdminGetByName commandAdminGetByName()
+  {
+    return new EISA1CommandAdminGetByName("name");
+  }
+
+  private static EISA1CommandAdminGet commandAdminGet()
+  {
+    return new EISA1CommandAdminGet(randomUUID());
+  }
+
+  private static EISA1ResponseAdminGet responseAdminGet(
+    final EISA1Admin admin)
+  {
+    return new EISA1ResponseAdminGet(randomUUID(), admin);
   }
 
   /**

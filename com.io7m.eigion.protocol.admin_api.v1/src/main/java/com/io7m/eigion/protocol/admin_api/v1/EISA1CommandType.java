@@ -21,7 +21,12 @@ package com.io7m.eigion.protocol.admin_api.v1;
  */
 
 public sealed interface EISA1CommandType
-  extends EISA1MessageType permits EISA1CommandAuditGet,
+  extends EISA1MessageType permits EISA1CommandAdminCreate,
+  EISA1CommandAdminGet,
+  EISA1CommandAdminGetByEmail,
+  EISA1CommandAdminGetByName,
+  EISA1CommandAdminSearch,
+  EISA1CommandAuditGet,
   EISA1CommandLogin,
   EISA1CommandServicesList,
   EISA1CommandUserCreate,

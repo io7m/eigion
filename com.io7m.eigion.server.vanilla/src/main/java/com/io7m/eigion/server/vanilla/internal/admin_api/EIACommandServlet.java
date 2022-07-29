@@ -23,6 +23,7 @@ import com.io7m.eigion.protocol.api.EIProtocolException;
 import com.io7m.eigion.server.database.api.EIServerDatabaseException;
 import com.io7m.eigion.server.database.api.EIServerDatabaseTransactionType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseType;
+import com.io7m.eigion.server.security.EISecurityException;
 import com.io7m.eigion.server.vanilla.internal.EIHTTPErrorStatusException;
 import com.io7m.eigion.server.vanilla.internal.EIRequestLimits;
 import com.io7m.eigion.services.api.EIServiceDirectoryType;
@@ -121,7 +122,11 @@ public final class EIACommandServlet extends EIAAuthenticatedServlet
     final HttpServletResponse servletResponse,
     final UUID requestId,
     final EISA1CommandType command)
-    throws EIServerDatabaseException, IOException
+    throws
+    EIServerDatabaseException,
+    IOException,
+    EISecurityException,
+    EIHTTPErrorStatusException
   {
     try (var connection = this.database.openConnection(EIGION)) {
       try (var transaction = connection.openTransaction()) {
@@ -140,7 +145,11 @@ public final class EIACommandServlet extends EIAAuthenticatedServlet
     final UUID requestId,
     final EISA1CommandType command,
     final EIServerDatabaseTransactionType transaction)
-    throws EIServerDatabaseException, IOException
+    throws
+    EIServerDatabaseException,
+    IOException,
+    EISecurityException,
+    EIHTTPErrorStatusException
   {
     final var context =
       new EIACommandContext(

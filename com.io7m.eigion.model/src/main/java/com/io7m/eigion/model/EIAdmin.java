@@ -18,6 +18,7 @@ package com.io7m.eigion.model;
 
 import java.time.OffsetDateTime;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -29,6 +30,7 @@ import java.util.UUID;
  * @param password      The admin's password
  * @param created       The date the admin was created
  * @param lastLoginTime The date the admin last logged in
+ * @param permissions   The set of permissions belonging to the admin
  */
 
 public record EIAdmin(
@@ -37,7 +39,8 @@ public record EIAdmin(
   EIUserEmail email,
   OffsetDateTime created,
   OffsetDateTime lastLoginTime,
-  EIPassword password)
+  EIPassword password,
+  Set<EIAdminPermission> permissions)
 {
   /**
    * Information for a single administrator.
@@ -48,6 +51,7 @@ public record EIAdmin(
    * @param password      The admin's password
    * @param created       The date the admin was created
    * @param lastLoginTime The date the admin last logged in
+   * @param permissions   The set of permissions belonging to the admin
    */
 
   public EIAdmin
@@ -58,5 +62,6 @@ public record EIAdmin(
     Objects.requireNonNull(created, "created");
     Objects.requireNonNull(lastLoginTime, "lastLoginTime");
     Objects.requireNonNull(password, "password");
+    Objects.requireNonNull(permissions, "permissions");
   }
 }

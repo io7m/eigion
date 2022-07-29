@@ -11,4 +11,8 @@
             checks="JavadocVariable"/>
   <suppress files="EISCommandVersion\.java"
             checks="IllegalInstantiation"/>
+
+  <!-- Without pattern matching... -->
+  <suppress files="EIACommandExecutor\.java"
+            checks="NPathComplexity"/>
 </suppressions>

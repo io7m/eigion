@@ -16,6 +16,9 @@
 
 package com.io7m.eigion.protocol.admin_api.v1;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.io7m.eigion.model.EISubsetMatch;
 
 import java.util.Objects;
@@ -29,7 +32,13 @@ import java.util.Objects;
  * @param <T>     The type of values
  */
 
-public record EISA1SubsetMatch<T>(T include, T exclude)
+@JsonDeserialize
+@JsonSerialize
+public record EISA1SubsetMatch<T>(
+  @JsonProperty(value = "Include", required = true)
+  T include,
+  @JsonProperty(value = "Exclude", required = true)
+  T exclude)
 {
   /**
    * A specification of a subset. Include all items matching {@code include},

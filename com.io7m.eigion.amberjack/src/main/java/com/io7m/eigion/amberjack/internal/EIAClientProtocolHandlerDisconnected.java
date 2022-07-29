@@ -18,6 +18,9 @@
 package com.io7m.eigion.amberjack.internal;
 
 import com.io7m.eigion.amberjack.api.EIAClientException;
+import com.io7m.eigion.model.EIAdmin;
+import com.io7m.eigion.model.EIAdminPermission;
+import com.io7m.eigion.model.EIAdminSummary;
 import com.io7m.eigion.model.EIAuditEvent;
 import com.io7m.eigion.model.EIService;
 import com.io7m.eigion.model.EISubsetMatch;
@@ -30,6 +33,7 @@ import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * The "disconnected" protocol handler.
@@ -140,5 +144,48 @@ public final class EIAClientProtocolHandlerDisconnected
     return new EIAClientException(
       this.strings.format("notLoggedIn")
     );
+  }
+
+  @Override
+  public Optional<EIAdmin> adminById(
+    final String id)
+    throws EIAClientException
+  {
+    throw this.notLoggedIn();
+  }
+
+  @Override
+  public Optional<EIAdmin> adminByName(
+    final String name)
+    throws EIAClientException
+  {
+    throw this.notLoggedIn();
+  }
+
+  @Override
+  public Optional<EIAdmin> adminByEmail(
+    final String email)
+    throws EIAClientException
+  {
+    throw this.notLoggedIn();
+  }
+
+  @Override
+  public List<EIAdminSummary> adminSearch(
+    final String query)
+    throws EIAClientException
+  {
+    throw this.notLoggedIn();
+  }
+
+  @Override
+  public EIAdmin adminCreate(
+    final String name,
+    final String email,
+    final String password,
+    final Set<EIAdminPermission> permissions)
+    throws EIAClientException
+  {
+    throw this.notLoggedIn();
   }
 }

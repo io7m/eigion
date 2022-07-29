@@ -16,6 +16,7 @@
 
 package com.io7m.eigion.tests;
 
+import com.io7m.eigion.model.EIAdminPermission;
 import com.io7m.eigion.model.EIGroupPrefix;
 import com.io7m.eigion.model.EIPassword;
 import com.io7m.eigion.model.EIPasswordAlgorithmPBKDF2HmacSHA256;
@@ -61,6 +62,7 @@ import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.Flow;
 
@@ -472,6 +474,40 @@ public abstract class EIServerContract
         );
         t.commit();
         return adminId;
+      }
+    }
+  }
+
+  protected final UUID createAdmin(
+    final UUID owner,
+    final String user,
+    final String pass,
+    final Set<EIAdminPermission> permissions)
+    throws Exception
+  {
+    final var database = this.databases.mostRecent();
+    try (var c = database.openConnection(EIGION)) {
+      try (var t = c.openTransaction()) {
+        t.adminIdSet(owner);
+
+        final var q =
+          t.queries(EIServerDatabaseAdminsQueriesType.class);
+
+        final var password =
+          EIPasswordAlgorithmPBKDF2HmacSHA256.create()
+            .createHashed(pass);
+
+        final var newId = UUID.randomUUID();
+        q.adminCreate(
+          newId,
+          user,
+          newId + "@example.com",
+          OffsetDateTime.now(),
+          password,
+          permissions
+        );
+        t.commit();
+        return newId;
       }
     }
   }

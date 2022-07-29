@@ -26,9 +26,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.URI;
+import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 
+import static java.util.Optional.empty;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -107,7 +109,10 @@ public final class EIAmberjackTest extends EIWithServerContract
     try (var ignored = EIFakeServerNonsenseProtocols.create(20000)) {
       final var ex =
         assertThrows(EIAClientException.class, () -> {
-          this.client.login("someone", "12345678", URI.create("http://localhost:20000/"));
+          this.client.login(
+            "someone",
+            "12345678",
+            URI.create("http://localhost:20000/"));
         });
       LOG.debug("", ex);
       assertTrue(ex.getMessage().contains("client does not support"));
@@ -127,7 +132,10 @@ public final class EIAmberjackTest extends EIWithServerContract
     try (var ignored = EIFakeServerAlways500.create(20000)) {
       final var ex =
         assertThrows(EIAClientException.class, () -> {
-          this.client.login("someone", "12345678", URI.create("http://localhost:20000/"));
+          this.client.login(
+            "someone",
+            "12345678",
+            URI.create("http://localhost:20000/"));
         });
       LOG.debug("", ex);
       assertTrue(ex.getMessage().contains("HTTP server returned an error: 500"));
@@ -147,7 +155,10 @@ public final class EIAmberjackTest extends EIWithServerContract
     try (var ignored = EIFakeServerAdminButGarbage.create(20000)) {
       final var ex =
         assertThrows(EIAClientException.class, () -> {
-          this.client.login("someone", "12345678", URI.create("http://localhost:20000/"));
+          this.client.login(
+            "someone",
+            "12345678",
+            URI.create("http://localhost:20000/"));
         });
       LOG.debug("", ex);
       assertTrue(ex.getMessage().contains("Unrecognized token 'hello'"));
@@ -193,5 +204,59 @@ public final class EIAmberjackTest extends EIWithServerContract
           s.name(),
           "com.io7m.eigion.server.database.postgres.internal.EIServerDatabase"))
     );
+  }
+
+  /**
+   * Nonexistent users are nonexistent.
+   *
+   * @throws Exception On errors
+   */
+
+  @Test
+  public void testUserNonexistent()
+    throws Exception
+  {
+    this.serverCreateAdminInitial("someone", "12345678");
+    this.client.login("someone", "12345678", this.serverAdminURI());
+
+    assertEquals(
+      empty(),
+      this.client.userById("93c719b7-1d5f-41f8-a160-9d46c23fe90f"));
+    assertEquals(
+      empty(),
+      this.client.userByName("x"));
+    assertEquals(
+      empty(),
+      this.client.userByEmail("x"));
+    assertEquals(
+      List.of(),
+      this.client.userSearch("noone"));
+  }
+
+  /**
+   * Nonexistent admins are nonexistent.
+   *
+   * @throws Exception On errors
+   */
+
+  @Test
+  public void testAdminNonexistent()
+    throws Exception
+  {
+    this.serverCreateAdminInitial("someone", "12345678");
+    this.client.login("someone", "12345678", this.serverAdminURI());
+
+    assertEquals(
+      empty(),
+      this.client.adminById("93c719b7-1d5f-41f8-a160-9d46c23fe90f"));
+    assertEquals(
+      empty(),
+      this.client.adminByName("x"));
+    assertEquals(
+      empty(),
+      this.client.adminByEmail("x"));
+    assertEquals(
+      List.of(),
+      this.client.adminSearch("noone"));
   }
 }

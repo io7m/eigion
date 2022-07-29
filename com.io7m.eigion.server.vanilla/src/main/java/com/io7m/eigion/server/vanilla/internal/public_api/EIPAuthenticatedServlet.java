@@ -18,8 +18,11 @@
 package com.io7m.eigion.server.vanilla.internal.public_api;
 
 import com.io7m.eigion.model.EIPasswordException;
-import com.io7m.eigion.server.database.api.EIServerDatabaseException;
+import com.io7m.eigion.model.EIUser;
 import com.io7m.eigion.protocol.public_api.v1.EISP1Messages;
+import com.io7m.eigion.server.database.api.EIServerDatabaseException;
+import com.io7m.eigion.server.database.api.EIServerDatabaseType;
+import com.io7m.eigion.server.database.api.EIServerDatabaseUsersQueriesType;
 import com.io7m.eigion.server.vanilla.internal.EIHTTPErrorStatusException;
 import com.io7m.eigion.server.vanilla.internal.EIServerClock;
 import com.io7m.eigion.server.vanilla.internal.EIServerEventBus;
@@ -38,6 +41,7 @@ import java.io.IOException;
 import java.util.Objects;
 import java.util.UUID;
 
+import static com.io7m.eigion.server.database.api.EIServerDatabaseRole.EIGION;
 import static com.io7m.eigion.server.vanilla.internal.EIServerRequestDecoration.requestIdFor;
 import static com.io7m.eigion.server.vanilla.logging.EIServerMDCRequestProcessor.mdcForRequest;
 import static org.eclipse.jetty.http.HttpStatus.INTERNAL_SERVER_ERROR_500;
@@ -54,7 +58,8 @@ public abstract class EIPAuthenticatedServlet extends HttpServlet
   private final EIServerEventBus events;
   private final EIServerStrings strings;
   private final EISP1Messages messages;
-  private EIPUser user;
+  private final EIServerDatabaseType database;
+  private EIUser user;
 
   /**
    * A servlet that checks that a user is authenticated before delegating
@@ -78,13 +83,15 @@ public abstract class EIPAuthenticatedServlet extends HttpServlet
       services.requireService(EIServerClock.class);
     this.sends =
       services.requireService(EIPSends.class);
+    this.database =
+      services.requireService(EIServerDatabaseType.class);
   }
 
   /**
    * @return The authenticated user
    */
 
-  protected final EIPUser user()
+  protected final EIUser user()
   {
     return this.user;
   }
@@ -139,7 +146,7 @@ public abstract class EIPAuthenticatedServlet extends HttpServlet
         final var session = request.getSession(false);
         if (session != null) {
           final var userId = (UUID) session.getAttribute("UserID");
-          this.user = new EIPUser(userId);
+          this.user = this.userGet(userId);
           this.serviceAuthenticated(request, servletResponse, session);
           return;
         }
@@ -181,6 +188,18 @@ public abstract class EIPAuthenticatedServlet extends HttpServlet
       } catch (final Exception e) {
         this.logger().trace("exception: ", e);
         throw new IOException(e);
+      }
+    }
+  }
+
+  private EIUser userGet(final UUID id)
+    throws EIServerDatabaseException
+  {
+    try (var c = this.database.openConnection(EIGION)) {
+      try (var t = c.openTransaction()) {
+        final var q =
+          t.queries(EIServerDatabaseUsersQueriesType.class);
+        return q.userGet(id).orElseThrow(IllegalStateException::new);
       }
     }
   }

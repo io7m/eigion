@@ -18,4 +18,16 @@
   <entry key="user.show.password.hash">User.Password.Hash: {0}</entry>
   <entry key="user.show.password.salt">User.Password.Salt: {0}</entry>
   <entry key="user.show.group.role">User.Group.Roles: {0} = {1}</entry>
+
+  <entry key="admin-get.oneRequired">Error: A username, an email, or a user ID is required.</entry>
+
+  <entry key="admin.show.id">Admin.ID: {0}</entry>
+  <entry key="admin.show.name">Admin.Name: {0}</entry>
+  <entry key="admin.show.email">Admin.Email: {0}</entry>
+  <entry key="admin.show.created">Admin.Created: {0}</entry>
+  <entry key="admin.show.lastLogin">Admin.LastLogin: {0}</entry>
+  <entry key="admin.show.password.algorithm">Admin.Password.Algorithm: {0}</entry>
+  <entry key="admin.show.password.hash">Admin.Password.Hash: {0}</entry>
+  <entry key="admin.show.password.salt">Admin.Password.Salt: {0}</entry>
+  <entry key="admin.show.permissions">Admin.Permissions: {0}</entry>
 </properties>

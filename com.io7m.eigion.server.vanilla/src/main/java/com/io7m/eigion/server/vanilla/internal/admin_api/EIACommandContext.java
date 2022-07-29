@@ -17,6 +17,7 @@
 
 package com.io7m.eigion.server.vanilla.internal.admin_api;
 
+import com.io7m.eigion.model.EIAdmin;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1ResponseError;
 import com.io7m.eigion.server.database.api.EIServerDatabaseTransactionType;
 import com.io7m.eigion.server.vanilla.internal.EIServerClock;
@@ -39,7 +40,7 @@ public final class EIACommandContext
   private final EIServerDatabaseTransactionType transaction;
   private final EIServerClock clock;
   private final EIServerStrings strings;
-  private final UUID adminId;
+  private final EIAdmin admin;
 
   /**
    * The context for execution of a command (or set of commands in a
@@ -50,7 +51,7 @@ public final class EIACommandContext
    * @param inRequestId   The request ID
    * @param inClock       The clock
    * @param inTransaction The transaction
-   * @param inAdminId     The ID of the admin executing the command
+   * @param inAdmin       The admin executing the command
    */
 
   public EIACommandContext(
@@ -59,7 +60,7 @@ public final class EIACommandContext
     final UUID inRequestId,
     final EIServerDatabaseTransactionType inTransaction,
     final EIServerClock inClock,
-    final UUID inAdminId)
+    final EIAdmin inAdmin)
   {
     this.services =
       Objects.requireNonNull(inServices, "services");
@@ -71,8 +72,8 @@ public final class EIACommandContext
       Objects.requireNonNull(inClock, "clock");
     this.strings =
       Objects.requireNonNull(inStrings, "strings");
-    this.adminId =
-      Objects.requireNonNull(inAdminId, "inAdminId");
+    this.admin =
+      Objects.requireNonNull(inAdmin, "inAdminId");
   }
 
   /**
@@ -159,11 +160,11 @@ public final class EIACommandContext
   }
 
   /**
-   * @return The ID of the admin executing the command
+   * @return The admin executing the command
    */
 
-  public UUID adminId()
+  public EIAdmin admin()
   {
-    return this.adminId;
+    return this.admin;
   }
 }

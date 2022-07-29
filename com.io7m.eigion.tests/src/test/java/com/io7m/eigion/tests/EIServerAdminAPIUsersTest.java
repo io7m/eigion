@@ -16,6 +16,7 @@
 
 package com.io7m.eigion.tests;
 
+import com.io7m.eigion.protocol.admin_api.v1.EISA1ResponseError;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1ResponseUserCreate;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1ResponseUserGet;
 import com.io7m.eigion.protocol.versions.EISVProtocols;
@@ -25,6 +26,7 @@ import org.slf4j.LoggerFactory;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.util.Optional;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -226,5 +228,181 @@ public final class EIServerAdminAPIUsersTest extends EIServerContract
         }""");
 
     assertEquals(404, rGet.statusCode());
+  }
+
+  /**
+   * Creating users fails without permissions.
+   *
+   * @throws Exception On errors
+   */
+
+  @Test
+  public void testCreateUserNoPermission()
+    throws Exception
+  {
+    assertTrue(this.container().isRunning());
+    this.server().start();
+
+    final var id =
+      this.createAdminInitial("someone", "12345678");
+    this.createAdmin(id, "someone-else", "12345678", Set.of());
+
+    this.doLoginAdmin("someone-else", "12345678");
+
+    final var rCreate =
+      this.postAdminText("/admin/1/0/command", """
+        {
+          "%Type": "CommandUserCreate",
+          "Name": "someone-3",
+          "Email": "someone-3@example.com",
+          "Password": {
+            "Algorithm": "PBKDF2WithHmacSHA256:10000:256",
+            "Hash": "094D4284F4F6B65760AAA85E5720E084FD4F14F9A654F551F47651F16463FA09",
+            "Salt": "10203040"
+          }
+        }""");
+
+    assertEquals(403, rCreate.statusCode());
+
+    final var rm =
+      this.parseAdmin(rCreate, EISA1ResponseError.class);
+
+    assertEquals("You do not have the USER_WRITE permission.", rm.message());
+  }
+
+  /**
+   * Reading users fails without permissions.
+   *
+   * @throws Exception On errors
+   */
+
+  @Test
+  public void testReadUserNoPermission()
+    throws Exception
+  {
+    assertTrue(this.container().isRunning());
+    this.server().start();
+
+    final var id =
+      this.createAdminInitial("someone", "12345678");
+    this.createAdmin(id, "someone-else", "12345678", Set.of());
+
+    this.doLoginAdmin("someone-else", "12345678");
+
+    final var rGet =
+      this.postAdminText("/admin/1/0/command", """
+        {
+          "%Type": "CommandUserGet",
+          "ID": "77b8f5db-9f5b-409b-a4c0-4d089e5a5dd8"
+        }""");
+
+    assertEquals(403, rGet.statusCode());
+
+    final var rm =
+      this.parseAdmin(rGet, EISA1ResponseError.class);
+
+    assertEquals("You do not have the USER_READ permission.", rm.message());
+  }
+
+  /**
+   * Reading users fails without permissions.
+   *
+   * @throws Exception On errors
+   */
+
+  @Test
+  public void testReadUserEmailNoPermission()
+    throws Exception
+  {
+    assertTrue(this.container().isRunning());
+    this.server().start();
+
+    final var id =
+      this.createAdminInitial("someone", "12345678");
+    this.createAdmin(id, "someone-else", "12345678", Set.of());
+
+    this.doLoginAdmin("someone-else", "12345678");
+
+    final var rGet =
+      this.postAdminText("/admin/1/0/command", """
+        {
+          "%Type": "CommandUserGetByEmail",
+          "Email": "someone@example.com"
+        }""");
+
+    assertEquals(403, rGet.statusCode());
+
+    final var rm =
+      this.parseAdmin(rGet, EISA1ResponseError.class);
+
+    assertEquals("You do not have the USER_READ permission.", rm.message());
+  }
+
+  /**
+   * Reading users fails without permissions.
+   *
+   * @throws Exception On errors
+   */
+
+  @Test
+  public void testReadUserNameNoPermission()
+    throws Exception
+  {
+    assertTrue(this.container().isRunning());
+    this.server().start();
+
+    final var id =
+      this.createAdminInitial("someone", "12345678");
+    this.createAdmin(id, "someone-else", "12345678", Set.of());
+
+    this.doLoginAdmin("someone-else", "12345678");
+
+    final var rGet =
+      this.postAdminText("/admin/1/0/command", """
+        {
+          "%Type": "CommandUserGetByName",
+          "Name": "someone"
+        }""");
+
+    assertEquals(403, rGet.statusCode());
+
+    final var rm =
+      this.parseAdmin(rGet, EISA1ResponseError.class);
+
+    assertEquals("You do not have the USER_READ permission.", rm.message());
+  }
+
+  /**
+   * Searching users fails without permissions.
+   *
+   * @throws Exception On errors
+   */
+
+  @Test
+  public void testReadUserSearchNoPermission()
+    throws Exception
+  {
+    assertTrue(this.container().isRunning());
+    this.server().start();
+
+    final var id =
+      this.createAdminInitial("someone", "12345678");
+    this.createAdmin(id, "someone-else", "12345678", Set.of());
+
+    this.doLoginAdmin("someone-else", "12345678");
+
+    final var rGet =
+      this.postAdminText("/admin/1/0/command", """
+        {
+          "%Type": "CommandUserSearch",
+          "Query": "someone"
+        }""");
+
+    assertEquals(403, rGet.statusCode());
+
+    final var rm =
+      this.parseAdmin(rGet, EISA1ResponseError.class);
+
+    assertEquals("You do not have the USER_READ permission.", rm.message());
   }
 }

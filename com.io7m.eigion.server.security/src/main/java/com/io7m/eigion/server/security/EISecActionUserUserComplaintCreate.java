@@ -16,6 +16,8 @@
 
 package com.io7m.eigion.server.security;
 
+import com.io7m.eigion.model.EIUser;
+
 import java.util.Objects;
 
 /**
@@ -30,10 +32,10 @@ import java.util.Objects;
  */
 
 public record EISecActionUserUserComplaintCreate(
-  EISecUserType user,
+  EIUser user,
   int totalUnresolvedComplaintsFromUser,
-  EISecUserType userTarget)
-  implements EISecActionType
+  EIUser userTarget)
+  implements EISecActionUserType
 {
   /**
    * A user wants to create a complaint about another user.

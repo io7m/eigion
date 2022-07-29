@@ -22,6 +22,9 @@ import com.io7m.eigion.model.EIGroupRole;
 import com.io7m.eigion.model.EIPassword;
 import com.io7m.eigion.model.EIPasswordAlgorithmPBKDF2HmacSHA256;
 import com.io7m.eigion.model.EISubsetMatch;
+import com.io7m.eigion.protocol.admin_api.v1.EISA1Admin;
+import com.io7m.eigion.protocol.admin_api.v1.EISA1AdminPermission;
+import com.io7m.eigion.protocol.admin_api.v1.EISA1AdminSummary;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1AuditEvent;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1GroupRole;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1Password;
@@ -32,7 +35,6 @@ import com.io7m.eigion.protocol.admin_api.v1.EISA1UserSummary;
 import net.jqwik.api.Arbitraries;
 import net.jqwik.api.Arbitrary;
 import net.jqwik.api.Combinators;
-import net.jqwik.api.arbitraries.StringArbitrary;
 
 import java.time.Instant;
 import java.time.OffsetDateTime;
@@ -217,5 +219,56 @@ public final class EIArbitraries
   public static Arbitrary<EIGroupRole> groupRole()
   {
     return Arbitraries.of(EIGroupRole.class);
+  }
+
+  public static Arbitrary<EISA1Admin> adminV1()
+  {
+    final var uuids =
+      uuids();
+    final var times =
+      offsetDateTimes();
+    final var text =
+      Arbitraries.strings()
+        .ofMaxLength(64)
+        .filter(s -> !s.isBlank());
+    final var permissions =
+      Arbitraries.of(EISA1AdminPermission.class);
+
+    return Combinators.combine(
+        uuids,
+        text,
+        text,
+        times,
+        times,
+        passwordsV1(),
+        permissions.set())
+      .as((id, name, email, created, login, password, permissionSet) -> {
+        return new EISA1Admin(
+          id,
+          name,
+          email,
+          created,
+          login,
+          password,
+          permissionSet);
+      });
+  }
+
+  public static Arbitrary<EISA1AdminSummary> adminSummaryV1()
+  {
+    final var uuids =
+      uuids();
+    final var text =
+      Arbitraries.strings()
+        .ofMaxLength(64)
+        .filter(s -> !s.isBlank());
+
+    return Combinators.combine(uuids, text, text)
+      .as(EISA1AdminSummary::new);
+  }
+
+  public static Arbitrary<EISA1AdminPermission> adminPermissionV1()
+  {
+    return Arbitraries.of(EISA1AdminPermission.class);
   }
 }

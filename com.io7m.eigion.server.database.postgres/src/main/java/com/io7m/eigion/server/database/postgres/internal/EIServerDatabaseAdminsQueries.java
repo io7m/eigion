@@ -17,6 +17,7 @@
 package com.io7m.eigion.server.database.postgres.internal;
 
 import com.io7m.eigion.model.EIAdmin;
+import com.io7m.eigion.model.EIAdminPermission;
 import com.io7m.eigion.model.EIAdminSummary;
 import com.io7m.eigion.model.EIPassword;
 import com.io7m.eigion.model.EIPasswordAlgorithms;
@@ -30,11 +31,15 @@ import org.jooq.exception.DataAccessException;
 
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import static com.io7m.eigion.server.database.postgres.internal.EIServerDatabaseExceptions.handleDatabaseException;
 import static com.io7m.eigion.server.database.postgres.internal.Tables.USER_IDS;
@@ -65,8 +70,33 @@ final class EIServerDatabaseAdminsQueries
         EIPasswordAlgorithms.parse(adminRecord.getPasswordAlgo()),
         adminRecord.getPasswordHash().toUpperCase(Locale.ROOT),
         adminRecord.getPasswordSalt().toUpperCase(Locale.ROOT)
-      )
+      ),
+      permissionsDeserializeRecord(adminRecord)
     );
+  }
+
+  private static Set<EIAdminPermission> permissionsDeserializeRecord(
+    final AdminsRecord adminRecord)
+  {
+    return permissionsDeserialize(adminRecord.getPermissions());
+  }
+
+  private static Set<EIAdminPermission> permissionsDeserialize(
+    final String str)
+  {
+    return Arrays.stream(str.split(","))
+      .filter(s -> !s.isBlank())
+      .map(EIAdminPermission::valueOf)
+      .collect(Collectors.toUnmodifiableSet());
+  }
+
+  private static String permissionsSerialize(
+    final Set<EIAdminPermission> permissions)
+  {
+    return permissions.stream()
+      .map(Enum::toString)
+      .sorted()
+      .collect(Collectors.joining(","));
   }
 
   private static Optional<EIAdmin> adminMap(
@@ -127,6 +157,9 @@ final class EIServerDatabaseAdminsQueries
 
       idCreate.execute();
 
+      final var permissionString =
+        permissionsSerialize(EnumSet.allOf(EIAdminPermission.class));
+
       final var adminCreate =
         context.insertInto(ADMINS)
           .set(ADMINS.ID, id)
@@ -136,7 +169,8 @@ final class EIServerDatabaseAdminsQueries
           .set(ADMINS.LAST_LOGIN_TIME, created)
           .set(ADMINS.PASSWORD_ALGO, password.algorithm().identifier())
           .set(ADMINS.PASSWORD_HASH, password.hash())
-          .set(ADMINS.PASSWORD_SALT, password.salt());
+          .set(ADMINS.PASSWORD_SALT, password.salt())
+          .set(ADMINS.PERMISSIONS, permissionString);
 
       adminCreate.execute();
 
@@ -160,7 +194,8 @@ final class EIServerDatabaseAdminsQueries
     final String adminName,
     final String email,
     final OffsetDateTime created,
-    final EIPassword password)
+    final EIPassword password,
+    final Set<EIAdminPermission> permissions)
     throws EIServerDatabaseException
   {
     Objects.requireNonNull(id, "id");
@@ -169,6 +204,7 @@ final class EIServerDatabaseAdminsQueries
     Objects.requireNonNull(password, "password");
     Objects.requireNonNull(created, "created");
     Objects.requireNonNull(password, "password");
+    Objects.requireNonNull(permissions, "permissions");
 
     final var context =
       this.transaction().createContext();
@@ -213,6 +249,9 @@ final class EIServerDatabaseAdminsQueries
 
       idCreate.execute();
 
+      final var permissionString =
+        permissionsSerialize(permissions);
+
       final var adminCreate =
         context.insertInto(ADMINS)
           .set(ADMINS.ID, id)
@@ -222,7 +261,8 @@ final class EIServerDatabaseAdminsQueries
           .set(ADMINS.LAST_LOGIN_TIME, created)
           .set(ADMINS.PASSWORD_ALGO, password.algorithm().identifier())
           .set(ADMINS.PASSWORD_HASH, password.hash())
-          .set(ADMINS.PASSWORD_SALT, password.salt());
+          .set(ADMINS.PASSWORD_SALT, password.salt())
+          .set(ADMINS.PERMISSIONS, permissionString);
 
       adminCreate.execute();
 

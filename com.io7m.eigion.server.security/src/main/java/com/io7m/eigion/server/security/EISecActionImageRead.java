@@ -16,6 +16,8 @@
 
 package com.io7m.eigion.server.security;
 
+import com.io7m.eigion.model.EIUser;
+
 import java.util.Objects;
 
 /**
@@ -24,8 +26,8 @@ import java.util.Objects;
  * @param user The user
  */
 
-public record EISecActionImageRead(EISecUserType user)
-  implements EISecActionType
+public record EISecActionImageRead(EIUser user)
+  implements EISecActionUserType
 {
   /**
    * A user wants to read an image.

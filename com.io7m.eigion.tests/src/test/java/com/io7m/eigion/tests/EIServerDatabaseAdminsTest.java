@@ -26,6 +26,8 @@ import com.io7m.eigion.server.database.api.EIServerDatabaseException;
 import org.junit.jupiter.api.Test;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import java.util.Set;
+
 import static com.io7m.eigion.server.database.api.EIServerDatabaseRole.EIGION;
 import static java.time.OffsetDateTime.now;
 import static java.util.UUID.randomUUID;
@@ -89,7 +91,8 @@ public final class EIServerDatabaseAdminsTest extends EIWithDatabaseContract
         "someone",
         "someone@example.com",
         now,
-        password
+        password,
+        Set.of()
       );
 
     assertEquals("someone", admin.name().value());
@@ -156,7 +159,8 @@ public final class EIServerDatabaseAdminsTest extends EIWithDatabaseContract
         "someone",
         "someone@example.com",
         now,
-        password
+        password,
+        Set.of()
       );
 
     final var ex =
@@ -166,7 +170,8 @@ public final class EIServerDatabaseAdminsTest extends EIWithDatabaseContract
           "someoneElse",
           "someone2@example.com",
           now,
-          password
+          password,
+          Set.of()
         );
       });
 
@@ -204,7 +209,8 @@ public final class EIServerDatabaseAdminsTest extends EIWithDatabaseContract
         "someone",
         "someone@example.com",
         now,
-        password
+        password,
+        Set.of()
       );
 
     final var ex =
@@ -214,7 +220,8 @@ public final class EIServerDatabaseAdminsTest extends EIWithDatabaseContract
           "someoneElse",
           "someone@example.com",
           now,
-          password
+          password,
+          Set.of()
         );
       });
 
@@ -252,7 +259,8 @@ public final class EIServerDatabaseAdminsTest extends EIWithDatabaseContract
         "someone",
         "someone@example.com",
         now,
-        password
+        password,
+        Set.of()
       );
 
     final var ex =
@@ -262,7 +270,8 @@ public final class EIServerDatabaseAdminsTest extends EIWithDatabaseContract
           "someone",
           "someone2@example.com",
           now,
-          password
+          password,
+          Set.of()
         );
       });
 
@@ -300,7 +309,8 @@ public final class EIServerDatabaseAdminsTest extends EIWithDatabaseContract
         "someone",
         "someone@example.com",
         now,
-        password
+        password,
+        Set.of()
       );
 
     admins.adminLogin(admin.id(), "127.0.0.1");
@@ -341,24 +351,5 @@ public final class EIServerDatabaseAdminsTest extends EIWithDatabaseContract
   {
     return EIPasswordAlgorithmPBKDF2HmacSHA256.create()
       .createHashed("12345678");
-  }
-
-  private EIAdmin createTestAdmin()
-    throws EIServerDatabaseException,
-    EIPasswordException
-  {
-    final EIAdmin admin;
-    {
-      final var transaction =
-        this.transactionOf(EIGION);
-      final var admins =
-        transaction.queries(EIServerDatabaseAdminsQueriesType.class);
-      final var p =
-        createBadPassword();
-      admin =
-        admins.adminCreate("someone", "someone@example.com", p);
-      transaction.commit();
-    }
-    return admin;
   }
 }

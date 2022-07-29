@@ -22,6 +22,13 @@ import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandAuditGet;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1ResponseAuditGet;
 import com.io7m.eigion.server.database.api.EIServerDatabaseAuditQueriesType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseException;
+import com.io7m.eigion.server.security.EISecActionAuditRead;
+import com.io7m.eigion.server.security.EISecPolicyResultDenied;
+import com.io7m.eigion.server.security.EISecurity;
+import com.io7m.eigion.server.security.EISecurityException;
+import com.io7m.eigion.server.vanilla.internal.EIHTTPErrorStatusException;
+
+import static org.eclipse.jetty.http.HttpStatus.FORBIDDEN_403;
 
 /**
  * A command to retrieve audit logs by a time range.
@@ -43,10 +50,24 @@ public final class EIACmdAuditGetByTime
   public EIACommandExecutionResult execute(
     final EIACommandContext context,
     final EISA1CommandAuditGet command)
-    throws EIServerDatabaseException
+    throws
+    EIServerDatabaseException,
+    EIHTTPErrorStatusException,
+    EISecurityException
   {
+    if (EISecurity.check(new EISecActionAuditRead(context.admin()))
+      instanceof EISecPolicyResultDenied denied) {
+      throw new EIHTTPErrorStatusException(
+        FORBIDDEN_403,
+        "audit-get",
+        denied.message()
+      );
+    }
+
+    final var transaction =
+      context.transaction();
     final var auditQueries =
-      context.transaction().queries(EIServerDatabaseAuditQueriesType.class);
+      transaction.queries(EIServerDatabaseAuditQueriesType.class);
 
     final var events =
       auditQueries.auditEvents(

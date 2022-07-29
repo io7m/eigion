@@ -91,13 +91,21 @@ public final class EIServerMDCRequestProcessor
     Optional.ofNullable(this.request.getHeader("User-Agent"))
       .ifPresent(agent -> MDC.put(MDC_REQUEST_USER_AGENT, agent));
 
-    MDC.put(MDC_REQUEST_METHOD, this.request.getMethod());
-    MDC.put(MDC_REQUEST_REMOTE_HOST, this.request.getRemoteHost());
+    MDC.put(
+      MDC_REQUEST_METHOD,
+      this.request.getMethod());
+    MDC.put(
+      MDC_REQUEST_REMOTE_HOST,
+      this.request.getRemoteHost());
     MDC.put(
       MDC_REQUEST_REMOTE_PORT,
       String.valueOf(this.request.getRemotePort()));
-    MDC.put(MDC_REQUEST_ID, requestIdFor(this.request).toString());
-    MDC.put(MDC_REQUEST_URI, this.request.getOriginalURI());
+    MDC.put(
+      MDC_REQUEST_ID,
+      requestIdFor(this.request).toString());
+    MDC.put(
+      MDC_REQUEST_URI,
+      this.request.getOriginalURI());
   }
 
   @Override

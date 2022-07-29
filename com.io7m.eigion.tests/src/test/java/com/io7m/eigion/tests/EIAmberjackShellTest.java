@@ -136,7 +136,7 @@ public final class EIAmberjackShellTest extends EIWithServerContract
     this.shell = this.createShell(buffer.toString(), this::onExec);
     this.shell.run();
 
-    assertEquals(10, this.commands.size());
+    assertEquals(13, this.commands.size());
     assertTrue(this.commands.stream().allMatch(EIShellCommandExecuted::succeeded));
   }
 
@@ -295,6 +295,47 @@ public final class EIAmberjackShellTest extends EIWithServerContract
   }
 
   /**
+   * Creating and retrieving an admin works.
+   *
+   * @throws Exception On errors
+   */
+
+  @Test
+  public void testAdminCreateGet()
+    throws Exception
+  {
+    final var id =
+    this.serverCreateAdminInitial("someone", "12345678");
+
+    final var buffer = new StringBuilder(256);
+    buffer.append("set --exit-on-failed-command true\n");
+    buffer.append(
+      "login --username someone --password 12345678 --server %s\n"
+        .formatted(this.serverAdminURI()));
+    buffer.append(
+      "admin-create --name u --email ex@example.com --password 12345678\n"
+    );
+    buffer.append(
+      "admin-get --name u\n"
+    );
+    buffer.append(
+      "admin-get --email ex@example.com\n"
+    );
+    buffer.append(
+      "admin-search --query ex@example.com\n"
+    );
+    buffer.append(
+      "admin-get --id %s\n".formatted(id)
+    );
+
+    this.shell = this.createShell(buffer.toString(), this::onExec);
+    this.shell.run();
+
+    assertEquals(7, this.commands.size());
+    assertTrue(this.commands.stream().allMatch(EIShellCommandExecuted::succeeded));
+  }
+
+  /**
    * Retrieving a user requires an argument.
    *
    * @throws Exception On errors
@@ -415,5 +456,27 @@ public final class EIAmberjackShellTest extends EIWithServerContract
 
     assertEquals(1, this.commands.size());
     assertTrue(this.commands.stream().allMatch(EIShellCommandExecuted::succeeded));
+  }
+
+  /**
+   * Retrieving an admin requires an argument.
+   *
+   * @throws Exception On errors
+   */
+
+  @Test
+  public void testAdminGetNoArguments()
+    throws Exception
+  {
+    this.serverCreateAdminInitial("someone", "12345678");
+
+    final var buffer = new StringBuilder(256);
+    buffer.append("admin-get\n");
+
+    this.shell = this.createShell(buffer.toString(), this::onExec);
+    this.shell.run();
+
+    assertEquals(1, this.commands.size());
+    assertFalse(this.commands.get(0).succeeded());
   }
 }
