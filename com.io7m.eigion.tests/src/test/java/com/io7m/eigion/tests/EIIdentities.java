@@ -38,83 +38,23 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public final class EIIdentities
 {
-  @Provide
-  public Arbitrary<EISubsetMatch<String>> subsets()
-  {
-    return EIArbitraries.subsetMatches(Arbitraries.strings());
-  }
-
-  @Provide
-  public Arbitrary<EISA1SubsetMatch<String>> subsetsV1()
-  {
-    return EIArbitraries.subsetMatchesV1(Arbitraries.strings());
-  }
-
-  @Provide
-  public Arbitrary<EISA1AuditEvent> auditEventsV1()
-  {
-    return EIArbitraries.auditEventsV1();
-  }
-
-  @Provide
-  public Arbitrary<EISA1Password> passwordsV1()
-  {
-    return EIArbitraries.passwordsV1();
-  }
-
-  @Provide
-  public Arbitrary<EISA1User> usersV1()
-  {
-    return EIArbitraries.userV1();
-  }
-
-  @Provide
-  public Arbitrary<EISA1Admin> adminV1()
-  {
-    return EIArbitraries.adminV1();
-  }
-
-  @Provide
-  public Arbitrary<EISA1UserSummary> userSummaryV1()
-  {
-    return EIArbitraries.userSummaryV1();
-  }
-
-  @Provide
-  public Arbitrary<EISA1AdminSummary> adminSummaryV1()
-  {
-    return EIArbitraries.adminSummaryV1();
-  }
-
-  @Provide
-  public Arbitrary<EISA1GroupRole> groupRoleV1()
-  {
-    return EIArbitraries.groupRoleV1();
-  }
-
-  @Provide
-  public Arbitrary<EISA1AdminPermission> adminPermissionV1()
-  {
-    return EIArbitraries.adminPermissionV1();
-  }
-
   @Property
   public void testEISA1SubsetMatch(
-    @ForAll("subsetsV1") final EISA1SubsetMatch<String> x)
+    @ForAll final EISA1SubsetMatch<String> x)
   {
     assertEquals(x, EISA1SubsetMatch.ofSubsetMatch(x.toSubsetMatch()));
   }
 
   @Property
   public void testEISA1AuditEvent(
-    @ForAll("auditEventsV1") final EISA1AuditEvent x)
+    @ForAll final EISA1AuditEvent x)
   {
     assertEquals(x, EISA1AuditEvent.ofAuditEvent(x.toAuditEvent()));
   }
 
   @Property
   public void testEISA1Password(
-    @ForAll("passwordsV1") final EISA1Password x)
+    @ForAll final EISA1Password x)
     throws EIPasswordException
   {
     assertEquals(x, EISA1Password.ofPassword(x.toPassword()));
@@ -122,7 +62,7 @@ public final class EIIdentities
 
   @Property
   public void testEISA1User(
-    @ForAll("usersV1") final EISA1User x)
+    @ForAll final EISA1User x)
     throws EIPasswordException
   {
     assertEquals(x, EISA1User.ofUser(x.toUser()));
@@ -130,28 +70,28 @@ public final class EIIdentities
 
   @Property
   public void testEISA1UserSummary(
-    @ForAll("userSummaryV1") final EISA1UserSummary x)
+    @ForAll final EISA1UserSummary x)
   {
     assertEquals(x, EISA1UserSummary.ofUserSummary(x.toUserSummary()));
   }
 
   @Property
   public void testEISA1GroupRole(
-    @ForAll("groupRoleV1") final EISA1GroupRole x)
+    @ForAll final EISA1GroupRole x)
   {
     assertEquals(x, EISA1GroupRole.ofGroupRole(x.toGroupRole()));
   }
 
   @Property
   public void testEISA1AdminPermission(
-    @ForAll("adminPermissionV1") final EISA1AdminPermission x)
+    @ForAll final EISA1AdminPermission x)
   {
     assertEquals(x, EISA1AdminPermission.ofAdmin(x.toAdmin()));
   }
 
   @Property
   public void testEISA1Admin(
-    @ForAll("adminV1") final EISA1Admin x)
+    @ForAll final EISA1Admin x)
     throws EIPasswordException
   {
     assertEquals(x, EISA1Admin.ofAdmin(x.toAdmin()));
@@ -159,7 +99,7 @@ public final class EIIdentities
 
   @Property
   public void testEISA1AdminSummary(
-    @ForAll("adminSummaryV1") final EISA1AdminSummary x)
+    @ForAll final EISA1AdminSummary x)
   {
     assertEquals(x, EISA1AdminSummary.ofAdminSummary(x.toAdminSummary()));
   }

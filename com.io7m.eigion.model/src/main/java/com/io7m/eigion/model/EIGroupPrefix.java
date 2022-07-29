@@ -16,6 +16,7 @@
 
 package com.io7m.eigion.model;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.regex.Pattern;
 
@@ -30,12 +31,12 @@ import static java.util.regex.Pattern.UNICODE_CHARACTER_CLASS;
 public record EIGroupPrefix(String value)
 {
   /**
-   * The pattern that defines a valid group prefix.
+   * The pattern that defines a valid group prefix segment.
    */
 
-  public static final Pattern VALID_GROUP_PREFIX =
+  public static final Pattern VALID_GROUP_PREFIX_SEGMENT =
     Pattern.compile(
-      "([\\p{Alpha}][\\p{Alpha}\\p{Digit}_-]{0,64})(\\.[\\p{Alpha}][\\p{Alpha}\\p{Digit}_-]{0,64}){0,3}\\.",
+      "[\\p{Alpha}][\\p{Alpha}\\p{Digit}_-]{0,128}",
       UNICODE_CHARACTER_CLASS
     );
 
@@ -49,11 +50,29 @@ public record EIGroupPrefix(String value)
   {
     Objects.requireNonNull(value, "value");
 
-    if (!VALID_GROUP_PREFIX.matcher(value).matches()) {
-      throw new EIValidityException(
-        String.format(
-          "Group prefix '%s' must match %s", value, VALID_GROUP_PREFIX));
+    final var segments = List.of(value.split("\\."));
+    if (value.length() > 128 || segments.isEmpty()) {
+      throw invalid(value);
     }
+    if (!value.endsWith(".")) {
+      throw invalid(value);
+    }
+    for (final var segment : segments) {
+      if (!VALID_GROUP_PREFIX_SEGMENT.matcher(segment).matches()) {
+        throw invalid(value);
+      }
+    }
+  }
+
+  private static EIValidityException invalid(
+    final String text)
+  {
+    return new EIValidityException(
+      String.format(
+        "Group prefix '%s' must consist of >= 1 repetitions of %s, and be <= 128 characters long",
+        text,
+        VALID_GROUP_PREFIX_SEGMENT)
+    );
   }
 
   /**

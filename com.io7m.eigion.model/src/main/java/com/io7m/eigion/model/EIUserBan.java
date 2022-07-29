@@ -44,7 +44,7 @@ public record EIUserBan(
     Objects.requireNonNull(reason, "reason");
 
     if (reason.isBlank()) {
-      throw new IllegalArgumentException("Ban reasons cannot be blank.");
+      throw new EIValidityException("Ban reasons cannot be blank.");
     }
 
     final var length = reason.length();

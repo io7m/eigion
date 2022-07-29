@@ -26,7 +26,6 @@ import org.junit.jupiter.api.TestFactory;
 
 import java.util.stream.Stream;
 
-import static com.io7m.eigion.model.EIGroupName.VALID_GROUP_NAME;
 import static com.io7m.eigion.model.EIProductIdentifier.VALID_ARTIFACT_NAME;
 import static com.io7m.eigion.model.EIProductVersion.VALID_VERSION;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -35,32 +34,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public final class EIProductIdentifierTest
 {
-  private static DynamicTest groupValidTest(
-    final String text)
-  {
-    return DynamicTest.dynamicTest(
-      "testValidGroup_%s".formatted(text),
-      () -> {
-        final var matcher = VALID_GROUP_NAME.matcher(text);
-        assertTrue(matcher.matches());
-      });
-  }
-
-  private static DynamicTest groupInvalidTest(
-    final String text)
-  {
-    return DynamicTest.dynamicTest(
-      "testInvalidGroup_%s".formatted(text),
-      () -> {
-        final var matcher = VALID_GROUP_NAME.matcher(text);
-        assertFalse(matcher.matches());
-
-        assertThrows(EIValidityException.class, () -> {
-          new EIProductIdentifier(new EIGroupName(text), "x");
-        });
-      });
-  }
-
   private static DynamicTest artifactValidTest(
     final String text)
   {
@@ -111,32 +84,6 @@ public final class EIProductIdentifierTest
           EIProductVersion.parse(text);
         });
       });
-  }
-
-  @TestFactory
-  public Stream<DynamicTest> testGroupValid()
-  {
-    return Stream.of(
-      "a",
-      "a9",
-      "a-b",
-      "a_b",
-      "A-B",
-      "A_b",
-      "com.io7m.eigion"
-    ).map(EIProductIdentifierTest::groupValidTest);
-  }
-
-  @TestFactory
-  public Stream<DynamicTest> testGroupInvalid()
-  {
-    return Stream.of(
-      " ",
-      "9",
-      "_",
-      "-",
-      "com._"
-    ).map(EIProductIdentifierTest::groupInvalidTest);
   }
 
   @TestFactory

@@ -17,6 +17,7 @@
 package com.io7m.eigion.model;
 
 import java.util.Comparator;
+import java.util.List;
 import java.util.Objects;
 import java.util.regex.Pattern;
 
@@ -32,12 +33,12 @@ public record EIGroupName(String value)
   implements Comparable<EIGroupName>
 {
   /**
-   * The pattern that defines a valid group name.
+   * The pattern that defines a valid group name segment.
    */
 
-  public static final Pattern VALID_GROUP_NAME =
+  public static final Pattern VALID_GROUP_NAME_SEGMENT =
     Pattern.compile(
-      "([\\p{Alpha}][\\p{Alpha}\\p{Digit}_-]{0,64})(\\.[\\p{Alpha}][\\p{Alpha}\\p{Digit}_-]{0,64}){0,8}",
+      "[\\p{Alpha}][\\p{Alpha}\\p{Digit}_-]{0,255}",
       UNICODE_CHARACTER_CLASS
     );
 
@@ -51,11 +52,27 @@ public record EIGroupName(String value)
   {
     Objects.requireNonNull(value, "value");
 
-    if (!VALID_GROUP_NAME.matcher(value).matches()) {
-      throw new EIValidityException(
-        String.format(
-          "Group name '%s' must match %s", value, VALID_GROUP_NAME));
+    final var segments = List.of(value.split("\\."));
+    if (value.length() > 255 || segments.isEmpty()) {
+      throw invalid(value);
     }
+
+    for (final var segment : segments) {
+      if (!VALID_GROUP_NAME_SEGMENT.matcher(segment).matches()) {
+        throw invalid(value);
+      }
+    }
+  }
+
+  private static EIValidityException invalid(
+    final String text)
+  {
+    return new EIValidityException(
+      String.format(
+        "Group name '%s' must consist of >= 1 repetitions of %s, and be <= 255 characters long",
+        text,
+        VALID_GROUP_NAME_SEGMENT)
+    );
   }
 
   @Override
