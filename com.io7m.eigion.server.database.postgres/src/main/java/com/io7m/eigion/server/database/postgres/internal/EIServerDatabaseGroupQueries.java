@@ -285,6 +285,28 @@ final class EIServerDatabaseGroupQueries
   }
 
   @Override
+  public Optional<EIGroupCreationRequest> groupCreationRequest(
+    final EIToken token)
+    throws EIServerDatabaseException
+  {
+    Objects.requireNonNull(token, "token");
+
+    final var transaction =
+      this.transaction();
+    final var context =
+      transaction.createContext();
+
+    try {
+      return context.selectFrom(GROUPS_CREATION_REQUESTS)
+        .where(GROUPS_CREATION_REQUESTS.GROUP_TOKEN.eq(token.value()))
+        .fetchOptional()
+        .map(EIServerDatabaseGroupQueries::mapCreationRequestRecord);
+    } catch (final DataAccessException e) {
+      throw handleDatabaseException(transaction, e);
+    }
+  }
+
+  @Override
   public void groupCreationRequestCompleteSuccessfully(
     final EIGroupCreationRequest request)
     throws EIServerDatabaseException

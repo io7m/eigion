@@ -32,6 +32,7 @@ import org.junit.jupiter.api.Test;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -354,15 +355,25 @@ public final class EIServerDatabaseGroupsTest extends EIWithDatabaseContract
       groups.groupCreationRequestsForUser(user.id())
     );
 
+    assertEquals(
+      Optional.of(request),
+      groups.groupCreationRequest(request.token())
+    );
+
     groups.groupCreationRequestCompleteSuccessfully(request);
 
     {
-      final var after =
+      final var after0 =
         groups.groupCreationRequestsForUser(user.id()).get(0);
+      final var after1 =
+        groups.groupCreationRequest(request.token())
+            .orElseThrow();
+
       assertEquals(
         EIGroupCreationRequestStatusType.Succeeded.class,
-        after.status().orElseThrow().getClass()
+        after0.status().orElseThrow().getClass()
       );
+      assertEquals(after0, after1);
     }
 
     assertTrue(groups.groupExists(groupName));

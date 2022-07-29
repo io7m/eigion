@@ -19,6 +19,7 @@ package com.io7m.eigion.server.database.api;
 import com.io7m.eigion.model.EIGroupCreationRequest;
 import com.io7m.eigion.model.EIGroupName;
 import com.io7m.eigion.model.EIGroupRole;
+import com.io7m.eigion.model.EIToken;
 
 import java.util.List;
 import java.util.Optional;
@@ -79,6 +80,18 @@ public non-sealed interface EIServerDatabaseGroupsQueriesType
 
   List<EIGroupCreationRequest> groupCreationRequestsForUser(
     UUID userId)
+    throws EIServerDatabaseException;
+
+  /**
+   * @param token The token
+   *
+   * @return The request associated with the given token, if any
+   *
+   * @throws EIServerDatabaseException On errors
+   */
+
+  Optional<EIGroupCreationRequest> groupCreationRequest(
+    EIToken token)
     throws EIServerDatabaseException;
 
   /**
