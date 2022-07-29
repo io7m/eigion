@@ -16,9 +16,11 @@
 
 package com.io7m.eigion.server.database.api;
 
+import com.io7m.eigion.model.EIGroupCreationRequest;
 import com.io7m.eigion.model.EIGroupName;
 import com.io7m.eigion.model.EIGroupRole;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -52,6 +54,60 @@ public non-sealed interface EIServerDatabaseGroupsQueriesType
   void groupCreate(
     EIGroupName name,
     UUID userFounder)
+    throws EIServerDatabaseException;
+
+  /**
+   * Start a group creation request.
+   *
+   * @param request The request
+   *
+   * @throws EIServerDatabaseException On errors
+   */
+
+  @EIServerDatabaseRequiresAdmin
+  void groupCreationRequestStart(
+    EIGroupCreationRequest request)
+    throws EIServerDatabaseException;
+
+  /**
+   * @param userId The user ID
+   *
+   * @return A history of the group creation requests for the given user.
+   *
+   * @throws EIServerDatabaseException On errors
+   */
+
+  List<EIGroupCreationRequest> groupCreationRequestsForUser(
+    UUID userId)
+    throws EIServerDatabaseException;
+
+  /**
+   * Finish a group creation request. This checks the supplied request and then,
+   * on success, acts as {@link #groupCreate(EIGroupName, UUID)}.
+   *
+   * @param request The request
+   *
+   * @throws EIServerDatabaseException On errors
+   */
+
+  @EIServerDatabaseRequiresAdmin
+  void groupCreationRequestCompleteSuccessfully(
+    EIGroupCreationRequest request)
+    throws EIServerDatabaseException;
+
+  /**
+   * Finish a group creation request, indicating that the request failed.
+   *
+   * @param request The request
+   * @param message The failure message
+   *
+   * @throws EIServerDatabaseException On errors
+   */
+
+  @EIServerDatabaseRequiresAdmin
+  void groupCreationRequestCompleteFailed(
+    EIGroupCreationRequest request,
+    String message)
     throws EIServerDatabaseException;
 
   /**

@@ -171,6 +171,41 @@ create table groups (
     <Statement>grant select, insert on groups to eigion</Statement>
 
     <Comment>
+      The groups_creation_requests table holds the set of groups that are in the process of being created but
+      have not yet actually been created.
+    </Comment>
+
+    <Statement><![CDATA[
+create table groups_creation_requests (
+  id                bigint                    not null primary key generated always as identity,
+  group_name        varchar(1000000)          not null unique,
+  group_token       varchar(1000000)          not null unique,
+  creator_admin     uuid                      not null,
+  creator_user      uuid                      not null,
+  created           timestamp with time zone  not null,
+  completed         timestamp with time zone,
+  failed            varchar(1000000),
+
+  constraint failed_nonnull_requires_completed_nonnull check (
+    case when (failed is not null) then
+      (completed is not null)
+    end
+  ),
+  constraint completed_null_requires_failed_null check (
+    case when (completed is null) then
+      (failed is null)
+    end
+  ),
+
+  foreign key (creator_user) references users (id),
+  foreign key (creator_admin) references admins (id)
+)
+]]></Statement>
+
+    <Statement>grant select, insert, delete on groups_creation_requests to eigion</Statement>
+    <Statement>grant update (completed, failed) on groups_creation_requests to eigion</Statement>
+
+    <Comment>
       The group_users table associates users with groups. A group always has at least one user; the user that
       created the group is marked as the "founder" and may not ever leave the group.
     </Comment>
