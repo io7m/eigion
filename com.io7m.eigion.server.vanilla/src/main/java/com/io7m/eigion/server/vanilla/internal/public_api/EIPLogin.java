@@ -18,13 +18,13 @@
 package com.io7m.eigion.server.vanilla.internal.public_api;
 
 import com.io7m.eigion.model.EIPasswordException;
+import com.io7m.eigion.protocol.api.EIProtocolException;
 import com.io7m.eigion.protocol.public_api.v1.EISP1CommandLogin;
-import com.io7m.eigion.server.api.EIServerUserLoggedIn;
+import com.io7m.eigion.protocol.public_api.v1.EISP1Messages;
+import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseLogin;
 import com.io7m.eigion.server.database.api.EIServerDatabaseException;
 import com.io7m.eigion.server.database.api.EIServerDatabaseType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseUsersQueriesType;
-import com.io7m.eigion.protocol.api.EIProtocolException;
-import com.io7m.eigion.protocol.public_api.v1.EISP1Messages;
 import com.io7m.eigion.server.vanilla.internal.EIHTTPErrorStatusException;
 import com.io7m.eigion.server.vanilla.internal.EIRequestLimits;
 import com.io7m.eigion.server.vanilla.internal.EIServerClock;
@@ -158,7 +158,7 @@ public final class EIPLogin extends HttpServlet
     throws
     EIHTTPErrorStatusException,
     EIServerDatabaseException,
-    EIPasswordException
+    EIPasswordException, IOException
   {
     final var userOpt =
       users.userGetForName(login.userName());
@@ -191,14 +191,29 @@ public final class EIPLogin extends HttpServlet
 
     users.userLogin(user.id(), request.getRemoteAddr());
 
-    this.events.publish(
-      new EIServerUserLoggedIn(
-        this.clock.now(),
-        requestIdFor(request),
-        user.id(),
-        user.name(),
-        request.getRemoteAddr())
-    );
+    this.sendLoginResponse(request, response);
+  }
+
+  private void sendLoginResponse(
+    final HttpServletRequest request,
+    final HttpServletResponse response)
+    throws IOException
+  {
+    response.setStatus(200);
+    response.setContentType(EISP1Messages.contentType());
+
+    try {
+      final var data =
+        this.messages.serialize(new EISP1ResponseLogin(requestIdFor(request)));
+      response.setContentLength(data.length + 2);
+      try (var output = response.getOutputStream()) {
+        output.write(data);
+        output.write('\r');
+        output.write('\n');
+      }
+    } catch (final EIProtocolException e) {
+      throw new IOException(e);
+    }
   }
 
   private EISP1CommandLogin readLoginCommand(

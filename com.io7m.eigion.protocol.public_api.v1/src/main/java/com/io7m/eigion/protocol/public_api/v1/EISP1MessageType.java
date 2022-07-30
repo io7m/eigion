@@ -54,12 +54,13 @@ public sealed interface EISP1MessageType
     Stream.of(
       EISP1CommandLogin.class,
       EISP1Hash.class,
+      EISP1MessageType.class,
       EISP1ProductSummary.class,
       EISP1ResponseError.class,
       EISP1ResponseImageCreated.class,
       EISP1ResponseImageGet.class,
-      EISP1ResponseProductList.class,
-      EISP1MessageType.class
+      EISP1ResponseLogin.class,
+      EISP1ResponseProductList.class
     ).collect(toUnmodifiableMap(identity(), EISP1MessageType::typeIdOf));
   /**
    * A mapping of type IDs to classes.
@@ -71,7 +72,7 @@ public sealed interface EISP1MessageType
   private static String typeIdOf(
     final Class<?> c)
   {
-    return c.getSimpleName().replace("EISA1", "");
+    return c.getSimpleName().replace("EISP1", "");
   }
 
   private static Map<String, Class<?>> makeClassForTypeId()
