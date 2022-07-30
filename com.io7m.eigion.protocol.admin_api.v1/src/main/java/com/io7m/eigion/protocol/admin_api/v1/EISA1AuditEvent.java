@@ -20,6 +20,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.io7m.eigion.model.EIAuditEvent;
+import com.io7m.eigion.protocol.api.EIProtocolFromModel;
+import com.io7m.eigion.protocol.api.EIProtocolToModel;
 
 import java.time.OffsetDateTime;
 import java.util.Objects;
@@ -71,6 +73,7 @@ public record EISA1AuditEvent(
    * @return This event as a model event
    */
 
+  @EIProtocolToModel
   public EIAuditEvent toAuditEvent()
   {
     return new EIAuditEvent(
@@ -88,6 +91,7 @@ public record EISA1AuditEvent(
    * @return A v1 event of this event
    */
 
+  @EIProtocolFromModel
   public static EISA1AuditEvent ofAuditEvent(
     final EIAuditEvent event)
   {

@@ -16,31 +16,28 @@
 
 package com.io7m.eigion.protocol.public_api.v1;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+
 import java.util.Objects;
 import java.util.UUID;
 
-/**
- * A command failed.
- *
- * @param requestId The server-assigned request ID
- * @param errorCode The error code
- * @param message   The error message
- */
+// CHECKSTYLE:OFF
 
+@JsonDeserialize
+@JsonSerialize
 public record EISP1ResponseError(
+  @JsonProperty(value = "RequestID", required = true)
   UUID requestId,
+  @JsonProperty(value = "ErrorCode", required = true)
   String errorCode,
+  @JsonProperty(value = "Message", required = true)
   String message)
   implements EISP1ResponseType
 {
-  /**
-   * A command failed.
-   *
-   * @param requestId The server-assigned request ID
-   * @param errorCode The error code
-   * @param message   The error message
-   */
-
+  @JsonCreator
   public EISP1ResponseError
   {
     Objects.requireNonNull(requestId, "requestId");

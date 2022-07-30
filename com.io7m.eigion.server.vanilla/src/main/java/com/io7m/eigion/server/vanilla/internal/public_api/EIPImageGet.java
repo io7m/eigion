@@ -16,6 +16,7 @@
 
 package com.io7m.eigion.server.vanilla.internal.public_api;
 
+import com.io7m.eigion.protocol.public_api.v1.EISP1Hash;
 import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseImageGet;
 import com.io7m.eigion.server.database.api.EIServerDatabaseImagesQueriesType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseType;
@@ -129,7 +130,7 @@ public final class EIPImageGet extends EIPAuthenticatedServlet
               new EISP1ResponseImageGet(
                 requestId,
                 image.id(),
-                image.hash())
+                EISP1Hash.ofHash(image.hash()))
             );
         } else {
           this.sends()

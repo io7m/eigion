@@ -21,6 +21,7 @@ import com.io7m.eigion.protocol.public_api.v1.EISP1CommandLogin;
 import com.io7m.eigion.protocol.public_api.v1.EISP1MessageType;
 import com.io7m.eigion.protocol.public_api.v1.EISP1Messages;
 import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseError;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.Test;
@@ -58,9 +59,21 @@ public final class EISP1MessagesTest
   public Stream<DynamicTest> testRoundTrip()
   {
     return Stream.of(
-      new EISP1CommandLogin("user", "pass"),
-      new EISP1ResponseError(randomUUID(),"errorCode", "message")
+      commandLogin(),
+      responseError()
     ).map(this::dynamicTestOfRoundTrip);
+  }
+
+  @NotNull
+  private static EISP1ResponseError responseError()
+  {
+    return new EISP1ResponseError(randomUUID(), "errorCode", "message");
+  }
+
+  @NotNull
+  private static EISP1CommandLogin commandLogin()
+  {
+    return new EISP1CommandLogin("user", "pass");
   }
 
   private DynamicTest dynamicTestOfRoundTrip(

@@ -17,6 +17,8 @@
 package com.io7m.eigion.protocol.admin_api.v1;
 
 import com.io7m.eigion.model.EIGroupRole;
+import com.io7m.eigion.protocol.api.EIProtocolFromModel;
+import com.io7m.eigion.protocol.api.EIProtocolToModel;
 
 /**
  * The role of a user within a group.
@@ -34,6 +36,7 @@ public enum EISA1GroupRole
    * @return This v1 group role as a model group role
    */
 
+  @EIProtocolToModel
   public EIGroupRole toGroupRole()
   {
     return switch (this) {
@@ -49,6 +52,7 @@ public enum EISA1GroupRole
    * @return The model role as a v1 role
    */
 
+  @EIProtocolFromModel
   public static EISA1GroupRole ofGroupRole(
     final EIGroupRole role)
   {

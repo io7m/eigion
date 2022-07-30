@@ -41,6 +41,10 @@
     <module>com.io7m.eigion.launcher.main</module>
     <module>com.io7m.eigion.model</module>
     <module>com.io7m.eigion.news.xml</module>
+    <module>com.io7m.eigion.pike.api</module>
+    <module>com.io7m.eigion.pike.cmdline.main</module>
+    <module>com.io7m.eigion.pike.cmdline</module>
+    <module>com.io7m.eigion.pike</module>
     <module>com.io7m.eigion.preferences</module>
     <module>com.io7m.eigion.product.parser.api</module>
     <module>com.io7m.eigion.product.parser</module>

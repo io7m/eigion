@@ -28,6 +28,7 @@ public sealed interface EISP1ResponseType
   permits EISP1ResponseError,
   EISP1ResponseImageCreated,
   EISP1ResponseImageGet,
+  EISP1ResponseLogin,
   EISP1ResponseProductList
 {
   /**

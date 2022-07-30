@@ -20,6 +20,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.io7m.eigion.model.EISubsetMatch;
+import com.io7m.eigion.protocol.api.EIProtocolFromModel;
+import com.io7m.eigion.protocol.api.EIProtocolToModel;
 
 import java.util.Objects;
 
@@ -58,6 +60,7 @@ public record EISA1SubsetMatch<T>(
    * @return This subset match as a model subset match
    */
 
+  @EIProtocolToModel
   public EISubsetMatch<T> toSubsetMatch()
   {
     return new EISubsetMatch<>(
@@ -73,6 +76,7 @@ public record EISA1SubsetMatch<T>(
    * @return The model match as a v1 match
    */
 
+  @EIProtocolFromModel
   public static <T> EISA1SubsetMatch<T> ofSubsetMatch(
     final EISubsetMatch<T> match)
   {

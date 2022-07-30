@@ -16,37 +16,32 @@
 
 package com.io7m.eigion.protocol.public_api.v1;
 
-import com.io7m.eigion.hash.EIHash;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 import java.util.Objects;
 import java.util.UUID;
 
-/**
- * An image was retrieved.
- *
- * @param requestId The server-assigned request ID
- * @param imageId   The image ID
- * @param hash      The image hash
- */
+// CHECKSTYLE:OFF
 
+@JsonDeserialize
+@JsonSerialize
 public record EISP1ResponseImageGet(
+  @JsonProperty(value = "RequestID", required = true)
   UUID requestId,
-  UUID imageId,
-  EIHash hash)
+  @JsonProperty(value = "ID", required = true)
+  UUID id,
+  @JsonProperty(value = "Hash", required = true)
+  EISP1Hash hash)
   implements EISP1ResponseType
 {
-  /**
-   * An image was successfully created.
-   *
-   * @param requestId The server-assigned request ID
-   * @param imageId   The image ID
-   * @param hash      The image hash
-   */
-
+  @JsonCreator
   public EISP1ResponseImageGet
   {
+    Objects.requireNonNull(id, "id");
     Objects.requireNonNull(requestId, "requestId");
-    Objects.requireNonNull(imageId, "imageId");
     Objects.requireNonNull(hash, "hash");
   }
 }

@@ -19,9 +19,6 @@ package com.io7m.eigion.tests;
 
 import com.io7m.eigion.model.EIGroupName;
 import com.io7m.eigion.model.EIValidityException;
-import com.io7m.eigion.storage.api.EIStorageName;
-import net.jqwik.api.ForAll;
-import net.jqwik.api.Property;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
 

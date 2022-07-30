@@ -18,7 +18,6 @@ package com.io7m.eigion.tests;
 
 import com.io7m.eigion.protocol.admin_api.v1.EISA1ResponseAuditGet;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1ResponseError;
-import com.io7m.eigion.protocol.admin_api.v1.EISA1ResponseServiceList;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,7 +26,6 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Testcontainers(disabledWithoutDocker = true)

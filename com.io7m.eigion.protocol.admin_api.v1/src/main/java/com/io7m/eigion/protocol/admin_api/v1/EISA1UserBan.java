@@ -20,6 +20,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.io7m.eigion.model.EIUserBan;
+import com.io7m.eigion.protocol.api.EIProtocolFromModel;
+import com.io7m.eigion.protocol.api.EIProtocolToModel;
 
 import java.time.OffsetDateTime;
 import java.util.Objects;
@@ -59,6 +61,7 @@ public record EISA1UserBan(
    * @return The model ban
    */
 
+  @EIProtocolToModel
   public EIUserBan toBan()
   {
     return new EIUserBan(this.expires, this.reason);
@@ -72,6 +75,7 @@ public record EISA1UserBan(
    * @return A ban
    */
 
+  @EIProtocolFromModel
   public static EISA1UserBan ofBan(
     final EIUserBan ban)
   {

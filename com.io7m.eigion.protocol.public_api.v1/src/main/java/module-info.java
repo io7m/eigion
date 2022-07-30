@@ -29,9 +29,7 @@ module com.io7m.eigion.protocol.public_api.v1
 
   requires com.io7m.dixmont.core;
 
-  opens com.io7m.eigion.protocol.public_api.v1.dto
-    to com.fasterxml.jackson.databind;
-  opens com.io7m.eigion.protocol.public_api.v1.internal
+  opens com.io7m.eigion.protocol.public_api.v1
     to com.fasterxml.jackson.databind;
 
   exports com.io7m.eigion.protocol.public_api.v1;

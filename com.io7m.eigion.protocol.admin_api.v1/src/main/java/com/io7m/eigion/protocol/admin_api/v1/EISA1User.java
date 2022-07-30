@@ -26,6 +26,8 @@ import com.io7m.eigion.model.EIPasswordException;
 import com.io7m.eigion.model.EIUser;
 import com.io7m.eigion.model.EIUserDisplayName;
 import com.io7m.eigion.model.EIUserEmail;
+import com.io7m.eigion.protocol.api.EIProtocolFromModel;
+import com.io7m.eigion.protocol.api.EIProtocolToModel;
 
 import java.time.OffsetDateTime;
 import java.util.Map;
@@ -104,6 +106,7 @@ public record EISA1User(
    * @see #toUser()
    */
 
+  @EIProtocolFromModel
   public static EISA1User ofUser(
     final EIUser user)
   {
@@ -182,6 +185,7 @@ public record EISA1User(
    * @see #ofUser(EIUser)
    */
 
+  @EIProtocolToModel
   public EIUser toUser()
     throws EIPasswordException
   {

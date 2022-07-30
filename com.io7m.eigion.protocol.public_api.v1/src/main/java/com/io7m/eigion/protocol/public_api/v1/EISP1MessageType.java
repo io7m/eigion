@@ -16,15 +16,80 @@
 
 package com.io7m.eigion.protocol.public_api.v1;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.databind.annotation.JsonTypeIdResolver;
 import com.io7m.eigion.protocol.api.EIProtocolMessageType;
+
+import java.util.Map;
+import java.util.stream.Stream;
+
+import static com.fasterxml.jackson.annotation.JsonProperty.Access.READ_ONLY;
+import static java.util.Map.entry;
+import static java.util.function.Function.identity;
+import static java.util.stream.Collectors.toUnmodifiableMap;
 
 /**
  * The type of Public API v1 messages.
  */
 
+@JsonTypeInfo(
+  use = JsonTypeInfo.Id.CUSTOM,
+  include = JsonTypeInfo.As.PROPERTY,
+  property = "%Type"
+)
+@JsonTypeIdResolver(EISP1ProductIdTypeResolver.class)
+@JsonPropertyOrder({"%Schema", "%Type"})
 public sealed interface EISP1MessageType
   extends EIProtocolMessageType
   permits EISP1CommandType, EISP1ResponseType
 {
+  /**
+   * A mapping of classes to type IDs.
+   */
 
+  Map<Class<?>, String> TYPE_ID_FOR_CLASS =
+    Stream.of(
+      EISP1CommandLogin.class,
+      EISP1Hash.class,
+      EISP1ProductSummary.class,
+      EISP1ResponseError.class,
+      EISP1ResponseImageCreated.class,
+      EISP1ResponseImageGet.class,
+      EISP1ResponseProductList.class,
+      EISP1MessageType.class
+    ).collect(toUnmodifiableMap(identity(), EISP1MessageType::typeIdOf));
+  /**
+   * A mapping of type IDs to classes.
+   */
+
+  Map<String, Class<?>> CLASS_FOR_TYPE_ID =
+    makeClassForTypeId();
+
+  private static String typeIdOf(
+    final Class<?> c)
+  {
+    return c.getSimpleName().replace("EISA1", "");
+  }
+
+  private static Map<String, Class<?>> makeClassForTypeId()
+  {
+    return TYPE_ID_FOR_CLASS.entrySet()
+      .stream()
+      .map(e -> entry(e.getValue(), e.getKey()))
+      .collect(toUnmodifiableMap(Map.Entry::getKey, Map.Entry::getValue));
+  }
+
+  /**
+   * @return The schema identifier
+   */
+
+  @JsonProperty(value = "%Schema", required = false, access = READ_ONLY)
+  @JsonInclude(JsonInclude.Include.NON_NULL)
+  default String schemaId()
+  {
+    return EISP1Messages.SCHEMA_ID;
+  }
 }

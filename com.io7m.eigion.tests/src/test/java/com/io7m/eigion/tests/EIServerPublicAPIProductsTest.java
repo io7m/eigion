@@ -146,9 +146,10 @@ public final class EIServerPublicAPIProductsTest extends EIServerContract
       final var pk =
         this.parsePublic(rk, EISP1ResponseProductList.class);
 
-      assertEquals(1, pk.items().size());
-      assertEquals(product, pk.items().get(0).id());
-      assertEquals("Title 0000", pk.items().get(0).title());
+      assertEquals(1, pk.products().size());
+      assertEquals(product.group().value(), pk.products().get(0).group());
+      assertEquals(product.name(), pk.products().get(0).name());
+      assertEquals("Title 0000", pk.products().get(0).title());
     }
   }
 

@@ -16,27 +16,25 @@
 
 package com.io7m.eigion.protocol.public_api.v1;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+
 import java.util.Objects;
 
-/**
- * A request to log in.
- *
- * @param userName The username
- * @param password The password
- */
+// CHECKSTYLE:OFF
 
+@JsonDeserialize
+@JsonSerialize
 public record EISP1CommandLogin(
+  @JsonProperty(value = "UserName", required = true)
   String userName,
+  @JsonProperty(value = "Password", required = true)
   String password)
   implements EISP1CommandType
 {
-  /**
-   * A request to log in.
-   *
-   * @param userName The username
-   * @param password The password
-   */
-
+  @JsonCreator
   public EISP1CommandLogin
   {
     Objects.requireNonNull(userName, "userName");

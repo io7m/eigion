@@ -17,9 +17,10 @@
 package com.io7m.eigion.server.vanilla.internal.public_api;
 
 import com.io7m.eigion.model.EIProductIdentifier;
+import com.io7m.eigion.protocol.public_api.v1.EISP1ProductSummary;
+import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseProductList;
 import com.io7m.eigion.server.database.api.EIServerDatabaseProductsQueriesType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseType;
-import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseProductList;
 import com.io7m.eigion.server.vanilla.internal.EIHTTPErrorStatusException;
 import com.io7m.eigion.services.api.EIServiceDirectoryType;
 import jakarta.servlet.http.HttpServletRequest;
@@ -108,7 +109,11 @@ public final class EIPProducts extends EIPAuthenticatedServlet
           200,
           new EISP1ResponseProductList(
             requestIdFor(request),
-            productPage.items())
+            productPage.items()
+              .stream()
+              .map(EISP1ProductSummary::ofSummary)
+              .toList()
+          )
         );
       }
     }

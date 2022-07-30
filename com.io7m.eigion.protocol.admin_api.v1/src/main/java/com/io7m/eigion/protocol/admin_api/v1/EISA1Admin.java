@@ -23,6 +23,8 @@ import com.io7m.eigion.model.EIAdmin;
 import com.io7m.eigion.model.EIPasswordException;
 import com.io7m.eigion.model.EIUserDisplayName;
 import com.io7m.eigion.model.EIUserEmail;
+import com.io7m.eigion.protocol.api.EIProtocolFromModel;
+import com.io7m.eigion.protocol.api.EIProtocolToModel;
 
 import java.time.OffsetDateTime;
 import java.util.Objects;
@@ -93,6 +95,7 @@ public record EISA1Admin(
    * @see #toAdmin()
    */
 
+  @EIProtocolFromModel
   public static EISA1Admin ofAdmin(
     final EIAdmin admin)
   {
@@ -120,6 +123,7 @@ public record EISA1Admin(
    * @see #ofAdmin(EIAdmin)
    */
 
+  @EIProtocolToModel
   public EIAdmin toAdmin()
     throws EIPasswordException
   {

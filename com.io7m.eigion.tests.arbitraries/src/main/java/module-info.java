@@ -14,6 +14,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+import com.io7m.eigion.tests.arbitraries.EIArbEISP1HashProvider;
 import net.jqwik.api.providers.ArbitraryProvider;
 
 /**
@@ -26,6 +27,7 @@ module com.io7m.eigion.tests.arbitraries
   requires static org.osgi.annotation.versioning;
 
   requires transitive com.io7m.eigion.protocol.admin_api.v1;
+  requires transitive com.io7m.eigion.protocol.public_api.v1;
   requires transitive com.io7m.eigion.model;
   requires transitive net.jqwik.api;
 
@@ -43,6 +45,7 @@ module com.io7m.eigion.tests.arbitraries
       com.io7m.eigion.tests.arbitraries.EIArbEISA1UserBanProvider,
       com.io7m.eigion.tests.arbitraries.EIArbEISA1UserProvider,
       com.io7m.eigion.tests.arbitraries.EIArbEISA1UserSummaryProvider,
+      com.io7m.eigion.tests.arbitraries.EIArbEISP1HashProvider,
       com.io7m.eigion.tests.arbitraries.EIArbGroupCreationRequestProvider,
       com.io7m.eigion.tests.arbitraries.EIArbGroupCreationRequestStatusProvider,
       com.io7m.eigion.tests.arbitraries.EIArbGroupNameProvider,

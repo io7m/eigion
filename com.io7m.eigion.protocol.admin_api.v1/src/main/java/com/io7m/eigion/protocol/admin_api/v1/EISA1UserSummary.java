@@ -22,6 +22,8 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.io7m.eigion.model.EIUserDisplayName;
 import com.io7m.eigion.model.EIUserEmail;
 import com.io7m.eigion.model.EIUserSummary;
+import com.io7m.eigion.protocol.api.EIProtocolFromModel;
+import com.io7m.eigion.protocol.api.EIProtocolToModel;
 
 import java.util.Objects;
 import java.util.UUID;
@@ -67,6 +69,7 @@ public record EISA1UserSummary(
    * @return A v1 summary
    */
 
+  @EIProtocolFromModel
   public static EISA1UserSummary ofUserSummary(
     final EIUserSummary u)
   {
@@ -83,6 +86,7 @@ public record EISA1UserSummary(
    * @return A model summary
    */
 
+  @EIProtocolToModel
   public EIUserSummary toUserSummary()
   {
     return new EIUserSummary(

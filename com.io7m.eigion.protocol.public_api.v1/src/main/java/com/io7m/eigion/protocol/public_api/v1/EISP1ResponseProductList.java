@@ -16,44 +16,30 @@
 
 package com.io7m.eigion.protocol.public_api.v1;
 
-import com.io7m.eigion.model.EIPageType;
-import com.io7m.eigion.model.EIProductIdentifier;
-import com.io7m.eigion.model.EIProductSummary;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
-/**
- * A product list was successfully retrieved.
- *
- * @param requestId The server-assigned request ID
- * @param items     The products
- */
+// CHECKSTYLE:OFF
 
+@JsonDeserialize
+@JsonSerialize
 public record EISP1ResponseProductList(
+  @JsonProperty(value = "RequestID", required = true)
   UUID requestId,
-  List<EIProductSummary> items)
-  implements EISP1ResponseType,
-  EIPageType<EIProductSummary, EIProductIdentifier>
+  @JsonProperty(value = "Products", required = true)
+  List<EISP1ProductSummary> products)
+  implements EISP1ResponseType
 {
-  /**
-   * A product list was successfully retrieved.
-   *
-   * @param requestId The server-assigned request ID
-   * @param items     The products
-   */
-
+  @JsonCreator
   public EISP1ResponseProductList
   {
     Objects.requireNonNull(requestId, "requestId");
-    Objects.requireNonNull(items, "items");
-  }
-
-  @Override
-  public EIProductIdentifier sortKeyOf(
-    final EIProductSummary x)
-  {
-    return x.id();
+    Objects.requireNonNull(products, "products");
   }
 }

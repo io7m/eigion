@@ -77,22 +77,22 @@ public final class EIServerPublicAPIImagesTest extends EIServerContract
 
     {
       final var rk =
-        this.getPublic("/public/1/0/image/get?id=" + created.imageId());
+        this.getPublic("/public/1/0/image/get?id=" + created.imageID());
       assertEquals(200, rk.statusCode());
 
       final var got =
         this.parsePublic(rk, EISP1ResponseImageGet.class);
 
-      assertEquals(created.imageId(), got.imageId());
+      assertEquals(created.imageID(), got.id());
       assertEquals("SHA-256", got.hash().algorithm());
-      assertEquals("5A4061BE191DA45F2A29A33C9609F88CC89FE84C13525D3A80904B0455323FFF", got.hash().hash());
+      assertEquals("5A4061BE191DA45F2A29A33C9609F88CC89FE84C13525D3A80904B0455323FFF", got.hash().value());
     }
 
     {
       final var storage =
         this.storage().storages().peek();
       final var got =
-        storage.get("/images/%s.jpg".formatted(created.imageId()))
+        storage.get("/images/%s.jpg".formatted(created.imageID()))
           .orElseThrow();
 
       assertEquals("SHA-256", got.hash().algorithm());

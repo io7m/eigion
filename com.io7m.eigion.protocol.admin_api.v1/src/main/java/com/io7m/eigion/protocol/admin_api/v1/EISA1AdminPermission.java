@@ -17,6 +17,8 @@
 package com.io7m.eigion.protocol.admin_api.v1;
 
 import com.io7m.eigion.model.EIAdminPermission;
+import com.io7m.eigion.protocol.api.EIProtocolFromModel;
+import com.io7m.eigion.protocol.api.EIProtocolToModel;
 
 /**
  * The type of admin permissions.
@@ -66,6 +68,7 @@ public enum EISA1AdminPermission
    * @return The given model permission as a v1 permission
    */
 
+  @EIProtocolFromModel
   public static EISA1AdminPermission ofAdmin(
     final EIAdminPermission p)
   {
@@ -83,6 +86,7 @@ public enum EISA1AdminPermission
    * @return This permission as a model permission
    */
 
+  @EIProtocolToModel
   public EIAdminPermission toAdmin()
   {
     return switch (this) {

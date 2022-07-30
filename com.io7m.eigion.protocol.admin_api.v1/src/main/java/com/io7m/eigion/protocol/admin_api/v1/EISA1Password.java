@@ -22,6 +22,8 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.io7m.eigion.model.EIPassword;
 import com.io7m.eigion.model.EIPasswordAlgorithms;
 import com.io7m.eigion.model.EIPasswordException;
+import com.io7m.eigion.protocol.api.EIProtocolFromModel;
+import com.io7m.eigion.protocol.api.EIProtocolToModel;
 
 import java.util.Objects;
 
@@ -66,6 +68,7 @@ public record EISA1Password(
    * @throws EIPasswordException On password errors
    */
 
+  @EIProtocolToModel
   public EIPassword toPassword()
     throws EIPasswordException
   {
@@ -84,6 +87,7 @@ public record EISA1Password(
    * @return A password
    */
 
+  @EIProtocolFromModel
   public static EISA1Password ofPassword(
     final EIPassword password)
   {

@@ -19,14 +19,11 @@ package com.io7m.eigion.tests;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1ResponseAdminCreate;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1ResponseAdminGet;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1ResponseError;
-import com.io7m.eigion.protocol.admin_api.v1.EISA1ResponseUserCreate;
-import com.io7m.eigion.protocol.admin_api.v1.EISA1ResponseUserGet;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-import java.util.Optional;
 import java.util.Set;
 
 import static com.io7m.eigion.model.EIAdminPermission.ADMIN_CREATE;

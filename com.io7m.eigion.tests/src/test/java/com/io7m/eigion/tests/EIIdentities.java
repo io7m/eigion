@@ -18,7 +18,6 @@
 package com.io7m.eigion.tests;
 
 import com.io7m.eigion.model.EIPasswordException;
-import com.io7m.eigion.model.EISubsetMatch;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1Admin;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1AdminPermission;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1AdminSummary;
@@ -28,11 +27,8 @@ import com.io7m.eigion.protocol.admin_api.v1.EISA1Password;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1SubsetMatch;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1User;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1UserSummary;
-import net.jqwik.api.Arbitraries;
-import net.jqwik.api.Arbitrary;
 import net.jqwik.api.ForAll;
 import net.jqwik.api.Property;
-import net.jqwik.api.Provide;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 

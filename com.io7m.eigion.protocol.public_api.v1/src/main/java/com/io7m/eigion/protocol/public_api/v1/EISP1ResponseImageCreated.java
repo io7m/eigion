@@ -16,31 +16,29 @@
 
 package com.io7m.eigion.protocol.public_api.v1;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+
 import java.util.Objects;
 import java.util.UUID;
 
-/**
- * An image was successfully created.
- *
- * @param requestId The server-assigned request ID
- * @param imageId   The image ID
- */
+// CHECKSTYLE:OFF
 
+@JsonDeserialize
+@JsonSerialize
 public record EISP1ResponseImageCreated(
+  @JsonProperty(value = "RequestID", required = true)
   UUID requestId,
-  UUID imageId)
+  @JsonProperty(value = "ImageID", required = true)
+  UUID imageID)
   implements EISP1ResponseType
 {
-  /**
-   * An image was successfully created.
-   *
-   * @param requestId The server-assigned request ID
-   * @param imageId   The image ID
-   */
-
+  @JsonCreator
   public EISP1ResponseImageCreated
   {
     Objects.requireNonNull(requestId, "requestId");
-    Objects.requireNonNull(imageId, "imageId");
+    Objects.requireNonNull(imageID, "imageID");
   }
 }

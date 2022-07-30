@@ -9,7 +9,10 @@
             checks="HiddenField"/>
   <suppress files="EILoggingHTTPRequestLayout\.java"
             checks="JavadocVariable"/>
+
   <suppress files="EISCommandVersion\.java"
+            checks="IllegalInstantiation"/>
+  <suppress files="EIPSCommandVersion\.java"
             checks="IllegalInstantiation"/>
 
   <!-- Without pattern matching... -->
