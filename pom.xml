@@ -30,6 +30,8 @@
     <module>com.io7m.eigion.client.database</module>
     <module>com.io7m.eigion.client.vanilla</module>
     <module>com.io7m.eigion.distribution.example</module>
+    <module>com.io7m.eigion.domaincheck.api</module>
+    <module>com.io7m.eigion.domaincheck</module>
     <module>com.io7m.eigion.gui.icons.vanilla</module>
     <module>com.io7m.eigion.gui.icons</module>
     <module>com.io7m.eigion.gui</module>

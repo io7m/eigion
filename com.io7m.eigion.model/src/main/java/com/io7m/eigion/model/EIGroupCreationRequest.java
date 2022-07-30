@@ -65,8 +65,7 @@ public record EIGroupCreationRequest(
   public List<URI> verificationURIs()
   {
     final var groupSegments =
-      Arrays.stream(this.groupName.value()
-                      .split("\\."))
+      Arrays.stream(this.groupName.value().split("\\."))
         .collect(Collectors.toList());
 
     Collections.reverse(groupSegments);
