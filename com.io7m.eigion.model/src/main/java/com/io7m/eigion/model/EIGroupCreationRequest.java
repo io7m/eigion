@@ -21,7 +21,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -39,7 +38,7 @@ public record EIGroupCreationRequest(
   EIGroupName groupName,
   UUID userFounder,
   EIToken token,
-  Optional<EIGroupCreationRequestStatusType> status)
+  EIGroupCreationRequestStatusType status)
 {
   /**
    * A request to create a group.
@@ -86,6 +85,23 @@ public record EIGroupCreationRequest(
       proto,
       hostName,
       this.token
+    );
+  }
+
+  /**
+   * @param newStatus The status
+   *
+   * @return This request with the given status
+   */
+
+  public EIGroupCreationRequest withStatus(
+    final EIGroupCreationRequestStatusType newStatus)
+  {
+    return new EIGroupCreationRequest(
+      this.groupName,
+      this.userFounder,
+      this.token,
+      newStatus
     );
   }
 }

@@ -19,6 +19,7 @@ package com.io7m.eigion.server.database.postgres.internal;
 import com.io7m.eigion.model.EIGroupCreationRequest;
 import com.io7m.eigion.model.EIGroupCreationRequestStatusType;
 import com.io7m.eigion.model.EIGroupCreationRequestStatusType.Failed;
+import com.io7m.eigion.model.EIGroupCreationRequestStatusType.InProgress;
 import com.io7m.eigion.model.EIGroupCreationRequestStatusType.Succeeded;
 import com.io7m.eigion.model.EIGroupName;
 import com.io7m.eigion.model.EIGroupRole;
@@ -41,6 +42,9 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import static com.io7m.eigion.model.EIGroupCreationRequestStatusType.NAME_FAILED;
+import static com.io7m.eigion.model.EIGroupCreationRequestStatusType.NAME_IN_PROGRESS;
+import static com.io7m.eigion.model.EIGroupCreationRequestStatusType.NAME_SUCCEEDED;
 import static com.io7m.eigion.server.database.postgres.internal.EIServerDatabaseExceptions.handleDatabaseException;
 import static com.io7m.eigion.server.database.postgres.internal.Tables.GROUPS;
 import static com.io7m.eigion.server.database.postgres.internal.Tables.GROUPS_CREATION_REQUESTS;
@@ -58,32 +62,47 @@ final class EIServerDatabaseGroupQueries
     super(inTransaction);
   }
 
+  private static EIGroupCreationRequestStatusType mapStatus(
+    final Record rec)
+  {
+    final var started =
+      rec.get(GROUPS_CREATION_REQUESTS.CREATED);
+
+    final var statusName = rec.get(GROUPS_CREATION_REQUESTS.STATUS);
+    return switch (statusName) {
+      case NAME_FAILED -> {
+        yield new Failed(
+          started,
+          rec.get(GROUPS_CREATION_REQUESTS.COMPLETED),
+          rec.get(GROUPS_CREATION_REQUESTS.MESSAGE)
+        );
+      }
+      case NAME_SUCCEEDED -> {
+        yield new Succeeded(
+          started,
+          rec.get(GROUPS_CREATION_REQUESTS.COMPLETED)
+        );
+      }
+      case NAME_IN_PROGRESS -> {
+        yield new InProgress(
+          started
+        );
+      }
+      default ->
+        throw new IllegalStateException(
+          "Unrecognized status: %s".formatted(statusName)
+        );
+    };
+  }
+
   private static EIGroupCreationRequest mapCreationRequestRecord(
     final Record rec)
   {
-    final Optional<EIGroupCreationRequestStatusType> status;
-    final var completed =
-      rec.get(GROUPS_CREATION_REQUESTS.COMPLETED);
-
-    if (completed != null) {
-      final var failed =
-        rec.get(GROUPS_CREATION_REQUESTS.FAILED);
-      final var started =
-        rec.get(GROUPS_CREATION_REQUESTS.CREATED);
-      if (failed != null) {
-        status = Optional.of(new Failed(started, completed, failed));
-      } else {
-        status = Optional.of(new Succeeded(started, completed));
-      }
-    } else {
-      status = Optional.empty();
-    }
-
     return new EIGroupCreationRequest(
       new EIGroupName(rec.get(GROUPS_CREATION_REQUESTS.GROUP_NAME)),
       rec.get(GROUPS_CREATION_REQUESTS.CREATOR_USER),
       new EIToken(rec.get(GROUPS_CREATION_REQUESTS.GROUP_TOKEN)),
-      status
+      mapStatus(rec)
     );
   }
 
@@ -246,6 +265,8 @@ final class EIServerDatabaseGroupQueries
         .set(GROUPS_CREATION_REQUESTS.CREATOR_USER, userId)
         .set(GROUPS_CREATION_REQUESTS.GROUP_NAME, groupName.value())
         .set(GROUPS_CREATION_REQUESTS.GROUP_TOKEN, token.value())
+        .set(GROUPS_CREATION_REQUESTS.STATUS, NAME_IN_PROGRESS)
+        .set(GROUPS_CREATION_REQUESTS.MESSAGE, "")
         .execute();
 
       final var audit =
@@ -359,7 +380,7 @@ final class EIServerDatabaseGroupQueries
   }
 
   @Override
-  public void groupCreationRequestCompleteSuccessfully(
+  public void groupCreationRequestComplete(
     final EIGroupCreationRequest request)
     throws EIServerDatabaseException
   {
@@ -377,7 +398,7 @@ final class EIServerDatabaseGroupQueries
       checkUserExists(context, userId);
       checkGroupDoesNotExist(context, groupName);
 
-      final var existingGroupRequest =
+      final var existing =
         context.fetchOptional(
             GROUPS_CREATION_REQUESTS,
             GROUPS_CREATION_REQUESTS.GROUP_TOKEN.eq(token.value())
@@ -387,67 +408,54 @@ final class EIServerDatabaseGroupQueries
             "group-request-nonexistent"
           ));
 
-      final var timeNow = this.currentTime();
-      existingGroupRequest.set(GROUPS_CREATION_REQUESTS.COMPLETED, timeNow);
-      existingGroupRequest.store();
+      final var status = request.status();
+      if (status instanceof InProgress progress) {
+        return;
+      }
 
-      final var audit =
-        context.insertInto(AUDIT)
-          .set(AUDIT.TIME, timeNow)
-          .set(AUDIT.TYPE, "GROUP_CREATION_REQUEST_SUCCEEDED")
-          .set(AUDIT.USER_ID, admin)
-          .set(AUDIT.MESSAGE, "%s|%s|%s".formatted(groupName, userId, token));
+      if (status instanceof Failed failed) {
+        final var timeNow = this.currentTime();
+        existing.set(GROUPS_CREATION_REQUESTS.STATUS, NAME_FAILED);
+        existing.set(GROUPS_CREATION_REQUESTS.COMPLETED, timeNow);
+        existing.set(GROUPS_CREATION_REQUESTS.MESSAGE, failed.message());
+        existing.store();
 
-      insertAuditRecord(audit);
+        final var audit =
+          context.insertInto(AUDIT)
+            .set(AUDIT.TIME, timeNow)
+            .set(AUDIT.TYPE, "GROUP_CREATION_REQUEST_FAILED")
+            .set(AUDIT.USER_ID, admin)
+            .set(AUDIT.MESSAGE, "%s|%s|%s".formatted(groupName, userId, token));
 
-      this.groupCreate(groupName, userId);
-    } catch (final DataAccessException e) {
-      throw handleDatabaseException(transaction, e);
-    }
-  }
+        insertAuditRecord(audit);
+        return;
+      }
 
-  @Override
-  public void groupCreationRequestCompleteFailed(
-    final EIGroupCreationRequest request,
-    final String message)
-    throws EIServerDatabaseException
-  {
-    Objects.requireNonNull(request, "request");
+      if (status instanceof Succeeded succeeded) {
+        final var timeNow = this.currentTime();
+        existing.set(GROUPS_CREATION_REQUESTS.STATUS, NAME_SUCCEEDED);
+        existing.set(GROUPS_CREATION_REQUESTS.COMPLETED, timeNow);
+        existing.set(GROUPS_CREATION_REQUESTS.MESSAGE, "");
+        existing.store();
 
-    final var transaction = this.transaction();
-    final var admin = transaction.adminId();
-    final var context = transaction.createContext();
+        final var audit =
+          context.insertInto(AUDIT)
+            .set(AUDIT.TIME, timeNow)
+            .set(AUDIT.TYPE, "GROUP_CREATION_REQUEST_SUCCEEDED")
+            .set(AUDIT.USER_ID, admin)
+            .set(AUDIT.MESSAGE, "%s|%s|%s".formatted(groupName, userId, token));
 
-    try {
-      final var userId = request.userFounder();
-      final var groupName = request.groupName();
-      final var token = request.token();
+        insertAuditRecord(audit);
 
-      checkUserExists(context, userId);
+        final var groupOpt =
+          context.selectFrom(GROUPS)
+            .where(GROUPS.NAME.eq(groupName.value()))
+            .fetchOptional();
 
-      final var existingGroupRequest =
-        context.fetchOptional(
-            GROUPS_CREATION_REQUESTS,
-            GROUPS_CREATION_REQUESTS.GROUP_TOKEN.eq(token.value())
-              .and(GROUPS_CREATION_REQUESTS.GROUP_NAME.eq(groupName.value())))
-          .orElseThrow(() -> new EIServerDatabaseException(
-            "Group request does not exist",
-            "group-request-nonexistent"
-          ));
-
-      final var timeNow = this.currentTime();
-      existingGroupRequest.set(GROUPS_CREATION_REQUESTS.COMPLETED, timeNow);
-      existingGroupRequest.set(GROUPS_CREATION_REQUESTS.FAILED, message);
-      existingGroupRequest.store();
-
-      final var audit =
-        context.insertInto(AUDIT)
-          .set(AUDIT.TIME, timeNow)
-          .set(AUDIT.TYPE, "GROUP_CREATION_REQUEST_FAILED")
-          .set(AUDIT.USER_ID, admin)
-          .set(AUDIT.MESSAGE, "%s|%s|%s".formatted(groupName, userId, token));
-
-      insertAuditRecord(audit);
+        if (groupOpt.isEmpty()) {
+          this.groupCreate(groupName, userId);
+        }
+      }
     } catch (final DataAccessException e) {
       throw handleDatabaseException(transaction, e);
     }

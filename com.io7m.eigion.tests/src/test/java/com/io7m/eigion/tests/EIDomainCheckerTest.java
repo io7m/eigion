@@ -22,6 +22,7 @@ import com.io7m.eigion.domaincheck.api.EIDomainCheckerConfiguration;
 import com.io7m.eigion.domaincheck.api.EIDomainCheckerType;
 import com.io7m.eigion.model.EIGroupCreationRequest;
 import com.io7m.eigion.model.EIGroupCreationRequestStatusType;
+import com.io7m.eigion.model.EIGroupCreationRequestStatusType.InProgress;
 import com.io7m.eigion.model.EIGroupName;
 import com.io7m.eigion.model.EIToken;
 import org.junit.jupiter.api.AfterEach;
@@ -36,6 +37,7 @@ import java.net.http.HttpClient;
 import java.util.Optional;
 import java.util.UUID;
 
+import static com.io7m.eigion.tests.EIServerContract.timeNow;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -114,16 +116,15 @@ public final class EIDomainCheckerTest
         new EIGroupCreationRequest(
           new EIGroupName("localhost"),
           UUID.randomUUID(),
-          new EIToken(
-            token),
-          Optional.empty()
+          new EIToken(token),
+          new InProgress(timeNow())
         )
       );
 
     final var result =
       checkFuture.get();
     final var status =
-      result.status().orElseThrow();
+      result.status();
 
     if (status instanceof EIGroupCreationRequestStatusType.Succeeded succeeded) {
       LOG.debug("succeeded: {}", succeeded);
@@ -155,14 +156,14 @@ public final class EIDomainCheckerTest
           new EIGroupName("localhost"),
           UUID.randomUUID(),
           new EIToken(tokenExpect),
-          Optional.empty()
+          new InProgress(timeNow())
         )
       );
 
     final var result =
       checkFuture.get();
     final var status =
-      result.status().orElseThrow();
+      result.status();
 
     if (status instanceof EIGroupCreationRequestStatusType.Failed failed) {
       LOG.debug("failed: {}", failed);
@@ -189,15 +190,16 @@ public final class EIDomainCheckerTest
         new EIGroupCreationRequest(
           new EIGroupName("localhost"),
           UUID.randomUUID(),
-          new EIToken("73CB3858A687A8494CA3323053016282F3DAD39D42CF62CA4E79DDA2AAC7D9AC"),
-          Optional.empty()
+          new EIToken(
+            "73CB3858A687A8494CA3323053016282F3DAD39D42CF62CA4E79DDA2AAC7D9AC"),
+          new InProgress(timeNow())
         )
       );
 
     final var result =
       checkFuture.get();
     final var status =
-      result.status().orElseThrow();
+      result.status();
 
     if (status instanceof EIGroupCreationRequestStatusType.Failed failed) {
       LOG.debug("failed: {}", failed);
@@ -224,15 +226,16 @@ public final class EIDomainCheckerTest
         new EIGroupCreationRequest(
           new EIGroupName("localhost"),
           UUID.randomUUID(),
-          new EIToken("73CB3858A687A8494CA3323053016282F3DAD39D42CF62CA4E79DDA2AAC7D9AC"),
-          Optional.empty()
+          new EIToken(
+            "73CB3858A687A8494CA3323053016282F3DAD39D42CF62CA4E79DDA2AAC7D9AC"),
+          new InProgress(timeNow())
         )
       );
 
     final var result =
       checkFuture.get();
     final var status =
-      result.status().orElseThrow();
+      result.status();
 
     if (status instanceof EIGroupCreationRequestStatusType.Failed failed) {
       LOG.debug("failed: {}", failed);

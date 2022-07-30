@@ -25,7 +25,6 @@ import net.jqwik.api.Arbitrary;
 import net.jqwik.api.Combinators;
 import net.jqwik.api.providers.TypeUsage;
 
-import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -64,17 +63,9 @@ public final class EIArbGroupCreationRequestProvider
     final var t =
       Arbitraries.defaultFor(EIToken.class);
     final var s =
-      Arbitraries.defaultFor(
-        Optional.class,
-        EIGroupCreationRequestStatusType.class);
+      Arbitraries.defaultFor(EIGroupCreationRequestStatusType.class);
 
-    return Set.of(Combinators.combine(g, u, t, s).as((ug, uu, ut, us) -> {
-      return new EIGroupCreationRequest(
-        ug,
-        uu,
-        ut,
-        (Optional<EIGroupCreationRequestStatusType>) us
-      );
-    }));
+    return Set.of(Combinators.combine(g, u, t, s)
+                    .as(EIGroupCreationRequest::new));
   }
 }

@@ -28,6 +28,30 @@ import java.util.Optional;
 public sealed interface EIGroupCreationRequestStatusType
 {
   /**
+   * The name of the in-progress state.
+   */
+
+  String NAME_IN_PROGRESS = "in-progress";
+
+  /**
+   * The name of the succeeded state.
+   */
+
+  String NAME_SUCCEEDED = "succeeded";
+
+  /**
+   * The name of the failed state.
+   */
+
+  String NAME_FAILED = "failed";
+
+  /**
+   * @return The name of the status
+   */
+
+  String name();
+
+  /**
    * @return The time the request started
    */
 
@@ -38,6 +62,40 @@ public sealed interface EIGroupCreationRequestStatusType
    */
 
   Optional<OffsetDateTime> timeCompleted();
+
+
+  /**
+   * The request is in progress.
+   *
+   * @param timeStarted The time the request started
+   */
+
+  record InProgress(
+    OffsetDateTime timeStarted)
+    implements EIGroupCreationRequestStatusType
+  {
+    /**
+     * The request is in progress.
+     */
+
+    public InProgress
+    {
+      Objects.requireNonNull(timeStarted, "timeStarted");
+    }
+
+    @Override
+    public String name()
+    {
+      return NAME_IN_PROGRESS;
+    }
+
+    @Override
+    public Optional<OffsetDateTime> timeCompleted()
+    {
+      return Optional.empty();
+    }
+  }
+
 
   /**
    * The request succeeded.
@@ -59,6 +117,12 @@ public sealed interface EIGroupCreationRequestStatusType
     {
       Objects.requireNonNull(timeStarted, "timeStarted");
       Objects.requireNonNull(timeCompletedValue, "timeCompletedValue");
+    }
+
+    @Override
+    public String name()
+    {
+      return NAME_SUCCEEDED;
     }
 
     @Override
@@ -91,6 +155,12 @@ public sealed interface EIGroupCreationRequestStatusType
       Objects.requireNonNull(timeStarted, "timeStarted");
       Objects.requireNonNull(timeCompletedValue, "timeCompletedValue");
       Objects.requireNonNull(message, "message");
+    }
+
+    @Override
+    public String name()
+    {
+      return NAME_FAILED;
     }
 
     @Override

@@ -18,7 +18,8 @@ package com.io7m.eigion.domaincheck.internal;
 
 import com.io7m.eigion.domaincheck.api.EIDomainCheckerConfiguration;
 import com.io7m.eigion.model.EIGroupCreationRequest;
-import com.io7m.eigion.model.EIGroupCreationRequestStatusType;
+import com.io7m.eigion.model.EIGroupCreationRequestStatusType.Failed;
+import com.io7m.eigion.model.EIGroupCreationRequestStatusType.Succeeded;
 import com.io7m.jdeferthrow.core.ExceptionTracker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,7 +33,6 @@ import java.net.http.HttpResponse;
 import java.time.OffsetDateTime;
 import java.util.Arrays;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -49,7 +49,6 @@ public final class EIDomainCheck implements Runnable
   private final EIDomainCheckerConfiguration configuration;
   private final EIGroupCreationRequest request;
   private final CompletableFuture<EIGroupCreationRequest> future;
-  private OffsetDateTime timeStarted;
 
   /**
    * A single domain check operation.
@@ -91,8 +90,6 @@ public final class EIDomainCheck implements Runnable
 
       final var client =
         this.configuration.httpClient();
-      this.timeStarted =
-        OffsetDateTime.now(this.configuration.clock());
 
       final var tokenExpected =
         this.request.token().value().getBytes(UTF_8);
@@ -163,12 +160,10 @@ public final class EIDomainCheck implements Runnable
       this.request.groupName(),
       this.request.userFounder(),
       this.request.token(),
-      Optional.of(
-        new EIGroupCreationRequestStatusType.Failed(
-          this.timeStarted,
-          OffsetDateTime.now(this.configuration.clock()),
-          message.toString()
-        )
+      new Failed(
+        this.request.status().timeStarted(),
+        OffsetDateTime.now(this.configuration.clock()),
+        message.toString()
       )
     );
   }
@@ -192,12 +187,10 @@ public final class EIDomainCheck implements Runnable
       this.request.groupName(),
       this.request.userFounder(),
       this.request.token(),
-      Optional.of(
-        new EIGroupCreationRequestStatusType.Failed(
-          this.timeStarted,
-          OffsetDateTime.now(this.configuration.clock()),
-          message.toString()
-        )
+      new Failed(
+        this.request.status().timeStarted(),
+        OffsetDateTime.now(this.configuration.clock()),
+        message.toString()
       )
     );
   }
@@ -208,11 +201,9 @@ public final class EIDomainCheck implements Runnable
       this.request.groupName(),
       this.request.userFounder(),
       this.request.token(),
-      Optional.of(
-        new EIGroupCreationRequestStatusType.Succeeded(
-          this.timeStarted,
-          OffsetDateTime.now(this.configuration.clock())
-        )
+      new Succeeded(
+        this.request.status().timeStarted(),
+        OffsetDateTime.now(this.configuration.clock())
       )
     );
   }

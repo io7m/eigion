@@ -127,23 +127,8 @@ public non-sealed interface EIServerDatabaseGroupsQueriesType
    */
 
   @EIServerDatabaseRequiresAdmin
-  void groupCreationRequestCompleteSuccessfully(
+  void groupCreationRequestComplete(
     EIGroupCreationRequest request)
-    throws EIServerDatabaseException;
-
-  /**
-   * Finish a group creation request, indicating that the request failed.
-   *
-   * @param request The request
-   * @param message The failure message
-   *
-   * @throws EIServerDatabaseException On errors
-   */
-
-  @EIServerDatabaseRequiresAdmin
-  void groupCreationRequestCompleteFailed(
-    EIGroupCreationRequest request,
-    String message)
     throws EIServerDatabaseException;
 
   /**

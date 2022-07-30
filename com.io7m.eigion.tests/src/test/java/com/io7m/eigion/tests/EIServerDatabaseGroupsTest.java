@@ -20,6 +20,8 @@ package com.io7m.eigion.tests;
 import com.io7m.eigion.model.EIGroupCreationRequest;
 import com.io7m.eigion.model.EIGroupCreationRequestStatusType;
 import com.io7m.eigion.model.EIGroupCreationRequestStatusType.Failed;
+import com.io7m.eigion.model.EIGroupCreationRequestStatusType.InProgress;
+import com.io7m.eigion.model.EIGroupCreationRequestStatusType.Succeeded;
 import com.io7m.eigion.model.EIGroupName;
 import com.io7m.eigion.model.EIPasswordException;
 import com.io7m.eigion.model.EIToken;
@@ -40,7 +42,6 @@ import static com.io7m.eigion.model.EIGroupRole.FOUNDER;
 import static com.io7m.eigion.server.database.api.EIServerDatabaseRole.EIGION;
 import static java.lang.Thread.sleep;
 import static java.time.OffsetDateTime.now;
-import static java.util.Optional.empty;
 import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -332,7 +333,7 @@ public final class EIServerDatabaseGroupsTest extends EIWithDatabaseContract
 
     transaction.adminIdSet(adminId);
 
-    final var user = EIServerDatabaseGroupsTest.createUser(transaction);
+    final var user = createUser(transaction);
 
     final var groups =
       transaction.queries(EIServerDatabaseGroupsQueriesType.class);
@@ -346,7 +347,7 @@ public final class EIServerDatabaseGroupsTest extends EIWithDatabaseContract
         user.id(),
         new EIToken(
           "5891B5B522D5DF086D0FF0B110FBD9D21BB4FC7163AF34D08286A2E846F6BE03"),
-        empty()
+        new InProgress(timeNow())
       );
 
     groups.groupCreationRequestStart(request);
@@ -361,7 +362,17 @@ public final class EIServerDatabaseGroupsTest extends EIWithDatabaseContract
       groups.groupCreationRequest(request.token())
     );
 
-    groups.groupCreationRequestCompleteSuccessfully(request);
+    final var requestSucceeded =
+      new EIGroupCreationRequest(
+        request.groupName(),
+        request.userFounder(),
+        request.token(),
+        new Succeeded(
+          request.status().timeStarted(),
+          timeNow())
+      );
+
+    groups.groupCreationRequestComplete(requestSucceeded);
 
     {
       final var after0 =
@@ -371,8 +382,8 @@ public final class EIServerDatabaseGroupsTest extends EIWithDatabaseContract
             .orElseThrow();
 
       assertEquals(
-        EIGroupCreationRequestStatusType.Succeeded.class,
-        after0.status().orElseThrow().getClass()
+        Succeeded.class,
+        after0.status().getClass()
       );
       assertEquals(after0, after1);
     }
@@ -416,7 +427,7 @@ public final class EIServerDatabaseGroupsTest extends EIWithDatabaseContract
 
     transaction.adminIdSet(adminId);
 
-    final var user = EIServerDatabaseGroupsTest.createUser(transaction);
+    final var user = createUser(transaction);
 
     final var groups =
       transaction.queries(EIServerDatabaseGroupsQueriesType.class);
@@ -430,7 +441,7 @@ public final class EIServerDatabaseGroupsTest extends EIWithDatabaseContract
         user.id(),
         new EIToken(
           "5891B5B522D5DF086D0FF0B110FBD9D21BB4FC7163AF34D08286A2E846F6BE03"),
-        empty()
+        new InProgress(timeNow())
       );
 
     final var request1 =
@@ -439,14 +450,14 @@ public final class EIServerDatabaseGroupsTest extends EIWithDatabaseContract
         user.id(),
         new EIToken(
           "71573B922A87ABC3FD1A957F2CFA09D9E16998567DD878A85E12166112751806"),
-        empty()
+        new InProgress(timeNow())
       );
 
     groups.groupCreationRequestStart(request0);
 
     final var ex =
       assertThrows(EIServerDatabaseException.class, () -> {
-        groups.groupCreationRequestCompleteSuccessfully(request1);
+        groups.groupCreationRequestComplete(request1);
       });
 
     assertEquals("group-request-nonexistent", ex.errorCode());
@@ -472,7 +483,7 @@ public final class EIServerDatabaseGroupsTest extends EIWithDatabaseContract
 
     transaction.adminIdSet(adminId);
 
-    final var user = EIServerDatabaseGroupsTest.createUser(transaction);
+    final var user = createUser(transaction);
 
     final var groups =
       transaction.queries(EIServerDatabaseGroupsQueriesType.class);
@@ -486,12 +497,12 @@ public final class EIServerDatabaseGroupsTest extends EIWithDatabaseContract
         user.id(),
         new EIToken(
           "5891B5B522D5DF086D0FF0B110FBD9D21BB4FC7163AF34D08286A2E846F6BE03"),
-        empty()
+        new InProgress(timeNow())
       );
 
     final var ex =
       assertThrows(EIServerDatabaseException.class, () -> {
-        groups.groupCreationRequestCompleteSuccessfully(request0);
+        groups.groupCreationRequestComplete(request0);
       });
 
     assertEquals("group-request-nonexistent", ex.errorCode());
@@ -517,7 +528,7 @@ public final class EIServerDatabaseGroupsTest extends EIWithDatabaseContract
 
     transaction.adminIdSet(adminId);
 
-    final var user = EIServerDatabaseGroupsTest.createUser(transaction);
+    final var user = createUser(transaction);
 
     final var groups =
       transaction.queries(EIServerDatabaseGroupsQueriesType.class);
@@ -531,7 +542,17 @@ public final class EIServerDatabaseGroupsTest extends EIWithDatabaseContract
         user.id(),
         new EIToken(
           "5891B5B522D5DF086D0FF0B110FBD9D21BB4FC7163AF34D08286A2E846F6BE03"),
-        empty()
+        new InProgress(timeNow())
+      );
+
+    final var requestSucceeded =
+      new EIGroupCreationRequest(
+        request0.groupName(),
+        request0.userFounder(),
+        request0.token(),
+        new Succeeded(
+          request0.status().timeStarted(),
+          timeNow())
       );
 
     groups.groupCreationRequestStart(request0);
@@ -540,7 +561,7 @@ public final class EIServerDatabaseGroupsTest extends EIWithDatabaseContract
     {
       final var ex =
         assertThrows(EIServerDatabaseException.class, () -> {
-          groups.groupCreationRequestCompleteSuccessfully(request0);
+          groups.groupCreationRequestComplete(requestSucceeded);
         });
       assertEquals("group-duplicate", ex.errorCode());
     }
@@ -566,7 +587,7 @@ public final class EIServerDatabaseGroupsTest extends EIWithDatabaseContract
 
     transaction.adminIdSet(adminId);
 
-    final var user = EIServerDatabaseGroupsTest.createUser(transaction);
+    final var user = createUser(transaction);
 
     final var groups =
       transaction.queries(EIServerDatabaseGroupsQueriesType.class);
@@ -580,7 +601,7 @@ public final class EIServerDatabaseGroupsTest extends EIWithDatabaseContract
         user.id(),
         new EIToken(
           "5891B5B522D5DF086D0FF0B110FBD9D21BB4FC7163AF34D08286A2E846F6BE03"),
-        empty()
+        new InProgress(timeNow())
       );
 
     groups.groupCreate(groupName, user.id());
@@ -613,7 +634,7 @@ public final class EIServerDatabaseGroupsTest extends EIWithDatabaseContract
 
     transaction.adminIdSet(adminId);
 
-    final var user = EIServerDatabaseGroupsTest.createUser(transaction);
+    final var user = createUser(transaction);
 
     final var groups =
       transaction.queries(EIServerDatabaseGroupsQueriesType.class);
@@ -627,7 +648,7 @@ public final class EIServerDatabaseGroupsTest extends EIWithDatabaseContract
         user.id(),
         new EIToken(
           "5891B5B522D5DF086D0FF0B110FBD9D21BB4FC7163AF34D08286A2E846F6BE03"),
-        empty()
+        new InProgress(timeNow())
       );
 
     groups.groupCreationRequestStart(request0);
@@ -660,7 +681,7 @@ public final class EIServerDatabaseGroupsTest extends EIWithDatabaseContract
 
     transaction.adminIdSet(adminId);
 
-    final var user = EIServerDatabaseGroupsTest.createUser(transaction);
+    final var user = createUser(transaction);
 
     final var groups =
       transaction.queries(EIServerDatabaseGroupsQueriesType.class);
@@ -674,7 +695,18 @@ public final class EIServerDatabaseGroupsTest extends EIWithDatabaseContract
         user.id(),
         new EIToken(
           "5891B5B522D5DF086D0FF0B110FBD9D21BB4FC7163AF34D08286A2E846F6BE03"),
-        empty()
+        new InProgress(timeNow())
+      );
+
+    final var requestFailed =
+      new EIGroupCreationRequest(
+        request.groupName(),
+        request.userFounder(),
+        request.token(),
+        new EIGroupCreationRequestStatusType.Failed(
+          request.status().timeStarted(),
+          timeNow(),
+          "This failed.")
       );
 
     groups.groupCreationRequestStart(request);
@@ -684,13 +716,13 @@ public final class EIServerDatabaseGroupsTest extends EIWithDatabaseContract
       groups.groupCreationRequestsForUser(user.id())
     );
 
-    groups.groupCreationRequestCompleteFailed(request, "This failed.");
+    groups.groupCreationRequestComplete(requestFailed);
 
     {
       final var after =
         groups.groupCreationRequestsForUser(user.id()).get(0);
 
-      final var status = (Failed) after.status().orElseThrow();
+      final var status = (Failed) after.status();
       assertEquals("This failed.", status.message());
     }
 
@@ -709,107 +741,6 @@ public final class EIServerDatabaseGroupsTest extends EIWithDatabaseContract
         "GROUP_CREATION_REQUEST_FAILED",
         "%s|%s|%s".formatted(groupName, user.id(), request.token()))
     );
-  }
-
-  /**
-   * Group requests fail for broken tokens.
-   *
-   * @throws Exception On errors
-   */
-
-  @Test
-  public void testGroupCreateRequestFailureFinishBadToken()
-    throws Exception
-  {
-    assertTrue(this.containerIsRunning());
-
-    final var adminId =
-      this.databaseCreateAdminInitial("someone", "12345678");
-
-    final var transaction =
-      this.transactionOf(EIGION);
-
-    transaction.adminIdSet(adminId);
-
-    final var user = EIServerDatabaseGroupsTest.createUser(transaction);
-
-    final var groups =
-      transaction.queries(EIServerDatabaseGroupsQueriesType.class);
-
-    final var groupName =
-      new EIGroupName("com.io7m.eigion.test");
-
-    final var request0 =
-      new EIGroupCreationRequest(
-        groupName,
-        user.id(),
-        new EIToken(
-          "5891B5B522D5DF086D0FF0B110FBD9D21BB4FC7163AF34D08286A2E846F6BE03"),
-        empty()
-      );
-
-    final var request1 =
-      new EIGroupCreationRequest(
-        groupName,
-        user.id(),
-        new EIToken(
-          "71573B922A87ABC3FD1A957F2CFA09D9E16998567DD878A85E12166112751806"),
-        empty()
-      );
-
-    groups.groupCreationRequestStart(request0);
-
-    final var ex =
-      assertThrows(EIServerDatabaseException.class, () -> {
-        groups.groupCreationRequestCompleteFailed(request1, "irrelevant");
-      });
-
-    assertEquals("group-request-nonexistent", ex.errorCode());
-  }
-
-  /**
-   * Group requests fail for nonexistent groups.
-   *
-   * @throws Exception On errors
-   */
-
-  @Test
-  public void testGroupCreateRequestFailureFinishNonexistent()
-    throws Exception
-  {
-    assertTrue(this.containerIsRunning());
-
-    final var adminId =
-      this.databaseCreateAdminInitial("someone", "12345678");
-
-    final var transaction =
-      this.transactionOf(EIGION);
-
-    transaction.adminIdSet(adminId);
-
-    final var user = EIServerDatabaseGroupsTest.createUser(transaction);
-
-    final var groups =
-      transaction.queries(EIServerDatabaseGroupsQueriesType.class);
-
-    final var groupName =
-      new EIGroupName("com.io7m.eigion.test");
-
-    final var request0 =
-      new EIGroupCreationRequest(
-        groupName,
-        user.id(),
-        new EIToken(
-          "5891B5B522D5DF086D0FF0B110FBD9D21BB4FC7163AF34D08286A2E846F6BE03"),
-        empty()
-      );
-
-    final var ex =
-      assertThrows(EIServerDatabaseException.class, () -> {
-        groups.groupCreationRequestCompleteFailed(request0, "irrelevant");
-      });
-
-    assertEquals("group-request-nonexistent", ex.errorCode());
   }
 
   /**
@@ -832,7 +763,7 @@ public final class EIServerDatabaseGroupsTest extends EIWithDatabaseContract
 
     transaction.adminIdSet(adminId);
 
-    final var user = EIServerDatabaseGroupsTest.createUser(transaction);
+    final var user = createUser(transaction);
 
     final var groups =
       transaction.queries(EIServerDatabaseGroupsQueriesType.class);
@@ -846,7 +777,7 @@ public final class EIServerDatabaseGroupsTest extends EIWithDatabaseContract
         user.id(),
         new EIToken(
           "5891B5B522D5DF086D0FF0B110FBD9D21BB4FC7163AF34D08286A2E846F6BE03"),
-        empty()
+        new InProgress(timeNow())
       );
 
     final var request1 =
@@ -855,7 +786,7 @@ public final class EIServerDatabaseGroupsTest extends EIWithDatabaseContract
         user.id(),
         new EIToken(
           "71573B922A87ABC3FD1A957F2CFA09D9E16998567DD878A85E12166112751806"),
-        empty()
+        new InProgress(timeNow())
       );
 
     final var request2 =
@@ -864,7 +795,7 @@ public final class EIServerDatabaseGroupsTest extends EIWithDatabaseContract
         user.id(),
         new EIToken(
           "D9CD63F187DB2DAEA1371289508C63A7A24C46316F15AC61F030A7D6EA423915"),
-        empty()
+        new InProgress(timeNow())
       );
 
     final var request3 =
@@ -873,7 +804,7 @@ public final class EIServerDatabaseGroupsTest extends EIWithDatabaseContract
         user.id(),
         new EIToken(
           "74284D9DCBCC09928CA5D7D6187270A62AC1B58CCDC4A44B81E47257FFA53B9E"),
-        empty()
+        new InProgress(timeNow())
       );
 
     final var request4 =
@@ -882,7 +813,7 @@ public final class EIServerDatabaseGroupsTest extends EIWithDatabaseContract
         user.id(),
         new EIToken(
           "8FE215591C32391AD99DCF732BE3CC4B6FC9AF3A5E92EC4F7C62F19D9B9683AA"),
-        empty()
+        new InProgress(timeNow())
       );
 
     final var request5 =
@@ -891,7 +822,7 @@ public final class EIServerDatabaseGroupsTest extends EIWithDatabaseContract
         user.id(),
         new EIToken(
           "73CB3858A687A8494CA3323053016282F3DAD39D42CF62CA4E79DDA2AAC7D9AC"),
-        empty()
+        new InProgress(timeNow())
       );
 
     groups.groupCreationRequestStart(request0);
@@ -921,9 +852,16 @@ public final class EIServerDatabaseGroupsTest extends EIWithDatabaseContract
       assertEquals(request5.token(), requests.get(5).token());
     }
 
-    groups.groupCreationRequestCompleteFailed(request0, "Failed 0");
-    groups.groupCreationRequestCompleteFailed(request1, "Failed 1");
-    groups.groupCreationRequestCompleteSuccessfully(request2);
+    final var requestAfter0 =
+      request0.withStatus(new Failed(timeNow(), timeNow(), "Failed 0"));
+    final var requestAfter1 =
+      request1.withStatus(new Failed(timeNow(), timeNow(), "Failed 0"));
+    final var requestAfter2 =
+      request2.withStatus(new Succeeded(timeNow(), timeNow()));
+
+    groups.groupCreationRequestComplete(requestAfter0);
+    groups.groupCreationRequestComplete(requestAfter1);
+    groups.groupCreationRequestComplete(requestAfter2);
     assertTrue(groups.groupExists(groupName));
 
     {
@@ -936,6 +874,7 @@ public final class EIServerDatabaseGroupsTest extends EIWithDatabaseContract
       assertEquals(request3.token(), requests.get(3).token());
       assertEquals(request4.token(), requests.get(4).token());
       assertEquals(request5.token(), requests.get(5).token());
+      assertEquals(6, requests.size());
     }
 
     transaction.commit();
@@ -944,7 +883,8 @@ public final class EIServerDatabaseGroupsTest extends EIWithDatabaseContract
       final var requests =
         groups.groupCreationRequestsActive();
 
-      assertEquals(List.of(request5), requests);
+      assertEquals(request5.token(), requests.get(0).token());
+      assertEquals(1, requests.size());
     }
 
     {
@@ -953,6 +893,7 @@ public final class EIServerDatabaseGroupsTest extends EIWithDatabaseContract
 
       assertEquals(request3.token(), requests.get(0).token());
       assertEquals(request4.token(), requests.get(1).token());
+      assertEquals(2, requests.size());
     }
   }
 }
