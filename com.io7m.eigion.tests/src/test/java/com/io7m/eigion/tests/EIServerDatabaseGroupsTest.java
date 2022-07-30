@@ -38,6 +38,7 @@ import java.util.UUID;
 
 import static com.io7m.eigion.model.EIGroupRole.FOUNDER;
 import static com.io7m.eigion.server.database.api.EIServerDatabaseRole.EIGION;
+import static java.lang.Thread.sleep;
 import static java.time.OffsetDateTime.now;
 import static java.util.Optional.empty;
 import static java.util.UUID.randomUUID;
@@ -448,7 +449,7 @@ public final class EIServerDatabaseGroupsTest extends EIWithDatabaseContract
         groups.groupCreationRequestCompleteSuccessfully(request1);
       });
 
-    assertEquals("group-request-token", ex.errorCode());
+    assertEquals("group-request-nonexistent", ex.errorCode());
   }
 
   /**
@@ -763,7 +764,7 @@ public final class EIServerDatabaseGroupsTest extends EIWithDatabaseContract
         groups.groupCreationRequestCompleteFailed(request1, "irrelevant");
       });
 
-    assertEquals("group-request-token", ex.errorCode());
+    assertEquals("group-request-nonexistent", ex.errorCode());
   }
 
   /**
@@ -809,5 +810,149 @@ public final class EIServerDatabaseGroupsTest extends EIWithDatabaseContract
       });
 
     assertEquals("group-request-nonexistent", ex.errorCode());
+  }
+
+  /**
+   * Group requests can be created multiple times.
+   *
+   * @throws Exception On errors
+   */
+
+  @Test
+  public void testGroupCreateRequestMultiple()
+    throws Exception
+  {
+    assertTrue(this.containerIsRunning());
+
+    final var adminId =
+      this.databaseCreateAdminInitial("someone", "12345678");
+
+    final var transaction =
+      this.transactionOf(EIGION);
+
+    transaction.adminIdSet(adminId);
+
+    final var user = EIServerDatabaseGroupsTest.createUser(transaction);
+
+    final var groups =
+      transaction.queries(EIServerDatabaseGroupsQueriesType.class);
+
+    final var groupName =
+      new EIGroupName("com.io7m.eigion.test");
+
+    final var request0 =
+      new EIGroupCreationRequest(
+        groupName,
+        user.id(),
+        new EIToken(
+          "5891B5B522D5DF086D0FF0B110FBD9D21BB4FC7163AF34D08286A2E846F6BE03"),
+        empty()
+      );
+
+    final var request1 =
+      new EIGroupCreationRequest(
+        groupName,
+        user.id(),
+        new EIToken(
+          "71573B922A87ABC3FD1A957F2CFA09D9E16998567DD878A85E12166112751806"),
+        empty()
+      );
+
+    final var request2 =
+      new EIGroupCreationRequest(
+        groupName,
+        user.id(),
+        new EIToken(
+          "D9CD63F187DB2DAEA1371289508C63A7A24C46316F15AC61F030A7D6EA423915"),
+        empty()
+      );
+
+    final var request3 =
+      new EIGroupCreationRequest(
+        groupName,
+        user.id(),
+        new EIToken(
+          "74284D9DCBCC09928CA5D7D6187270A62AC1B58CCDC4A44B81E47257FFA53B9E"),
+        empty()
+      );
+
+    final var request4 =
+      new EIGroupCreationRequest(
+        groupName,
+        user.id(),
+        new EIToken(
+          "8FE215591C32391AD99DCF732BE3CC4B6FC9AF3A5E92EC4F7C62F19D9B9683AA"),
+        empty()
+      );
+
+    final var request5 =
+      new EIGroupCreationRequest(
+        new EIGroupName("com.io7m.other"),
+        user.id(),
+        new EIToken(
+          "73CB3858A687A8494CA3323053016282F3DAD39D42CF62CA4E79DDA2AAC7D9AC"),
+        empty()
+      );
+
+    groups.groupCreationRequestStart(request0);
+    sleep(1000L);
+    groups.groupCreationRequestStart(request1);
+    sleep(1000L);
+    groups.groupCreationRequestStart(request2);
+    sleep(1000L);
+    groups.groupCreationRequestStart(request3);
+    sleep(1000L);
+    groups.groupCreationRequestStart(request4);
+    sleep(1000L);
+    groups.groupCreationRequestStart(request5);
+    sleep(1000L);
+
+    transaction.commit();
+
+    {
+      final var requests =
+        groups.groupCreationRequestsActive();
+
+      assertEquals(request0.token(), requests.get(0).token());
+      assertEquals(request1.token(), requests.get(1).token());
+      assertEquals(request2.token(), requests.get(2).token());
+      assertEquals(request3.token(), requests.get(3).token());
+      assertEquals(request4.token(), requests.get(4).token());
+      assertEquals(request5.token(), requests.get(5).token());
+    }
+
+    groups.groupCreationRequestCompleteFailed(request0, "Failed 0");
+    groups.groupCreationRequestCompleteFailed(request1, "Failed 1");
+    groups.groupCreationRequestCompleteSuccessfully(request2);
+    assertTrue(groups.groupExists(groupName));
+
+    {
+      final var requests =
+        groups.groupCreationRequestsForUser(user.id());
+
+      assertEquals(request0.token(), requests.get(0).token());
+      assertEquals(request1.token(), requests.get(1).token());
+      assertEquals(request2.token(), requests.get(2).token());
+      assertEquals(request3.token(), requests.get(3).token());
+      assertEquals(request4.token(), requests.get(4).token());
+      assertEquals(request5.token(), requests.get(5).token());
+    }
+
+    transaction.commit();
+
+    {
+      final var requests =
+        groups.groupCreationRequestsActive();
+
+      assertEquals(List.of(request5), requests);
+    }
+
+    {
+      final var requests =
+        groups.groupCreationRequestsObsolete();
+
+      assertEquals(request3.token(), requests.get(0).token());
+      assertEquals(request4.token(), requests.get(1).token());
+    }
   }
 }

@@ -26,11 +26,11 @@ import com.io7m.eigion.model.EIToken;
 import com.io7m.eigion.server.database.api.EIServerDatabaseException;
 import com.io7m.eigion.server.database.api.EIServerDatabaseGroupsQueriesType;
 import com.io7m.eigion.server.database.postgres.internal.tables.records.GroupUsersRecord;
-import com.io7m.eigion.server.database.postgres.internal.tables.records.GroupsCreationRequestsRecord;
 import com.io7m.eigion.server.database.postgres.internal.tables.records.GroupsRecord;
 import com.io7m.eigion.server.database.postgres.internal.tables.records.UsersRecord;
 import com.io7m.jaffirm.core.Postconditions;
 import org.jooq.DSLContext;
+import org.jooq.Record;
 import org.jooq.exception.DataAccessException;
 
 import java.util.Arrays;
@@ -59,13 +59,17 @@ final class EIServerDatabaseGroupQueries
   }
 
   private static EIGroupCreationRequest mapCreationRequestRecord(
-    final GroupsCreationRequestsRecord rec)
+    final Record rec)
   {
     final Optional<EIGroupCreationRequestStatusType> status;
-    final var completed = rec.getCompleted();
+    final var completed =
+      rec.get(GROUPS_CREATION_REQUESTS.COMPLETED);
+
     if (completed != null) {
-      final var failed = rec.getFailed();
-      final var started = rec.getCreated();
+      final var failed =
+        rec.get(GROUPS_CREATION_REQUESTS.FAILED);
+      final var started =
+        rec.get(GROUPS_CREATION_REQUESTS.CREATED);
       if (failed != null) {
         status = Optional.of(new Failed(started, completed, failed));
       } else {
@@ -76,9 +80,9 @@ final class EIServerDatabaseGroupQueries
     }
 
     return new EIGroupCreationRequest(
-      new EIGroupName(rec.getGroupName()),
-      rec.getCreatorUser(),
-      new EIToken(rec.getGroupToken()),
+      new EIGroupName(rec.get(GROUPS_CREATION_REQUESTS.GROUP_NAME)),
+      rec.get(GROUPS_CREATION_REQUESTS.CREATOR_USER),
+      new EIToken(rec.get(GROUPS_CREATION_REQUESTS.GROUP_TOKEN)),
       status
     );
   }
@@ -218,10 +222,13 @@ final class EIServerDatabaseGroupQueries
       checkUserExists(context, userId);
       checkGroupDoesNotExist(context, groupName);
 
+      final var token =
+        request.token();
+
       final var existingGroupRequest =
         context.fetchOptional(
           GROUPS_CREATION_REQUESTS,
-          GROUPS_CREATION_REQUESTS.GROUP_NAME.eq(groupName.value()));
+          GROUPS_CREATION_REQUESTS.GROUP_TOKEN.eq(token.value()));
 
       if (existingGroupRequest.isPresent()) {
         throw new EIServerDatabaseException(
@@ -229,9 +236,6 @@ final class EIServerDatabaseGroupQueries
           "group-request-duplicate"
         );
       }
-
-      final var token =
-        request.token();
 
       final var timeNow =
         this.currentTime();
@@ -285,6 +289,54 @@ final class EIServerDatabaseGroupQueries
   }
 
   @Override
+  public List<EIGroupCreationRequest> groupCreationRequestsObsolete()
+    throws EIServerDatabaseException
+  {
+    final var transaction =
+      this.transaction();
+    final var context =
+      transaction.createContext();
+
+    try {
+      return context.selectFrom(
+          GROUPS_CREATION_REQUESTS.join(GROUPS)
+            .on(GROUPS_CREATION_REQUESTS.GROUP_NAME.eq(GROUPS.NAME)))
+        .where(GROUPS_CREATION_REQUESTS.COMPLETED.isNull())
+        .orderBy(GROUPS_CREATION_REQUESTS.CREATED)
+        .stream()
+        .map(EIServerDatabaseGroupQueries::mapCreationRequestRecord)
+        .toList();
+
+    } catch (final DataAccessException e) {
+      throw handleDatabaseException(transaction, e);
+    }
+  }
+
+  @Override
+  public List<EIGroupCreationRequest> groupCreationRequestsActive()
+    throws EIServerDatabaseException
+  {
+    final var transaction =
+      this.transaction();
+    final var context =
+      transaction.createContext();
+
+    try {
+      return context.selectFrom(
+          GROUPS_CREATION_REQUESTS
+            .leftAntiJoin(GROUPS)
+            .on(GROUPS_CREATION_REQUESTS.GROUP_NAME.eq(GROUPS.NAME))
+        ).where(GROUPS_CREATION_REQUESTS.COMPLETED.isNull())
+        .orderBy(GROUPS_CREATION_REQUESTS.CREATED)
+        .stream()
+        .map(EIServerDatabaseGroupQueries::mapCreationRequestRecord)
+        .toList();
+    } catch (final DataAccessException e) {
+      throw handleDatabaseException(transaction, e);
+    }
+  }
+
+  @Override
   public Optional<EIGroupCreationRequest> groupCreationRequest(
     final EIToken token)
     throws EIServerDatabaseException
@@ -320,6 +372,7 @@ final class EIServerDatabaseGroupQueries
     try {
       final var userId = request.userFounder();
       final var groupName = request.groupName();
+      final var token = request.token();
 
       checkUserExists(context, userId);
       checkGroupDoesNotExist(context, groupName);
@@ -327,23 +380,12 @@ final class EIServerDatabaseGroupQueries
       final var existingGroupRequest =
         context.fetchOptional(
             GROUPS_CREATION_REQUESTS,
-            GROUPS_CREATION_REQUESTS.GROUP_NAME.eq(groupName.value()))
+            GROUPS_CREATION_REQUESTS.GROUP_TOKEN.eq(token.value())
+              .and(GROUPS_CREATION_REQUESTS.GROUP_NAME.eq(groupName.value())))
           .orElseThrow(() -> new EIServerDatabaseException(
             "Group request does not exist",
             "group-request-nonexistent"
           ));
-
-      final var token =
-        request.token();
-
-      if (!Objects.equals(
-        existingGroupRequest.get(GROUPS_CREATION_REQUESTS.GROUP_TOKEN),
-        token.value())) {
-        throw new EIServerDatabaseException(
-          "Group request token does not match",
-          "group-request-token"
-        );
-      }
 
       final var timeNow = this.currentTime();
       existingGroupRequest.set(GROUPS_CREATION_REQUESTS.COMPLETED, timeNow);
@@ -379,30 +421,19 @@ final class EIServerDatabaseGroupQueries
     try {
       final var userId = request.userFounder();
       final var groupName = request.groupName();
+      final var token = request.token();
 
       checkUserExists(context, userId);
-      checkGroupDoesNotExist(context, groupName);
 
       final var existingGroupRequest =
         context.fetchOptional(
             GROUPS_CREATION_REQUESTS,
-            GROUPS_CREATION_REQUESTS.GROUP_NAME.eq(groupName.value()))
+            GROUPS_CREATION_REQUESTS.GROUP_TOKEN.eq(token.value())
+              .and(GROUPS_CREATION_REQUESTS.GROUP_NAME.eq(groupName.value())))
           .orElseThrow(() -> new EIServerDatabaseException(
             "Group request does not exist",
             "group-request-nonexistent"
           ));
-
-      final var token =
-        request.token();
-
-      if (!Objects.equals(
-        existingGroupRequest.get(GROUPS_CREATION_REQUESTS.GROUP_TOKEN),
-        token.value())) {
-        throw new EIServerDatabaseException(
-          "Group request token does not match",
-          "group-request-token"
-        );
-      }
 
       final var timeNow = this.currentTime();
       existingGroupRequest.set(GROUPS_CREATION_REQUESTS.COMPLETED, timeNow);

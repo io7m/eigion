@@ -178,7 +178,7 @@ create table groups (
     <Statement><![CDATA[
 create table groups_creation_requests (
   id                bigint                    not null primary key generated always as identity,
-  group_name        varchar(1000000)          not null unique,
+  group_name        varchar(1000000)          not null,
   group_token       varchar(1000000)          not null unique,
   creator_admin     uuid                      not null,
   creator_user      uuid                      not null,

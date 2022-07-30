@@ -83,6 +83,29 @@ public non-sealed interface EIServerDatabaseGroupsQueriesType
     throws EIServerDatabaseException;
 
   /**
+   * A group creation request can become obsolete if a group is created before
+   * the request is completed. This method returns all the group requests that
+   * are obsolete for any reason.
+   *
+   * @return All the obsolete group creation requests
+   *
+   * @throws EIServerDatabaseException On errors
+   */
+
+  List<EIGroupCreationRequest> groupCreationRequestsObsolete()
+    throws EIServerDatabaseException;
+
+  /**
+   * @return The group creation requests that refer to nonexistent groups, and
+   * that have not yet completed
+   *
+   * @throws EIServerDatabaseException On errors
+   */
+
+  List<EIGroupCreationRequest> groupCreationRequestsActive()
+    throws EIServerDatabaseException;
+
+  /**
    * @param token The token
    *
    * @return The request associated with the given token, if any
