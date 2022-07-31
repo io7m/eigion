@@ -17,7 +17,7 @@
 
 package com.io7m.eigion.server.vanilla.internal.command_exec;
 
-import com.io7m.eigion.protocol.admin_api.v1.EISA1ResponseError;
+import com.io7m.eigion.protocol.api.EIProtocolMessageType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseTransactionType;
 import com.io7m.eigion.server.vanilla.internal.EIServerClock;
 import com.io7m.eigion.server.vanilla.internal.EIServerStrings;
@@ -30,9 +30,11 @@ import java.util.UUID;
 /**
  * The context for execution of a command (or set of commands in a
  * transaction).
+ *
+ * @param <E> The type of error messages
  */
 
-public abstract class EICommandContext
+public abstract class EICommandContext<E extends EIProtocolMessageType>
 {
   private final EIServiceDirectoryType services;
   private final UUID requestId;
@@ -118,7 +120,7 @@ public abstract class EICommandContext
    * @return An execution result
    */
 
-  public EICommandExecutionResult resultErrorFormatted(
+  public EICommandExecutionResult<E> resultErrorFormatted(
     final int statusCode,
     final String errorCode,
     final String messageId,
@@ -142,14 +144,20 @@ public abstract class EICommandContext
    * @return An execution result
    */
 
-  public EICommandExecutionResult resultError(
+  public EICommandExecutionResult<E> resultError(
     final int statusCode,
     final String errorCode,
     final String message)
   {
-    return new EICommandExecutionResult(
+    return new EICommandExecutionResult<>(
       statusCode,
-      new EISA1ResponseError(this.requestId, errorCode, message)
+      this.error(this.requestId, errorCode, message)
     );
   }
+
+  protected abstract E error(
+    UUID id,
+    String errorCode,
+    String message
+  );
 }

@@ -126,6 +126,9 @@ public final class EISecPolicyDefault implements EISecPolicyType
     if (action instanceof EISecActionGroupCreateBegin c) {
       return checkGroupCreateBegin(c);
     }
+    if (action instanceof EISecActionGroupCreateCancel c) {
+      return checkGroupCreateCancel(c);
+    }
 
     return new EISecPolicyResultDenied("Operation not permitted.");
   }
@@ -205,6 +208,18 @@ public final class EISecPolicyDefault implements EISecPolicyType
       return new EISecPolicyResultDenied(
         "Too many requests have been made recently. Please wait until %s before making another request."
           .formatted(nextHour)
+      );
+    }
+
+    return new EISecPolicyResultPermitted();
+  }
+
+  private static EISecPolicyResultType checkGroupCreateCancel(
+    final EISecActionGroupCreateCancel c)
+  {
+    if (!Objects.equals(c.user().id(), c.request().userFounder())) {
+      return new EISecPolicyResultDenied(
+        "Users may only cancel their own group creation requests."
       );
     }
 

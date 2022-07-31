@@ -19,6 +19,7 @@ package com.io7m.eigion.tests;
 import com.io7m.eigion.model.EIGroupCreationRequestStatusType;
 import com.io7m.eigion.protocol.api.EIProtocolException;
 import com.io7m.eigion.protocol.public_api.v1.EISP1CommandGroupCreateBegin;
+import com.io7m.eigion.protocol.public_api.v1.EISP1CommandGroupCreateCancel;
 import com.io7m.eigion.protocol.public_api.v1.EISP1CommandGroupCreateRequests;
 import com.io7m.eigion.protocol.public_api.v1.EISP1CommandLogin;
 import com.io7m.eigion.protocol.public_api.v1.EISP1GroupCreationRequest;
@@ -26,6 +27,7 @@ import com.io7m.eigion.protocol.public_api.v1.EISP1MessageType;
 import com.io7m.eigion.protocol.public_api.v1.EISP1Messages;
 import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseError;
 import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseGroupCreateBegin;
+import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseGroupCreateCancel;
 import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseGroupCreateRequests;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DynamicTest;
@@ -38,7 +40,6 @@ import java.net.URI;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 import java.util.stream.Stream;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -74,6 +75,7 @@ public final class EISP1MessagesTest
       commandLogin(),
       responseError(),
       responseGroupCreateBegin(),
+      responseGroupCreateCancel(),
       responseGroupCreateRequests()
     ).map(this::dynamicTestOfRoundTrip);
   }
@@ -84,13 +86,21 @@ public final class EISP1MessagesTest
       randomUUID(),
       "com.io7m.ex",
       "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
-      URI.create("https://ex.io7m.com/.well-known/eigion-group-challenge/E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855.txt")
+      URI.create(
+        "https://ex.io7m.com/.well-known/eigion-group-challenge/E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855.txt")
     );
   }
 
   private static EISP1ResponseError responseError()
   {
     return new EISP1ResponseError(randomUUID(), "errorCode", "message");
+  }
+
+  private static EISP1ResponseGroupCreateCancel responseGroupCreateCancel()
+  {
+    return new EISP1ResponseGroupCreateCancel(
+      randomUUID()
+    );
   }
 
   private static EISP1ResponseGroupCreateRequests responseGroupCreateRequests()
@@ -137,6 +147,11 @@ public final class EISP1MessagesTest
   private static EISP1CommandGroupCreateBegin commandGroupCreateBegin()
   {
     return new EISP1CommandGroupCreateBegin("com.io7m.ex");
+  }
+
+  private static EISP1CommandGroupCreateCancel commandGroupCreateCancel()
+  {
+    return new EISP1CommandGroupCreateCancel("7B8851BBBB70805081396C74ED005B10");
   }
 
   private static EISP1CommandGroupCreateRequests commandGroupCreateRequests()

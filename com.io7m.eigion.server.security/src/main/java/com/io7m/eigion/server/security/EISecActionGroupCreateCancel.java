@@ -16,24 +16,33 @@
 
 package com.io7m.eigion.server.security;
 
+import com.io7m.eigion.model.EIGroupCreationRequest;
 import com.io7m.eigion.model.EIUser;
 
+import java.util.Objects;
+
 /**
- * A view of an action within the security policy. An <i>action</i> may (or may
- * not) be performed by a  <i>user</i> according to the security policy.
+ * A user wants to cancel the creation of a group.
+ *
+ * @param user    The user
+ * @param request The request
  */
 
-public sealed interface EISecActionUserType
-  extends EISecActionType
-  permits EISecActionGroupCreateBegin,
-  EISecActionGroupCreateCancel,
-  EISecActionImageCreate,
-  EISecActionImageRead,
-  EISecActionUserUserComplaintCreate
+public record EISecActionGroupCreateCancel(
+  EIUser user,
+  EIGroupCreationRequest request)
+  implements EISecActionUserType
 {
   /**
-   * @return The user performing the action
+   * A user wants to cancel the creation of a group.
+   *
+   * @param user    The user
+   * @param request The request
    */
 
-  EIUser user();
+  public EISecActionGroupCreateCancel
+  {
+    Objects.requireNonNull(user, "user");
+    Objects.requireNonNull(request, "request");
+  }
 }

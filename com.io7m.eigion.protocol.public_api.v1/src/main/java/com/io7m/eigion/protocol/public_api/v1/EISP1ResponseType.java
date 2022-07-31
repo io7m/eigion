@@ -27,6 +27,7 @@ public sealed interface EISP1ResponseType
   extends EISP1MessageType
   permits EISP1ResponseError,
   EISP1ResponseGroupCreateBegin,
+  EISP1ResponseGroupCreateCancel,
   EISP1ResponseGroupCreateRequests,
   EISP1ResponseImageCreated,
   EISP1ResponseImageGet,

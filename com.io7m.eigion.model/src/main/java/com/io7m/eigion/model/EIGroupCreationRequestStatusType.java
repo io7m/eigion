@@ -46,6 +46,12 @@ public sealed interface EIGroupCreationRequestStatusType
   String NAME_FAILED = "FAILED";
 
   /**
+   * The name of the cancelled state.
+   */
+
+  String NAME_CANCELLED = "CANCELLED";
+
+  /**
    * @return The name of the status
    */
 
@@ -96,7 +102,6 @@ public sealed interface EIGroupCreationRequestStatusType
     }
   }
 
-
   /**
    * The request succeeded.
    *
@@ -123,6 +128,41 @@ public sealed interface EIGroupCreationRequestStatusType
     public String name()
     {
       return NAME_SUCCEEDED;
+    }
+
+    @Override
+    public Optional<OffsetDateTime> timeCompleted()
+    {
+      return Optional.of(this.timeCompletedValue);
+    }
+  }
+
+  /**
+   * The request was cancelled.
+   *
+   * @param timeStarted        The time the request started
+   * @param timeCompletedValue The time the request completed
+   */
+
+  record Cancelled(
+    OffsetDateTime timeStarted,
+    OffsetDateTime timeCompletedValue)
+    implements EIGroupCreationRequestStatusType
+  {
+    /**
+     * The request was cancelled.
+     */
+
+    public Cancelled
+    {
+      Objects.requireNonNull(timeStarted, "timeStarted");
+      Objects.requireNonNull(timeCompletedValue, "timeCompletedValue");
+    }
+
+    @Override
+    public String name()
+    {
+      return NAME_CANCELLED;
     }
 
     @Override

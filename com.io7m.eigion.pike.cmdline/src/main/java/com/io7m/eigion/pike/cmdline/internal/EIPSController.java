@@ -97,6 +97,7 @@ public final class EIPSController
       Stream.of(
         new EIPSCommandExit(controller, strings),
         new EIPSCommandGroupCreationBegin(controller, strings),
+        new EIPSCommandGroupCreationCancel(controller, strings),
         new EIPSCommandGroupCreationRequests(controller, strings),
         new EIPSCommandHelp(controller, strings),
         new EIPSCommandLogin(controller, strings),

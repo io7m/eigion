@@ -18,6 +18,7 @@
 package com.io7m.eigion.server.vanilla.internal.public_api;
 
 import com.io7m.eigion.model.EIUser;
+import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseError;
 import com.io7m.eigion.server.database.api.EIServerDatabaseTransactionType;
 import com.io7m.eigion.server.vanilla.internal.EIServerClock;
 import com.io7m.eigion.server.vanilla.internal.EIServerStrings;
@@ -31,7 +32,7 @@ import java.util.UUID;
  * The command context for public API commands.
  */
 
-public final class EIPCommandContext extends EICommandContext
+public final class EIPCommandContext extends EICommandContext<EISP1ResponseError>
 {
   private final EIUser user;
 
@@ -66,5 +67,14 @@ public final class EIPCommandContext extends EICommandContext
   {
     super(inServices, inStrings, inRequestId, inTransaction, inClock);
     this.user = Objects.requireNonNull(inUser, "inUser");
+  }
+
+  @Override
+  protected EISP1ResponseError error(
+    final UUID id,
+    final String errorCode,
+    final String message)
+  {
+    return new EISP1ResponseError(id, errorCode, message);
   }
 }

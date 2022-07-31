@@ -14,26 +14,27 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-package com.io7m.eigion.server.security;
+package com.io7m.eigion.protocol.public_api.v1;
 
-import com.io7m.eigion.model.EIUser;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
-/**
- * A view of an action within the security policy. An <i>action</i> may (or may
- * not) be performed by a  <i>user</i> according to the security policy.
- */
+import java.util.Objects;
 
-public sealed interface EISecActionUserType
-  extends EISecActionType
-  permits EISecActionGroupCreateBegin,
-  EISecActionGroupCreateCancel,
-  EISecActionImageCreate,
-  EISecActionImageRead,
-  EISecActionUserUserComplaintCreate
+// CHECKSTYLE:OFF
+
+@JsonDeserialize
+@JsonSerialize
+public record EISP1CommandGroupCreateCancel(
+  @JsonProperty(value = "Token", required = true)
+  String token)
+  implements EISP1CommandType
 {
-  /**
-   * @return The user performing the action
-   */
-
-  EIUser user();
+  @JsonCreator
+  public EISP1CommandGroupCreateCancel
+  {
+    Objects.requireNonNull(token, "token");
+  }
 }

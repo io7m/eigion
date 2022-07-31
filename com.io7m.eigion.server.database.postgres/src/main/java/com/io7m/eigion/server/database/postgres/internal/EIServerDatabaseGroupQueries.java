@@ -43,6 +43,8 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import static com.io7m.eigion.model.EIGroupCreationRequestStatusType.Cancelled;
+import static com.io7m.eigion.model.EIGroupCreationRequestStatusType.NAME_CANCELLED;
 import static com.io7m.eigion.model.EIGroupCreationRequestStatusType.NAME_FAILED;
 import static com.io7m.eigion.model.EIGroupCreationRequestStatusType.NAME_IN_PROGRESS;
 import static com.io7m.eigion.model.EIGroupCreationRequestStatusType.NAME_SUCCEEDED;
@@ -89,6 +91,13 @@ final class EIServerDatabaseGroupQueries
           started
         );
       }
+      case NAME_CANCELLED -> {
+        yield new Cancelled(
+          started,
+          rec.get(GROUPS_CREATION_REQUESTS.COMPLETED)
+        );
+      }
+
       default ->
         throw new IllegalStateException(
           "Unrecognized status: %s".formatted(statusName)
@@ -256,9 +265,7 @@ final class EIServerDatabaseGroupQueries
         );
       }
 
-      final var timeNow =
-        this.currentTime();
-
+      final var timeNow = this.currentTime();
       context.insertInto(GROUPS_CREATION_REQUESTS)
         .set(GROUPS_CREATION_REQUESTS.CREATED, timeNow)
         .set(GROUPS_CREATION_REQUESTS.CREATOR_USER, userId)
@@ -386,7 +393,6 @@ final class EIServerDatabaseGroupQueries
     Objects.requireNonNull(request, "request");
 
     final var transaction = this.transaction();
-    final var admin = transaction.adminId();
     final var context = transaction.createContext();
 
     try {
@@ -411,11 +417,31 @@ final class EIServerDatabaseGroupQueries
 
       final var status = request.status();
       if (status instanceof InProgress) {
+        existing.set(GROUPS_CREATION_REQUESTS.STATUS, NAME_IN_PROGRESS);
+        existing.store();
+        return;
+      }
+
+      if (status instanceof Cancelled cancelled) {
+        existing.set(GROUPS_CREATION_REQUESTS.STATUS, NAME_CANCELLED);
+        existing.set(GROUPS_CREATION_REQUESTS.COMPLETED_ADMIN, null);
+        existing.set(GROUPS_CREATION_REQUESTS.COMPLETED, cancelled.timeCompletedValue());
+        existing.set(GROUPS_CREATION_REQUESTS.MESSAGE, "");
+        existing.store();
+
+        final var audit =
+          context.insertInto(AUDIT)
+            .set(AUDIT.TIME, this.currentTime())
+            .set(AUDIT.TYPE, "GROUP_CREATION_REQUEST_CANCELLED")
+            .set(AUDIT.USER_ID, userId)
+            .set(AUDIT.MESSAGE, "%s|%s".formatted(groupName, token));
+
+        insertAuditRecord(audit);
         return;
       }
 
       if (status instanceof Failed failed) {
-        final var timeNow = this.currentTime();
+        final var admin = transaction.adminId();
         existing.set(GROUPS_CREATION_REQUESTS.STATUS, NAME_FAILED);
         existing.set(GROUPS_CREATION_REQUESTS.COMPLETED_ADMIN, admin);
         existing.set(GROUPS_CREATION_REQUESTS.COMPLETED, failed.timeCompletedValue());
@@ -424,7 +450,7 @@ final class EIServerDatabaseGroupQueries
 
         final var audit =
           context.insertInto(AUDIT)
-            .set(AUDIT.TIME, timeNow)
+            .set(AUDIT.TIME, this.currentTime())
             .set(AUDIT.TYPE, "GROUP_CREATION_REQUEST_FAILED")
             .set(AUDIT.USER_ID, admin)
             .set(AUDIT.MESSAGE, "%s|%s".formatted(groupName, token));
@@ -434,7 +460,7 @@ final class EIServerDatabaseGroupQueries
       }
 
       if (status instanceof Succeeded succeeded) {
-        final var timeNow = this.currentTime();
+        final var admin = transaction.adminId();
         existing.set(GROUPS_CREATION_REQUESTS.STATUS, NAME_SUCCEEDED);
         existing.set(GROUPS_CREATION_REQUESTS.COMPLETED_ADMIN, admin);
         existing.set(GROUPS_CREATION_REQUESTS.COMPLETED, succeeded.timeCompletedValue());
@@ -443,7 +469,7 @@ final class EIServerDatabaseGroupQueries
 
         final var audit =
           context.insertInto(AUDIT)
-            .set(AUDIT.TIME, timeNow)
+            .set(AUDIT.TIME, this.currentTime())
             .set(AUDIT.TYPE, "GROUP_CREATION_REQUEST_SUCCEEDED")
             .set(AUDIT.USER_ID, admin)
             .set(AUDIT.MESSAGE, "%s|%s".formatted(groupName, token));

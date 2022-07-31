@@ -54,6 +54,7 @@ public sealed interface EISP1MessageType
     Stream.of(
       EISP1CommandGroupCreateBegin.class,
       EISP1CommandGroupCreateRequests.class,
+      EISP1CommandGroupCreateCancel.class,
       EISP1CommandLogin.class,
       EISP1GroupCreationRequest.class,
       EISP1Hash.class,
@@ -61,6 +62,7 @@ public sealed interface EISP1MessageType
       EISP1ProductSummary.class,
       EISP1ResponseError.class,
       EISP1ResponseGroupCreateBegin.class,
+      EISP1ResponseGroupCreateCancel.class,
       EISP1ResponseGroupCreateRequests.class,
       EISP1ResponseImageCreated.class,
       EISP1ResponseImageGet.class,

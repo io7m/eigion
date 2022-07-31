@@ -19,6 +19,7 @@ package com.io7m.eigion.pike.api;
 
 import com.io7m.eigion.model.EIGroupCreationRequest;
 import com.io7m.eigion.model.EIGroupName;
+import com.io7m.eigion.model.EIToken;
 
 import java.util.List;
 
@@ -53,5 +54,17 @@ public interface EIPClientGroupsType
    */
 
   List<EIGroupCreationRequest> groupCreationRequests()
+    throws EIPClientException, InterruptedException;
+
+  /**
+   * Cancel a group creation request.
+   *
+   * @param token The creation token
+   *
+   * @throws EIPClientException   On errors
+   * @throws InterruptedException On interruption
+   */
+
+  void groupCreationCancel(EIToken token)
     throws EIPClientException, InterruptedException;
 }

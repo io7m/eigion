@@ -52,4 +52,20 @@ public record EICommandExecutionResult<R extends EIProtocolMessageType>(
   {
     return this.httpStatus >= 400;
   }
+
+  /**
+   * Soften the type of the result.
+   *
+   * @param result The result
+   * @param <A>    The type of the output
+   * @param <B>    The type of the input
+   *
+   * @return The same result with a wider type bound
+   */
+
+  public static <A extends EIProtocolMessageType, B extends A> EICommandExecutionResult<A> soften(
+    final EICommandExecutionResult<B> result)
+  {
+    return new EICommandExecutionResult<>(result.httpStatus, result.response);
+  }
 }

@@ -14,26 +14,36 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-package com.io7m.eigion.server.security;
+package com.io7m.eigion.tests;
 
-import com.io7m.eigion.model.EIUser;
+import com.io7m.eigion.protocol.public_api.v1.EISP1Messages;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
-/**
- * A view of an action within the security policy. An <i>action</i> may (or may
- * not) be performed by a  <i>user</i> according to the security policy.
- */
+import java.io.IOException;
 
-public sealed interface EISecActionUserType
-  extends EISecActionType
-  permits EISecActionGroupCreateBegin,
-  EISecActionGroupCreateCancel,
-  EISecActionImageCreate,
-  EISecActionImageRead,
-  EISecActionUserUserComplaintCreate
+import static java.nio.charset.StandardCharsets.UTF_8;
+
+public final class EIV1PublicProtocolGarbage extends HttpServlet
 {
-  /**
-   * @return The user performing the action
-   */
+  public EIV1PublicProtocolGarbage()
+  {
 
-  EIUser user();
+  }
+
+  @Override
+  protected void service(
+    final HttpServletRequest request,
+    final HttpServletResponse response)
+    throws IOException
+  {
+    response.setContentType(EISP1Messages.contentType());
+    response.setStatus(200);
+    response.setContentLength(7);
+
+    try (var output = response.getOutputStream()) {
+      output.write("hello\r\n".getBytes(UTF_8));
+    }
+  }
 }

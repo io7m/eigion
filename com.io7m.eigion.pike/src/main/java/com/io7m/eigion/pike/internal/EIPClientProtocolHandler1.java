@@ -24,6 +24,7 @@ import com.io7m.eigion.pike.api.EIPClientException;
 import com.io7m.eigion.pike.api.EIPGroupCreationChallenge;
 import com.io7m.eigion.protocol.api.EIProtocolException;
 import com.io7m.eigion.protocol.public_api.v1.EISP1CommandGroupCreateBegin;
+import com.io7m.eigion.protocol.public_api.v1.EISP1CommandGroupCreateCancel;
 import com.io7m.eigion.protocol.public_api.v1.EISP1CommandGroupCreateRequests;
 import com.io7m.eigion.protocol.public_api.v1.EISP1CommandLogin;
 import com.io7m.eigion.protocol.public_api.v1.EISP1GroupCreationRequest;
@@ -31,6 +32,7 @@ import com.io7m.eigion.protocol.public_api.v1.EISP1MessageType;
 import com.io7m.eigion.protocol.public_api.v1.EISP1Messages;
 import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseError;
 import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseGroupCreateBegin;
+import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseGroupCreateCancel;
 import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseGroupCreateRequests;
 import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseLogin;
 import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseType;
@@ -267,6 +269,17 @@ public final class EIPClientProtocolHandler1
       .stream()
       .map(EISP1GroupCreationRequest::toRequest)
       .toList();
+  }
+
+  @Override
+  public void groupCreationCancel(
+    final EIToken token)
+    throws EIPClientException, InterruptedException
+  {
+    this.sendCommand(
+      EISP1ResponseGroupCreateCancel.class,
+      new EISP1CommandGroupCreateCancel(token.value())
+    );
   }
 
   interface FunctionType<A, B, E extends Exception>

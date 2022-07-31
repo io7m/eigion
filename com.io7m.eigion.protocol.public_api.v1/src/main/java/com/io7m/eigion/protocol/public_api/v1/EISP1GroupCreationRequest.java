@@ -20,6 +20,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.io7m.eigion.model.EIGroupCreationRequest;
+import com.io7m.eigion.model.EIGroupCreationRequestStatusType.Cancelled;
 import com.io7m.eigion.model.EIGroupName;
 import com.io7m.eigion.model.EIToken;
 import com.io7m.eigion.protocol.api.EIProtocolFromModel;
@@ -32,6 +33,7 @@ import java.util.UUID;
 
 import static com.io7m.eigion.model.EIGroupCreationRequestStatusType.Failed;
 import static com.io7m.eigion.model.EIGroupCreationRequestStatusType.InProgress;
+import static com.io7m.eigion.model.EIGroupCreationRequestStatusType.NAME_CANCELLED;
 import static com.io7m.eigion.model.EIGroupCreationRequestStatusType.NAME_FAILED;
 import static com.io7m.eigion.model.EIGroupCreationRequestStatusType.NAME_IN_PROGRESS;
 import static com.io7m.eigion.model.EIGroupCreationRequestStatusType.NAME_SUCCEEDED;
@@ -95,15 +97,26 @@ public record EISP1GroupCreationRequest(
       this.userId,
       new EIToken(this.token),
       switch (this.status) {
-        case NAME_IN_PROGRESS -> new InProgress(this.timeStarted);
-        case NAME_FAILED -> new Failed(
-          this.timeStarted,
-          this.timeCompleted.orElse(this.timeStarted),
-          this.message
-        );
-        case NAME_SUCCEEDED -> new Succeeded(
-          this.timeStarted,
-          this.timeCompleted.orElse(this.timeStarted));
+        case NAME_CANCELLED -> {
+          yield new Cancelled(
+            this.timeStarted,
+            this.timeCompleted.orElse(this.timeStarted));
+        }
+        case NAME_IN_PROGRESS -> {
+          yield new InProgress(this.timeStarted);
+        }
+        case NAME_FAILED -> {
+          yield new Failed(
+            this.timeStarted,
+            this.timeCompleted.orElse(this.timeStarted),
+            this.message
+          );
+        }
+        case NAME_SUCCEEDED -> {
+          yield new Succeeded(
+            this.timeStarted,
+            this.timeCompleted.orElse(this.timeStarted));
+        }
         default -> throw new IllegalStateException();
       });
   }
@@ -146,23 +159,25 @@ public record EISP1GroupCreationRequest(
         request.groupName().value(),
         request.userFounder(),
         request.token().value(),
-        NAME_SUCCEEDED,
+        NAME_FAILED,
         failed.timeStarted(),
         failed.timeCompleted(),
-        ellipsize(failed.message())
+        failed.message()
+      );
+    }
+    if (status instanceof Cancelled cancelled) {
+      return new EISP1GroupCreationRequest(
+        request.groupName().value(),
+        request.userFounder(),
+        request.token().value(),
+        NAME_CANCELLED,
+        cancelled.timeStarted(),
+        cancelled.timeCompleted(),
+        ""
       );
     }
 
     throw new IllegalStateException();
-  }
-
-  private static String ellipsize(
-    final String message)
-  {
-    if (message.length() > 128) {
-      return "%s...".formatted(message.substring(127));
-    }
-    return message;
   }
 }
 

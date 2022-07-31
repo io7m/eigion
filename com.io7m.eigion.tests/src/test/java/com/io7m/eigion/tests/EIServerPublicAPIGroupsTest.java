@@ -17,11 +17,12 @@
 package com.io7m.eigion.tests;
 
 import com.io7m.eigion.protocol.public_api.v1.EISP1CommandGroupCreateBegin;
+import com.io7m.eigion.protocol.public_api.v1.EISP1CommandGroupCreateCancel;
 import com.io7m.eigion.protocol.public_api.v1.EISP1CommandGroupCreateRequests;
 import com.io7m.eigion.protocol.public_api.v1.EISP1CommandLogin;
-import com.io7m.eigion.protocol.public_api.v1.EISP1Messages;
 import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseError;
 import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseGroupCreateBegin;
+import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseGroupCreateCancel;
 import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseGroupCreateRequests;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
@@ -82,7 +83,8 @@ public final class EIServerPublicAPIGroupsTest extends EIServerContract
   }
 
   /**
-   * Starting a group creation request fails if too many requests have been made.
+   * Starting a group creation request fails if too many requests have been
+   * made.
    *
    * @throws Exception On errors
    */
@@ -190,8 +192,9 @@ public final class EIServerPublicAPIGroupsTest extends EIServerContract
         this.parsePublic(responses.get(2), EISP1ResponseGroupCreateBegin.class);
 
       final var listR =
-        this.postPublicBytes("/public/1/0/command",
-                             messages.serialize(new EISP1CommandGroupCreateRequests()));
+        this.postPublicBytes(
+          "/public/1/0/command",
+          messages.serialize(new EISP1CommandGroupCreateRequests()));
 
       final var list =
         this.parsePublic(listR, EISP1ResponseGroupCreateRequests.class);
@@ -200,6 +203,59 @@ public final class EIServerPublicAPIGroupsTest extends EIServerContract
       assertEquals(res0.token(), list.requests().get(0).token());
       assertEquals(res1.token(), list.requests().get(1).token());
       assertEquals(res2.token(), list.requests().get(2).token());
+    }
+  }
+
+  /**
+   * Group creation requests can be cancelled.
+   *
+   * @throws Exception On errors
+   */
+
+  @Test
+  public void testGroupCreateCancel()
+    throws Exception
+  {
+    assertTrue(this.container().isRunning());
+    this.server().start();
+
+    final var adminId =
+      this.createAdminInitial("someone", "12345678");
+
+    this.createUserSomeone(adminId);
+    this.login();
+
+    {
+      final var messages =
+        this.messagesPublicV1();
+
+      final var r0 =
+        this.parsePublic(
+          this.postPublicBytes(
+            "/public/1/0/command",
+            messages.serialize(new EISP1CommandGroupCreateBegin("com.io7m.ex"))),
+          EISP1ResponseGroupCreateBegin.class
+        );
+
+      final var r1 =
+        this.parsePublic(
+          this.postPublicBytes(
+            "/public/1/0/command",
+            messages.serialize(new EISP1CommandGroupCreateCancel(r0.token()))),
+          EISP1ResponseGroupCreateCancel.class
+        );
+
+      final var r2 =
+        this.parsePublic(
+          this.postPublicBytes(
+            "/public/1/0/command",
+            messages.serialize(new EISP1CommandGroupCreateRequests())),
+          EISP1ResponseGroupCreateRequests.class
+        );
+
+      assertEquals(1, r2.requests().size());
+      assertEquals(r0.token(), r2.requests().get(0).token());
+      assertEquals("CANCELLED", r2.requests().get(0).status());
     }
   }
 

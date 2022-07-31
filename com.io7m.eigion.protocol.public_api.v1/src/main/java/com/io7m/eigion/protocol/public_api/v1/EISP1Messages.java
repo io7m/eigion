@@ -73,6 +73,7 @@ public final class EISP1Messages
       DmJsonRestrictedDeserializers.builder()
         .allowClass(BigInteger.class)
         .allowClass(EISP1CommandGroupCreateBegin.class)
+        .allowClass(EISP1CommandGroupCreateCancel.class)
         .allowClass(EISP1CommandGroupCreateRequests.class)
         .allowClass(EISP1CommandLogin.class)
         .allowClass(EISP1GroupCreationRequest.class)
@@ -81,6 +82,7 @@ public final class EISP1Messages
         .allowClass(EISP1ProductSummary.class)
         .allowClass(EISP1ResponseError.class)
         .allowClass(EISP1ResponseGroupCreateBegin.class)
+        .allowClass(EISP1ResponseGroupCreateCancel.class)
         .allowClass(EISP1ResponseGroupCreateRequests.class)
         .allowClass(EISP1ResponseImageCreated.class)
         .allowClass(EISP1ResponseImageGet.class)
@@ -89,8 +91,8 @@ public final class EISP1Messages
         .allowClass(String.class)
         .allowClass(URI.class)
         .allowClass(UUID.class)
-        .allowClassName(listOf(EISP1ProductSummary.class))
         .allowClassName(listOf(EISP1GroupCreationRequest.class))
+        .allowClassName(listOf(EISP1ProductSummary.class))
         .build();
 
     this.mapper =

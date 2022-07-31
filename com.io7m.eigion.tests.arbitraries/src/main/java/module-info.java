@@ -45,6 +45,7 @@ module com.io7m.eigion.tests.arbitraries
       com.io7m.eigion.tests.arbitraries.EIArbEISA1UserBanProvider,
       com.io7m.eigion.tests.arbitraries.EIArbEISA1UserProvider,
       com.io7m.eigion.tests.arbitraries.EIArbEISA1UserSummaryProvider,
+      com.io7m.eigion.tests.arbitraries.EIArbEISP1GroupCreationRequestProvider,
       com.io7m.eigion.tests.arbitraries.EIArbEISP1HashProvider,
       com.io7m.eigion.tests.arbitraries.EIArbGroupCreationRequestProvider,
       com.io7m.eigion.tests.arbitraries.EIArbGroupCreationRequestStatusProvider,

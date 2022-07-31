@@ -84,7 +84,9 @@ public abstract class EIWithServerContract
     return OffsetDateTime.now(Clock.systemUTC()).withNano(0);
   }
 
-  protected final UUID serverCreateUserSomeone()
+  protected final UUID serverCreateUser(
+    final UUID admin,
+    final String name)
     throws EIServerDatabaseException, EIPasswordException
   {
     final var database = this.databases.mostRecent();
@@ -92,11 +94,13 @@ public abstract class EIWithServerContract
       try (var transaction = connection.openTransaction()) {
         final var users =
           transaction.queries(EIServerDatabaseUsersQueriesType.class);
+        transaction.adminIdSet(admin);
+
         final var userId = UUID.randomUUID();
         users.userCreate(
           userId,
-          "someone",
-          "someone@example.com",
+          name,
+          "%s@example.com".formatted(name),
           timeNow(),
           createBadPassword()
         );

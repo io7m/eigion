@@ -125,7 +125,6 @@ public non-sealed interface EIServerDatabaseGroupsQueriesType
    * @throws EIServerDatabaseException On errors
    */
 
-  @EIServerDatabaseRequiresAdmin
   void groupCreationRequestComplete(
     EIGroupCreationRequest request)
     throws EIServerDatabaseException;

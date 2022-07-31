@@ -18,6 +18,7 @@ package com.io7m.eigion.pike.internal;
 
 import com.io7m.eigion.model.EIGroupCreationRequest;
 import com.io7m.eigion.model.EIGroupName;
+import com.io7m.eigion.model.EIToken;
 import com.io7m.eigion.pike.api.EIPClientException;
 import com.io7m.eigion.pike.api.EIPClientType;
 import com.io7m.eigion.pike.api.EIPGroupCreationChallenge;
@@ -98,5 +99,13 @@ public final class EIPClient implements EIPClientType
     throws EIPClientException, InterruptedException
   {
     return this.handler.groupCreationRequests();
+  }
+
+  @Override
+  public void groupCreationCancel(
+    final EIToken token)
+    throws EIPClientException, InterruptedException
+  {
+    this.handler.groupCreationCancel(token);
   }
 }
