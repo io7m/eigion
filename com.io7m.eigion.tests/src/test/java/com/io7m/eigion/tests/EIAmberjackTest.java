@@ -88,6 +88,7 @@ public final class EIAmberjackTest extends EIWithServerContract
   public void testLoginFails()
     throws Exception
   {
+    this.serverStartIfNecessary();
     final var ex =
       assertThrows(EIAClientException.class, () -> {
         this.client.login("someone", "12345678", this.serverAdminURI());
@@ -197,7 +198,7 @@ public final class EIAmberjackTest extends EIWithServerContract
     this.client.login("someone", "12345678", this.serverAdminURI());
 
     final var services = this.client.services();
-    assertEquals(12, services.size());
+    assertEquals(13, services.size());
     assertTrue(
       services.stream()
         .anyMatch(s -> Objects.equals(

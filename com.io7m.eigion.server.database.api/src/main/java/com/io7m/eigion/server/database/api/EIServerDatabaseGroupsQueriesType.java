@@ -51,7 +51,6 @@ public non-sealed interface EIServerDatabaseGroupsQueriesType
    * @throws EIServerDatabaseException On errors
    */
 
-  @EIServerDatabaseRequiresAdmin
   void groupCreate(
     EIGroupName name,
     UUID userFounder)

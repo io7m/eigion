@@ -53,8 +53,9 @@ public sealed interface EISP1MessageType
   Map<Class<?>, String> TYPE_ID_FOR_CLASS =
     Stream.of(
       EISP1CommandGroupCreateBegin.class,
-      EISP1CommandGroupCreateRequests.class,
       EISP1CommandGroupCreateCancel.class,
+      EISP1CommandGroupCreateReady.class,
+      EISP1CommandGroupCreateRequests.class,
       EISP1CommandLogin.class,
       EISP1GroupCreationRequest.class,
       EISP1Hash.class,
@@ -63,6 +64,7 @@ public sealed interface EISP1MessageType
       EISP1ResponseError.class,
       EISP1ResponseGroupCreateBegin.class,
       EISP1ResponseGroupCreateCancel.class,
+      EISP1ResponseGroupCreateReady.class,
       EISP1ResponseGroupCreateRequests.class,
       EISP1ResponseImageCreated.class,
       EISP1ResponseImageGet.class,

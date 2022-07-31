@@ -21,6 +21,7 @@ import com.io7m.eigion.model.EIPassword;
 import com.io7m.eigion.model.EIPasswordAlgorithmPBKDF2HmacSHA256;
 import com.io7m.eigion.model.EIPasswordException;
 import com.io7m.eigion.server.api.EIServerConfiguration;
+import com.io7m.eigion.server.api.EIServerException;
 import com.io7m.eigion.server.api.EIServerType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseAdminsQueriesType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseConfiguration;
@@ -48,6 +49,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.io7m.eigion.server.database.api.EIServerDatabaseCreate.CREATE_DATABASE;
 import static com.io7m.eigion.server.database.api.EIServerDatabaseRole.EIGION;
@@ -71,6 +73,8 @@ public abstract class EIWithServerContract
   private EIServerType server;
   private EIServers servers;
   private Path directory;
+  private EIFakeDomainCheckers domainCheckers;
+  private AtomicBoolean started;
 
   private static EIPassword createBadPassword()
     throws EIPasswordException
@@ -89,6 +93,8 @@ public abstract class EIWithServerContract
     final String name)
     throws EIServerDatabaseException, EIPasswordException
   {
+    this.serverStartIfNecessary();
+
     final var database = this.databases.mostRecent();
     try (var connection = database.openConnection(EIGION)) {
       try (var transaction = connection.openTransaction()) {
@@ -120,6 +126,11 @@ public abstract class EIWithServerContract
     return this.server;
   }
 
+  public final EIFakeDomainCheckers domainCheckers()
+  {
+    return this.domainCheckers;
+  }
+
   @BeforeEach
   public final void serverSetup()
     throws Exception
@@ -128,6 +139,8 @@ public abstract class EIWithServerContract
 
     this.waitForDatabaseToStart();
 
+    this.started =
+      new AtomicBoolean(false);
     this.directory =
       EITestDirectories.createTempDirectory();
     this.servers =
@@ -136,10 +149,10 @@ public abstract class EIWithServerContract
       new EICapturingDatabases(new EIServerDatabases());
     this.storage =
       new EIFakeStorageFactory();
+    this.domainCheckers =
+      new EIFakeDomainCheckers();
     this.server =
       this.createServer();
-
-    this.server.start();
   }
 
   private void waitForDatabaseToStart()
@@ -191,7 +204,10 @@ public abstract class EIWithServerContract
 
     return this.servers.createServer(
       new EIServerConfiguration(
-        Locale.getDefault(), Clock.systemUTC(), this.databases,
+        Locale.getDefault(),
+        Clock.systemUTC(),
+        this.domainCheckers,
+        this.databases,
         databaseConfiguration,
         this.storage,
         new EIStorageParameters(Map.of()),
@@ -218,6 +234,8 @@ public abstract class EIWithServerContract
     final String pass)
     throws Exception
   {
+    this.serverStartIfNecessary();
+
     final var database = this.databases.mostRecent();
     try (var c = database.openConnection(EIGION)) {
       try (var t = c.openTransaction()) {
@@ -238,6 +256,18 @@ public abstract class EIWithServerContract
         );
         t.commit();
         return id;
+      }
+    }
+  }
+
+  protected final void serverStartIfNecessary()
+  {
+    if (this.started.compareAndSet(false, true)) {
+      try {
+        this.server.start();
+      } catch (final EIServerException e) {
+        this.started.set(false);
+        throw new IllegalStateException(e);
       }
     }
   }

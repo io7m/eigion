@@ -44,31 +44,30 @@ public final class EIServerAdminAPIAuditTest extends EIServerContract
   public void testAuditGet()
     throws Exception
   {
-    assertTrue(this.container().isRunning());
-    this.server().start();
+    this.serverStartIfNecessary();
 
     this.createAdminInitial("someone", "12345678");
     this.doLoginAdmin("someone", "12345678");
 
     final var rGet =
       this.postAdminText("/admin/1/0/command", """
-{
-  "%Type": "CommandAuditGet",
-  "FromInclusive": "2022-07-01T00:00:00Z",
-  "ToInclusive": "2100-01-01T00:00:00Z",
-  "Owners": {
-    "Include": "",
-    "Exclude": ""
-  },
-  "Types": {
-    "Include": "",
-    "Exclude": ""
-  },
-  "Messages": {
-    "Include": "",
-    "Exclude": ""
-  }
-}""");
+        {
+          "%Type": "CommandAuditGet",
+          "FromInclusive": "2022-07-01T00:00:00Z",
+          "ToInclusive": "2100-01-01T00:00:00Z",
+          "Owners": {
+            "Include": "",
+            "Exclude": ""
+          },
+          "Types": {
+            "Include": "",
+            "Exclude": ""
+          },
+          "Messages": {
+            "Include": "",
+            "Exclude": ""
+          }
+        }""");
 
     assertEquals(200, rGet.statusCode());
 
@@ -88,8 +87,7 @@ public final class EIServerAdminAPIAuditTest extends EIServerContract
   public void testAuditGetNotPermitted()
     throws Exception
   {
-    assertTrue(this.container().isRunning());
-    this.server().start();
+    this.serverStartIfNecessary();
 
     final var id =
       this.createAdminInitial("someone", "12345678");
@@ -99,23 +97,23 @@ public final class EIServerAdminAPIAuditTest extends EIServerContract
 
     final var rGet =
       this.postAdminText("/admin/1/0/command", """
-{
-  "%Type": "CommandAuditGet",
-  "FromInclusive": "2022-07-01T00:00:00Z",
-  "ToInclusive": "2100-01-01T00:00:00Z",
-  "Owners": {
-    "Include": "",
-    "Exclude": ""
-  },
-  "Types": {
-    "Include": "",
-    "Exclude": ""
-  },
-  "Messages": {
-    "Include": "",
-    "Exclude": ""
-  }
-}""");
+        {
+          "%Type": "CommandAuditGet",
+          "FromInclusive": "2022-07-01T00:00:00Z",
+          "ToInclusive": "2100-01-01T00:00:00Z",
+          "Owners": {
+            "Include": "",
+            "Exclude": ""
+          },
+          "Types": {
+            "Include": "",
+            "Exclude": ""
+          },
+          "Messages": {
+            "Include": "",
+            "Exclude": ""
+          }
+        }""");
 
     assertEquals(403, rGet.statusCode());
 

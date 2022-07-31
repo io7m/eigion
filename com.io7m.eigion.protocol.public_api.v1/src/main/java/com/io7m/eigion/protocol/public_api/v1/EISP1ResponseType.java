@@ -28,6 +28,7 @@ public sealed interface EISP1ResponseType
   permits EISP1ResponseError,
   EISP1ResponseGroupCreateBegin,
   EISP1ResponseGroupCreateCancel,
+  EISP1ResponseGroupCreateReady,
   EISP1ResponseGroupCreateRequests,
   EISP1ResponseImageCreated,
   EISP1ResponseImageGet,

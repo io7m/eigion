@@ -151,20 +151,18 @@ create table user_bans (
 
     <Comment>
       The groups table holds groups. A product is produced by exactly one group, and users may be in one or more
-      groups. Users cannot create groups directly, so a creator_admin will have created each group on behalf of
-      creator_user.
+      groups. Although users cannot create groups directly, they may have groups created automatically on their
+      behalf, and so a user ID might end up in the "creator" field in that case.
     </Comment>
 
     <Statement><![CDATA[
 create table groups (
-  id             bigint                    not null primary key generated always as identity,
-  name           varchar(1000000)          not null unique,
-  creator_admin  uuid                      not null,
-  creator_user   uuid                      not null,
-  created        timestamp with time zone  not null,
+  id       bigint                    not null primary key generated always as identity,
+  name     varchar(1000000)          not null unique,
+  creator  uuid                      not null,
+  created  timestamp with time zone  not null,
 
-  foreign key (creator_user) references users (id),
-  foreign key (creator_admin) references admins (id)
+  foreign key (creator) references user_ids (id)
 )
 ]]></Statement>
 
@@ -183,28 +181,31 @@ create table groups_creation_requests (
   creator_user      uuid                      not null,
   created           timestamp with time zone  not null,
   completed         timestamp with time zone,
-  completed_admin   uuid,
   status            varchar(1000000)          not null,
   message           varchar(1000000)          not null,
 
   constraint succeeded_requires_completed_nonnull check (
     case when (status = 'SUCCEEDED') then
-      ((completed is not null) and (completed_admin is not null))
+      (completed is not null)
     end
   ),
   constraint failed_requires_completed_nonnull check (
     case when (status = 'FAILED') then
-      ((completed is not null) and (completed_admin is not null))
+      (completed is not null)
+    end
+  ),
+  constraint cancelled_requires_completed_nonnull check (
+    case when (status = 'CANCELLED') then
+      (completed is not null)
     end
   ),
 
-  foreign key (creator_user)    references users (id),
-  foreign key (completed_admin) references admins (id)
+  foreign key (creator_user) references users (id)
 )
 ]]></Statement>
 
-    <Statement>grant select, insert, delete on groups_creation_requests to eigion</Statement>
-    <Statement>grant update (status, message, completed, completed_admin) on groups_creation_requests to eigion</Statement>
+    <Statement>grant select, insert on groups_creation_requests to eigion</Statement>
+    <Statement>grant update (status, message, completed) on groups_creation_requests to eigion</Statement>
 
     <Comment>
       The group_users table associates users with groups. A group always has at least one user; the user that

@@ -23,6 +23,7 @@ module com.io7m.eigion.server.api
   requires static org.osgi.annotation.bundle;
   requires static org.osgi.annotation.versioning;
 
+  requires transitive com.io7m.eigion.domaincheck.api;
   requires transitive com.io7m.eigion.server.database.api;
   requires transitive com.io7m.eigion.storage.api;
 

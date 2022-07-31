@@ -43,8 +43,7 @@ public final class EIServerPublicAPIImagesTest extends EIServerContract
   public void testCreateImageOK()
     throws Exception
   {
-    assertTrue(this.container().isRunning());
-    this.server().start();
+    this.serverStartIfNecessary();
 
     final var adminId =
       this.createAdminInitial("someone", "12345678");
@@ -85,7 +84,9 @@ public final class EIServerPublicAPIImagesTest extends EIServerContract
 
       assertEquals(created.imageID(), got.id());
       assertEquals("SHA-256", got.hash().algorithm());
-      assertEquals("5A4061BE191DA45F2A29A33C9609F88CC89FE84C13525D3A80904B0455323FFF", got.hash().value());
+      assertEquals(
+        "5A4061BE191DA45F2A29A33C9609F88CC89FE84C13525D3A80904B0455323FFF",
+        got.hash().value());
     }
 
     {
@@ -96,7 +97,9 @@ public final class EIServerPublicAPIImagesTest extends EIServerContract
           .orElseThrow();
 
       assertEquals("SHA-256", got.hash().algorithm());
-      assertEquals("5A4061BE191DA45F2A29A33C9609F88CC89FE84C13525D3A80904B0455323FFF", got.hash().hash());
+      assertEquals(
+        "5A4061BE191DA45F2A29A33C9609F88CC89FE84C13525D3A80904B0455323FFF",
+        got.hash().hash());
     }
   }
 
@@ -110,8 +113,7 @@ public final class EIServerPublicAPIImagesTest extends EIServerContract
   public void testImageNonexistent()
     throws Exception
   {
-    assertTrue(this.container().isRunning());
-    this.server().start();
+    this.serverStartIfNecessary();
 
     final var adminId =
       this.createAdminInitial("someone", "12345678");
@@ -130,7 +132,8 @@ public final class EIServerPublicAPIImagesTest extends EIServerContract
 
     {
       final var rk =
-        this.getPublic("/public/1/0/image/get?id=04f25ed5-2fb4-4d19-994c-5f623df18e8b");
+        this.getPublic(
+          "/public/1/0/image/get?id=04f25ed5-2fb4-4d19-994c-5f623df18e8b");
       assertEquals(404, rk.statusCode());
     }
   }
@@ -145,8 +148,7 @@ public final class EIServerPublicAPIImagesTest extends EIServerContract
   public void testImageNoID()
     throws Exception
   {
-    assertTrue(this.container().isRunning());
-    this.server().start();
+    this.serverStartIfNecessary();
 
     final var adminId =
       this.createAdminInitial("someone", "12345678");
@@ -192,8 +194,7 @@ public final class EIServerPublicAPIImagesTest extends EIServerContract
   public void testImageBadMethod()
     throws Exception
   {
-    assertTrue(this.container().isRunning());
-    this.server().start();
+    this.serverStartIfNecessary();
 
     final var adminId =
       this.createAdminInitial("someone", "12345678");
@@ -226,8 +227,7 @@ public final class EIServerPublicAPIImagesTest extends EIServerContract
   public void testCreateImageNotJPEG()
     throws Exception
   {
-    assertTrue(this.container().isRunning());
-    this.server().start();
+    this.serverStartIfNecessary();
 
     final var adminId =
       this.createAdminInitial("someone", "12345678");

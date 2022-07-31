@@ -46,8 +46,7 @@ public final class EIServerAdminAPIAdminTest extends EIServerContract
   public void testCreateAdmin()
     throws Exception
   {
-    assertTrue(this.container().isRunning());
-    this.server().start();
+    this.serverStartIfNecessary();
 
     this.createAdminInitial("someone", "12345678");
     this.doLoginAdmin("someone", "12345678");
@@ -151,8 +150,7 @@ public final class EIServerAdminAPIAdminTest extends EIServerContract
   public void testCreateAdminConflict()
     throws Exception
   {
-    assertTrue(this.container().isRunning());
-    this.server().start();
+    this.serverStartIfNecessary();
 
     this.createAdminInitial("someone", "12345678");
     this.doLoginAdmin("someone", "12345678");
@@ -189,8 +187,7 @@ public final class EIServerAdminAPIAdminTest extends EIServerContract
   public void testCreateAdminNoPermission()
     throws Exception
   {
-    assertTrue(this.container().isRunning());
-    this.server().start();
+    this.serverStartIfNecessary();
 
     final var id =
       this.createAdminInitial("someone", "12345678");
@@ -233,8 +230,7 @@ public final class EIServerAdminAPIAdminTest extends EIServerContract
   public void testCreateAdminNoElevation()
     throws Exception
   {
-    assertTrue(this.container().isRunning());
-    this.server().start();
+    this.serverStartIfNecessary();
 
     final var id =
       this.createAdminInitial("someone", "12345678");
@@ -263,7 +259,9 @@ public final class EIServerAdminAPIAdminTest extends EIServerContract
     final var rm =
       this.parseAdmin(rCreate, EISA1ResponseError.class);
 
-    assertEquals("An admin cannot be created with more permissions than the creating admin.", rm.message());
+    assertEquals(
+      "An admin cannot be created with more permissions than the creating admin.",
+      rm.message());
   }
 
   /**
@@ -276,8 +274,7 @@ public final class EIServerAdminAPIAdminTest extends EIServerContract
   public void testReadAdminNoPermission()
     throws Exception
   {
-    assertTrue(this.container().isRunning());
-    this.server().start();
+    this.serverStartIfNecessary();
 
     final var id =
       this.createAdminInitial("someone", "12345678");
@@ -310,8 +307,7 @@ public final class EIServerAdminAPIAdminTest extends EIServerContract
   public void testReadAdminEmailNoPermission()
     throws Exception
   {
-    assertTrue(this.container().isRunning());
-    this.server().start();
+    this.serverStartIfNecessary();
 
     final var id =
       this.createAdminInitial("someone", "12345678");
@@ -344,8 +340,7 @@ public final class EIServerAdminAPIAdminTest extends EIServerContract
   public void testReadAdminNameNoPermission()
     throws Exception
   {
-    assertTrue(this.container().isRunning());
-    this.server().start();
+    this.serverStartIfNecessary();
 
     final var id =
       this.createAdminInitial("someone", "12345678");
@@ -378,8 +373,7 @@ public final class EIServerAdminAPIAdminTest extends EIServerContract
   public void testReadAdminSearchNoPermission()
     throws Exception
   {
-    assertTrue(this.container().isRunning());
-    this.server().start();
+    this.serverStartIfNecessary();
 
     final var id =
       this.createAdminInitial("someone", "12345678");

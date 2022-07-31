@@ -36,8 +36,7 @@ public final class EIServerAdminAPIVersionsTest extends EIServerContract
   public void testGetBase()
     throws Exception
   {
-    assertTrue(this.container().isRunning());
-    this.server().start();
+    this.serverStartIfNecessary();
 
     final var response =
       this.getAdmin("/admin/1/0");

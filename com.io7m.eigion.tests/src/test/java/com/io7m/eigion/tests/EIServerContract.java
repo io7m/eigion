@@ -16,6 +16,7 @@
 
 package com.io7m.eigion.tests;
 
+import com.io7m.eigion.domaincheck.api.EIDomainCheckerFactoryType;
 import com.io7m.eigion.model.EIAdminPermission;
 import com.io7m.eigion.model.EIGroupPrefix;
 import com.io7m.eigion.model.EIPassword;
@@ -30,6 +31,7 @@ import com.io7m.eigion.protocol.versions.EISVMessages;
 import com.io7m.eigion.server.api.EIServerClosed;
 import com.io7m.eigion.server.api.EIServerConfiguration;
 import com.io7m.eigion.server.api.EIServerEventType;
+import com.io7m.eigion.server.api.EIServerException;
 import com.io7m.eigion.server.api.EIServerRequestProcessed;
 import com.io7m.eigion.server.api.EIServerStarted;
 import com.io7m.eigion.server.api.EIServerStarting;
@@ -65,12 +67,14 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.Flow;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.io7m.eigion.server.database.api.EIServerDatabaseCreate.CREATE_DATABASE;
 import static com.io7m.eigion.server.database.api.EIServerDatabaseRole.EIGION;
 import static com.io7m.eigion.server.database.api.EIServerDatabaseUpgrade.UPGRADE_DATABASE;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Testcontainers(disabledWithoutDocker = true)
 public abstract class EIServerContract
@@ -96,6 +100,8 @@ public abstract class EIServerContract
   private EIServers servers;
   private HttpClient httpClient;
   private Path directory;
+  private EIFakeDomainCheckers domainCheckers;
+  private AtomicBoolean started;
 
   private static String describeEvent(
     final EIServerEventType item)
@@ -151,8 +157,18 @@ public abstract class EIServerContract
     return this.messagesV;
   }
 
+  protected final EIFakeDomainCheckers domainCheckers() { return  this.domainCheckers; }
+
   protected final UUID createUserSomeone(
     final UUID adminId)
+    throws EIServerDatabaseException, EIPasswordException
+  {
+    return this.createUser(adminId, "someone");
+  }
+
+  protected final UUID createUser(
+    final UUID adminId,
+    final String name)
     throws EIServerDatabaseException, EIPasswordException
   {
     final var database = this.databases.mostRecent();
@@ -165,8 +181,8 @@ public abstract class EIServerContract
         final var userId = UUID.randomUUID();
         users.userCreate(
           userId,
-          "someone",
-          "someone@example.com",
+          name,
+          name + "@example.com",
           timeNow(),
           createBadPassword()
         );
@@ -210,6 +226,8 @@ public abstract class EIServerContract
   public final void setup()
     throws Exception
   {
+    this.started =
+      new AtomicBoolean(false);
     this.directory =
       EITestDirectories.createTempDirectory();
     this.servers =
@@ -218,6 +236,8 @@ public abstract class EIServerContract
       new EICapturingDatabases(new EIServerDatabases());
     this.storage =
       new EIFakeStorageFactory();
+    this.domainCheckers =
+      new EIFakeDomainCheckers();
 
     this.server =
       this.createServer();
@@ -301,7 +321,10 @@ public abstract class EIServerContract
 
     return this.servers.createServer(
       new EIServerConfiguration(
-        Locale.getDefault(), Clock.systemUTC(), this.databases,
+        Locale.getDefault(),
+        Clock.systemUTC(),
+        this.domainCheckers,
+        this.databases,
         databaseConfiguration,
         this.storage,
         new EIStorageParameters(Map.of()),
@@ -383,9 +406,6 @@ public abstract class EIServerContract
   {
     final var request =
       HttpRequest.newBuilder()
-        .header(
-          "Eigion-Admin-Secret",
-          "8A8B93C04F67A3956AB6109F30063F1A6A7C6679787D72CC0730CC8390396F05")
         .POST(HttpRequest.BodyPublishers.ofByteArray(text))
         .uri(URI.create("http://localhost:40000" + endpoint))
         .build();
@@ -403,9 +423,6 @@ public abstract class EIServerContract
     final var request =
       HttpRequest.newBuilder()
         .GET()
-        .header(
-          "Eigion-Admin-Secret",
-          "8A8B93C04F67A3956AB6109F30063F1A6A7C6679787D72CC0730CC8390396F05")
         .uri(URI.create("http://localhost:40000" + endpoint))
         .build();
 
@@ -454,6 +471,8 @@ public abstract class EIServerContract
     final String pass)
     throws Exception
   {
+    this.serverStartIfNecessary();
+
     final var database = this.databases.mostRecent();
     try (var c = database.openConnection(EIGION)) {
       try (var t = c.openTransaction()) {
@@ -485,6 +504,8 @@ public abstract class EIServerContract
     final Set<EIAdminPermission> permissions)
     throws Exception
   {
+    this.serverStartIfNecessary();
+
     final var database = this.databases.mostRecent();
     try (var c = database.openConnection(EIGION)) {
       try (var t = c.openTransaction()) {
@@ -508,6 +529,23 @@ public abstract class EIServerContract
         );
         t.commit();
         return newId;
+      }
+    }
+  }
+
+  protected final void serverStartIfNecessary()
+  {
+    assertTrue(
+      this.container().isRunning(),
+      "Container must be running!"
+    );
+
+    if (this.started.compareAndSet(false, true)) {
+      try {
+        this.server.start();
+      } catch (final EIServerException e) {
+        this.started.set(false);
+        throw new IllegalStateException(e);
       }
     }
   }

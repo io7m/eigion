@@ -47,8 +47,7 @@ public final class EIServerAdminAPIUsersTest extends EIServerContract
   public void testGetBase()
     throws Exception
   {
-    assertTrue(this.container().isRunning());
-    this.server().start();
+    this.serverStartIfNecessary();
 
     final var response =
       this.getAdmin("/admin/1/0");
@@ -69,8 +68,7 @@ public final class EIServerAdminAPIUsersTest extends EIServerContract
   public void testCreateUser()
     throws Exception
   {
-    assertTrue(this.container().isRunning());
-    this.server().start();
+    this.serverStartIfNecessary();
 
     this.createAdminInitial("someone", "12345678");
     this.doLoginAdmin("someone", "12345678");
@@ -125,8 +123,7 @@ public final class EIServerAdminAPIUsersTest extends EIServerContract
   public void testCreateUserGarbage0()
     throws Exception
   {
-    assertTrue(this.container().isRunning());
-    this.server().start();
+    this.serverStartIfNecessary();
 
     this.createAdminInitial("someone", "12345678");
     this.doLoginAdmin("someone", "12345678");
@@ -155,8 +152,7 @@ public final class EIServerAdminAPIUsersTest extends EIServerContract
   public void testCreateUserGarbage1()
     throws Exception
   {
-    assertTrue(this.container().isRunning());
-    this.server().start();
+    this.serverStartIfNecessary();
 
     this.createAdminInitial("someone", "12345678");
     this.doLoginAdmin("someone", "12345678");
@@ -182,8 +178,7 @@ public final class EIServerAdminAPIUsersTest extends EIServerContract
   public void testCreateUserGarbage2()
     throws Exception
   {
-    assertTrue(this.container().isRunning());
-    this.server().start();
+    this.serverStartIfNecessary();
 
     this.createAdminInitial("someone", "12345678");
     this.doLoginAdmin("someone", "12345678");
@@ -214,8 +209,7 @@ public final class EIServerAdminAPIUsersTest extends EIServerContract
   public void testGetUserNonexistent()
     throws Exception
   {
-    assertTrue(this.container().isRunning());
-    this.server().start();
+    this.serverStartIfNecessary();
 
     this.createAdminInitial("someone", "12345678");
     this.doLoginAdmin("someone", "12345678");
@@ -240,8 +234,7 @@ public final class EIServerAdminAPIUsersTest extends EIServerContract
   public void testCreateUserNoPermission()
     throws Exception
   {
-    assertTrue(this.container().isRunning());
-    this.server().start();
+    this.serverStartIfNecessary();
 
     final var id =
       this.createAdminInitial("someone", "12345678");
@@ -280,8 +273,7 @@ public final class EIServerAdminAPIUsersTest extends EIServerContract
   public void testReadUserNoPermission()
     throws Exception
   {
-    assertTrue(this.container().isRunning());
-    this.server().start();
+    this.serverStartIfNecessary();
 
     final var id =
       this.createAdminInitial("someone", "12345678");
@@ -314,8 +306,7 @@ public final class EIServerAdminAPIUsersTest extends EIServerContract
   public void testReadUserEmailNoPermission()
     throws Exception
   {
-    assertTrue(this.container().isRunning());
-    this.server().start();
+    this.serverStartIfNecessary();
 
     final var id =
       this.createAdminInitial("someone", "12345678");
@@ -348,8 +339,7 @@ public final class EIServerAdminAPIUsersTest extends EIServerContract
   public void testReadUserNameNoPermission()
     throws Exception
   {
-    assertTrue(this.container().isRunning());
-    this.server().start();
+    this.serverStartIfNecessary();
 
     final var id =
       this.createAdminInitial("someone", "12345678");
@@ -382,8 +372,7 @@ public final class EIServerAdminAPIUsersTest extends EIServerContract
   public void testReadUserSearchNoPermission()
     throws Exception
   {
-    assertTrue(this.container().isRunning());
-    this.server().start();
+    this.serverStartIfNecessary();
 
     final var id =
       this.createAdminInitial("someone", "12345678");

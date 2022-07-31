@@ -41,8 +41,7 @@ public final class EIServerAdminAPITransactionTest extends EIServerContract
   public void testGetBase()
     throws Exception
   {
-    assertTrue(this.container().isRunning());
-    this.server().start();
+    this.serverStartIfNecessary();
 
     final var response =
       this.getAdmin("/admin/1/0");
@@ -64,51 +63,50 @@ public final class EIServerAdminAPITransactionTest extends EIServerContract
   public void testTransactionUserCreateFailsAtomically()
     throws Exception
   {
-    assertTrue(this.container().isRunning());
-    this.server().start();
+    this.serverStartIfNecessary();
 
     this.createAdminInitial("someone", "12345678");
     this.doLoginAdmin("someone", "12345678");
 
     final var rCreate =
       this.postAdminText("/admin/1/0/transaction", """
-{
-  "%Type": "Transaction",
-  "%Schema":"https://www.io7m.com/eigion/admin-1.json",
-  "Commands": [
-    {
-      "%Type": "CommandUserCreate",
-      "Name": "someone-3",
-      "Email": "someone-3@example.com",
-      "Password": {
-        "Algorithm": "PBKDF2WithHmacSHA256:10000:256",
-        "Hash": "094D4284F4F6B65760AAA85E5720E084FD4F14F9A654F551F47651F16463FA09",
-        "Salt": "10203040"
-      }
-    },
-    {
-      "%Type": "CommandUserCreate",
-      "Name": "someone-3",
-      "Email": "someone-3@example.com",
-      "Password": {
-        "Algorithm": "PBKDF2WithHmacSHA256:10000:256",
-        "Hash": "094D4284F4F6B65760AAA85E5720E084FD4F14F9A654F551F47651F16463FA09",
-        "Salt": "10203040"
-      }
-    }
-  ]
-}
-""");
+        {
+          "%Type": "Transaction",
+          "%Schema":"https://www.io7m.com/eigion/admin-1.json",
+          "Commands": [
+            {
+              "%Type": "CommandUserCreate",
+              "Name": "someone-3",
+              "Email": "someone-3@example.com",
+              "Password": {
+                "Algorithm": "PBKDF2WithHmacSHA256:10000:256",
+                "Hash": "094D4284F4F6B65760AAA85E5720E084FD4F14F9A654F551F47651F16463FA09",
+                "Salt": "10203040"
+              }
+            },
+            {
+              "%Type": "CommandUserCreate",
+              "Name": "someone-3",
+              "Email": "someone-3@example.com",
+              "Password": {
+                "Algorithm": "PBKDF2WithHmacSHA256:10000:256",
+                "Hash": "094D4284F4F6B65760AAA85E5720E084FD4F14F9A654F551F47651F16463FA09",
+                "Salt": "10203040"
+              }
+            }
+          ]
+        }
+        """);
 
     assertEquals(400, rCreate.statusCode());
 
     final var rGet =
       this.postAdminText("/admin/1/0/command", """
-{
-  "%Type": "CommandUserGetByName",
-  "Name": "someone-3"
-}
-""");
+        {
+          "%Type": "CommandUserGetByName",
+          "Name": "someone-3"
+        }
+        """);
 
     assertEquals(404, rGet.statusCode());
   }
@@ -124,41 +122,40 @@ public final class EIServerAdminAPITransactionTest extends EIServerContract
   public void testTransactionUserCreate()
     throws Exception
   {
-    assertTrue(this.container().isRunning());
-    this.server().start();
+    this.serverStartIfNecessary();
 
     this.createAdminInitial("someone", "12345678");
     this.doLoginAdmin("someone", "12345678");
 
     final var rCreate =
       this.postAdminText("/admin/1/0/transaction", """
-{
-  "%Type": "Transaction",
-  "%Schema":"https://www.io7m.com/eigion/admin-1.json",
-  "Commands": [
-    {
-      "%Type": "CommandUserCreate",
-      "Name": "someone-3",
-      "Email": "someone-3@example.com",
-      "Password": {
-        "Algorithm": "PBKDF2WithHmacSHA256:10000:256",
-        "Hash": "094D4284F4F6B65760AAA85E5720E084FD4F14F9A654F551F47651F16463FA09",
-        "Salt": "10203040"
-      }
-    }
-  ]
-}
-""");
+        {
+          "%Type": "Transaction",
+          "%Schema":"https://www.io7m.com/eigion/admin-1.json",
+          "Commands": [
+            {
+              "%Type": "CommandUserCreate",
+              "Name": "someone-3",
+              "Email": "someone-3@example.com",
+              "Password": {
+                "Algorithm": "PBKDF2WithHmacSHA256:10000:256",
+                "Hash": "094D4284F4F6B65760AAA85E5720E084FD4F14F9A654F551F47651F16463FA09",
+                "Salt": "10203040"
+              }
+            }
+          ]
+        }
+        """);
 
     assertEquals(200, rCreate.statusCode());
 
     final var rGet =
       this.postAdminText("/admin/1/0/command", """
-{
-  "%Type": "CommandUserGetByName",
-  "Name": "someone-3"
-}
-""");
+        {
+          "%Type": "CommandUserGetByName",
+          "Name": "someone-3"
+        }
+        """);
 
     assertEquals(200, rGet.statusCode());
   }

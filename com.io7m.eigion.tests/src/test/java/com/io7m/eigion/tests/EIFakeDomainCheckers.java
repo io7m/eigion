@@ -14,36 +14,41 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+
 package com.io7m.eigion.tests;
 
-import com.io7m.eigion.protocol.versions.EISVProtocols;
-import org.junit.jupiter.api.Test;
-import org.testcontainers.junit.jupiter.Testcontainers;
+import com.io7m.eigion.domaincheck.api.EIDomainCheckerConfiguration;
+import com.io7m.eigion.domaincheck.api.EIDomainCheckerFactoryType;
+import com.io7m.eigion.domaincheck.api.EIDomainCheckerType;
+import com.io7m.eigion.model.EIGroupCreationRequest;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import java.util.concurrent.CompletableFuture;
 
-@Testcontainers(disabledWithoutDocker = true)
-public final class EIServerPublicAPIVersionsTest extends EIServerContract
+public final class EIFakeDomainCheckers
+  implements EIDomainCheckerFactoryType
 {
-  /**
-   * Touching the base URL works.
-   *
-   * @throws Exception On errors
-   */
+  private EIFakeDomainChecker checker;
 
-  @Test
-  public void testGetBase()
-    throws Exception
+  public EIFakeDomainCheckers()
   {
-    this.serverStartIfNecessary();
+    this.checker = new EIFakeDomainChecker();
+  }
 
-    final var response =
-      this.getPublic("/public/1/0");
+  public EIFakeDomainChecker checker()
+  {
+    return this.checker;
+  }
 
-    assertEquals(200, response.statusCode());
+  public void enqueue(
+    final CompletableFuture<EIGroupCreationRequest> future)
+  {
+    this.checker.enqueue(future);
+  }
 
-    final var message =
-      this.parseV(response, EISVProtocols.class);
+  @Override
+  public EIDomainCheckerType createChecker(
+    final EIDomainCheckerConfiguration configuration)
+  {
+    return this.checker;
   }
 }

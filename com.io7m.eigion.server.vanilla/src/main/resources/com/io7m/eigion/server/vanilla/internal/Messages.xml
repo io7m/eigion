@@ -13,4 +13,8 @@
   <entry key="missingParameter">Missing a required query parameter "{0}"</entry>
   <entry key="invalidParameter">Invalid value for query parameter "{0}"</entry>
   <entry key="notFound">Not found.</entry>
+
+  <entry key="cmd.groupCreateReady.notInProgress">
+    Only creation requests in state {0} can be made ready. This request is in state {1}.
+  </entry>
 </properties>

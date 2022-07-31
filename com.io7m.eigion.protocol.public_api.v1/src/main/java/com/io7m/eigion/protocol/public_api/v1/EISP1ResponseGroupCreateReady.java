@@ -16,17 +16,36 @@
 
 package com.io7m.eigion.protocol.public_api.v1;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+
+import java.util.Objects;
+import java.util.UUID;
+
 /**
- * The type of Public API v1 commands.
+ * A response to a request that indicates a group is ready for creation.
+ *
+ * @param requestId The request ID
  */
 
-public sealed interface EISP1CommandType
-  extends EISP1MessageType
-  permits EISP1CommandGroupCreateBegin,
-  EISP1CommandGroupCreateCancel,
-  EISP1CommandGroupCreateReady,
-  EISP1CommandGroupCreateRequests,
-  EISP1CommandLogin
+@JsonDeserialize
+@JsonSerialize
+public record EISP1ResponseGroupCreateReady(
+  @JsonProperty(value = "RequestID", required = true)
+  UUID requestId)
+  implements EISP1ResponseType
 {
+  /**
+   * A response to a request that indicates a group is ready for creation.
+   *
+   * @param requestId The request ID
+   */
 
+  @JsonCreator
+  public EISP1ResponseGroupCreateReady
+  {
+    Objects.requireNonNull(requestId, "requestId");
+  }
 }

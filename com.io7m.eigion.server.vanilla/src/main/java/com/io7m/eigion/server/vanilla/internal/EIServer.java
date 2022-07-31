@@ -16,7 +16,10 @@
 
 package com.io7m.eigion.server.vanilla.internal;
 
-import com.io7m.eigion.server.api.EIServerClosed;
+import com.io7m.eigion.domaincheck.api.EIDomainCheckerConfiguration;
+import com.io7m.eigion.protocol.admin_api.v1.EISA1Messages;
+import com.io7m.eigion.protocol.public_api.v1.EISP1Messages;
+import com.io7m.eigion.protocol.versions.EISVMessages;
 import com.io7m.eigion.server.api.EIServerConfiguration;
 import com.io7m.eigion.server.api.EIServerEventType;
 import com.io7m.eigion.server.api.EIServerException;
@@ -25,9 +28,6 @@ import com.io7m.eigion.server.api.EIServerStarting;
 import com.io7m.eigion.server.api.EIServerType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseException;
 import com.io7m.eigion.server.database.api.EIServerDatabaseType;
-import com.io7m.eigion.protocol.admin_api.v1.EISA1Messages;
-import com.io7m.eigion.protocol.public_api.v1.EISP1Messages;
-import com.io7m.eigion.protocol.versions.EISVMessages;
 import com.io7m.eigion.server.vanilla.internal.admin_api.EIACommandServlet;
 import com.io7m.eigion.server.vanilla.internal.admin_api.EIALogin;
 import com.io7m.eigion.server.vanilla.internal.admin_api.EIASends;
@@ -59,6 +59,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
+import java.net.http.HttpClient;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.Optional;
@@ -121,6 +122,7 @@ public final class EIServer implements EIServerType
 
       final var services =
         this.createServiceDirectory(this.database);
+      this.resources.add(services);
 
       final var adminServer = this.createAdminServer(services);
       this.resources.add(adminServer::stop);
@@ -187,6 +189,20 @@ public final class EIServer implements EIServerType
 
     final var strings = new EIServerStrings(this.configuration.locale());
     services.register(EIServerStrings.class, strings);
+
+    final var checker =
+      this.configuration.domainCheckers()
+        .createChecker(
+          new EIDomainCheckerConfiguration(
+            this.configuration.clock(),
+            HttpClient.newHttpClient()
+          )
+        );
+
+    services.register(
+      EIServerDomainChecking.class,
+      new EIServerDomainChecking(inDatabase, checker)
+    );
 
     services.register(
       EIPSends.class,
@@ -418,7 +434,6 @@ public final class EIServer implements EIServerType
   {
     if (this.closed.compareAndSet(false, true)) {
       this.resources.close();
-      this.events.publish(new EIServerClosed(this.configuration.now()));
       this.events.close();
     }
   }

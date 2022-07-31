@@ -20,6 +20,7 @@ import com.io7m.eigion.model.EIGroupCreationRequestStatusType;
 import com.io7m.eigion.protocol.api.EIProtocolException;
 import com.io7m.eigion.protocol.public_api.v1.EISP1CommandGroupCreateBegin;
 import com.io7m.eigion.protocol.public_api.v1.EISP1CommandGroupCreateCancel;
+import com.io7m.eigion.protocol.public_api.v1.EISP1CommandGroupCreateReady;
 import com.io7m.eigion.protocol.public_api.v1.EISP1CommandGroupCreateRequests;
 import com.io7m.eigion.protocol.public_api.v1.EISP1CommandLogin;
 import com.io7m.eigion.protocol.public_api.v1.EISP1GroupCreationRequest;
@@ -28,6 +29,7 @@ import com.io7m.eigion.protocol.public_api.v1.EISP1Messages;
 import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseError;
 import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseGroupCreateBegin;
 import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseGroupCreateCancel;
+import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseGroupCreateReady;
 import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseGroupCreateRequests;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DynamicTest;
@@ -71,11 +73,14 @@ public final class EISP1MessagesTest
   {
     return Stream.of(
       commandGroupCreateBegin(),
+      commandGroupCreateCancel(),
+      commandGroupCreateReady(),
       commandGroupCreateRequests(),
       commandLogin(),
       responseError(),
       responseGroupCreateBegin(),
       responseGroupCreateCancel(),
+      responseGroupCreateReady(),
       responseGroupCreateRequests()
     ).map(this::dynamicTestOfRoundTrip);
   }
@@ -99,6 +104,13 @@ public final class EISP1MessagesTest
   private static EISP1ResponseGroupCreateCancel responseGroupCreateCancel()
   {
     return new EISP1ResponseGroupCreateCancel(
+      randomUUID()
+    );
+  }
+
+  private static EISP1ResponseGroupCreateReady responseGroupCreateReady()
+  {
+    return new EISP1ResponseGroupCreateReady(
       randomUUID()
     );
   }
@@ -152,6 +164,11 @@ public final class EISP1MessagesTest
   private static EISP1CommandGroupCreateCancel commandGroupCreateCancel()
   {
     return new EISP1CommandGroupCreateCancel("7B8851BBBB70805081396C74ED005B10");
+  }
+
+  private static EISP1CommandGroupCreateReady commandGroupCreateReady()
+  {
+    return new EISP1CommandGroupCreateReady("7B8851BBBB70805081396C74ED005B10");
   }
 
   private static EISP1CommandGroupCreateRequests commandGroupCreateRequests()

@@ -129,6 +129,9 @@ public final class EISecPolicyDefault implements EISecPolicyType
     if (action instanceof EISecActionGroupCreateCancel c) {
       return checkGroupCreateCancel(c);
     }
+    if (action instanceof EISecActionGroupCreateReady c) {
+      return checkGroupCreateReady(c);
+    }
 
     return new EISecPolicyResultDenied("Operation not permitted.");
   }
@@ -220,6 +223,18 @@ public final class EISecPolicyDefault implements EISecPolicyType
     if (!Objects.equals(c.user().id(), c.request().userFounder())) {
       return new EISecPolicyResultDenied(
         "Users may only cancel their own group creation requests."
+      );
+    }
+
+    return new EISecPolicyResultPermitted();
+  }
+
+  private static EISecPolicyResultType checkGroupCreateReady(
+    final EISecActionGroupCreateReady c)
+  {
+    if (!Objects.equals(c.user().id(), c.request().userFounder())) {
+      return new EISecPolicyResultDenied(
+        "Users may only ready their own group creation requests."
       );
     }
 

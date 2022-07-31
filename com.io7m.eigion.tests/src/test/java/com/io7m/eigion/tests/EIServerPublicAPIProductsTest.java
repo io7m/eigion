@@ -45,8 +45,7 @@ public final class EIServerPublicAPIProductsTest extends EIServerContract
   public void testNoProducts()
     throws Exception
   {
-    assertTrue(this.container().isRunning());
-    this.server().start();
+    this.serverStartIfNecessary();
 
     final var adminId =
       this.createAdminInitial("someone", "12345678");
@@ -82,8 +81,7 @@ public final class EIServerPublicAPIProductsTest extends EIServerContract
   public void testProductInvalidStart()
     throws Exception
   {
-    assertTrue(this.container().isRunning());
-    this.server().start();
+    this.serverStartIfNecessary();
 
     final var adminId =
       this.createAdminInitial("someone", "12345678");
@@ -117,8 +115,7 @@ public final class EIServerPublicAPIProductsTest extends EIServerContract
   public void testProductListCreated()
     throws Exception
   {
-    assertTrue(this.container().isRunning());
-    this.server().start();
+    this.serverStartIfNecessary();
 
     final var adminId =
       this.createAdminInitial("someone", "12345678");

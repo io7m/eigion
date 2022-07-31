@@ -45,8 +45,7 @@ public final class EIServerAdminAPIServicesTest extends EIServerContract
   public void testGetServices()
     throws Exception
   {
-    assertTrue(this.container().isRunning());
-    this.server().start();
+    this.serverStartIfNecessary();
 
     this.createAdminInitial("someone", "12345678");
     this.doLoginAdmin("someone", "12345678");
@@ -75,8 +74,7 @@ public final class EIServerAdminAPIServicesTest extends EIServerContract
   public void testGetServicesUnauthenticated()
     throws Exception
   {
-    assertTrue(this.container().isRunning());
-    this.server().start();
+    this.serverStartIfNecessary();
 
     this.createAdminInitial("someone", "12345678");
 
@@ -99,8 +97,7 @@ public final class EIServerAdminAPIServicesTest extends EIServerContract
   public void testGetServicesNotPermitted()
     throws Exception
   {
-    assertTrue(this.container().isRunning());
-    this.server().start();
+    this.serverStartIfNecessary();
 
     final var id =
       this.createAdminInitial("someone", "12345678");

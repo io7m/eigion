@@ -16,6 +16,7 @@
 
 package com.io7m.eigion.server.api;
 
+import com.io7m.eigion.domaincheck.api.EIDomainCheckerFactoryType;
 import com.io7m.eigion.model.EIGroupPrefix;
 import com.io7m.eigion.server.database.api.EIServerDatabaseConfiguration;
 import com.io7m.eigion.server.database.api.EIServerDatabaseFactoryType;
@@ -34,6 +35,7 @@ import java.util.Objects;
  *
  * @param locale                 The locale
  * @param clock                  The clock
+ * @param domainCheckers         A factory of domain checkers
  * @param databases              The factory of databases that will be used for
  *                               the server
  * @param databaseConfiguration  The database configuration for the server
@@ -48,7 +50,9 @@ import java.util.Objects;
 
 public record EIServerConfiguration(
   Locale locale,
-  Clock clock, EIServerDatabaseFactoryType databases,
+  Clock clock,
+  EIDomainCheckerFactoryType domainCheckers,
+  EIServerDatabaseFactoryType databases,
   EIServerDatabaseConfiguration databaseConfiguration,
   EIStorageFactoryType imageStorageFactory,
   EIStorageParameters imageStorageParameters,
@@ -62,6 +66,7 @@ public record EIServerConfiguration(
    *
    * @param locale                 The locale
    * @param clock                  The clock
+   * @param domainCheckers         A factory of domain checkers
    * @param databases              The factory of databases that will be used
    *                               for the server
    * @param databaseConfiguration  The database configuration for the server
@@ -79,6 +84,7 @@ public record EIServerConfiguration(
   {
     Objects.requireNonNull(databases, "databases");
     Objects.requireNonNull(databaseConfiguration, "databaseConfiguration");
+    Objects.requireNonNull(domainCheckers, "domainCheckers");
     Objects.requireNonNull(adminAddress, "adminAddress");
     Objects.requireNonNull(publicAddress, "publicAddress");
     Objects.requireNonNull(sessionDirectory, "sessionDirectory");

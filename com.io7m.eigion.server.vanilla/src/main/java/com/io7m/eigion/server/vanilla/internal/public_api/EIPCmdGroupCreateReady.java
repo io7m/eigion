@@ -17,40 +17,44 @@
 
 package com.io7m.eigion.server.vanilla.internal.public_api;
 
-import com.io7m.eigion.model.EIGroupCreationRequestStatusType.Cancelled;
 import com.io7m.eigion.model.EIToken;
-import com.io7m.eigion.protocol.public_api.v1.EISP1CommandGroupCreateCancel;
-import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseGroupCreateCancel;
+import com.io7m.eigion.protocol.public_api.v1.EISP1CommandGroupCreateReady;
+import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseGroupCreateReady;
 import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseException;
 import com.io7m.eigion.server.database.api.EIServerDatabaseGroupsQueriesType;
-import com.io7m.eigion.server.security.EISecActionGroupCreateCancel;
+import com.io7m.eigion.server.security.EISecActionGroupCreateReady;
 import com.io7m.eigion.server.security.EISecPolicyResultDenied;
 import com.io7m.eigion.server.security.EISecurity;
 import com.io7m.eigion.server.security.EISecurityException;
 import com.io7m.eigion.server.vanilla.internal.EIHTTPErrorStatusException;
+import com.io7m.eigion.server.vanilla.internal.EIServerDomainChecking;
 import com.io7m.eigion.server.vanilla.internal.command_exec.EICommandExecutionResult;
 import com.io7m.eigion.server.vanilla.internal.command_exec.EICommandExecutorType;
 
 import java.util.Objects;
 
+import static com.io7m.eigion.model.EIGroupCreationRequestStatusType.InProgress;
+import static com.io7m.eigion.model.EIGroupCreationRequestStatusType.NAME_IN_PROGRESS;
 import static org.eclipse.jetty.http.HttpStatus.FORBIDDEN_403;
 
 /**
- * A request to cancel creating a group.
+ * A request to tell the user that the group creation request is ready for
+ * checking.
  */
 
-public final class EIPCmdGroupCreateCancel
+public final class EIPCmdGroupCreateReady
   implements EICommandExecutorType<
   EIPCommandContext,
-  EISP1CommandGroupCreateCancel,
+  EISP1CommandGroupCreateReady,
   EISP1ResponseType>
 {
   /**
-   * A request to cancel creating a group.
+   * A request to tell the user that the group creation request is ready for
+   * checking.
    */
 
-  public EIPCmdGroupCreateCancel()
+  public EIPCmdGroupCreateReady()
   {
 
   }
@@ -58,7 +62,7 @@ public final class EIPCmdGroupCreateCancel
   @Override
   public EICommandExecutionResult<EISP1ResponseType> execute(
     final EIPCommandContext context,
-    final EISP1CommandGroupCreateCancel command)
+    final EISP1CommandGroupCreateReady command)
     throws
     EIServerDatabaseException,
     EIHTTPErrorStatusException,
@@ -71,11 +75,11 @@ public final class EIPCmdGroupCreateCancel
       context.transaction();
     final var user =
       context.user();
-    final var token =
-      new EIToken(command.token());
     final var queries =
       transaction.queries(EIServerDatabaseGroupsQueriesType.class);
 
+    final var token =
+      new EIToken(command.token());
     final var existingOpt =
       queries.groupCreationRequest(token);
 
@@ -85,28 +89,37 @@ public final class EIPCmdGroupCreateCancel
 
     final var existing =
       existingOpt.get();
-
     final var action =
-      new EISecActionGroupCreateCancel(user, existing);
+      new EISecActionGroupCreateReady(user, existing);
 
     if (EISecurity.check(action) instanceof EISecPolicyResultDenied denied) {
       throw new EIHTTPErrorStatusException(
         FORBIDDEN_403,
-        "group-create-cancel",
+        "group-create-ready",
         denied.message()
       );
     }
 
-    final var cancelled =
-      existing.withStatus(
-        new Cancelled(existing.status().timeStarted(), context.now())
+    final var status = existing.status();
+    if (!(status instanceof InProgress)) {
+      return context.resultErrorFormatted(
+        400,
+        "group-create-wrong-state",
+        "cmd.groupCreateReady.notInProgress",
+        NAME_IN_PROGRESS,
+        status.name()
       );
+    }
 
-    queries.groupCreationRequestComplete(cancelled);
+    final var domainChecker =
+      context.services()
+        .requireService(EIServerDomainChecking.class);
+
+    domainChecker.check(existing);
 
     return new EICommandExecutionResult<>(
       200,
-      new EISP1ResponseGroupCreateCancel(context.requestId())
+      new EISP1ResponseGroupCreateReady(context.requestId())
     );
   }
 }

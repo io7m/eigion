@@ -305,7 +305,7 @@ public final class EIAmberjackShellTest extends EIWithServerContract
     throws Exception
   {
     final var id =
-    this.serverCreateAdminInitial("someone", "12345678");
+      this.serverCreateAdminInitial("someone", "12345678");
 
     final var buffer = new StringBuilder(256);
     buffer.append("set --exit-on-failed-command true\n");

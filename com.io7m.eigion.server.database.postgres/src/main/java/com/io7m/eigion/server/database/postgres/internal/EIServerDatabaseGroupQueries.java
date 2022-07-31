@@ -196,7 +196,6 @@ final class EIServerDatabaseGroupQueries
     Objects.requireNonNull(userFounder, "userFounder");
 
     final var transaction = this.transaction();
-    final var admin = transaction.adminId();
     final var context = transaction.createContext();
 
     try {
@@ -210,8 +209,7 @@ final class EIServerDatabaseGroupQueries
         context.insertInto(GROUPS)
           .set(GROUPS.NAME, name.value())
           .set(GROUPS.CREATED, timeNow)
-          .set(GROUPS.CREATOR_ADMIN, admin)
-          .set(GROUPS.CREATOR_USER, userFounder)
+          .set(GROUPS.CREATOR, userFounder)
           .execute();
 
       Postconditions.checkPostconditionV(
@@ -224,7 +222,7 @@ final class EIServerDatabaseGroupQueries
         context.insertInto(AUDIT)
           .set(AUDIT.TIME, timeNow)
           .set(AUDIT.TYPE, "GROUP_CREATED")
-          .set(AUDIT.USER_ID, admin)
+          .set(AUDIT.USER_ID, userFounder)
           .set(AUDIT.MESSAGE, name.value());
 
       insertAuditRecord(audit);
@@ -424,7 +422,6 @@ final class EIServerDatabaseGroupQueries
 
       if (status instanceof Cancelled cancelled) {
         existing.set(GROUPS_CREATION_REQUESTS.STATUS, NAME_CANCELLED);
-        existing.set(GROUPS_CREATION_REQUESTS.COMPLETED_ADMIN, null);
         existing.set(GROUPS_CREATION_REQUESTS.COMPLETED, cancelled.timeCompletedValue());
         existing.set(GROUPS_CREATION_REQUESTS.MESSAGE, "");
         existing.store();
@@ -441,9 +438,7 @@ final class EIServerDatabaseGroupQueries
       }
 
       if (status instanceof Failed failed) {
-        final var admin = transaction.adminId();
         existing.set(GROUPS_CREATION_REQUESTS.STATUS, NAME_FAILED);
-        existing.set(GROUPS_CREATION_REQUESTS.COMPLETED_ADMIN, admin);
         existing.set(GROUPS_CREATION_REQUESTS.COMPLETED, failed.timeCompletedValue());
         existing.set(GROUPS_CREATION_REQUESTS.MESSAGE, failed.message());
         existing.store();
@@ -452,7 +447,7 @@ final class EIServerDatabaseGroupQueries
           context.insertInto(AUDIT)
             .set(AUDIT.TIME, this.currentTime())
             .set(AUDIT.TYPE, "GROUP_CREATION_REQUEST_FAILED")
-            .set(AUDIT.USER_ID, admin)
+            .set(AUDIT.USER_ID, userId)
             .set(AUDIT.MESSAGE, "%s|%s".formatted(groupName, token));
 
         insertAuditRecord(audit);
@@ -460,9 +455,7 @@ final class EIServerDatabaseGroupQueries
       }
 
       if (status instanceof Succeeded succeeded) {
-        final var admin = transaction.adminId();
         existing.set(GROUPS_CREATION_REQUESTS.STATUS, NAME_SUCCEEDED);
-        existing.set(GROUPS_CREATION_REQUESTS.COMPLETED_ADMIN, admin);
         existing.set(GROUPS_CREATION_REQUESTS.COMPLETED, succeeded.timeCompletedValue());
         existing.set(GROUPS_CREATION_REQUESTS.MESSAGE, "");
         existing.store();
@@ -471,7 +464,7 @@ final class EIServerDatabaseGroupQueries
           context.insertInto(AUDIT)
             .set(AUDIT.TIME, this.currentTime())
             .set(AUDIT.TYPE, "GROUP_CREATION_REQUEST_SUCCEEDED")
-            .set(AUDIT.USER_ID, admin)
+            .set(AUDIT.USER_ID, userId)
             .set(AUDIT.MESSAGE, "%s|%s".formatted(groupName, token));
 
         insertAuditRecord(audit);

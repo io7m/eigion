@@ -38,8 +38,7 @@ public final class EIServerPublicAPILoginTest extends EIServerContract
   public void testLoginNonsense()
     throws Exception
   {
-    assertTrue(this.container().isRunning());
-    this.server().start();
+    this.serverStartIfNecessary();
 
     final var response =
       this.postPublicText("/public/1/0/login", "{}");
@@ -63,8 +62,7 @@ public final class EIServerPublicAPILoginTest extends EIServerContract
   public void testLoginOK()
     throws Exception
   {
-    assertTrue(this.container().isRunning());
-    this.server().start();
+    this.serverStartIfNecessary();
 
     final var adminId =
       this.createAdminInitial("someone", "12345678");
@@ -98,8 +96,7 @@ public final class EIServerPublicAPILoginTest extends EIServerContract
   public void testLoginBadUser()
     throws Exception
   {
-    assertTrue(this.container().isRunning());
-    this.server().start();
+    this.serverStartIfNecessary();
 
     final var adminId =
       this.createAdminInitial("someone", "12345678");
@@ -132,8 +129,7 @@ public final class EIServerPublicAPILoginTest extends EIServerContract
   public void testLoginBadPassword()
     throws Exception
   {
-    assertTrue(this.container().isRunning());
-    this.server().start();
+    this.serverStartIfNecessary();
 
     final var adminId =
       this.createAdminInitial("someone", "12345678");
@@ -166,8 +162,7 @@ public final class EIServerPublicAPILoginTest extends EIServerContract
   public void testLoginNotCommand()
     throws Exception
   {
-    assertTrue(this.container().isRunning());
-    this.server().start();
+    this.serverStartIfNecessary();
 
     final var adminId =
       this.createAdminInitial("someone", "12345678");
@@ -201,8 +196,7 @@ public final class EIServerPublicAPILoginTest extends EIServerContract
   public void testLoginOversized()
     throws Exception
   {
-    assertTrue(this.container().isRunning());
-    this.server().start();
+    this.serverStartIfNecessary();
 
     final var response =
       this.postPublicBytes(
@@ -234,8 +228,7 @@ public final class EIServerPublicAPILoginTest extends EIServerContract
   public void testLoginGET()
     throws Exception
   {
-    assertTrue(this.container().isRunning());
-    this.server().start();
+    this.serverStartIfNecessary();
 
     final var adminId =
       this.createAdminInitial("someone", "12345678");

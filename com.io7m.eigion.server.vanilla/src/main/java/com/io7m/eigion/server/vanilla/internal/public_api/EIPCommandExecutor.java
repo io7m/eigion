@@ -18,6 +18,7 @@ package com.io7m.eigion.server.vanilla.internal.public_api;
 
 import com.io7m.eigion.protocol.public_api.v1.EISP1CommandGroupCreateBegin;
 import com.io7m.eigion.protocol.public_api.v1.EISP1CommandGroupCreateCancel;
+import com.io7m.eigion.protocol.public_api.v1.EISP1CommandGroupCreateReady;
 import com.io7m.eigion.protocol.public_api.v1.EISP1CommandGroupCreateRequests;
 import com.io7m.eigion.protocol.public_api.v1.EISP1CommandType;
 import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseType;
@@ -63,6 +64,9 @@ public final class EIPCommandExecutor
     }
     if (command instanceof EISP1CommandGroupCreateCancel c) {
       return new EIPCmdGroupCreateCancel().execute(context, c);
+    }
+    if (command instanceof EISP1CommandGroupCreateReady c) {
+      return new EIPCmdGroupCreateReady().execute(context, c);
     }
 
     throw new IllegalStateException();

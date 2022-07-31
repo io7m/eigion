@@ -29,7 +29,6 @@ import org.slf4j.LoggerFactory;
 
 import java.net.URI;
 import java.util.Locale;
-import java.util.UUID;
 
 import static com.io7m.eigion.model.EIGroupCreationRequestStatusType.Cancelled;
 import static com.io7m.eigion.model.EIGroupCreationRequestStatusType.InProgress;
@@ -92,6 +91,7 @@ public final class EIPikeTest extends EIWithServerContract
   public void testLoginFails()
     throws Exception
   {
+    this.serverStartIfNecessary();
     final var ex =
       assertThrows(EIPClientException.class, () -> {
         this.client.login("someone", "12345678", this.serverPublicURI());
@@ -274,7 +274,8 @@ public final class EIPikeTest extends EIWithServerContract
     this.client.login("someone", "12345678", this.serverPublicURI());
 
     final var ex = assertThrows(EIPClientException.class, () -> {
-      this.client.groupCreationCancel(new EIToken("49F8ACBA8A607A3C39B335A436D4E764"));
+      this.client.groupCreationCancel(new EIToken(
+        "49F8ACBA8A607A3C39B335A436D4E764"));
     });
     assertTrue(ex.getMessage().contains("Not found"));
   }
