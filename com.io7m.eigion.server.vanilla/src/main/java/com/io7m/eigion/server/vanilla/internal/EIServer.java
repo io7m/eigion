@@ -33,6 +33,7 @@ import com.io7m.eigion.server.vanilla.internal.admin_api.EIALogin;
 import com.io7m.eigion.server.vanilla.internal.admin_api.EIASends;
 import com.io7m.eigion.server.vanilla.internal.admin_api.EIATransactionServlet;
 import com.io7m.eigion.server.vanilla.internal.admin_api.EIAVersions;
+import com.io7m.eigion.server.vanilla.internal.public_api.EIPCommandServlet;
 import com.io7m.eigion.server.vanilla.internal.public_api.EIPImageCreate;
 import com.io7m.eigion.server.vanilla.internal.public_api.EIPImageGet;
 import com.io7m.eigion.server.vanilla.internal.public_api.EIPLogin;
@@ -242,6 +243,10 @@ public final class EIServer implements EIServerType
     servlets.addServlet(
       servletHolders.create(EIPLogin.class, EIPLogin::new),
       "/public/1/0/login"
+    );
+    servlets.addServlet(
+      servletHolders.create(EIPCommandServlet.class, EIPCommandServlet::new),
+      "/public/1/0/command"
     );
     servlets.addServlet(
       servletHolders.create(EIPImageCreate.class, EIPImageCreate::new),

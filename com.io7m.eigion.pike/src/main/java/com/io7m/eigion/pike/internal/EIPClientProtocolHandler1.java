@@ -17,12 +17,21 @@
 
 package com.io7m.eigion.pike.internal;
 
+import com.io7m.eigion.model.EIGroupCreationRequest;
+import com.io7m.eigion.model.EIGroupName;
+import com.io7m.eigion.model.EIToken;
 import com.io7m.eigion.pike.api.EIPClientException;
+import com.io7m.eigion.pike.api.EIPGroupCreationChallenge;
 import com.io7m.eigion.protocol.api.EIProtocolException;
+import com.io7m.eigion.protocol.public_api.v1.EISP1CommandGroupCreateBegin;
+import com.io7m.eigion.protocol.public_api.v1.EISP1CommandGroupCreateRequests;
 import com.io7m.eigion.protocol.public_api.v1.EISP1CommandLogin;
+import com.io7m.eigion.protocol.public_api.v1.EISP1GroupCreationRequest;
 import com.io7m.eigion.protocol.public_api.v1.EISP1MessageType;
 import com.io7m.eigion.protocol.public_api.v1.EISP1Messages;
 import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseError;
+import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseGroupCreateBegin;
+import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseGroupCreateRequests;
 import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseLogin;
 import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseType;
 import org.slf4j.Logger;
@@ -32,6 +41,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -105,7 +115,6 @@ public final class EIPClientProtocolHandler1
     );
     return this;
   }
-
 
   private <T extends EISP1ResponseLogin> T sendLogin(
     final Class<T> responseClass,
@@ -225,6 +234,39 @@ public final class EIPClientProtocolHandler1
     } catch (final EIProtocolException | IOException e) {
       throw new EIPClientException(e);
     }
+  }
+
+  @Override
+  public EIPGroupCreationChallenge groupCreationBegin(
+    final EIGroupName name)
+    throws EIPClientException, InterruptedException
+  {
+    final var response =
+      this.sendCommand(
+        EISP1ResponseGroupCreateBegin.class,
+        new EISP1CommandGroupCreateBegin(name.value())
+      );
+
+    return new EIPGroupCreationChallenge(
+      new EIToken(response.token()),
+      response.location()
+    );
+  }
+
+  @Override
+  public List<EIGroupCreationRequest> groupCreationRequests()
+    throws EIPClientException, InterruptedException
+  {
+    final var response =
+      this.sendCommand(
+        EISP1ResponseGroupCreateRequests.class,
+        new EISP1CommandGroupCreateRequests()
+      );
+
+    return response.requests()
+      .stream()
+      .map(EISP1GroupCreationRequest::toRequest)
+      .toList();
   }
 
   interface FunctionType<A, B, E extends Exception>

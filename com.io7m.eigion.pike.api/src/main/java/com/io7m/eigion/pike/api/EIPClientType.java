@@ -24,7 +24,7 @@ import java.net.URI;
  */
 
 public interface EIPClientType
-  extends Closeable
+  extends Closeable, EIPClientGroupsType
 {
   /**
    * Log in.
@@ -42,5 +42,4 @@ public interface EIPClientType
     String password,
     URI base)
     throws EIPClientException, InterruptedException;
-
 }

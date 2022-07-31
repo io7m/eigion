@@ -22,7 +22,9 @@ package com.io7m.eigion.protocol.public_api.v1;
 
 public sealed interface EISP1CommandType
   extends EISP1MessageType
-  permits EISP1CommandLogin
+  permits EISP1CommandGroupCreateBegin,
+  EISP1CommandGroupCreateRequests,
+  EISP1CommandLogin
 {
 
 }

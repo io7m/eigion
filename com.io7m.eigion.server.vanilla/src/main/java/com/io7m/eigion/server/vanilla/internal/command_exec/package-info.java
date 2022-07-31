@@ -14,28 +14,11 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-
-package com.io7m.eigion.protocol.public_api.v1;
-
-import java.util.UUID;
-
 /**
- * The type of Public API v1 responses.
+ * The server implementation (internals [command executor]).
  */
 
-public sealed interface EISP1ResponseType
-  extends EISP1MessageType
-  permits EISP1ResponseError,
-  EISP1ResponseGroupCreateBegin,
-  EISP1ResponseGroupCreateRequests,
-  EISP1ResponseImageCreated,
-  EISP1ResponseImageGet,
-  EISP1ResponseLogin,
-  EISP1ResponseProductList
-{
-  /**
-   * @return The server-assigned request ID
-   */
+@Version("1.0.0")
+package com.io7m.eigion.server.vanilla.internal.command_exec;
 
-  UUID requestId();
-}
+import org.osgi.annotation.versioning.Version;

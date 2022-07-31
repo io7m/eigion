@@ -180,31 +180,31 @@ create table groups_creation_requests (
   id                bigint                    not null primary key generated always as identity,
   group_name        varchar(1000000)          not null,
   group_token       varchar(1000000)          not null unique,
-  creator_admin     uuid                      not null,
   creator_user      uuid                      not null,
   created           timestamp with time zone  not null,
   completed         timestamp with time zone,
+  completed_admin   uuid,
   status            varchar(1000000)          not null,
   message           varchar(1000000)          not null,
 
   constraint succeeded_requires_completed_nonnull check (
-    case when (status = 'succeeded') then
-      (completed is not null)
+    case when (status = 'SUCCEEDED') then
+      ((completed is not null) and (completed_admin is not null))
     end
   ),
   constraint failed_requires_completed_nonnull check (
-    case when (status = 'failed') then
-      (completed is not null)
+    case when (status = 'FAILED') then
+      ((completed is not null) and (completed_admin is not null))
     end
   ),
 
-  foreign key (creator_user) references users (id),
-  foreign key (creator_admin) references admins (id)
+  foreign key (creator_user)    references users (id),
+  foreign key (completed_admin) references admins (id)
 )
 ]]></Statement>
 
     <Statement>grant select, insert, delete on groups_creation_requests to eigion</Statement>
-    <Statement>grant update (status, message, completed) on groups_creation_requests to eigion</Statement>
+    <Statement>grant update (status, message, completed, completed_admin) on groups_creation_requests to eigion</Statement>
 
     <Comment>
       The group_users table associates users with groups. A group always has at least one user; the user that

@@ -17,31 +17,31 @@
 package com.io7m.eigion.pike.cmdline.internal;
 
 import com.beust.jcommander.Parameter;
+import com.io7m.eigion.model.EIGroupName;
 import com.io7m.eigion.pike.api.EIPClientException;
 import org.jline.terminal.Terminal;
 
 import static com.io7m.eigion.pike.cmdline.internal.EIPSCommandResult.SUCCESS;
-import static com.io7m.eigion.pike.cmdline.internal.EIPSControllerFlag.EXIT_ON_FAILED_COMMAND;
 
 /**
- * Set parameters.
+ * Start creating a group.
  */
 
-public final class EIPSCommandSet
-  extends EIPSAbstractCommand<EIPSCommandSet.Parameters>
+public final class EIPSCommandGroupCreationBegin
+  extends EIPSAbstractCommand<EIPSCommandGroupCreationBegin.Parameters>
 {
   /**
-   * Find at most one user by different parameters.
+   * Start creating a group.
    *
    * @param inController The controller
    * @param inStrings    The string resources
    */
 
-  public EIPSCommandSet(
+  public EIPSCommandGroupCreationBegin(
     final EIPSController inController,
     final EIPStrings inStrings)
   {
-    super(inController, inStrings, "set");
+    super(inController, inStrings, "group-creation-begin");
   }
 
   @Override
@@ -56,8 +56,22 @@ public final class EIPSCommandSet
     final Parameters parameters)
     throws EIPClientException, InterruptedException
   {
-    final var c = this.controller();
-    c.setFlag(EXIT_ON_FAILED_COMMAND, parameters.exitOnFailedCommand);
+    final var challenge =
+      this.controller()
+        .client()
+        .groupCreationBegin(new EIGroupName(parameters.groupName));
+
+    final var writer = terminal.writer();
+    writer.println(
+      this.strings()
+        .format(
+          "groupCreationBegin.challenge",
+          parameters.groupName,
+          challenge.location().getHost(),
+          challenge.token().value(),
+          challenge.location())
+    );
+
     return SUCCESS;
   }
 
@@ -65,11 +79,10 @@ public final class EIPSCommandSet
     implements EIPSParameterHolderType
   {
     @Parameter(
-      description = "Enable/disable exiting on command failures.",
-      required = false,
-      arity = 1,
-      names = "--exit-on-failed-command")
-    private boolean exitOnFailedCommand;
+      description = "The group name.",
+      required = true,
+      names = "--name")
+    private String groupName;
 
     Parameters()
     {

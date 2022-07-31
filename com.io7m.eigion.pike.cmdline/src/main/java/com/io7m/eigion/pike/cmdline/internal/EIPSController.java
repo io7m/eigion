@@ -35,7 +35,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 import java.util.stream.Stream;
 
 import static com.io7m.eigion.pike.cmdline.internal.EIPSCommandResult.FAILURE;
@@ -51,15 +50,6 @@ public final class EIPSController
 {
   private static final Logger LOG =
     LoggerFactory.getLogger(EIPSController.class);
-
-  private static final Set<Class<? extends EIPSCommandType>> COMMAND_TYPES =
-    Set.of(
-      EIPSCommandExit.class,
-      EIPSCommandHelp.class,
-      EIPSCommandLogin.class,
-      EIPSCommandSet.class,
-      EIPSCommandVersion.class
-    );
 
   private final EIPStrings strings;
   private final EIPClientType client;
@@ -106,6 +96,8 @@ public final class EIPSController
     final Map<String, EIPSCommandType> commandMap =
       Stream.of(
         new EIPSCommandExit(controller, strings),
+        new EIPSCommandGroupCreationBegin(controller, strings),
+        new EIPSCommandGroupCreationRequests(controller, strings),
         new EIPSCommandHelp(controller, strings),
         new EIPSCommandLogin(controller, strings),
         new EIPSCommandSet(controller, strings),

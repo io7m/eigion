@@ -16,12 +16,16 @@
 
 package com.io7m.eigion.pike.internal;
 
+import com.io7m.eigion.model.EIGroupCreationRequest;
+import com.io7m.eigion.model.EIGroupName;
 import com.io7m.eigion.pike.api.EIPClientException;
 import com.io7m.eigion.pike.api.EIPClientType;
+import com.io7m.eigion.pike.api.EIPGroupCreationChallenge;
 
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -79,5 +83,20 @@ public final class EIPClient implements EIPClientType
       );
 
     this.handler = newHandler.login(user, password, base);
+  }
+
+  @Override
+  public EIPGroupCreationChallenge groupCreationBegin(
+    final EIGroupName name)
+    throws EIPClientException, InterruptedException
+  {
+    return this.handler.groupCreationBegin(name);
+  }
+
+  @Override
+  public List<EIGroupCreationRequest> groupCreationRequests()
+    throws EIPClientException, InterruptedException
+  {
+    return this.handler.groupCreationRequests();
   }
 }

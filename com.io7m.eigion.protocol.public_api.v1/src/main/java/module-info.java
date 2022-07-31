@@ -28,6 +28,8 @@ module com.io7m.eigion.protocol.public_api.v1
   requires transitive com.io7m.eigion.services.api;
 
   requires com.io7m.dixmont.core;
+  requires com.fasterxml.jackson.datatype.jsr310;
+  requires com.fasterxml.jackson.datatype.jdk8;
 
   opens com.io7m.eigion.protocol.public_api.v1
     to com.fasterxml.jackson.databind;

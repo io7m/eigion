@@ -56,6 +56,9 @@ public final class EIArbTokenProvider extends EIArbAbstractProvider
         .ofMaxLength(256)
         .withChars("ABCDEF0123456789");
 
-    return Set.of(hex.map(EIToken::new));
+    return Set.of(
+      hex.map(EIToken::new),
+      Arbitraries.ofSuppliers(EIToken::generate)
+    );
   }
 }

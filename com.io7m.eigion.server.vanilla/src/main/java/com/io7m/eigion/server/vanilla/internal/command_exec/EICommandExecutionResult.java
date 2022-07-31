@@ -14,28 +14,42 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+package com.io7m.eigion.server.vanilla.internal.command_exec;
 
-package com.io7m.eigion.protocol.public_api.v1;
+import com.io7m.eigion.protocol.api.EIProtocolMessageType;
 
-import java.util.UUID;
+import java.util.Objects;
 
 /**
- * The type of Public API v1 responses.
+ * The result of executing a command.
+ *
+ * @param httpStatus The HTTP status code
+ * @param response   The response
+ * @param <R>        The type of response values
  */
 
-public sealed interface EISP1ResponseType
-  extends EISP1MessageType
-  permits EISP1ResponseError,
-  EISP1ResponseGroupCreateBegin,
-  EISP1ResponseGroupCreateRequests,
-  EISP1ResponseImageCreated,
-  EISP1ResponseImageGet,
-  EISP1ResponseLogin,
-  EISP1ResponseProductList
+public record EICommandExecutionResult<R extends EIProtocolMessageType>(
+  int httpStatus,
+  R response)
 {
   /**
-   * @return The server-assigned request ID
+   * The result of executing a public command.
+   *
+   * @param httpStatus The HTTP status code
+   * @param response   The response
    */
 
-  UUID requestId();
+  public EICommandExecutionResult
+  {
+    Objects.requireNonNull(response, "response");
+  }
+
+  /**
+   * @return {@code true} if the HTTP status implies failure
+   */
+
+  public boolean isFailure()
+  {
+    return this.httpStatus >= 400;
+  }
 }

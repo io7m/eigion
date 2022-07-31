@@ -14,28 +14,27 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-
 package com.io7m.eigion.protocol.public_api.v1;
 
-import java.util.UUID;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
-/**
- * The type of Public API v1 responses.
- */
+import java.util.Objects;
 
-public sealed interface EISP1ResponseType
-  extends EISP1MessageType
-  permits EISP1ResponseError,
-  EISP1ResponseGroupCreateBegin,
-  EISP1ResponseGroupCreateRequests,
-  EISP1ResponseImageCreated,
-  EISP1ResponseImageGet,
-  EISP1ResponseLogin,
-  EISP1ResponseProductList
+// CHECKSTYLE:OFF
+
+@JsonDeserialize
+@JsonSerialize
+public record EISP1CommandGroupCreateBegin(
+  @JsonProperty(value = "GroupName", required = true)
+  String groupName)
+  implements EISP1CommandType
 {
-  /**
-   * @return The server-assigned request ID
-   */
-
-  UUID requestId();
+  @JsonCreator
+  public EISP1CommandGroupCreateBegin
+  {
+    Objects.requireNonNull(groupName, "groupName");
+  }
 }

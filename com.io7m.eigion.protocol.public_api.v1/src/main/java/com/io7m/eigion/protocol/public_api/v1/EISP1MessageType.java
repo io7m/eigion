@@ -52,11 +52,16 @@ public sealed interface EISP1MessageType
 
   Map<Class<?>, String> TYPE_ID_FOR_CLASS =
     Stream.of(
+      EISP1CommandGroupCreateBegin.class,
+      EISP1CommandGroupCreateRequests.class,
       EISP1CommandLogin.class,
+      EISP1GroupCreationRequest.class,
       EISP1Hash.class,
       EISP1MessageType.class,
       EISP1ProductSummary.class,
       EISP1ResponseError.class,
+      EISP1ResponseGroupCreateBegin.class,
+      EISP1ResponseGroupCreateRequests.class,
       EISP1ResponseImageCreated.class,
       EISP1ResponseImageGet.class,
       EISP1ResponseLogin.class,

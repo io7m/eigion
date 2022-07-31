@@ -15,27 +15,43 @@
  */
 
 
-package com.io7m.eigion.protocol.public_api.v1;
+package com.io7m.eigion.pike.api;
 
-import java.util.UUID;
+import com.io7m.eigion.model.EIGroupCreationRequest;
+import com.io7m.eigion.model.EIGroupName;
+
+import java.util.List;
 
 /**
- * The type of Public API v1 responses.
+ * Commands related to groups.
  */
 
-public sealed interface EISP1ResponseType
-  extends EISP1MessageType
-  permits EISP1ResponseError,
-  EISP1ResponseGroupCreateBegin,
-  EISP1ResponseGroupCreateRequests,
-  EISP1ResponseImageCreated,
-  EISP1ResponseImageGet,
-  EISP1ResponseLogin,
-  EISP1ResponseProductList
+public interface EIPClientGroupsType
 {
   /**
-   * @return The server-assigned request ID
+   * Start the creation of a group.
+   *
+   * @param name The name
+   *
+   * @return The request details
+   *
+   * @throws EIPClientException   On errors
+   * @throws InterruptedException On interruption
    */
 
-  UUID requestId();
+  EIPGroupCreationChallenge groupCreationBegin(
+    EIGroupName name)
+    throws EIPClientException, InterruptedException;
+
+  /**
+   * List group creation requests.
+   *
+   * @return The request details
+   *
+   * @throws EIPClientException   On errors
+   * @throws InterruptedException On interruption
+   */
+
+  List<EIGroupCreationRequest> groupCreationRequests()
+    throws EIPClientException, InterruptedException;
 }

@@ -6,4 +6,30 @@
   <entry key="noSuchCommand">Unknown command: "{0}"</entry>
   <entry key="helpCommands">Known commands: {0}</entry>
   <entry key="error">Error: {0}</entry>
+
+  <entry key="groupCreationBegin.challenge"><![CDATA[A request to create the group has been created.
+
+In order to prove that you have permission to create a group with the name "{0}",
+it is necessary for you to prove that you own the domain "{1}".
+
+Please create the following file:
+
+  {3}
+
+The file must contain this (and only this) exact string:
+
+  {2}
+
+Afterwards, use the group-creation-ready command to tell the server that you
+have completed the above challenge.
+]]></entry>
+
+  <entry key="groupCreateRequest.group">Request.Group: {0}</entry>
+  <entry key="groupCreateRequest.token">Request.Token: {0}</entry>
+  <entry key="groupCreateRequest.location">Request.Location: {0}</entry>
+  <entry key="groupCreateRequest.timeStarted">Request.Created: {0}</entry>
+  <entry key="groupCreateRequest.timeCompleted">Request.Completed: {0}</entry>
+  <entry key="groupCreateRequest.status">Request.Status: {0}</entry>
+  <entry key="groupCreateRequest.message">Request.Message: {0}</entry>
+
 </properties>

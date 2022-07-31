@@ -14,28 +14,34 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+package com.io7m.eigion.pike.api;
 
-package com.io7m.eigion.protocol.public_api.v1;
+import com.io7m.eigion.model.EIToken;
 
-import java.util.UUID;
+import java.net.URI;
+import java.util.Objects;
 
 /**
- * The type of Public API v1 responses.
+ * An obligation that must be met in order to complete group creation.
+ *
+ * @param token    The token
+ * @param location The location
  */
 
-public sealed interface EISP1ResponseType
-  extends EISP1MessageType
-  permits EISP1ResponseError,
-  EISP1ResponseGroupCreateBegin,
-  EISP1ResponseGroupCreateRequests,
-  EISP1ResponseImageCreated,
-  EISP1ResponseImageGet,
-  EISP1ResponseLogin,
-  EISP1ResponseProductList
+public record EIPGroupCreationChallenge(
+  EIToken token,
+  URI location)
 {
   /**
-   * @return The server-assigned request ID
+   * An obligation that must be met in order to complete group creation.
+   *
+   * @param token    The token
+   * @param location The location
    */
 
-  UUID requestId();
+  public EIPGroupCreationChallenge
+  {
+    Objects.requireNonNull(token, "token");
+    Objects.requireNonNull(location, "location");
+  }
 }

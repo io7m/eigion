@@ -31,19 +31,19 @@ public sealed interface EIGroupCreationRequestStatusType
    * The name of the in-progress state.
    */
 
-  String NAME_IN_PROGRESS = "in-progress";
+  String NAME_IN_PROGRESS = "IN_PROGRESS";
 
   /**
    * The name of the succeeded state.
    */
 
-  String NAME_SUCCEEDED = "succeeded";
+  String NAME_SUCCEEDED = "SUCCEEDED";
 
   /**
    * The name of the failed state.
    */
 
-  String NAME_FAILED = "failed";
+  String NAME_FAILED = "FAILED";
 
   /**
    * @return The name of the status

@@ -123,6 +123,9 @@ public final class EISecPolicyDefault implements EISecPolicyType
     if (action instanceof EISecActionUserUserComplaintCreate c) {
       return checkUserUserComplaintCreate(c);
     }
+    if (action instanceof EISecActionGroupCreateBegin c) {
+      return checkGroupCreateBegin(c);
+    }
 
     return new EISecPolicyResultDenied("Operation not permitted.");
   }
@@ -176,6 +179,32 @@ public final class EISecPolicyDefault implements EISecPolicyType
     if (!ownerPerms.containsAll(targetPerms)) {
       return new EISecPolicyResultDenied(
         "An admin cannot be created with more permissions than the creating admin."
+      );
+    }
+
+    return new EISecPolicyResultPermitted();
+  }
+
+  private static EISecPolicyResultType checkGroupCreateBegin(
+    final EISecActionGroupCreateBegin c)
+  {
+    final var existingRequests =
+      c.existingRequests();
+    final var lastHour =
+      c.timeNow().minusHours(1L);
+
+    final var recentRequests =
+      existingRequests.stream()
+        .filter(r -> r.status().timeStarted().isAfter(lastHour))
+        .count();
+
+    if (recentRequests >= 5L) {
+      final var nextHour =
+        c.timeNow().plusHours(1L);
+
+      return new EISecPolicyResultDenied(
+        "Too many requests have been made recently. Please wait until %s before making another request."
+          .formatted(nextHour)
       );
     }
 

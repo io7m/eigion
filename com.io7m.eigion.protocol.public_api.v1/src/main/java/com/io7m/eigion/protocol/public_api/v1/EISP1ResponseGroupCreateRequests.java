@@ -20,49 +20,38 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.io7m.eigion.hash.EIHash;
-import com.io7m.eigion.protocol.api.EIProtocolFromModel;
-import com.io7m.eigion.protocol.api.EIProtocolToModel;
 
+import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 
-// CHECKSTYLE:OFF
+/**
+ * A response to a request to create a group.
+ *
+ * @param requestId The request ID
+ * @param requests  The requests created by the current user
+ */
 
 @JsonDeserialize
 @JsonSerialize
-public record EISP1Hash(
-  @JsonProperty(value = "Algorithm", required = true)
-  String algorithm,
-  @JsonProperty(value = "Value", required = true)
-  String value)
+public record EISP1ResponseGroupCreateRequests(
+  @JsonProperty(value = "RequestID", required = true)
+  UUID requestId,
+  @JsonProperty(value = "Requests", required = true)
+  List<EISP1GroupCreationRequest> requests)
+  implements EISP1ResponseType
 {
-  @JsonCreator
-  public EISP1Hash
-  {
-    Objects.requireNonNull(algorithm, "algorithm");
-    Objects.requireNonNull(value, "value");
-  }
-
   /**
-   * @param hash The model hash
+   * A response to a request to log in.
    *
-   * @return A v1 hash from the given model hash
+   * @param requestId The request ID
+   * @param requests  The requests created by the current user
    */
 
-  @EIProtocolFromModel
-  public static EISP1Hash ofHash(
-    final EIHash hash)
+  @JsonCreator
+  public EISP1ResponseGroupCreateRequests
   {
-    return new EISP1Hash(hash.algorithm(), hash.hash());
-  }
-
-  /**
-   * @return This hash as a model hash
-   */
-
-  @EIProtocolToModel
-  public EIHash toHash()
-  {
-    return new EIHash(this.algorithm, this.value);
+    Objects.requireNonNull(requestId, "requestId");
+    Objects.requireNonNull(requests, "requests");
   }
 }

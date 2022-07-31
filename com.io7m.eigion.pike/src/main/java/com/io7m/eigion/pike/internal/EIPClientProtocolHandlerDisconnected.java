@@ -17,10 +17,14 @@
 
 package com.io7m.eigion.pike.internal;
 
+import com.io7m.eigion.model.EIGroupCreationRequest;
+import com.io7m.eigion.model.EIGroupName;
 import com.io7m.eigion.pike.api.EIPClientException;
+import com.io7m.eigion.pike.api.EIPGroupCreationChallenge;
 
 import java.net.URI;
 import java.net.http.HttpClient;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -65,4 +69,28 @@ public final class EIPClientProtocolHandlerDisconnected
       base
     );
   }
+
+  @Override
+  public EIPGroupCreationChallenge groupCreationBegin(
+    final EIGroupName name)
+    throws EIPClientException
+  {
+    throw this.notLoggedIn();
+  }
+
+  @Override
+  public List<EIGroupCreationRequest> groupCreationRequests()
+    throws EIPClientException, InterruptedException
+  {
+    throw this.notLoggedIn();
+  }
+
+
+  private EIPClientException notLoggedIn()
+  {
+    return new EIPClientException(
+      this.strings.format("notLoggedIn")
+    );
+  }
+
 }

@@ -25,7 +25,8 @@ import com.io7m.eigion.model.EIUser;
 
 public sealed interface EISecActionUserType
   extends EISecActionType
-  permits EISecActionImageCreate,
+  permits EISecActionGroupCreateBegin,
+  EISecActionImageCreate,
   EISecActionImageRead,
   EISecActionUserUserComplaintCreate
 {

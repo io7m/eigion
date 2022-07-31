@@ -398,10 +398,10 @@ public final class EIServerDatabaseGroupsTest extends EIWithDatabaseContract
         "USER_CREATED", user.id().toString()),
       new ExpectedEvent(
         "GROUP_CREATION_REQUESTED",
-        "%s|%s|%s".formatted(groupName, user.id(), request.token())),
+        "%s|%s".formatted(groupName, request.token())),
       new ExpectedEvent(
         "GROUP_CREATION_REQUEST_SUCCEEDED",
-        "%s|%s|%s".formatted(groupName, user.id(), request.token())),
+        "%s|%s".formatted(groupName, request.token())),
       new ExpectedEvent(
         "GROUP_CREATED", groupName.value())
     );
@@ -736,10 +736,10 @@ public final class EIServerDatabaseGroupsTest extends EIWithDatabaseContract
         "USER_CREATED", user.id().toString()),
       new ExpectedEvent(
         "GROUP_CREATION_REQUESTED",
-        "%s|%s|%s".formatted(groupName, user.id(), request.token())),
+        "%s|%s".formatted(groupName, request.token())),
       new ExpectedEvent(
         "GROUP_CREATION_REQUEST_FAILED",
-        "%s|%s|%s".formatted(groupName, user.id(), request.token()))
+        "%s|%s".formatted(groupName, request.token()))
     );
   }
 

@@ -21,6 +21,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.databind.module.SimpleDeserializers;
 import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.io7m.dixmont.core.DmJsonRestrictedDeserializers;
 import com.io7m.eigion.protocol.api.EIProtocolException;
 import com.io7m.eigion.protocol.api.EIProtocolMessagesType;
@@ -28,11 +30,13 @@ import com.io7m.eigion.services.api.EIServiceType;
 
 import java.io.IOException;
 import java.math.BigInteger;
+import java.net.URI;
 import java.util.UUID;
 
 import static com.fasterxml.jackson.databind.DeserializationFeature.USE_BIG_INTEGER_FOR_INTS;
 import static com.fasterxml.jackson.databind.MapperFeature.SORT_PROPERTIES_ALPHABETICALLY;
 import static com.fasterxml.jackson.databind.SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS;
+import static com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS;
 
 /**
  * The Public API v1 message protocol.
@@ -59,6 +63,51 @@ public final class EISP1Messages
   private final SimpleDeserializers serializers;
   private final JsonMapper mapper;
 
+  /**
+   * The Public API v1 message protocol.
+   */
+
+  public EISP1Messages()
+  {
+    this.serializers =
+      DmJsonRestrictedDeserializers.builder()
+        .allowClass(BigInteger.class)
+        .allowClass(EISP1CommandGroupCreateBegin.class)
+        .allowClass(EISP1CommandGroupCreateRequests.class)
+        .allowClass(EISP1CommandLogin.class)
+        .allowClass(EISP1GroupCreationRequest.class)
+        .allowClass(EISP1Hash.class)
+        .allowClass(EISP1MessageType.class)
+        .allowClass(EISP1ProductSummary.class)
+        .allowClass(EISP1ResponseError.class)
+        .allowClass(EISP1ResponseGroupCreateBegin.class)
+        .allowClass(EISP1ResponseGroupCreateRequests.class)
+        .allowClass(EISP1ResponseImageCreated.class)
+        .allowClass(EISP1ResponseImageGet.class)
+        .allowClass(EISP1ResponseLogin.class)
+        .allowClass(EISP1ResponseProductList.class)
+        .allowClass(String.class)
+        .allowClass(URI.class)
+        .allowClass(UUID.class)
+        .allowClassName(listOf(EISP1ProductSummary.class))
+        .allowClassName(listOf(EISP1GroupCreationRequest.class))
+        .build();
+
+    this.mapper =
+      JsonMapper.builder()
+        .enable(USE_BIG_INTEGER_FOR_INTS)
+        .enable(ORDER_MAP_ENTRIES_BY_KEYS)
+        .enable(SORT_PROPERTIES_ALPHABETICALLY)
+        .disable(WRITE_DATES_AS_TIMESTAMPS)
+        .build();
+
+    final var simpleModule = new SimpleModule();
+    simpleModule.setDeserializers(this.serializers);
+    this.mapper.registerModule(simpleModule);
+    this.mapper.registerModule(new JavaTimeModule());
+    this.mapper.registerModule(new Jdk8Module());
+  }
+
   private static String listOf(
     final Class<?> clazz)
   {
@@ -77,41 +126,6 @@ public final class EISP1Messages
   {
     return "java.util.Map<%s,%s>"
       .formatted(keyClazz.getCanonicalName(), valClazz);
-  }
-
-  /**
-   * The Public API v1 message protocol.
-   */
-
-  public EISP1Messages()
-  {
-    this.serializers =
-      DmJsonRestrictedDeserializers.builder()
-        .allowClass(BigInteger.class)
-        .allowClass(EISP1CommandLogin.class)
-        .allowClass(EISP1Hash.class)
-        .allowClass(EISP1MessageType.class)
-        .allowClass(EISP1ProductSummary.class)
-        .allowClass(EISP1ResponseError.class)
-        .allowClass(EISP1ResponseImageCreated.class)
-        .allowClass(EISP1ResponseImageGet.class)
-        .allowClass(EISP1ResponseLogin.class)
-        .allowClass(EISP1ResponseProductList.class)
-        .allowClass(String.class)
-        .allowClass(UUID.class)
-        .allowClassName(listOf(EISP1ProductSummary.class))
-        .build();
-
-    this.mapper =
-      JsonMapper.builder()
-        .enable(USE_BIG_INTEGER_FOR_INTS)
-        .enable(ORDER_MAP_ENTRIES_BY_KEYS)
-        .enable(SORT_PROPERTIES_ALPHABETICALLY)
-        .build();
-
-    final var simpleModule = new SimpleModule();
-    simpleModule.setDeserializers(this.serializers);
-    this.mapper.registerModule(simpleModule);
   }
 
   /**

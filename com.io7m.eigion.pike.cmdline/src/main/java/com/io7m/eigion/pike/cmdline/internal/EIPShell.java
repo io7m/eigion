@@ -35,9 +35,9 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.function.Consumer;
 
-import static com.io7m.eigion.pike.cmdline.internal.EIPSControllerFlag.EXIT_ON_FAILED_COMMAND;
 import static com.io7m.eigion.pike.cmdline.internal.EIPSCommandResult.FAILURE;
 import static com.io7m.eigion.pike.cmdline.internal.EIPSCommandResult.SUCCESS;
+import static com.io7m.eigion.pike.cmdline.internal.EIPSControllerFlag.EXIT_ON_FAILED_COMMAND;
 
 /**
  * A shell.

@@ -81,7 +81,7 @@ public record EIGroupCreationRequest(
     final String hostName,
     final String proto)
   {
-    return "%s://%s/.well-known/eigion-group-challenge/%s".formatted(
+    return "%s://%s/.well-known/eigion-group-challenge/%s.txt".formatted(
       proto,
       hostName,
       this.token

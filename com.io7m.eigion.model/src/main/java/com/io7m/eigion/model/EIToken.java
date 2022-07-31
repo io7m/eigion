@@ -16,6 +16,10 @@
 
 package com.io7m.eigion.model;
 
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+import java.util.HexFormat;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.regex.Pattern;
 
@@ -54,5 +58,37 @@ public record EIToken(String value)
   public String toString()
   {
     return this.value;
+  }
+
+  /**
+   * Generate a random token.
+   *
+   * @param random The secure random instance
+   *
+   * @return A random token
+   */
+
+  public static EIToken generate(
+    final SecureRandom random)
+  {
+    Objects.requireNonNull(random, "random");
+    final var b = new byte[16];
+    random.nextBytes(b);
+    return new EIToken(HexFormat.of().formatHex(b).toUpperCase(Locale.ROOT));
+  }
+
+  /**
+   * Generate a random token, using a default strong RNG instance.
+   *
+   * @return A random token
+   */
+
+  public static EIToken generate()
+  {
+    try {
+      return generate(SecureRandom.getInstanceStrong());
+    } catch (final NoSuchAlgorithmException e) {
+      throw new IllegalStateException(e);
+    }
   }
 }
