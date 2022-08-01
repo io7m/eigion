@@ -176,6 +176,17 @@ public final class EIIdentitiesReflective
           findFromModelMethod(c);
 
         /*
+         * If only one method is defined, this is likely a mistake!
+         */
+
+        if ((toModelMethod == null) == (toVersionMethod != null)) {
+          throw new IllegalStateException(
+            "Protocol issue: toModelMethod %s, toVersionMethod %s"
+              .formatted(toModelMethod, toVersionMethod)
+          );
+        }
+
+        /*
          * If there are type parameters, instantiate them all to Object.
          */
 
@@ -238,7 +249,8 @@ public final class EIIdentitiesReflective
       .orElseThrow(() -> new NotApplicable("No EIProtocolToModel method"));
   }
 
-  private static final class NotApplicable extends RuntimeException {
+  private static final class NotApplicable extends RuntimeException
+  {
     private NotApplicable(
       final String message)
     {
