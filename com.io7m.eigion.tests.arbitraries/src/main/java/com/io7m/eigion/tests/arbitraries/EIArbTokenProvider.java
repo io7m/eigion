@@ -53,7 +53,7 @@ public final class EIArbTokenProvider extends EIArbAbstractProvider
     final var hex =
       Arbitraries.strings()
         .ofMinLength(1)
-        .ofMaxLength(256)
+        .ofMaxLength(64)
         .withChars("ABCDEF0123456789");
 
     return Set.of(

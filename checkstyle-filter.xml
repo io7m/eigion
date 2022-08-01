@@ -18,6 +18,8 @@
   <!-- Without pattern matching... -->
   <suppress files="EIACommandExecutor\.java"
             checks="NPathComplexity"/>
+  <suppress files="EIPCommandExecutor\.java"
+            checks="NPathComplexity"/>
 
   <!-- Bytes to strings -->
   <suppress files="EIDomainCheck\.java"

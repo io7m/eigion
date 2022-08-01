@@ -26,7 +26,6 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Testcontainers(disabledWithoutDocker = true)
 public final class EIServerAdminAPIAuditTest extends EIServerContract
@@ -50,7 +49,7 @@ public final class EIServerAdminAPIAuditTest extends EIServerContract
     this.doLoginAdmin("someone", "12345678");
 
     final var rGet =
-      this.postAdminText("/admin/1/0/command", """
+      this.msgSendAdminText("/admin/1/0/command", """
         {
           "%Type": "CommandAuditGet",
           "FromInclusive": "2022-07-01T00:00:00Z",
@@ -72,7 +71,7 @@ public final class EIServerAdminAPIAuditTest extends EIServerContract
     assertEquals(200, rGet.statusCode());
 
     final var rm =
-      this.parseAdmin(rGet, EISA1ResponseAuditGet.class);
+      this.msgParseAdmin(rGet, EISA1ResponseAuditGet.class);
 
     assertEquals(2, rm.events().size());
   }
@@ -96,7 +95,7 @@ public final class EIServerAdminAPIAuditTest extends EIServerContract
     this.doLoginAdmin("someone-else", "12345678");
 
     final var rGet =
-      this.postAdminText("/admin/1/0/command", """
+      this.msgSendAdminText("/admin/1/0/command", """
         {
           "%Type": "CommandAuditGet",
           "FromInclusive": "2022-07-01T00:00:00Z",
@@ -118,7 +117,7 @@ public final class EIServerAdminAPIAuditTest extends EIServerContract
     assertEquals(403, rGet.statusCode());
 
     final var rm =
-      this.parseAdmin(rGet, EISA1ResponseError.class);
+      this.msgParseAdmin(rGet, EISA1ResponseError.class);
 
     assertEquals("You do not have the AUDIT_READ permission.", rm.message());
   }

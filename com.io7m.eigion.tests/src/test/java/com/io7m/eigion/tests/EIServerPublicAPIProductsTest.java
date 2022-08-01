@@ -30,7 +30,6 @@ import java.util.UUID;
 
 import static com.io7m.eigion.server.database.api.EIServerDatabaseRole.EIGION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Testcontainers(disabledWithoutDocker = true)
 public final class EIServerPublicAPIProductsTest extends EIServerContract
@@ -54,7 +53,7 @@ public final class EIServerPublicAPIProductsTest extends EIServerContract
 
     {
       final var r =
-        this.postPublicBytes(
+        this.msgSendPublicBytes(
           "/public/1/0/login",
           this.messagesPublicV1().serialize(
             new EISP1CommandLogin("someone", "12345678"))
@@ -64,10 +63,10 @@ public final class EIServerPublicAPIProductsTest extends EIServerContract
 
     {
       final var rk =
-        this.getPublic("/public/1/0/products/get");
+        this.msgGetPublic("/public/1/0/products/get");
       assertEquals(200, rk.statusCode());
       final var pk =
-        this.parsePublic(rk, EISP1ResponseProductList.class);
+        this.msgParsePublic(rk, EISP1ResponseProductList.class);
     }
   }
 
@@ -90,7 +89,7 @@ public final class EIServerPublicAPIProductsTest extends EIServerContract
 
     {
       final var r =
-        this.postPublicBytes(
+        this.msgSendPublicBytes(
           "/public/1/0/login",
           this.messagesPublicV1().serialize(
             new EISP1CommandLogin("someone", "12345678"))
@@ -100,7 +99,7 @@ public final class EIServerPublicAPIProductsTest extends EIServerContract
 
     {
       final var rk =
-        this.getPublic("/public/1/0/products/get?start=x");
+        this.msgGetPublic("/public/1/0/products/get?start=x");
       assertEquals(400, rk.statusCode());
     }
   }
@@ -128,7 +127,7 @@ public final class EIServerPublicAPIProductsTest extends EIServerContract
 
     {
       final var r =
-        this.postPublicBytes(
+        this.msgSendPublicBytes(
           "/public/1/0/login",
           this.messagesPublicV1().serialize(
             new EISP1CommandLogin("someone", "12345678"))
@@ -138,10 +137,10 @@ public final class EIServerPublicAPIProductsTest extends EIServerContract
 
     {
       final var rk =
-        this.getPublic("/public/1/0/products/get");
+        this.msgGetPublic("/public/1/0/products/get");
       assertEquals(200, rk.statusCode());
       final var pk =
-        this.parsePublic(rk, EISP1ResponseProductList.class);
+        this.msgParsePublic(rk, EISP1ResponseProductList.class);
 
       assertEquals(1, pk.products().size());
       assertEquals(product.group().value(), pk.products().get(0).group());

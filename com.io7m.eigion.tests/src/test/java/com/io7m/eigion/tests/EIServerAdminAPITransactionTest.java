@@ -23,7 +23,6 @@ import org.slf4j.LoggerFactory;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Testcontainers(disabledWithoutDocker = true)
 public final class EIServerAdminAPITransactionTest extends EIServerContract
@@ -44,7 +43,7 @@ public final class EIServerAdminAPITransactionTest extends EIServerContract
     this.serverStartIfNecessary();
 
     final var response =
-      this.getAdmin("/admin/1/0");
+      this.msgGetAdmin("/admin/1/0");
 
     assertEquals(200, response.statusCode());
 
@@ -69,7 +68,7 @@ public final class EIServerAdminAPITransactionTest extends EIServerContract
     this.doLoginAdmin("someone", "12345678");
 
     final var rCreate =
-      this.postAdminText("/admin/1/0/transaction", """
+      this.msgSendAdminText("/admin/1/0/transaction", """
         {
           "%Type": "Transaction",
           "%Schema":"https://www.io7m.com/eigion/admin-1.json",
@@ -101,7 +100,7 @@ public final class EIServerAdminAPITransactionTest extends EIServerContract
     assertEquals(400, rCreate.statusCode());
 
     final var rGet =
-      this.postAdminText("/admin/1/0/command", """
+      this.msgSendAdminText("/admin/1/0/command", """
         {
           "%Type": "CommandUserGetByName",
           "Name": "someone-3"
@@ -128,7 +127,7 @@ public final class EIServerAdminAPITransactionTest extends EIServerContract
     this.doLoginAdmin("someone", "12345678");
 
     final var rCreate =
-      this.postAdminText("/admin/1/0/transaction", """
+      this.msgSendAdminText("/admin/1/0/transaction", """
         {
           "%Type": "Transaction",
           "%Schema":"https://www.io7m.com/eigion/admin-1.json",
@@ -150,7 +149,7 @@ public final class EIServerAdminAPITransactionTest extends EIServerContract
     assertEquals(200, rCreate.statusCode());
 
     final var rGet =
-      this.postAdminText("/admin/1/0/command", """
+      this.msgSendAdminText("/admin/1/0/command", """
         {
           "%Type": "CommandUserGetByName",
           "Name": "someone-3"

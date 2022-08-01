@@ -20,13 +20,19 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
-// CHECKSTYLE:OFF
+/**
+ * A request to list group creation requests.
+ */
 
 @JsonDeserialize
 @JsonSerialize
 public record EISP1CommandGroupCreateRequests()
   implements EISP1CommandType
 {
+  /**
+   * A request to list group creation requests.
+   */
+
   @JsonCreator
   public EISP1CommandGroupCreateRequests
   {

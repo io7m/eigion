@@ -17,9 +17,11 @@
 package com.io7m.eigion.pike.internal;
 
 import com.io7m.eigion.model.EIGroupCreationRequest;
+import com.io7m.eigion.model.EIGroupInvite;
 import com.io7m.eigion.model.EIGroupName;
 import com.io7m.eigion.model.EIGroupRoles;
 import com.io7m.eigion.model.EIToken;
+import com.io7m.eigion.model.EIUserDisplayName;
 import com.io7m.eigion.pike.api.EIPClientException;
 import com.io7m.eigion.pike.api.EIPClientType;
 import com.io7m.eigion.pike.api.EIPGroupCreationChallenge;
@@ -29,6 +31,7 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 
 /**
  * The default client implementation.
@@ -123,5 +126,37 @@ public final class EIPClient implements EIPClientType
     throws EIPClientException, InterruptedException
   {
     return this.handler.groups();
+  }
+
+  @Override
+  public void groupInvite(
+    final EIGroupName group,
+    final UUID user)
+    throws EIPClientException, InterruptedException
+  {
+    this.handler.groupInvite(group, user);
+  }
+
+  @Override
+  public void groupInviteByName(
+    final EIGroupName group,
+    final EIUserDisplayName user)
+    throws EIPClientException, InterruptedException
+  {
+    this.handler.groupInviteByName(group, user);
+  }
+
+  @Override
+  public List<EIGroupInvite> groupInvitesSent()
+    throws EIPClientException, InterruptedException
+  {
+    return this.handler.groupInvitesSent();
+  }
+
+  @Override
+  public List<EIGroupInvite> groupInvitesReceived()
+    throws EIPClientException, InterruptedException
+  {
+    return this.handler.groupInvitesReceived();
   }
 }

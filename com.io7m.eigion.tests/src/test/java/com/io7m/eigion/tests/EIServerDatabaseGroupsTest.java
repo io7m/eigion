@@ -23,10 +23,13 @@ import com.io7m.eigion.model.EIGroupCreationRequestStatusType.Failed;
 import com.io7m.eigion.model.EIGroupCreationRequestStatusType.InProgress;
 import com.io7m.eigion.model.EIGroupCreationRequestStatusType.Succeeded;
 import com.io7m.eigion.model.EIGroupName;
+import com.io7m.eigion.model.EIGroupRole;
 import com.io7m.eigion.model.EIGroupRoles;
 import com.io7m.eigion.model.EIPasswordException;
 import com.io7m.eigion.model.EIToken;
 import com.io7m.eigion.model.EIUser;
+import com.io7m.eigion.model.EIUserDisplayName;
+import com.io7m.eigion.model.EIUserEmail;
 import com.io7m.eigion.server.database.api.EIServerDatabaseException;
 import com.io7m.eigion.server.database.api.EIServerDatabaseGroupsQueriesType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseTransactionType;
@@ -43,6 +46,7 @@ import static com.io7m.eigion.model.EIGroupRole.FOUNDER;
 import static com.io7m.eigion.server.database.api.EIServerDatabaseRole.EIGION;
 import static java.lang.Thread.sleep;
 import static java.time.OffsetDateTime.now;
+import static java.util.EnumSet.allOf;
 import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -52,8 +56,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @Testcontainers(disabledWithoutDocker = true)
 public final class EIServerDatabaseGroupsTest extends EIWithDatabaseContract
 {
-  private static EIUser createUser(
-    final EIServerDatabaseTransactionType transaction)
+  private static EIUser createUserWithName(
+    final EIServerDatabaseTransactionType transaction,
+    final String name)
     throws EIServerDatabaseException, EIPasswordException
   {
     final var users =
@@ -68,11 +73,18 @@ public final class EIServerDatabaseGroupsTest extends EIWithDatabaseContract
 
     return users.userCreate(
       reqId,
-      "someone",
-      "someone@example.com",
+      new EIUserDisplayName(name),
+      new EIUserEmail(name + "@example.com"),
       now,
       password
     );
+  }
+
+  private static EIUser createUser(
+    final EIServerDatabaseTransactionType transaction)
+    throws EIServerDatabaseException, EIPasswordException
+  {
+    return createUserWithName(transaction, "someone");
   }
 
   /**
@@ -330,7 +342,7 @@ public final class EIServerDatabaseGroupsTest extends EIWithDatabaseContract
         groups.groupCreationRequestsForUser(user.id()).get(0);
       final var after1 =
         groups.groupCreationRequest(request.token())
-            .orElseThrow();
+          .orElseThrow();
 
       assertEquals(
         Succeeded.class,
@@ -846,5 +858,99 @@ public final class EIServerDatabaseGroupsTest extends EIWithDatabaseContract
       assertEquals(request4.token(), requests.get(1).token());
       assertEquals(2, requests.size());
     }
+  }
+
+  /**
+   * Group invites can be created.
+   *
+   * @throws Exception On errors
+   */
+
+  @Test
+  public void testGroupInvites()
+    throws Exception
+  {
+    assertTrue(this.containerIsRunning());
+
+    final var adminId =
+      this.databaseCreateAdminInitial("someone", "12345678");
+
+    final var transaction =
+      this.transactionOf(EIGION);
+
+    transaction.adminIdSet(adminId);
+
+    final var user0 =
+      createUserWithName(transaction, "someone0");
+    final var user1 =
+      createUserWithName(transaction, "someone1");
+
+    final var groups =
+      transaction.queries(EIServerDatabaseGroupsQueriesType.class);
+
+    final var groupName =
+      new EIGroupName("com.io7m.eigion.test");
+
+    groups.groupCreate(groupName, user0.id());
+    groups.groupMembershipSet(groupName, user0.id(), allOf(EIGroupRole.class));
+
+    transaction.userIdSet(user0.id());
+    transaction.commit();
+    transaction.userIdSet(user0.id());
+
+    final var invitesBefore =
+      groups.groupInvitesCreatedByUser();
+    assertEquals(List.of(), invitesBefore);
+
+    final var invite0 =
+      groups.groupInvite(groupName, user1.id());
+    final var invite1 =
+      groups.groupInvite(groupName, user1.id());
+    final var invites =
+      groups.groupInvitesCreatedByUser();
+
+    assertEquals(invite0, invite1);
+    assertEquals(List.of(invite0), invites);
+  }
+
+  /**
+   * A user cannot invite itself.
+   *
+   * @throws Exception On errors
+   */
+
+  @Test
+  public void testGroupInvitesUsersSame()
+    throws Exception
+  {
+    assertTrue(this.containerIsRunning());
+
+    final var adminId =
+      this.databaseCreateAdminInitial("someone", "12345678");
+
+    final var transaction =
+      this.transactionOf(EIGION);
+
+    transaction.adminIdSet(adminId);
+
+    final var user0 =
+      createUserWithName(transaction, "someone0");
+
+    final var groups =
+      transaction.queries(EIServerDatabaseGroupsQueriesType.class);
+
+    final var groupName =
+      new EIGroupName("com.io7m.eigion.test");
+
+    groups.groupCreate(groupName, user0.id());
+    groups.groupMembershipSet(groupName, user0.id(), allOf(EIGroupRole.class));
+
+    transaction.userIdSet(user0.id());
+
+    final var ex =
+      assertThrows(EIServerDatabaseException.class, () -> {
+        groups.groupInvite(groupName, user0.id());
+      });
+    assertEquals("group-inviter-invitee", ex.errorCode());
   }
 }

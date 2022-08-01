@@ -18,9 +18,11 @@
 package com.io7m.eigion.pike.internal;
 
 import com.io7m.eigion.model.EIGroupCreationRequest;
+import com.io7m.eigion.model.EIGroupInvite;
 import com.io7m.eigion.model.EIGroupName;
 import com.io7m.eigion.model.EIGroupRoles;
 import com.io7m.eigion.model.EIToken;
+import com.io7m.eigion.model.EIUserDisplayName;
 import com.io7m.eigion.pike.api.EIPClientException;
 import com.io7m.eigion.pike.api.EIPGroupCreationChallenge;
 
@@ -28,6 +30,7 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 
 /**
  * The "disconnected" protocol handler.
@@ -105,6 +108,38 @@ public final class EIPClientProtocolHandlerDisconnected
 
   @Override
   public List<EIGroupRoles> groups()
+    throws EIPClientException
+  {
+    throw this.notLoggedIn();
+  }
+
+  @Override
+  public void groupInvite(
+    final EIGroupName group,
+    final UUID user)
+    throws EIPClientException
+  {
+    throw this.notLoggedIn();
+  }
+
+  @Override
+  public void groupInviteByName(
+    final EIGroupName group,
+    final EIUserDisplayName user)
+    throws EIPClientException
+  {
+    throw this.notLoggedIn();
+  }
+
+  @Override
+  public List<EIGroupInvite> groupInvitesSent()
+    throws EIPClientException
+  {
+    throw this.notLoggedIn();
+  }
+
+  @Override
+  public List<EIGroupInvite> groupInvitesReceived()
     throws EIPClientException
   {
     throw this.notLoggedIn();

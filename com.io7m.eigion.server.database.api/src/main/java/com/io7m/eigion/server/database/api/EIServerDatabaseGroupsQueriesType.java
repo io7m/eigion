@@ -17,6 +17,7 @@
 package com.io7m.eigion.server.database.api;
 
 import com.io7m.eigion.model.EIGroupCreationRequest;
+import com.io7m.eigion.model.EIGroupInvite;
 import com.io7m.eigion.model.EIGroupName;
 import com.io7m.eigion.model.EIGroupRole;
 import com.io7m.eigion.model.EIGroupRoles;
@@ -183,5 +184,46 @@ public non-sealed interface EIServerDatabaseGroupsQueriesType
    */
 
   boolean groupExists(EIGroupName name)
+    throws EIServerDatabaseException;
+
+  /**
+   * Invite the given user into the given group.
+   *
+   * @param group  The group
+   * @param userId The user to be invited
+   *
+   * @return The new invite
+   *
+   * @throws EIServerDatabaseException On errors
+   */
+
+  @EIServerDatabaseRequiresUser
+  EIGroupInvite groupInvite(
+    EIGroupName group,
+    UUID userId)
+    throws EIServerDatabaseException;
+
+  /**
+   * Get the list of invites created by the given user.
+   *
+   * @return the list of invites
+   *
+   * @throws EIServerDatabaseException On errors
+   */
+
+  @EIServerDatabaseRequiresUser
+  List<EIGroupInvite> groupInvitesCreatedByUser()
+    throws EIServerDatabaseException;
+
+  /**
+   * Get the list of invites received by the given user.
+   *
+   * @return the list of invites
+   *
+   * @throws EIServerDatabaseException On errors
+   */
+
+  @EIServerDatabaseRequiresUser
+  List<EIGroupInvite> groupInvitesReceivedByUser()
     throws EIServerDatabaseException;
 }

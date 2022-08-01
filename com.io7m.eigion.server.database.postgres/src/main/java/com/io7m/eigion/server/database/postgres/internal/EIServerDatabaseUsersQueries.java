@@ -46,6 +46,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static com.io7m.eigion.server.database.postgres.internal.EIServerDatabaseExceptions.handleDatabaseException;
@@ -60,6 +61,13 @@ final class EIServerDatabaseUsersQueries
   extends EIBaseQueries
   implements EIServerDatabaseUsersQueriesType
 {
+  private static final Supplier<EIServerDatabaseException> USER_DOES_NOT_EXIST = () -> {
+    return new EIServerDatabaseException(
+      "User does not exist",
+      "user-nonexistent"
+    );
+  };
+
   EIServerDatabaseUsersQueries(
     final EIServerDatabaseTransaction inTransaction)
   {
@@ -130,7 +138,7 @@ final class EIServerDatabaseUsersQueries
       context.select()
         .from(GROUP_USERS)
         .join(GROUPS)
-        .on(GROUPS.ID.eq(GROUP_USERS.GROUP_ID))
+        .on(GROUPS.NAME.eq(GROUP_USERS.GROUP_NAME))
         .where(GROUP_USERS.USER_ID.eq(id))
         .fetch();
 
@@ -151,8 +159,8 @@ final class EIServerDatabaseUsersQueries
   @EIServerDatabaseRequiresAdmin
   public EIUser userCreate(
     final UUID id,
-    final String userName,
-    final String email,
+    final EIUserDisplayName userName,
+    final EIUserEmail email,
     final OffsetDateTime created,
     final EIPassword password)
     throws EIServerDatabaseException
@@ -182,7 +190,7 @@ final class EIServerDatabaseUsersQueries
 
       {
         final var existing =
-          context.fetchOptional(USERS, USERS.NAME.eq(userName));
+          context.fetchOptional(USERS, USERS.NAME.eq(userName.value()));
         if (existing.isPresent()) {
           throw new EIServerDatabaseException(
             "User name already exists",
@@ -193,7 +201,7 @@ final class EIServerDatabaseUsersQueries
 
       {
         final var existing =
-          context.fetchOptional(USERS, USERS.EMAIL.eq(email));
+          context.fetchOptional(USERS, USERS.EMAIL.eq(email.value()));
         if (existing.isPresent()) {
           throw new EIServerDatabaseException(
             "Email already exists",
@@ -211,8 +219,8 @@ final class EIServerDatabaseUsersQueries
       final var userCreate =
         context.insertInto(USERS)
           .set(USERS.ID, id)
-          .set(USERS.NAME, userName)
-          .set(USERS.EMAIL, email)
+          .set(USERS.NAME, userName.value())
+          .set(USERS.EMAIL, email.value())
           .set(USERS.CREATED, created)
           .set(USERS.LAST_LOGIN_TIME, created)
           .set(USERS.PASSWORD_ALGO, password.algorithm().identifier())
@@ -259,8 +267,16 @@ final class EIServerDatabaseUsersQueries
   }
 
   @Override
+  public EIUser userGetRequire(
+    final UUID id)
+    throws EIServerDatabaseException
+  {
+    return this.userGet(id).orElseThrow(USER_DOES_NOT_EXIST);
+  }
+
+  @Override
   public Optional<EIUser> userGetForName(
-    final String name)
+    final EIUserDisplayName name)
     throws EIServerDatabaseException
   {
     Objects.requireNonNull(name, "name");
@@ -268,7 +284,7 @@ final class EIServerDatabaseUsersQueries
     final var context = this.transaction().createContext();
     try {
       final var record =
-        context.fetchOptional(USERS, USERS.NAME.eq(name));
+        context.fetchOptional(USERS, USERS.NAME.eq(name.value()));
       final var memberships =
         record.map(r -> userGetGroupMemberships(context, r.getId()))
           .orElse(Map.of());
@@ -282,8 +298,16 @@ final class EIServerDatabaseUsersQueries
   }
 
   @Override
+  public EIUser userGetForNameRequire(
+    final EIUserDisplayName name)
+    throws EIServerDatabaseException
+  {
+    return this.userGetForName(name).orElseThrow(USER_DOES_NOT_EXIST);
+  }
+
+  @Override
   public Optional<EIUser> userGetForEmail(
-    final String email)
+    final EIUserEmail email)
     throws EIServerDatabaseException
   {
     Objects.requireNonNull(email, "email");
@@ -291,7 +315,7 @@ final class EIServerDatabaseUsersQueries
     final var context = this.transaction().createContext();
     try {
       final var record =
-        context.fetchOptional(USERS, USERS.EMAIL.eq(email));
+        context.fetchOptional(USERS, USERS.EMAIL.eq(email.value()));
       final var memberships =
         record.map(r -> userGetGroupMemberships(context, r.getId()))
           .orElse(Map.of());
@@ -302,6 +326,14 @@ final class EIServerDatabaseUsersQueries
     } catch (final EIPasswordException e) {
       throw handlePasswordException(e);
     }
+  }
+
+  @Override
+  public EIUser userGetForEmailRequire(
+    final EIUserEmail email)
+    throws EIServerDatabaseException
+  {
+    return this.userGetForEmail(email).orElseThrow(USER_DOES_NOT_EXIST);
   }
 
   @Override

@@ -23,7 +23,12 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 import java.util.Objects;
 
-// CHECKSTYLE:OFF
+/**
+ * A request to log in.
+ *
+ * @param userName The username
+ * @param password The password
+ */
 
 @JsonDeserialize
 @JsonSerialize
@@ -34,6 +39,13 @@ public record EISP1CommandLogin(
   String password)
   implements EISP1CommandType
 {
+  /**
+   * A request to log in.
+   *
+   * @param userName The username
+   * @param password The password
+   */
+
   @JsonCreator
   public EISP1CommandLogin
   {

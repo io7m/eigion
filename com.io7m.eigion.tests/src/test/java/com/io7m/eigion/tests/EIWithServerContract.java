@@ -20,6 +20,8 @@ import com.io7m.eigion.model.EIGroupPrefix;
 import com.io7m.eigion.model.EIPassword;
 import com.io7m.eigion.model.EIPasswordAlgorithmPBKDF2HmacSHA256;
 import com.io7m.eigion.model.EIPasswordException;
+import com.io7m.eigion.model.EIUserDisplayName;
+import com.io7m.eigion.model.EIUserEmail;
 import com.io7m.eigion.server.api.EIServerConfiguration;
 import com.io7m.eigion.server.api.EIServerException;
 import com.io7m.eigion.server.api.EIServerType;
@@ -105,8 +107,8 @@ public abstract class EIWithServerContract
         final var userId = UUID.randomUUID();
         users.userCreate(
           userId,
-          name,
-          "%s@example.com".formatted(name),
+          new EIUserDisplayName(name),
+          new EIUserEmail("%s@example.com".formatted(name)),
           timeNow(),
           createBadPassword()
         );

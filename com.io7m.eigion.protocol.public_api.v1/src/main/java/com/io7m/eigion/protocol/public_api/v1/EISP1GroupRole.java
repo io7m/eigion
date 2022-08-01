@@ -27,6 +27,18 @@ import com.io7m.eigion.protocol.api.EIProtocolToModel;
 public enum EISP1GroupRole
 {
   /**
+   * The user may invite users to the group.
+   */
+
+  USER_INVITE,
+
+  /**
+   * The user may dismiss users from the group.
+   */
+
+  USER_DISMISS,
+
+  /**
    * The user is the founder of the group.
    */
 
@@ -40,6 +52,8 @@ public enum EISP1GroupRole
   public EIGroupRole toRole()
   {
     return switch (this) {
+      case USER_INVITE -> EIGroupRole.USER_INVITE;
+      case USER_DISMISS -> EIGroupRole.USER_DISMISS;
       case FOUNDER -> EIGroupRole.FOUNDER;
     };
   }
@@ -55,6 +69,8 @@ public enum EISP1GroupRole
     final EIGroupRole role)
   {
     return switch (role) {
+      case USER_INVITE -> USER_INVITE;
+      case USER_DISMISS -> USER_DISMISS;
       case FOUNDER -> FOUNDER;
     };
   }

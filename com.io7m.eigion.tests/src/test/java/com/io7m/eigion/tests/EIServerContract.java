@@ -16,16 +16,18 @@
 
 package com.io7m.eigion.tests;
 
-import com.io7m.eigion.domaincheck.api.EIDomainCheckerFactoryType;
 import com.io7m.eigion.model.EIAdminPermission;
+import com.io7m.eigion.model.EIGroupName;
 import com.io7m.eigion.model.EIGroupPrefix;
+import com.io7m.eigion.model.EIGroupRole;
 import com.io7m.eigion.model.EIPassword;
 import com.io7m.eigion.model.EIPasswordAlgorithmPBKDF2HmacSHA256;
 import com.io7m.eigion.model.EIPasswordException;
+import com.io7m.eigion.model.EIUserDisplayName;
+import com.io7m.eigion.model.EIUserEmail;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandLogin;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1Messages;
 import com.io7m.eigion.protocol.api.EIProtocolException;
-import com.io7m.eigion.protocol.public_api.v1.EISP1MessageType;
 import com.io7m.eigion.protocol.public_api.v1.EISP1Messages;
 import com.io7m.eigion.protocol.versions.EISVMessages;
 import com.io7m.eigion.server.api.EIServerClosed;
@@ -40,6 +42,7 @@ import com.io7m.eigion.server.api.EIServerUserLoggedIn;
 import com.io7m.eigion.server.database.api.EIServerDatabaseAdminsQueriesType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseConfiguration;
 import com.io7m.eigion.server.database.api.EIServerDatabaseException;
+import com.io7m.eigion.server.database.api.EIServerDatabaseGroupsQueriesType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseUsersQueriesType;
 import com.io7m.eigion.server.database.postgres.EIServerDatabases;
 import com.io7m.eigion.server.vanilla.EIServers;
@@ -54,9 +57,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.net.CookieManager;
 import java.net.InetSocketAddress;
-import java.net.URI;
 import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.file.Path;
 import java.time.Clock;
@@ -69,6 +70,7 @@ import java.util.UUID;
 import java.util.concurrent.Flow;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import static com.io7m.eigion.model.EIGroupRole.FOUNDER;
 import static com.io7m.eigion.server.database.api.EIServerDatabaseCreate.CREATE_DATABASE;
 import static com.io7m.eigion.server.database.api.EIServerDatabaseRole.EIGION;
 import static com.io7m.eigion.server.database.api.EIServerDatabaseUpgrade.UPGRADE_DATABASE;
@@ -78,6 +80,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Testcontainers(disabledWithoutDocker = true)
 public abstract class EIServerContract
+  implements EIServerPublicMessengerType, EIServerAdminMessengerType
 {
   private static final Logger LOG =
     LoggerFactory.getLogger(EIServerContract.class);
@@ -137,6 +140,24 @@ public abstract class EIServerContract
     return OffsetDateTime.now(Clock.systemUTC()).withNano(0);
   }
 
+  @Override
+  public final Logger msgLogger()
+  {
+    return LOG;
+  }
+
+  @Override
+  public final HttpClient msgHttpClient()
+  {
+    return this.httpClient;
+  }
+
+  @Override
+  public final EISP1Messages msgPublic()
+  {
+    return this.messagesPublicV1;
+  }
+
   protected final EIFakeStorageFactory storage()
   {
     return this.storage;
@@ -157,7 +178,10 @@ public abstract class EIServerContract
     return this.messagesV;
   }
 
-  protected final EIFakeDomainCheckers domainCheckers() { return  this.domainCheckers; }
+  protected final EIFakeDomainCheckers domainCheckers()
+  {
+    return this.domainCheckers;
+  }
 
   protected final UUID createUserSomeone(
     final UUID adminId)
@@ -181,8 +205,8 @@ public abstract class EIServerContract
         final var userId = UUID.randomUUID();
         users.userCreate(
           userId,
-          name,
-          name + "@example.com",
+          new EIUserDisplayName(name),
+          new EIUserEmail(name + "@example.com"),
           timeNow(),
           createBadPassword()
         );
@@ -190,6 +214,32 @@ public abstract class EIServerContract
         return userId;
       }
     }
+  }
+
+  protected final EIGroupName createGroup(
+    final UUID userFounder,
+    final String name)
+    throws EIServerDatabaseException, EIPasswordException
+  {
+    final var database = this.databases.mostRecent();
+    try (var connection = database.openConnection(EIGION)) {
+      try (var transaction = connection.openTransaction()) {
+        final var groups =
+          transaction.queries(EIServerDatabaseGroupsQueriesType.class);
+
+        final var groupName = new EIGroupName(name);
+        groups.groupCreate(groupName, userFounder);
+        groups.groupMembershipSet(groupName, userFounder, Set.of(FOUNDER));
+        transaction.commit();
+        return groupName;
+      }
+    }
+  }
+
+  @Override
+  public EISA1Messages msgAdmin()
+  {
+    return this.messagesAdminV1;
   }
 
   public final CookieManager cookies()
@@ -336,112 +386,6 @@ public abstract class EIServerContract
     );
   }
 
-  protected final HttpResponse<byte[]> postPublicText(
-    final String endpoint,
-    final String text)
-    throws Exception
-  {
-    return this.postPublicBytes(
-      endpoint, text.getBytes(UTF_8)
-    );
-  }
-
-  protected final HttpResponse<byte[]> postPublicBytes(
-    final String endpoint,
-    final byte[] text)
-    throws Exception
-  {
-    final var request =
-      HttpRequest.newBuilder()
-        .POST(HttpRequest.BodyPublishers.ofByteArray(text))
-        .uri(URI.create("http://localhost:40001" + endpoint))
-        .build();
-
-    return this.httpClient.send(
-      request,
-      HttpResponse.BodyHandlers.ofByteArray()
-    );
-  }
-
-  protected final HttpResponse<byte[]> getPublic(
-    final String endpoint)
-    throws Exception
-  {
-    final var request =
-      HttpRequest.newBuilder()
-        .GET()
-        .uri(URI.create("http://localhost:40001" + endpoint))
-        .build();
-
-    return this.httpClient.send(
-      request,
-      HttpResponse.BodyHandlers.ofByteArray()
-    );
-  }
-
-  protected final <T extends EISP1MessageType> T parsePublic(
-    final HttpResponse<byte[]> response,
-    final Class<T> clazz)
-    throws EIProtocolException
-  {
-    final var bodyText = response.body();
-    LOG.debug("received: {}", new String(bodyText, UTF_8));
-    return clazz.cast(this.messagesPublicV1().parse(bodyText));
-  }
-
-  protected final HttpResponse<byte[]> postAdminText(
-    final String endpoint,
-    final String text)
-    throws Exception
-  {
-    return this.postAdminBytes(
-      endpoint, text.getBytes(UTF_8)
-    );
-  }
-
-  protected final HttpResponse<byte[]> postAdminBytes(
-    final String endpoint,
-    final byte[] text)
-    throws Exception
-  {
-    final var request =
-      HttpRequest.newBuilder()
-        .POST(HttpRequest.BodyPublishers.ofByteArray(text))
-        .uri(URI.create("http://localhost:40000" + endpoint))
-        .build();
-
-    return this.httpClient.send(
-      request,
-      HttpResponse.BodyHandlers.ofByteArray()
-    );
-  }
-
-  protected final HttpResponse<byte[]> getAdmin(
-    final String endpoint)
-    throws Exception
-  {
-    final var request =
-      HttpRequest.newBuilder()
-        .GET()
-        .uri(URI.create("http://localhost:40000" + endpoint))
-        .build();
-
-    return this.httpClient.send(
-      request,
-      HttpResponse.BodyHandlers.ofByteArray()
-    );
-  }
-
-  protected final <T> T parseAdmin(
-    final HttpResponse<byte[]> response,
-    final Class<T> clazz)
-    throws EIProtocolException
-  {
-    final var bodyText = response.body();
-    LOG.debug("received: {}", new String(bodyText, UTF_8));
-    return clazz.cast(this.messagesAdminV1().parse(bodyText));
-  }
-
   protected final <T> T parseV(
     final HttpResponse<byte[]> response,
     final Class<T> clazz)
@@ -458,7 +402,7 @@ public abstract class EIServerContract
     throws Exception
   {
     final var r =
-      this.postAdminBytes(
+      this.msgSendAdminBytes(
         "/admin/1/0/login",
         this.messagesAdminV1().serialize(
           new EISA1CommandLogin(user, pass))
@@ -546,6 +490,25 @@ public abstract class EIServerContract
       } catch (final EIServerException e) {
         this.started.set(false);
         throw new IllegalStateException(e);
+      }
+    }
+  }
+
+  protected final void setGroupRoles(
+    final UUID user,
+    final String groupName,
+    final Set<EIGroupRole> roles)
+    throws Exception
+  {
+    this.serverStartIfNecessary();
+
+    final var database = this.databases.mostRecent();
+    try (var c = database.openConnection(EIGION)) {
+      try (var t = c.openTransaction()) {
+        final var q =
+          t.queries(EIServerDatabaseGroupsQueriesType.class);
+        q.groupMembershipSet(new EIGroupName(groupName), user, roles);
+        t.commit();
       }
     }
   }

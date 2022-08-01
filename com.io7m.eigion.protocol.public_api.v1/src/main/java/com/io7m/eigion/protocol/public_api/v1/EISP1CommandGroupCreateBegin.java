@@ -23,7 +23,11 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 import java.util.Objects;
 
-// CHECKSTYLE:OFF
+/**
+ * A request to start the creation of a group.
+ *
+ * @param groupName The desired group name
+ */
 
 @JsonDeserialize
 @JsonSerialize
@@ -32,6 +36,12 @@ public record EISP1CommandGroupCreateBegin(
   String groupName)
   implements EISP1CommandType
 {
+  /**
+   * A request to start the creation of a group.
+   *
+   * @param groupName The desired group name
+   */
+
   @JsonCreator
   public EISP1CommandGroupCreateBegin
   {

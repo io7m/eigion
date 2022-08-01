@@ -14,7 +14,6 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-
 package com.io7m.eigion.protocol.public_api.v1;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -76,9 +75,17 @@ public final class EISP1Messages
         .allowClass(EISP1CommandGroupCreateCancel.class)
         .allowClass(EISP1CommandGroupCreateReady.class)
         .allowClass(EISP1CommandGroupCreateRequests.class)
+        .allowClass(EISP1CommandGroupInvite.class)
+        .allowClass(EISP1CommandGroupInviteByName.class)
+        .allowClass(EISP1CommandGroupInviteRespond.class)
+        .allowClass(EISP1CommandGroupInvitesReceived.class)
+        .allowClass(EISP1CommandGroupInvitesSent.class)
+        .allowClass(EISP1CommandGroupLeave.class)
         .allowClass(EISP1CommandGroups.class)
         .allowClass(EISP1CommandLogin.class)
         .allowClass(EISP1GroupCreationRequest.class)
+        .allowClass(EISP1GroupInvite.class)
+        .allowClass(EISP1GroupInviteStatus.class)
         .allowClass(EISP1GroupRole.class)
         .allowClass(EISP1GroupRoles.class)
         .allowClass(EISP1Hash.class)
@@ -89,6 +96,10 @@ public final class EISP1Messages
         .allowClass(EISP1ResponseGroupCreateCancel.class)
         .allowClass(EISP1ResponseGroupCreateReady.class)
         .allowClass(EISP1ResponseGroupCreateRequests.class)
+        .allowClass(EISP1ResponseGroupInvite.class)
+        .allowClass(EISP1ResponseGroupInviteRespond.class)
+        .allowClass(EISP1ResponseGroupInvites.class)
+        .allowClass(EISP1ResponseGroupLeave.class)
         .allowClass(EISP1ResponseGroups.class)
         .allowClass(EISP1ResponseImageCreated.class)
         .allowClass(EISP1ResponseImageGet.class)
@@ -97,7 +108,9 @@ public final class EISP1Messages
         .allowClass(String.class)
         .allowClass(URI.class)
         .allowClass(UUID.class)
+        .allowClass(boolean.class)
         .allowClassName(listOf(EISP1GroupCreationRequest.class))
+        .allowClassName(listOf(EISP1GroupInvite.class))
         .allowClassName(listOf(EISP1GroupRoles.class))
         .allowClassName(listOf(EISP1ProductSummary.class))
         .allowClassName(setOf(EISP1GroupRole.class))

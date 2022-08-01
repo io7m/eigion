@@ -18,6 +18,8 @@
 package com.io7m.eigion.tests;
 
 import com.io7m.eigion.hash.EIHash;
+import com.io7m.eigion.model.EIUserDisplayName;
+import com.io7m.eigion.model.EIUserEmail;
 import com.io7m.eigion.server.database.api.EIServerDatabaseException;
 import com.io7m.eigion.server.database.api.EIServerDatabaseImagesQueriesType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseUsersQueriesType;
@@ -67,8 +69,8 @@ public final class EIServerDatabaseImagesTest extends EIWithDatabaseContract
 
     final var user =
       users.userCreate(
-        "someone",
-        "someone@example.com",
+        new EIUserDisplayName("someone"),
+        new EIUserEmail("someone@example.com"),
         databaseGenerateBadPassword());
 
     transaction.userIdSet(user.id());
@@ -134,9 +136,10 @@ public final class EIServerDatabaseImagesTest extends EIWithDatabaseContract
 
     final var user =
       users.userCreate(
-        "someone",
-        "someone@example.com",
-        databaseGenerateBadPassword());
+        new EIUserDisplayName("someone"),
+        new EIUserEmail("someone@example.com"),
+        databaseGenerateBadPassword()
+      );
 
     transaction.userIdSet(user.id());
 

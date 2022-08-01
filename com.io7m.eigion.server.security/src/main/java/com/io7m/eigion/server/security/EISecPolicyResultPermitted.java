@@ -20,7 +20,8 @@ package com.io7m.eigion.server.security;
  * An action is permitted.
  */
 
-public record EISecPolicyResultPermitted() implements EISecPolicyResultType
+public record EISecPolicyResultPermitted()
+  implements EISecPolicyResultType
 {
 
 }

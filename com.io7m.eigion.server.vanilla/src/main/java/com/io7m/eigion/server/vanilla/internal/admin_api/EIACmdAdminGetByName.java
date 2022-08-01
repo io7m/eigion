@@ -17,11 +17,11 @@
 
 package com.io7m.eigion.server.vanilla.internal.admin_api;
 
+import com.io7m.eigion.protocol.admin_api.v1.EISA1Admin;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandAdminGetByName;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1ResponseAdminGet;
-import com.io7m.eigion.protocol.admin_api.v1.EISA1Admin;
-import com.io7m.eigion.server.database.api.EIServerDatabaseException;
 import com.io7m.eigion.server.database.api.EIServerDatabaseAdminsQueriesType;
+import com.io7m.eigion.server.database.api.EIServerDatabaseException;
 import com.io7m.eigion.server.security.EISecActionAdminRead;
 import com.io7m.eigion.server.security.EISecPolicyResultDenied;
 import com.io7m.eigion.server.security.EISecurity;

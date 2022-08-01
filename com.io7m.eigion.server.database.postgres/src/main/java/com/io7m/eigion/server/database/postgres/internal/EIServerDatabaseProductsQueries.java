@@ -98,7 +98,7 @@ final class EIServerDatabaseProductsQueries
     return context.select()
       .from(PRODUCTS)
       .join(GROUPS)
-      .on(GROUPS.ID.eq(PRODUCTS.PRODUCT_GROUP))
+      .on(GROUPS.NAME.eq(PRODUCTS.PRODUCT_GROUP))
       .leftOuterJoin(PRODUCT_REDACTIONS)
       .on(PRODUCT_REDACTIONS.PRODUCT.eq(PRODUCTS.ID))
       .stream()
@@ -334,7 +334,7 @@ final class EIServerDatabaseProductsQueries
       context.select()
         .from(PRODUCTS)
         .join(GROUPS)
-        .on(GROUPS.ID.eq(PRODUCTS.PRODUCT_GROUP))
+        .on(GROUPS.NAME.eq(PRODUCTS.PRODUCT_GROUP))
         .where(GROUPS.NAME.eq(id.group().value())
                  .and(PRODUCTS.PRODUCT_NAME.eq(id.name())))
         .fetchOptional();
@@ -402,7 +402,7 @@ final class EIServerDatabaseProductsQueries
       context.select()
         .from(PRODUCTS)
         .join(GROUPS)
-        .on(GROUPS.ID.eq(PRODUCTS.PRODUCT_GROUP))
+        .on(GROUPS.NAME.eq(PRODUCTS.PRODUCT_GROUP))
         .leftOuterJoin(PRODUCT_REDACTIONS)
         .on(PRODUCT_REDACTIONS.PRODUCT.eq(PRODUCTS.ID))
         .where(
@@ -741,7 +741,7 @@ final class EIServerDatabaseProductsQueries
 
       final var inserted =
         context.insertInto(PRODUCTS)
-          .set(PRODUCTS.PRODUCT_GROUP, group.get(GROUPS.ID))
+          .set(PRODUCTS.PRODUCT_GROUP, group.get(GROUPS.NAME))
           .set(PRODUCTS.PRODUCT_NAME, id.name())
           .set(PRODUCTS.CREATED_BY, owner)
           .set(PRODUCTS.CREATED, time)
@@ -1252,7 +1252,7 @@ final class EIServerDatabaseProductsQueries
         baseQuery = context.select()
           .from(PRODUCTS)
           .join(GROUPS)
-          .on(GROUPS.ID.eq(PRODUCTS.PRODUCT_GROUP))
+          .on(GROUPS.NAME.eq(PRODUCTS.PRODUCT_GROUP))
           .leftOuterJoin(PRODUCT_REDACTIONS)
           .on(PRODUCT_REDACTIONS.PRODUCT.eq(PRODUCTS.ID))
           .where(PRODUCT_REDACTIONS.REASON.isNull())
@@ -1263,7 +1263,7 @@ final class EIServerDatabaseProductsQueries
         baseQuery = context.select()
           .from(PRODUCTS)
           .join(GROUPS)
-          .on(GROUPS.ID.eq(PRODUCTS.PRODUCT_GROUP))
+          .on(GROUPS.NAME.eq(PRODUCTS.PRODUCT_GROUP))
           .leftOuterJoin(PRODUCT_REDACTIONS)
           .on(PRODUCT_REDACTIONS.PRODUCT.eq(PRODUCTS.ID))
           .where(PRODUCT_REDACTIONS.REASON.isNull())

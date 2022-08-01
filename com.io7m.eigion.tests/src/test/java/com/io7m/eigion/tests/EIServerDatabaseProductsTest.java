@@ -34,6 +34,8 @@ import com.io7m.eigion.model.EIRedaction;
 import com.io7m.eigion.model.EIRedactionRequest;
 import com.io7m.eigion.model.EIRichText;
 import com.io7m.eigion.model.EIUser;
+import com.io7m.eigion.model.EIUserDisplayName;
+import com.io7m.eigion.model.EIUserEmail;
 import com.io7m.eigion.server.database.api.EIServerDatabaseException;
 import com.io7m.eigion.server.database.api.EIServerDatabaseGroupsQueriesType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseProductsQueriesType;
@@ -95,8 +97,8 @@ public final class EIServerDatabaseProductsTest extends EIWithDatabaseContract
 
     final var user =
       users.userCreate(
-        "someone",
-        "someone@example.com",
+        new EIUserDisplayName("someone"),
+        new EIUserEmail("someone@example.com"),
         databaseGenerateBadPassword()
       );
 
@@ -223,8 +225,8 @@ public final class EIServerDatabaseProductsTest extends EIWithDatabaseContract
 
     final var user =
       users.userCreate(
-        "someone",
-        "someone@example.com",
+        new EIUserDisplayName("someone"),
+        new EIUserEmail("someone@example.com"),
         databaseGenerateBadPassword());
 
     groups.groupCreate(id.group(), user.id());
@@ -277,8 +279,8 @@ public final class EIServerDatabaseProductsTest extends EIWithDatabaseContract
       new EIProductIdentifier(EXAMPLE_GROUP, "com.q");
     final var user =
       users.userCreate(
-        "someone",
-        "someone@example.com",
+        new EIUserDisplayName("someone"),
+        new EIUserEmail("someone@example.com"),
         databaseGenerateBadPassword());
 
     groups.groupCreate(id.group(), user.id());
@@ -319,8 +321,11 @@ public final class EIServerDatabaseProductsTest extends EIWithDatabaseContract
         transaction.queries(EIServerDatabaseUsersQueriesType.class);
       final var p =
         databaseGenerateBadPassword();
-      user =
-        users.userCreate("someone", "someone@example.com", p);
+      user = users.userCreate(
+        new EIUserDisplayName("someone"),
+        new EIUserEmail("someone@example.com"),
+        p
+      );
       transaction.commit();
     }
     return user;
@@ -406,9 +411,10 @@ public final class EIServerDatabaseProductsTest extends EIWithDatabaseContract
       new EIProductIdentifier(EXAMPLE_GROUP, "com.q");
     final var user =
       users.userCreate(
-        "someone",
-        "someone@example.com",
-        databaseGenerateBadPassword());
+        new EIUserDisplayName("someone"),
+        new EIUserEmail("someone@example.com"),
+        databaseGenerateBadPassword()
+      );
 
     groups.groupCreate(id.group(), user.id());
 
@@ -494,9 +500,10 @@ public final class EIServerDatabaseProductsTest extends EIWithDatabaseContract
 
     final var user =
       users.userCreate(
-        "someone",
-        "someone@example.com",
-        databaseGenerateBadPassword());
+        new EIUserDisplayName("someone"),
+        new EIUserEmail("someone@example.com"),
+        databaseGenerateBadPassword()
+      );
 
     groups.groupCreate(id.group(), user.id());
 

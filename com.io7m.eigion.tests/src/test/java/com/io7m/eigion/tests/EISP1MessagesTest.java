@@ -16,21 +16,13 @@
 
 package com.io7m.eigion.tests;
 
-import com.io7m.eigion.model.EIGroupCreationRequestStatusType;
 import com.io7m.eigion.protocol.api.EIProtocolException;
-import com.io7m.eigion.protocol.public_api.v1.EISP1CommandGroupCreateBegin;
-import com.io7m.eigion.protocol.public_api.v1.EISP1CommandGroupCreateCancel;
-import com.io7m.eigion.protocol.public_api.v1.EISP1CommandGroupCreateReady;
-import com.io7m.eigion.protocol.public_api.v1.EISP1CommandGroupCreateRequests;
-import com.io7m.eigion.protocol.public_api.v1.EISP1CommandLogin;
-import com.io7m.eigion.protocol.public_api.v1.EISP1GroupCreationRequest;
 import com.io7m.eigion.protocol.public_api.v1.EISP1MessageType;
 import com.io7m.eigion.protocol.public_api.v1.EISP1Messages;
-import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseError;
-import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseGroupCreateBegin;
-import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseGroupCreateCancel;
-import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseGroupCreateReady;
-import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseGroupCreateRequests;
+import net.jqwik.api.Arbitraries;
+import net.jqwik.api.Arbitrary;
+import net.jqwik.api.CannotFindArbitraryException;
+import net.jqwik.engine.properties.arbitraries.DefaultTypeArbitrary;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.Test;
@@ -38,15 +30,13 @@ import org.junit.jupiter.api.TestFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.net.URI;
-import java.time.OffsetDateTime;
-import java.util.List;
-import java.util.Optional;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.stream.Stream;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public final class EISP1MessagesTest
@@ -56,6 +46,59 @@ public final class EISP1MessagesTest
 
   private EISP1Messages messages;
 
+  private static <T> Set<Class<? extends T>> enumerateSubclasses(
+    final Class<? extends T> clazz)
+  {
+    final var classes = new HashSet<Class<? extends T>>();
+    enumerateSubclassesStep(clazz, classes);
+    return classes;
+  }
+
+  private static <T> void enumerateSubclassesStep(
+    final Class<? extends T> clazz,
+    final HashSet<Class<? extends T>> classes)
+  {
+    if (!clazz.isInterface()) {
+      classes.add(clazz);
+    }
+
+    final var subs = clazz.getPermittedSubclasses();
+    if (subs != null) {
+      for (final var sub : subs) {
+        enumerateSubclassesStep((Class<? extends T>) sub, classes);
+      }
+    }
+  }
+
+  private static EISP1MessageType arbitraryOf(
+    final Class<? extends EISP1MessageType> c)
+  {
+    Arbitrary<? extends EISP1MessageType> arbitrary = null;
+
+    try {
+      arbitrary = Arbitraries.defaultFor(c);
+    } catch (final CannotFindArbitraryException e) {
+      // OK
+    }
+
+    try {
+      if (arbitrary == null) {
+        arbitrary = Arbitraries.forType(c);
+      }
+    } catch (final CannotFindArbitraryException e) {
+      // OK
+    }
+
+    if (arbitrary == null) {
+      arbitrary = new DefaultTypeArbitrary<>(c);
+    }
+
+    LOG.debug("arbitrary: {}", arbitrary);
+    final var v = arbitrary.sample();
+    LOG.debug("value: {}", v);
+    return v;
+  }
+
   @BeforeEach
   public void setup()
   {
@@ -64,116 +107,19 @@ public final class EISP1MessagesTest
 
   /**
    * Messages are correctly serialized and parsed.
-   *
-   * @throws Exception On errors
    */
 
   @TestFactory
-  public Stream<DynamicTest> testRoundTrip()
+  public Stream<DynamicTest> testRoundTripReflective()
   {
-    return Stream.of(
-      commandGroupCreateBegin(),
-      commandGroupCreateCancel(),
-      commandGroupCreateReady(),
-      commandGroupCreateRequests(),
-      commandLogin(),
-      responseError(),
-      responseGroupCreateBegin(),
-      responseGroupCreateCancel(),
-      responseGroupCreateReady(),
-      responseGroupCreateRequests()
-    ).map(this::dynamicTestOfRoundTrip);
-  }
+    final var classes =
+      enumerateSubclasses(EISP1MessageType.class);
 
-  private static EISP1ResponseGroupCreateBegin responseGroupCreateBegin()
-  {
-    return new EISP1ResponseGroupCreateBegin(
-      randomUUID(),
-      "com.io7m.ex",
-      "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
-      URI.create(
-        "https://ex.io7m.com/.well-known/eigion-group-challenge/E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855.txt")
-    );
-  }
+    assertFalse(classes.isEmpty());
 
-  private static EISP1ResponseError responseError()
-  {
-    return new EISP1ResponseError(randomUUID(), "errorCode", "message");
-  }
-
-  private static EISP1ResponseGroupCreateCancel responseGroupCreateCancel()
-  {
-    return new EISP1ResponseGroupCreateCancel(
-      randomUUID()
-    );
-  }
-
-  private static EISP1ResponseGroupCreateReady responseGroupCreateReady()
-  {
-    return new EISP1ResponseGroupCreateReady(
-      randomUUID()
-    );
-  }
-
-  private static EISP1ResponseGroupCreateRequests responseGroupCreateRequests()
-  {
-    return new EISP1ResponseGroupCreateRequests(
-      randomUUID(),
-      List.of(
-        new EISP1GroupCreationRequest(
-          "com.io7m.ex",
-          randomUUID(),
-          "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
-          EIGroupCreationRequestStatusType.NAME_SUCCEEDED,
-          OffsetDateTime.now(),
-          Optional.of(OffsetDateTime.now()),
-          "Message"
-        ),
-        new EISP1GroupCreationRequest(
-          "com.io7m.ex",
-          randomUUID(),
-          "EFEDCB0AB0F2FC29DB0D41FF1F29534D",
-          EIGroupCreationRequestStatusType.NAME_FAILED,
-          OffsetDateTime.now(),
-          Optional.of(OffsetDateTime.now()),
-          "Message"
-        ),
-        new EISP1GroupCreationRequest(
-          "com.io7m.ex",
-          randomUUID(),
-          "E8DCD590D2B6A5E3B14D0DE4AD2A0CBA",
-          EIGroupCreationRequestStatusType.NAME_IN_PROGRESS,
-          OffsetDateTime.now(),
-          Optional.of(OffsetDateTime.now()),
-          "Message"
-        )
-      )
-    );
-  }
-
-  private static EISP1CommandLogin commandLogin()
-  {
-    return new EISP1CommandLogin("user", "pass");
-  }
-
-  private static EISP1CommandGroupCreateBegin commandGroupCreateBegin()
-  {
-    return new EISP1CommandGroupCreateBegin("com.io7m.ex");
-  }
-
-  private static EISP1CommandGroupCreateCancel commandGroupCreateCancel()
-  {
-    return new EISP1CommandGroupCreateCancel("7B8851BBBB70805081396C74ED005B10");
-  }
-
-  private static EISP1CommandGroupCreateReady commandGroupCreateReady()
-  {
-    return new EISP1CommandGroupCreateReady("7B8851BBBB70805081396C74ED005B10");
-  }
-
-  private static EISP1CommandGroupCreateRequests commandGroupCreateRequests()
-  {
-    return new EISP1CommandGroupCreateRequests();
+    return classes.stream()
+      .map(EISP1MessagesTest::arbitraryOf)
+      .map(this::dynamicTestOfRoundTrip);
   }
 
   private DynamicTest dynamicTestOfRoundTrip(

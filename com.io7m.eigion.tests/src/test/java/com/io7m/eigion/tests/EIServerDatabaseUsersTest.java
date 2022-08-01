@@ -16,6 +16,8 @@
 
 package com.io7m.eigion.tests;
 
+import com.io7m.eigion.model.EIUserDisplayName;
+import com.io7m.eigion.model.EIUserEmail;
 import com.io7m.eigion.server.database.api.EIServerDatabaseException;
 import com.io7m.eigion.server.database.api.EIServerDatabaseUsersQueriesType;
 import org.junit.jupiter.api.Test;
@@ -69,7 +71,10 @@ public final class EIServerDatabaseUsersTest extends EIWithDatabaseContract
     assertTrue(this.containerIsRunning());
 
     final var adminId =
-      this.databaseCreateAdminInitial("someone", "12345678");
+      this.databaseCreateAdminInitial(
+        "someone",
+        "12345678"
+      );
 
     final var transaction =
       this.transactionOf(EIGION);
@@ -90,8 +95,8 @@ public final class EIServerDatabaseUsersTest extends EIWithDatabaseContract
     var user =
       users.userCreate(
         reqId,
-        "someone",
-        "someone@example.com",
+        new EIUserDisplayName("someone"),
+        new EIUserEmail("someone@example.com"),
         now,
         password
       );
@@ -111,7 +116,7 @@ public final class EIServerDatabaseUsersTest extends EIWithDatabaseContract
     assertEquals(now.toEpochSecond(), user.lastLoginTime().toEpochSecond());
     assertFalse(user.ban().isPresent());
 
-    user = users.userGetForEmail("someone@example.com").orElseThrow();
+    user = users.userGetForEmail(new EIUserEmail("someone@example.com")).orElseThrow();
     assertEquals("someone", user.name().value());
     assertEquals(reqId, user.id());
     assertEquals("someone@example.com", user.email().value());
@@ -119,7 +124,7 @@ public final class EIServerDatabaseUsersTest extends EIWithDatabaseContract
     assertEquals(now.toEpochSecond(), user.lastLoginTime().toEpochSecond());
     assertFalse(user.ban().isPresent());
 
-    user = users.userGetForName("someone").orElseThrow();
+    user = users.userGetForName(new EIUserDisplayName("someone")).orElseThrow();
     assertEquals("someone", user.name().value());
     assertEquals(reqId, user.id());
     assertEquals("someone@example.com", user.email().value());
@@ -168,8 +173,8 @@ public final class EIServerDatabaseUsersTest extends EIWithDatabaseContract
     final var user =
       users.userCreate(
         reqId,
-        "someone",
-        "someone@example.com",
+        new EIUserDisplayName("someone"),
+        new EIUserEmail("someone@example.com"),
         now,
         password
       );
@@ -178,8 +183,8 @@ public final class EIServerDatabaseUsersTest extends EIWithDatabaseContract
       assertThrows(EIServerDatabaseException.class, () -> {
         users.userCreate(
           reqId,
-          "someoneElse",
-          "someone2@example.com",
+          new EIUserDisplayName("someoneElse"),
+          new EIUserEmail("someone2@example.com"),
           now,
           password
         );
@@ -222,8 +227,8 @@ public final class EIServerDatabaseUsersTest extends EIWithDatabaseContract
     final var user =
       users.userCreate(
         reqId,
-        "someone",
-        "someone@example.com",
+        new EIUserDisplayName("someone"),
+        new EIUserEmail("someone@example.com"),
         now,
         password
       );
@@ -232,8 +237,8 @@ public final class EIServerDatabaseUsersTest extends EIWithDatabaseContract
       assertThrows(EIServerDatabaseException.class, () -> {
         users.userCreate(
           randomUUID(),
-          "someoneElse",
-          "someone@example.com",
+          new EIUserDisplayName("someoneElse"),
+          new EIUserEmail("someone@example.com"),
           now,
           password
         );
@@ -276,8 +281,8 @@ public final class EIServerDatabaseUsersTest extends EIWithDatabaseContract
     final var user =
       users.userCreate(
         reqId,
-        "someone",
-        "someone@example.com",
+        new EIUserDisplayName("someone"),
+        new EIUserEmail("someone@example.com"),
         now,
         password
       );
@@ -286,8 +291,8 @@ public final class EIServerDatabaseUsersTest extends EIWithDatabaseContract
       assertThrows(EIServerDatabaseException.class, () -> {
         users.userCreate(
           randomUUID(),
-          "someone",
-          "someone2@example.com",
+          new EIUserDisplayName("someone"),
+          new EIUserEmail("someone2@example.com"),
           now,
           password
         );
@@ -330,8 +335,8 @@ public final class EIServerDatabaseUsersTest extends EIWithDatabaseContract
     var user =
       users.userCreate(
         id,
-        "someone",
-        "someone@example.com",
+        new EIUserDisplayName("someone"),
+        new EIUserEmail("someone@example.com"),
         now,
         password
       );
@@ -402,8 +407,8 @@ public final class EIServerDatabaseUsersTest extends EIWithDatabaseContract
     final var user =
       users.userCreate(
         id,
-        "someone",
-        "someone@example.com",
+        new EIUserDisplayName("someone"),
+        new EIUserEmail("someone@example.com"),
         now,
         password
       );

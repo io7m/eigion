@@ -21,7 +21,6 @@ import org.junit.jupiter.api.Test;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Testcontainers(disabledWithoutDocker = true)
 public final class EIServerAdminAPIVersionsTest extends EIServerContract
@@ -39,7 +38,7 @@ public final class EIServerAdminAPIVersionsTest extends EIServerContract
     this.serverStartIfNecessary();
 
     final var response =
-      this.getAdmin("/admin/1/0");
+      this.msgGetAdmin("/admin/1/0");
 
     assertEquals(200, response.statusCode());
 

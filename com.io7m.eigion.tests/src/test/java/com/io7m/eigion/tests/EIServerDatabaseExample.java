@@ -17,6 +17,8 @@
 package com.io7m.eigion.tests;
 
 import com.io7m.eigion.model.EIPasswordAlgorithmPBKDF2HmacSHA256;
+import com.io7m.eigion.model.EIUserDisplayName;
+import com.io7m.eigion.model.EIUserEmail;
 import com.io7m.eigion.server.database.api.EIServerDatabaseConfiguration;
 import com.io7m.eigion.server.database.api.EIServerDatabaseUsersQueriesType;
 import com.io7m.eigion.server.database.postgres.EIServerDatabases;
@@ -83,8 +85,8 @@ public final class EIServerDatabaseExample
       final var id =
         q.userCreate(
           UUID.randomUUID(),
-          "user",
-          "someone@example.com",
+          new EIUserDisplayName("user"),
+          new EIUserEmail("someone@example.com"),
           OffsetDateTime.now(ZoneId.of("UTC")),
           password
         );

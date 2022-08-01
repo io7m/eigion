@@ -18,6 +18,8 @@ package com.io7m.eigion.server.database.api;
 
 import com.io7m.eigion.model.EIPassword;
 import com.io7m.eigion.model.EIUser;
+import com.io7m.eigion.model.EIUserDisplayName;
+import com.io7m.eigion.model.EIUserEmail;
 import com.io7m.eigion.model.EIUserSummary;
 
 import java.time.OffsetDateTime;
@@ -46,8 +48,8 @@ public non-sealed interface EIServerDatabaseUsersQueriesType
 
   @EIServerDatabaseRequiresAdmin
   default EIUser userCreate(
-    final String userName,
-    final String email,
+    final EIUserDisplayName userName,
+    final EIUserEmail email,
     final EIPassword password)
     throws EIServerDatabaseException
   {
@@ -77,8 +79,8 @@ public non-sealed interface EIServerDatabaseUsersQueriesType
   @EIServerDatabaseRequiresAdmin
   EIUser userCreate(
     UUID id,
-    String userName,
-    String email,
+    EIUserDisplayName userName,
+    EIUserEmail email,
     OffsetDateTime created,
     EIPassword password)
     throws EIServerDatabaseException;
@@ -95,6 +97,17 @@ public non-sealed interface EIServerDatabaseUsersQueriesType
     throws EIServerDatabaseException;
 
   /**
+   * @param id The user ID
+   *
+   * @return A user with the given ID
+   *
+   * @throws EIServerDatabaseException On errors
+   */
+
+  EIUser userGetRequire(UUID id)
+    throws EIServerDatabaseException;
+
+  /**
    * @param name The user name
    *
    * @return A user with the given name
@@ -102,7 +115,18 @@ public non-sealed interface EIServerDatabaseUsersQueriesType
    * @throws EIServerDatabaseException On errors
    */
 
-  Optional<EIUser> userGetForName(String name)
+  Optional<EIUser> userGetForName(EIUserDisplayName name)
+    throws EIServerDatabaseException;
+
+  /**
+   * @param name The user name
+   *
+   * @return A user with the given name
+   *
+   * @throws EIServerDatabaseException On errors
+   */
+
+  EIUser userGetForNameRequire(EIUserDisplayName name)
     throws EIServerDatabaseException;
 
   /**
@@ -113,7 +137,18 @@ public non-sealed interface EIServerDatabaseUsersQueriesType
    * @throws EIServerDatabaseException On errors
    */
 
-  Optional<EIUser> userGetForEmail(String email)
+  Optional<EIUser> userGetForEmail(EIUserEmail email)
+    throws EIServerDatabaseException;
+
+  /**
+   * @param email The user email
+   *
+   * @return A user with the given email
+   *
+   * @throws EIServerDatabaseException On errors
+   */
+
+  EIUser userGetForEmailRequire(EIUserEmail email)
     throws EIServerDatabaseException;
 
   /**

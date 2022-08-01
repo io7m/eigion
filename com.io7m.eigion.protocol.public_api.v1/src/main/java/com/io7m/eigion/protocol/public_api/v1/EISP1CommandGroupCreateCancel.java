@@ -23,7 +23,11 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 import java.util.Objects;
 
-// CHECKSTYLE:OFF
+/**
+ * A request to cancel the creation of a group.
+ *
+ * @param token The group challenge token
+ */
 
 @JsonDeserialize
 @JsonSerialize
@@ -32,6 +36,12 @@ public record EISP1CommandGroupCreateCancel(
   String token)
   implements EISP1CommandType
 {
+  /**
+   * A request to cancel the creation of a group.
+   *
+   * @param token The group challenge token
+   */
+
   @JsonCreator
   public EISP1CommandGroupCreateCancel
   {

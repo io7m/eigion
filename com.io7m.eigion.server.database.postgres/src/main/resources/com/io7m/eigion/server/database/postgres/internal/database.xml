@@ -157,10 +157,10 @@ create table user_bans (
 
     <Statement><![CDATA[
 create table groups (
-  id       bigint                    not null primary key generated always as identity,
-  name     varchar(1000000)          not null unique,
+  name     varchar(256)              not null primary key,
   creator  uuid                      not null,
   created  timestamp with time zone  not null,
+  serial   bigint                    not null generated always as identity,
 
   foreign key (creator) references user_ids (id)
 )
@@ -174,28 +174,21 @@ create table groups (
     </Comment>
 
     <Statement><![CDATA[
-create table groups_creation_requests (
-  id                bigint                    not null primary key generated always as identity,
-  group_name        varchar(1000000)          not null,
-  group_token       varchar(1000000)          not null unique,
-  creator_user      uuid                      not null,
-  created           timestamp with time zone  not null,
-  completed         timestamp with time zone,
-  status            varchar(1000000)          not null,
-  message           varchar(1000000)          not null,
+create type group_creation_request_status_t as enum ('IN_PROGRESS', 'SUCCEEDED', 'FAILED', 'CANCELLED')
+]]></Statement>
 
-  constraint succeeded_requires_completed_nonnull check (
-    case when (status = 'SUCCEEDED') then
-      (completed is not null)
-    end
-  ),
-  constraint failed_requires_completed_nonnull check (
-    case when (status = 'FAILED') then
-      (completed is not null)
-    end
-  ),
-  constraint cancelled_requires_completed_nonnull check (
-    case when (status = 'CANCELLED') then
+    <Statement><![CDATA[
+create table groups_creation_requests (
+  group_token    varchar(64)                not null primary key,
+  group_name     varchar(256)               not null,
+  creator_user   uuid                       not null,
+  created        timestamp with time zone   not null,
+  completed      timestamp with time zone,
+  status         varchar(16)                not null,
+  message        varchar(1000000)           not null,
+
+  constraint group_creation_in_progress_or_completed check (
+    case when (status != 'IN_PROGRESS') then
       (completed is not null)
     end
   ),
@@ -214,20 +207,57 @@ create table groups_creation_requests (
 
     <Statement><![CDATA[
 create table group_users (
-  id        bigint           not null primary key generated always as identity,
-  user_id   uuid             not null,
-  group_id  bigint           not null,
-  roles     varchar(1000000) not null,
+  user_id     uuid             not null,
+  group_name  varchar(256)     not null,
+  roles       varchar(1000000) not null,
 
-  unique (user_id, group_id),
+  primary key (user_id, group_name),
 
   foreign key (user_id) references users (id),
-  foreign key (group_id) references groups (id)
+  foreign key (group_name) references groups (name)
 )
 ]]></Statement>
 
     <Statement>grant insert, select, delete on group_users to eigion</Statement>
     <Statement>grant update (roles) on group_users to eigion</Statement>
+
+    <Comment>
+      The group_invites table stores a list of invites users are making to invite other users to groups.
+    </Comment>
+
+    <Statement><![CDATA[
+create type group_invite_status_t as enum ('IN_PROGRESS', 'ACCEPTED', 'REJECTED', 'CANCELLED')
+]]></Statement>
+
+    <Statement><![CDATA[
+create table group_invites (
+  invite_token        varchar(64)               not null primary key,
+  user_inviting       uuid                      not null,
+  user_being_invited  uuid                      not null,
+  group_name          varchar(256)              not null,
+  created             timestamp with time zone  not null,
+  status              varchar(16)               not null,
+  completed           timestamp with time zone,
+
+  unique (user_inviting, user_being_invited, group_name),
+
+  constraint group_invite_not_self check (
+    user_inviting != user_being_invited
+  ),
+
+  constraint group_invite_in_progress_or_completed check (
+    case when (status != 'IN_PROGRESS') then
+      (completed is not null)
+    end
+  ),
+
+  foreign key (user_inviting)      references users (id),
+  foreign key (user_being_invited) references users (id),
+  foreign key (group_name)         references groups (name)
+)
+]]></Statement>
+
+    <Statement>grant insert, select, delete on group_invites to eigion</Statement>
 
     <Comment>
       The audit table stores a list of auditable events. Who did it? What did they do? When did they do it?
@@ -326,7 +356,7 @@ create table category_redactions (
     <Statement><![CDATA[
 create table products (
   id                        bigint                   not null primary key generated always as identity,
-  product_group             bigint                   not null,
+  product_group             varchar(256)             not null,
   product_name              varchar(1000000)         not null,
   product_title             varchar(1000000)         not null,
   product_description       varchar(1000000)         not null,
@@ -336,7 +366,7 @@ create table products (
 
   unique (product_group, product_name),
 
-  foreign key (product_group) references groups (id),
+  foreign key (product_group) references groups (name),
   foreign key (created_by)    references users (id)
 )
 ]]></Statement>

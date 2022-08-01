@@ -21,6 +21,8 @@ import com.io7m.eigion.model.EIGroupName;
 import com.io7m.eigion.model.EIPassword;
 import com.io7m.eigion.model.EIPasswordException;
 import com.io7m.eigion.model.EIUser;
+import com.io7m.eigion.model.EIUserDisplayName;
+import com.io7m.eigion.model.EIUserEmail;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandUserCreate;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1ResponseUserCreate;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1User;
@@ -102,8 +104,8 @@ public final class EIACmdUserCreate
     try {
       createdUser = userQueries.userCreate(
         UUID.randomUUID(),
-        command.name(),
-        command.email(),
+        new EIUserDisplayName(command.name()),
+        new EIUserEmail(command.email()),
         context.now(),
         password
       );
@@ -117,6 +119,10 @@ public final class EIACmdUserCreate
       }
       throw e;
     }
+
+    /*
+     * Generate a personal group and add the user to it.
+     */
 
     final var gid =
       Math.addExact(groupQueries.groupIdentifierLast(), 1L);

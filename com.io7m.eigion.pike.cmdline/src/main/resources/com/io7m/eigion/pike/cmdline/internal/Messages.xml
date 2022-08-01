@@ -32,4 +32,15 @@ have completed the above challenge.
   <entry key="groupCreateRequest.status">Request.Status: {0}</entry>
   <entry key="groupCreateRequest.message">Request.Message: {0}</entry>
 
+  <entry key="groupInvite.completed">Invite.Completed: {0}</entry>
+  <entry key="groupInvite.created">Invite.Created: {0}</entry>
+  <entry key="groupInvite.group">Invite.Group: {0}</entry>
+  <entry key="groupInvite.status">Invite.Status: {0}</entry>
+  <entry key="groupInvite.token">Invite.Token: {0}</entry>
+  <entry key="groupInvite.userBeingInvited">Invite.UserBeingInvited: {0}</entry>
+  <entry key="groupInvite.userBeingInvitedName">Invite.UserBeingInvitedName: {0}</entry>
+  <entry key="groupInvite.userInviting">Invite.UserInviting: {0}</entry>
+  <entry key="groupInvite.userInvitingName">Invite.UserInvitingName: {0}</entry>
+
+  <entry key="groupInvite.oneRequired">Error: A username or a user ID is required.</entry>
 </properties>

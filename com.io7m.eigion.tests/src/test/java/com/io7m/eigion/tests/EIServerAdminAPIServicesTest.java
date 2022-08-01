@@ -27,7 +27,6 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Testcontainers(disabledWithoutDocker = true)
 public final class EIServerAdminAPIServicesTest extends EIServerContract
@@ -51,7 +50,7 @@ public final class EIServerAdminAPIServicesTest extends EIServerContract
     this.doLoginAdmin("someone", "12345678");
 
     final var rCreate =
-      this.postAdminText("/admin/1/0/command", """
+      this.msgSendAdminText("/admin/1/0/command", """
         {
           "%Type": "CommandServicesList"
         }""");
@@ -59,7 +58,7 @@ public final class EIServerAdminAPIServicesTest extends EIServerContract
     assertEquals(200, rCreate.statusCode());
 
     final var rm =
-      this.parseAdmin(rCreate, EISA1ResponseServiceList.class);
+      this.msgParseAdmin(rCreate, EISA1ResponseServiceList.class);
 
     assertNotEquals(0, rm.services().size());
   }
@@ -79,7 +78,7 @@ public final class EIServerAdminAPIServicesTest extends EIServerContract
     this.createAdminInitial("someone", "12345678");
 
     final var rCreate =
-      this.postAdminText("/admin/1/0/command", """
+      this.msgSendAdminText("/admin/1/0/command", """
         {
           "%Type": "CommandServicesList"
         }""");
@@ -106,7 +105,7 @@ public final class EIServerAdminAPIServicesTest extends EIServerContract
     this.doLoginAdmin("someone-else", "12345678");
 
     final var rCreate =
-      this.postAdminText("/admin/1/0/command", """
+      this.msgSendAdminText("/admin/1/0/command", """
         {
           "%Type": "CommandServicesList"
         }""");
@@ -114,7 +113,7 @@ public final class EIServerAdminAPIServicesTest extends EIServerContract
     assertEquals(403, rCreate.statusCode());
 
     final var rm =
-      this.parseAdmin(rCreate, EISA1ResponseError.class);
+      this.msgParseAdmin(rCreate, EISA1ResponseError.class);
 
     assertEquals("You do not have the SERVICE_READ permission.", rm.message());
   }

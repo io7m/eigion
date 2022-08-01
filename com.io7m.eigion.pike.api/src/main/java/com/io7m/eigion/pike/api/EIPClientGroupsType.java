@@ -18,11 +18,14 @@
 package com.io7m.eigion.pike.api;
 
 import com.io7m.eigion.model.EIGroupCreationRequest;
+import com.io7m.eigion.model.EIGroupInvite;
 import com.io7m.eigion.model.EIGroupName;
 import com.io7m.eigion.model.EIGroupRoles;
 import com.io7m.eigion.model.EIToken;
+import com.io7m.eigion.model.EIUserDisplayName;
 
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Commands related to groups.
@@ -89,5 +92,55 @@ public interface EIPClientGroupsType
    */
 
   List<EIGroupRoles> groups()
+    throws EIPClientException, InterruptedException;
+
+  /**
+   * Invite a user to the given group.
+   *
+   * @param group The group
+   * @param user  The user
+   *
+   * @throws EIPClientException   On errors
+   * @throws InterruptedException On interruption
+   */
+
+  void groupInvite(
+    EIGroupName group,
+    UUID user)
+    throws EIPClientException, InterruptedException;
+
+  /**
+   * Invite a user to the given group.
+   *
+   * @param group The group
+   * @param user  The user
+   *
+   * @throws EIPClientException   On errors
+   * @throws InterruptedException On interruption
+   */
+
+  void groupInviteByName(
+    EIGroupName group,
+    EIUserDisplayName user)
+    throws EIPClientException, InterruptedException;
+
+  /**
+   * @return The list of invites the current user has sent
+   *
+   * @throws EIPClientException   On errors
+   * @throws InterruptedException On interruption
+   */
+
+  List<EIGroupInvite> groupInvitesSent()
+    throws EIPClientException, InterruptedException;
+
+  /**
+   * @return The list of invites the current user has received
+   *
+   * @throws EIPClientException   On errors
+   * @throws InterruptedException On interruption
+   */
+
+  List<EIGroupInvite> groupInvitesReceived()
     throws EIPClientException, InterruptedException;
 }

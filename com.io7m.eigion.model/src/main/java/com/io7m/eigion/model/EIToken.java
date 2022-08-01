@@ -36,7 +36,7 @@ public record EIToken(String value)
    */
 
   public static final Pattern VALID_HEX =
-    Pattern.compile("[A-F0-9]+");
+    Pattern.compile("[A-F0-9]{1,64}");
 
   /**
    * A generic token.

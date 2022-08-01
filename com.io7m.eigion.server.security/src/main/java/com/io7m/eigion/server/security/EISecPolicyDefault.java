@@ -17,6 +17,7 @@
 package com.io7m.eigion.server.security;
 
 import com.io7m.eigion.model.EIAdminPermission;
+import com.io7m.eigion.model.EIGroupRole;
 
 import java.util.Objects;
 import java.util.Set;
@@ -27,6 +28,7 @@ import static com.io7m.eigion.model.EIAdminPermission.AUDIT_READ;
 import static com.io7m.eigion.model.EIAdminPermission.SERVICE_READ;
 import static com.io7m.eigion.model.EIAdminPermission.USER_READ;
 import static com.io7m.eigion.model.EIAdminPermission.USER_WRITE;
+import static com.io7m.eigion.model.EIGroupRole.USER_INVITE;
 
 /**
  * The default security policy.
@@ -132,6 +134,9 @@ public final class EISecPolicyDefault implements EISecPolicyType
     if (action instanceof EISecActionGroupCreateReady c) {
       return checkGroupCreateReady(c);
     }
+    if (action instanceof EISecActionGroupInvite c) {
+      return checkGroupInvite(c);
+    }
 
     return new EISecPolicyResultDenied("Operation not permitted.");
   }
@@ -194,6 +199,10 @@ public final class EISecPolicyDefault implements EISecPolicyType
   private static EISecPolicyResultType checkGroupCreateBegin(
     final EISecActionGroupCreateBegin c)
   {
+    /*
+     * Group creation requests are rate-limited.
+     */
+
     final var existingRequests =
       c.existingRequests();
     final var lastHour =
@@ -211,6 +220,59 @@ public final class EISecPolicyDefault implements EISecPolicyType
       return new EISecPolicyResultDenied(
         "Too many requests have been made recently. Please wait until %s before making another request."
           .formatted(nextHour)
+      );
+    }
+
+    return new EISecPolicyResultPermitted();
+  }
+
+  private static EISecPolicyResultType checkGroupInvite(
+    final EISecActionGroupInvite c)
+  {
+    /*
+     * Invites are rate-limited.
+     */
+
+    final var existingRequests =
+      c.userInvitingInvites();
+    final var lastHour =
+      c.timeNow().minusHours(1L);
+
+    final var recentRequests =
+      existingRequests.stream()
+        .filter(r -> r.timeStarted().isAfter(lastHour))
+        .count();
+
+    if (recentRequests >= 5L) {
+      final var nextHour =
+        c.timeNow().plusHours(1L);
+
+      return new EISecPolicyResultDenied(
+        "Too many requests have been made recently. Please wait until %s before making another request."
+          .formatted(nextHour)
+      );
+    }
+
+    /*
+     * Group invites require membership and an appropriate role.
+     */
+
+    final var invitingMembership =
+      c.userInviting().groupMembership();
+
+    final var roles =
+      invitingMembership.get(c.group());
+
+    if (roles == null) {
+      return new EISecPolicyResultDenied(
+        "You must be a member of a group in order to invite users to it."
+      );
+    }
+
+    if (!EIGroupRole.roleSetImplies(roles, USER_INVITE)) {
+      return new EISecPolicyResultDenied(
+        "You must have the %s role to invite users to this group"
+          .formatted(USER_INVITE)
       );
     }
 

@@ -68,6 +68,8 @@ import com.io7m.eigion.protocol.public_api.v1.EISP1CommandGroups;
 import com.io7m.eigion.protocol.public_api.v1.EISP1CommandLogin;
 import com.io7m.eigion.protocol.public_api.v1.EISP1CommandType;
 import com.io7m.eigion.protocol.public_api.v1.EISP1GroupCreationRequest;
+import com.io7m.eigion.protocol.public_api.v1.EISP1GroupInvite;
+import com.io7m.eigion.protocol.public_api.v1.EISP1GroupInviteStatus;
 import com.io7m.eigion.protocol.public_api.v1.EISP1GroupRole;
 import com.io7m.eigion.protocol.public_api.v1.EISP1GroupRoles;
 import com.io7m.eigion.protocol.public_api.v1.EISP1Hash;
@@ -159,6 +161,8 @@ public final class EIIdentitiesReflective
     EISP1CommandLogin.class,
     EISP1CommandType.class,
     EISP1GroupCreationRequest.class,
+    EISP1GroupInvite.class,
+    EISP1GroupInviteStatus.class,
     EISP1GroupRole.class,
     EISP1GroupRoles.class,
     EISP1Hash.class,

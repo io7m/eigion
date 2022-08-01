@@ -21,12 +21,18 @@ import com.io7m.eigion.model.EIGroupCreationRequestStatusType;
 import com.io7m.eigion.model.EIGroupCreationRequestStatusType.Failed;
 import com.io7m.eigion.model.EIGroupCreationRequestStatusType.InProgress;
 import com.io7m.eigion.model.EIGroupCreationRequestStatusType.Succeeded;
+import com.io7m.eigion.model.EIGroupInvite;
+import com.io7m.eigion.model.EIGroupInviteStatus;
 import com.io7m.eigion.model.EIGroupName;
 import com.io7m.eigion.model.EIGroupRole;
 import com.io7m.eigion.model.EIGroupRoles;
 import com.io7m.eigion.model.EIToken;
+import com.io7m.eigion.model.EIUserDisplayName;
 import com.io7m.eigion.server.database.api.EIServerDatabaseException;
 import com.io7m.eigion.server.database.api.EIServerDatabaseGroupsQueriesType;
+import com.io7m.eigion.server.database.postgres.internal.enums.GroupCreationRequestStatusT;
+import com.io7m.eigion.server.database.postgres.internal.enums.GroupInviteStatusT;
+import com.io7m.eigion.server.database.postgres.internal.tables.Users;
 import com.io7m.eigion.server.database.postgres.internal.tables.records.GroupUsersRecord;
 import com.io7m.eigion.server.database.postgres.internal.tables.records.GroupsCreationRequestsRecord;
 import com.io7m.eigion.server.database.postgres.internal.tables.records.GroupsRecord;
@@ -34,6 +40,7 @@ import com.io7m.eigion.server.database.postgres.internal.tables.records.UsersRec
 import com.io7m.jaffirm.core.Postconditions;
 import org.jooq.DSLContext;
 import org.jooq.Record;
+import org.jooq.TableOnConditionStep;
 import org.jooq.exception.DataAccessException;
 
 import java.util.Arrays;
@@ -49,17 +56,40 @@ import static com.io7m.eigion.model.EIGroupCreationRequestStatusType.NAME_CANCEL
 import static com.io7m.eigion.model.EIGroupCreationRequestStatusType.NAME_FAILED;
 import static com.io7m.eigion.model.EIGroupCreationRequestStatusType.NAME_IN_PROGRESS;
 import static com.io7m.eigion.model.EIGroupCreationRequestStatusType.NAME_SUCCEEDED;
+import static com.io7m.eigion.model.EIGroupInviteStatus.IN_PROGRESS;
 import static com.io7m.eigion.server.database.postgres.internal.EIServerDatabaseExceptions.handleDatabaseException;
 import static com.io7m.eigion.server.database.postgres.internal.Tables.GROUPS;
 import static com.io7m.eigion.server.database.postgres.internal.Tables.GROUPS_CREATION_REQUESTS;
+import static com.io7m.eigion.server.database.postgres.internal.Tables.GROUP_INVITES;
 import static com.io7m.eigion.server.database.postgres.internal.Tables.GROUP_USERS;
 import static com.io7m.eigion.server.database.postgres.internal.Tables.USERS;
+import static com.io7m.eigion.server.database.postgres.internal.enums.GroupCreationRequestStatusT.CANCELLED;
+import static com.io7m.eigion.server.database.postgres.internal.enums.GroupCreationRequestStatusT.FAILED;
+import static com.io7m.eigion.server.database.postgres.internal.enums.GroupCreationRequestStatusT.SUCCEEDED;
 import static com.io7m.eigion.server.database.postgres.internal.tables.Audit.AUDIT;
 
 final class EIServerDatabaseGroupQueries
   extends EIBaseQueries
   implements EIServerDatabaseGroupsQueriesType
 {
+  private static final Users USERS_INVITING =
+    USERS.as("USERS_I");
+  private static final Users USERS_BEING_INVITED =
+    USERS.as("USERS_B");
+
+  /**
+   * A JOIN expression that allows for supplying usernames for invites. This
+   * is almost always needed when querying invites and so is factored into
+   * a reusable expression here.
+   */
+
+  private static final TableOnConditionStep<Record> BASE_INVITES_JOIN =
+    GROUP_INVITES
+      .join(USERS_INVITING)
+      .on(GROUP_INVITES.USER_INVITING.eq(USERS_INVITING.ID))
+      .join(USERS_BEING_INVITED)
+      .on(GROUP_INVITES.USER_BEING_INVITED.eq(USERS_BEING_INVITED.ID));
+
   EIServerDatabaseGroupQueries(
     final EIServerDatabaseTransaction inTransaction)
   {
@@ -98,7 +128,6 @@ final class EIServerDatabaseGroupQueries
           rec.get(GROUPS_CREATION_REQUESTS.COMPLETED)
         );
       }
-
       default -> throw new IllegalStateException(
         "Unrecognized status: %s".formatted(statusName)
       );
@@ -160,6 +189,74 @@ final class EIServerDatabaseGroupQueries
       });
   }
 
+  private static void checkUserForRequest(
+    final UUID userId,
+    final GroupsCreationRequestsRecord existing)
+    throws EIServerDatabaseException
+  {
+    final var requestUser =
+      existing.get(GROUPS_CREATION_REQUESTS.CREATOR_USER);
+
+    if (!Objects.equals(requestUser, userId)) {
+      throw new EIServerDatabaseException(
+        "Group request not owned by this user",
+        "group-request-wrong-user"
+      );
+    }
+  }
+
+  private static EIGroupRoles mapGroupRoles(
+    final Record r)
+  {
+    return new EIGroupRoles(
+      new EIGroupName(r.get(GROUPS.NAME)),
+      Arrays.stream(r.get(GROUP_USERS.ROLES)
+                      .split(","))
+        .filter(s -> !s.isBlank())
+        .map(EIGroupRole::valueOf)
+        .collect(Collectors.toUnmodifiableSet())
+    );
+  }
+
+  private static EIGroupInvite mapInvite(
+    final String inviterName,
+    final Record r)
+  {
+    return new EIGroupInvite(
+      r.get(GROUP_INVITES.USER_INVITING),
+      new EIUserDisplayName(inviterName),
+      r.get(GROUP_INVITES.USER_BEING_INVITED),
+      new EIUserDisplayName(r.get(USERS.NAME)),
+      new EIGroupName(r.get(GROUP_INVITES.GROUP_NAME)),
+      new EIToken(r.get(GROUP_INVITES.INVITE_TOKEN)),
+      mapInviteStatus(r.get(GROUP_INVITES.STATUS)),
+      r.get(GROUP_INVITES.CREATED),
+      Optional.ofNullable(r.get(GROUP_INVITES.COMPLETED))
+    );
+  }
+
+  private static EIGroupInviteStatus mapInviteStatus(
+    final String status)
+  {
+    return EIGroupInviteStatus.valueOf(status);
+  }
+
+  private static EIGroupInvite joinToInvite(
+    final Record r)
+  {
+    return new EIGroupInvite(
+      r.get(USERS_INVITING.ID),
+      new EIUserDisplayName(r.get(USERS_INVITING.NAME)),
+      r.get(USERS_BEING_INVITED.ID),
+      new EIUserDisplayName(r.get(USERS_BEING_INVITED.NAME)),
+      new EIGroupName(r.get(GROUP_INVITES.GROUP_NAME)),
+      new EIToken(r.get(GROUP_INVITES.INVITE_TOKEN)),
+      EIGroupInviteStatus.valueOf(r.get(GROUP_INVITES.STATUS)),
+      r.get(GROUP_INVITES.CREATED),
+      Optional.ofNullable(r.get(GROUP_INVITES.COMPLETED))
+    );
+  }
+
   @Override
   public long groupIdentifierLast()
     throws EIServerDatabaseException
@@ -172,9 +269,9 @@ final class EIServerDatabaseGroupQueries
     try {
       final var record =
         context.selectFrom(GROUPS)
-          .orderBy(GROUPS.ID.desc())
+          .orderBy(GROUPS.SERIAL.desc())
           .limit(Long.valueOf(1L))
-          .fetchOne(GROUPS.ID);
+          .fetchOne(GROUPS.SERIAL);
 
       if (record == null) {
         return 0L;
@@ -269,7 +366,9 @@ final class EIServerDatabaseGroupQueries
         .set(GROUPS_CREATION_REQUESTS.CREATOR_USER, userId)
         .set(GROUPS_CREATION_REQUESTS.GROUP_NAME, groupName.value())
         .set(GROUPS_CREATION_REQUESTS.GROUP_TOKEN, token.value())
-        .set(GROUPS_CREATION_REQUESTS.STATUS, NAME_IN_PROGRESS)
+        .set(
+          GROUPS_CREATION_REQUESTS.STATUS,
+          GroupCreationRequestStatusT.IN_PROGRESS.getLiteral())
         .set(GROUPS_CREATION_REQUESTS.MESSAGE, "")
         .execute();
 
@@ -415,13 +514,15 @@ final class EIServerDatabaseGroupQueries
 
       final var status = request.status();
       if (status instanceof InProgress) {
-        existing.set(GROUPS_CREATION_REQUESTS.STATUS, NAME_IN_PROGRESS);
+        existing.set(
+          GROUPS_CREATION_REQUESTS.STATUS,
+          GroupCreationRequestStatusT.IN_PROGRESS.getLiteral());
         existing.store();
         return;
       }
 
       if (status instanceof Cancelled cancelled) {
-        existing.set(GROUPS_CREATION_REQUESTS.STATUS, NAME_CANCELLED);
+        existing.set(GROUPS_CREATION_REQUESTS.STATUS, CANCELLED.getLiteral());
         existing.set(
           GROUPS_CREATION_REQUESTS.COMPLETED,
           cancelled.timeCompletedValue());
@@ -440,7 +541,7 @@ final class EIServerDatabaseGroupQueries
       }
 
       if (status instanceof Failed failed) {
-        existing.set(GROUPS_CREATION_REQUESTS.STATUS, NAME_FAILED);
+        existing.set(GROUPS_CREATION_REQUESTS.STATUS, FAILED.getLiteral());
         existing.set(
           GROUPS_CREATION_REQUESTS.COMPLETED,
           failed.timeCompletedValue());
@@ -459,7 +560,7 @@ final class EIServerDatabaseGroupQueries
       }
 
       if (status instanceof Succeeded succeeded) {
-        existing.set(GROUPS_CREATION_REQUESTS.STATUS, NAME_SUCCEEDED);
+        existing.set(GROUPS_CREATION_REQUESTS.STATUS, SUCCEEDED.getLiteral());
         existing.set(
           GROUPS_CREATION_REQUESTS.COMPLETED,
           succeeded.timeCompletedValue());
@@ -489,22 +590,6 @@ final class EIServerDatabaseGroupQueries
     }
   }
 
-  private static void checkUserForRequest(
-    final UUID userId,
-    final GroupsCreationRequestsRecord existing)
-    throws EIServerDatabaseException
-  {
-    final var requestUser =
-      existing.get(GROUPS_CREATION_REQUESTS.CREATOR_USER);
-
-    if (!Objects.equals(requestUser, userId)) {
-      throw new EIServerDatabaseException(
-        "Group request not owned by this user",
-        "group-request-wrong-user"
-      );
-    }
-  }
-
   @Override
   public void groupMembershipSet(
     final EIGroupName name,
@@ -525,14 +610,14 @@ final class EIServerDatabaseGroupQueries
         checkGroupExists(context, name);
 
       final var groupId =
-        existingGroup.getId();
+        existingGroup.getName();
       final var timeNow =
         this.currentTime();
 
       final var groupRecordOpt =
         context.fetchOptional(
           GROUP_USERS,
-          GROUP_USERS.GROUP_ID.eq(groupId).and(GROUP_USERS.USER_ID.eq(userId)));
+          GROUP_USERS.GROUP_NAME.eq(groupId).and(GROUP_USERS.USER_ID.eq(userId)));
 
       final var roleString =
         roles.stream()
@@ -549,7 +634,7 @@ final class EIServerDatabaseGroupQueries
         groupRecord = groupRecordOpt.get();
       } else {
         groupRecord = context.newRecord(GROUP_USERS);
-        groupRecord.set(GROUP_USERS.GROUP_ID, groupId);
+        groupRecord.set(GROUP_USERS.GROUP_NAME, groupId);
         groupRecord.set(GROUP_USERS.USER_ID, userId);
 
         final var audit =
@@ -592,7 +677,8 @@ final class EIServerDatabaseGroupQueries
       checkUserExists(context, userId);
 
       return context.selectFrom(
-          GROUP_USERS.join(GROUPS).on(GROUPS.ID.eq(GROUP_USERS.GROUP_ID)))
+          GROUP_USERS.join(GROUPS)
+            .on(GROUPS.NAME.eq(GROUP_USERS.GROUP_NAME)))
         .where(GROUP_USERS.USER_ID.eq(userId))
         .stream()
         .map(EIServerDatabaseGroupQueries::mapGroupRoles)
@@ -600,19 +686,6 @@ final class EIServerDatabaseGroupQueries
     } catch (final DataAccessException e) {
       throw handleDatabaseException(transaction, e);
     }
-  }
-
-  private static EIGroupRoles mapGroupRoles(
-    final Record r)
-  {
-    return new EIGroupRoles(
-      new EIGroupName(r.get(GROUPS.NAME)),
-      Arrays.stream(r.get(GROUP_USERS.ROLES)
-                      .split(","))
-        .filter(s -> !s.isBlank())
-        .map(EIGroupRole::valueOf)
-        .collect(Collectors.toUnmodifiableSet())
-    );
   }
 
   @Override
@@ -634,7 +707,7 @@ final class EIServerDatabaseGroupQueries
       final var existingGroup =
         checkGroupExists(context, name);
       final var groupId =
-        existingGroup.getId();
+        existingGroup.getName();
 
       final var timeNow =
         this.currentTime();
@@ -642,7 +715,7 @@ final class EIServerDatabaseGroupQueries
       final var groupRecordOpt =
         context.fetchOptional(
           GROUP_USERS,
-          GROUP_USERS.GROUP_ID.eq(groupId).and(GROUP_USERS.USER_ID.eq(userId)));
+          GROUP_USERS.GROUP_NAME.eq(groupId).and(GROUP_USERS.USER_ID.eq(userId)));
 
       final GroupUsersRecord groupRecord;
       if (groupRecordOpt.isPresent()) {
@@ -676,6 +749,169 @@ final class EIServerDatabaseGroupQueries
     try {
       return context.fetchOptional(GROUPS, GROUPS.NAME.eq(name.value()))
         .isPresent();
+    } catch (final DataAccessException e) {
+      throw handleDatabaseException(this.transaction(), e);
+    }
+  }
+
+  @Override
+  public EIGroupInvite groupInvite(
+    final EIGroupName group,
+    final UUID userBeingInvited)
+    throws EIServerDatabaseException
+  {
+    Objects.requireNonNull(group, "group");
+    Objects.requireNonNull(userBeingInvited, "userBeingInvited");
+
+    final var transaction = this.transaction();
+    final var context = transaction.createContext();
+    final var userInviting = transaction.userId();
+
+    try {
+      final var userB =
+        checkUserExists(context, userBeingInvited);
+      final var userI =
+        checkUserExists(context, userInviting);
+
+      if (userInviting.equals(userBeingInvited)) {
+        throw new EIServerDatabaseException(
+          "Group inviter and invitee must be different.",
+          "group-inviter-invitee"
+        );
+      }
+
+      checkGroupExists(context, group);
+
+      final var join =
+        BASE_INVITES_JOIN;
+
+      final var inviteRecord =
+        context.select(
+            GROUP_INVITES.COMPLETED,
+            GROUP_INVITES.CREATED,
+            GROUP_INVITES.GROUP_NAME,
+            GROUP_INVITES.INVITE_TOKEN,
+            GROUP_INVITES.STATUS,
+            GROUP_INVITES.USER_BEING_INVITED,
+            GROUP_INVITES.USER_INVITING,
+            USERS_BEING_INVITED.ID,
+            USERS_BEING_INVITED.NAME,
+            USERS_INVITING.ID,
+            USERS_INVITING.NAME)
+          .from(join)
+          .where(
+            GROUP_INVITES.GROUP_NAME.eq(group.value())
+              .and(GROUP_INVITES.USER_INVITING.eq(userInviting))
+              .and(GROUP_INVITES.USER_BEING_INVITED.eq(userBeingInvited)))
+          .limit(1L)
+          .fetch();
+
+      if (inviteRecord.isNotEmpty()) {
+        return joinToInvite(inviteRecord.get(0));
+      }
+
+      final var timeNow =
+        this.currentTime();
+      final var token =
+        EIToken.generate();
+
+      final var newRecord = context.newRecord(GROUP_INVITES);
+      newRecord.set(GROUP_INVITES.GROUP_NAME, group.value());
+      newRecord.set(GROUP_INVITES.USER_INVITING, userInviting);
+      newRecord.set(GROUP_INVITES.USER_BEING_INVITED, userBeingInvited);
+      newRecord.set(GROUP_INVITES.INVITE_TOKEN, token.value());
+      newRecord.set(
+        GROUP_INVITES.STATUS,
+        GroupInviteStatusT.IN_PROGRESS.getLiteral());
+      newRecord.set(GROUP_INVITES.CREATED, timeNow);
+      newRecord.store();
+
+      final var audit =
+        context.insertInto(AUDIT)
+          .set(AUDIT.TIME, timeNow)
+          .set(AUDIT.TYPE, "INVITE_CREATED")
+          .set(AUDIT.USER_ID, userInviting)
+          .set(
+            AUDIT.MESSAGE,
+            "%s|%s|%s".formatted(group, userBeingInvited, token.value()));
+
+      insertAuditRecord(audit);
+
+      return new EIGroupInvite(
+        userInviting,
+        new EIUserDisplayName(userI.getName()),
+        userBeingInvited,
+        new EIUserDisplayName(userB.getName()),
+        group,
+        token,
+        IN_PROGRESS,
+        timeNow,
+        Optional.empty()
+      );
+    } catch (final DataAccessException e) {
+      throw handleDatabaseException(this.transaction(), e);
+    }
+  }
+
+  @Override
+  public List<EIGroupInvite> groupInvitesCreatedByUser()
+    throws EIServerDatabaseException
+  {
+    final var transaction = this.transaction();
+    final var user = transaction.userId();
+    final var context = transaction.createContext();
+
+    try {
+      return context.select(
+          GROUP_INVITES.COMPLETED,
+          GROUP_INVITES.CREATED,
+          GROUP_INVITES.GROUP_NAME,
+          GROUP_INVITES.INVITE_TOKEN,
+          GROUP_INVITES.STATUS,
+          GROUP_INVITES.USER_BEING_INVITED,
+          GROUP_INVITES.USER_INVITING,
+          USERS_BEING_INVITED.ID,
+          USERS_BEING_INVITED.NAME,
+          USERS_INVITING.ID,
+          USERS_INVITING.NAME)
+        .from(BASE_INVITES_JOIN)
+        .where(GROUP_INVITES.USER_INVITING.eq(user))
+        .orderBy(GROUP_INVITES.CREATED)
+        .stream()
+        .map(EIServerDatabaseGroupQueries::joinToInvite)
+        .toList();
+    } catch (final DataAccessException e) {
+      throw handleDatabaseException(this.transaction(), e);
+    }
+  }
+
+  @Override
+  public List<EIGroupInvite> groupInvitesReceivedByUser()
+    throws EIServerDatabaseException
+  {
+    final var transaction = this.transaction();
+    final var user = transaction.userId();
+    final var context = transaction.createContext();
+
+    try {
+      return context.select(
+          GROUP_INVITES.COMPLETED,
+          GROUP_INVITES.CREATED,
+          GROUP_INVITES.GROUP_NAME,
+          GROUP_INVITES.INVITE_TOKEN,
+          GROUP_INVITES.STATUS,
+          GROUP_INVITES.USER_BEING_INVITED,
+          GROUP_INVITES.USER_INVITING,
+          USERS_BEING_INVITED.ID,
+          USERS_BEING_INVITED.NAME,
+          USERS_INVITING.ID,
+          USERS_INVITING.NAME)
+        .from(BASE_INVITES_JOIN)
+        .where(GROUP_INVITES.USER_BEING_INVITED.eq(user))
+        .orderBy(GROUP_INVITES.CREATED)
+        .stream()
+        .map(EIServerDatabaseGroupQueries::joinToInvite)
+        .toList();
     } catch (final DataAccessException e) {
       throw handleDatabaseException(this.transaction(), e);
     }

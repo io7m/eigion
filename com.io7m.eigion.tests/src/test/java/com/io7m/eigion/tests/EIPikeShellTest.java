@@ -16,7 +16,6 @@
 
 package com.io7m.eigion.tests;
 
-import com.io7m.eigion.domaincheck.api.EIDomainCheckerFactoryType;
 import com.io7m.eigion.pike.EIPClients;
 import com.io7m.eigion.pike.api.EIPClientType;
 import com.io7m.eigion.pike.cmdline.EIPSExitException;
@@ -136,7 +135,7 @@ public final class EIPikeShellTest extends EIWithServerContract
     this.shell = this.createShell(buffer.toString(), this::onExec);
     this.shell.run();
 
-    assertEquals(10, this.commands.size());
+    assertEquals(13, this.commands.size());
     assertTrue(this.commands.stream().allMatch(EIPShellCommandExecuted::succeeded));
   }
 

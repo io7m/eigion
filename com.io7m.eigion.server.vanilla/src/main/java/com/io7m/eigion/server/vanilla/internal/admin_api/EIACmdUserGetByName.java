@@ -17,6 +17,7 @@
 
 package com.io7m.eigion.server.vanilla.internal.admin_api;
 
+import com.io7m.eigion.model.EIUserDisplayName;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandUserGetByName;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1ResponseUserGet;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1User;
@@ -66,7 +67,7 @@ public final class EIACmdUserGetByName implements EIACommandExecutorType<EISA1Co
     final var q =
       context.transaction().queries(EIServerDatabaseUsersQueriesType.class);
     final var userOpt =
-      q.userGetForName(command.name());
+      q.userGetForName(new EIUserDisplayName(command.name()));
 
     if (userOpt.isEmpty()) {
       return context.resultErrorFormatted(404, "notFound", "notFound");

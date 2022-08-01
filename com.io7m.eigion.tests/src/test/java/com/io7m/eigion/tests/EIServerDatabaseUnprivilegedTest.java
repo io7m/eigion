@@ -27,6 +27,8 @@ import com.io7m.eigion.model.EIProductRelease;
 import com.io7m.eigion.model.EIProductVersion;
 import com.io7m.eigion.model.EIRichText;
 import com.io7m.eigion.model.EIUser;
+import com.io7m.eigion.model.EIUserDisplayName;
+import com.io7m.eigion.model.EIUserEmail;
 import com.io7m.eigion.server.database.api.EIServerDatabaseException;
 import com.io7m.eigion.server.database.api.EIServerDatabaseImagesQueriesType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseProductsQueriesType;
@@ -55,7 +57,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.DynamicTest.dynamicTest;
 
 @Testcontainers(disabledWithoutDocker = true)
-public final class EIServerDatabaseUnprivilegedTest extends EIWithDatabaseContract
+public final class EIServerDatabaseUnprivilegedTest extends
+  EIWithDatabaseContract
 {
   private static final EIGroupName EXAMPLE_GROUP =
     new EIGroupName("com.io7m.ex");
@@ -78,8 +81,12 @@ public final class EIServerDatabaseUnprivilegedTest extends EIWithDatabaseContra
       final var p =
         EIPasswordAlgorithmPBKDF2HmacSHA256.create()
           .createHashed("12345678");
-      user =
-        users.userCreate("someone", "someone@example.com", p);
+
+      user = users.userCreate(
+        new EIUserDisplayName("someone"),
+        new EIUserEmail("someone@example.com"),
+        p
+      );
       transaction.commit();
     }
     return user;
@@ -294,8 +301,8 @@ public final class EIServerDatabaseUnprivilegedTest extends EIWithDatabaseContra
             assertThrows(EIServerDatabaseException.class, () -> {
               users.userCreate(
                 randomUUID(),
-                "someone",
-                "someone@example.com",
+                new EIUserDisplayName("someone"),
+                new EIUserEmail("someone@example.com"),
                 timeNow(),
                 EIPasswordAlgorithmPBKDF2HmacSHA256.create()
                   .createHashed("12345678")
@@ -326,7 +333,7 @@ public final class EIServerDatabaseUnprivilegedTest extends EIWithDatabaseContra
 
           final var ex =
             assertThrows(EIServerDatabaseException.class, () -> {
-              users.userGetForEmail("someone@example.com");
+              users.userGetForEmail(new EIUserEmail("someone@example.com"));
             });
           assertEquals("operation-not-permitted", ex.errorCode());
         }
@@ -340,7 +347,7 @@ public final class EIServerDatabaseUnprivilegedTest extends EIWithDatabaseContra
 
           final var ex =
             assertThrows(EIServerDatabaseException.class, () -> {
-              users.userGetForName("someone");
+              users.userGetForName(new EIUserDisplayName("someone"));
             });
           assertEquals("operation-not-permitted", ex.errorCode());
         }
@@ -433,7 +440,9 @@ public final class EIServerDatabaseUnprivilegedTest extends EIWithDatabaseContra
 
           final var ex =
             assertThrows(EIServerDatabaseException.class, () -> {
-              images.imageCreate(randomUUID(), EIHash.sha256Of("hello".getBytes(UTF_8)));
+              images.imageCreate(
+                randomUUID(),
+                EIHash.sha256Of("hello".getBytes(UTF_8)));
             });
           assertEquals("operation-not-permitted", ex.errorCode());
         }

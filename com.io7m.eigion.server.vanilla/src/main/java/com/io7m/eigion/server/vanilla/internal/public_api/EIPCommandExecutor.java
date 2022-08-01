@@ -20,6 +20,10 @@ import com.io7m.eigion.protocol.public_api.v1.EISP1CommandGroupCreateBegin;
 import com.io7m.eigion.protocol.public_api.v1.EISP1CommandGroupCreateCancel;
 import com.io7m.eigion.protocol.public_api.v1.EISP1CommandGroupCreateReady;
 import com.io7m.eigion.protocol.public_api.v1.EISP1CommandGroupCreateRequests;
+import com.io7m.eigion.protocol.public_api.v1.EISP1CommandGroupInvite;
+import com.io7m.eigion.protocol.public_api.v1.EISP1CommandGroupInviteByName;
+import com.io7m.eigion.protocol.public_api.v1.EISP1CommandGroupInvitesReceived;
+import com.io7m.eigion.protocol.public_api.v1.EISP1CommandGroupInvitesSent;
 import com.io7m.eigion.protocol.public_api.v1.EISP1CommandGroups;
 import com.io7m.eigion.protocol.public_api.v1.EISP1CommandType;
 import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseType;
@@ -71,6 +75,18 @@ public final class EIPCommandExecutor
     }
     if (command instanceof EISP1CommandGroups c) {
       return new EIPCmdGroups().execute(context, c);
+    }
+    if (command instanceof EISP1CommandGroupInvite c) {
+      return new EIPCmdGroupInvite().execute(context, c);
+    }
+    if (command instanceof EISP1CommandGroupInviteByName c) {
+      return new EIPCmdGroupInviteByName().execute(context, c);
+    }
+    if (command instanceof EISP1CommandGroupInvitesSent c) {
+      return new EIPCmdGroupInvitesSent().execute(context, c);
+    }
+    if (command instanceof EISP1CommandGroupInvitesReceived c) {
+      return new EIPCmdGroupInvitesReceived().execute(context, c);
     }
 
     throw new IllegalStateException();

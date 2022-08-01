@@ -28,7 +28,6 @@ import java.util.Set;
 
 import static com.io7m.eigion.model.EIAdminPermission.ADMIN_CREATE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Testcontainers(disabledWithoutDocker = true)
 public final class EIServerAdminAPIAdminTest extends EIServerContract
@@ -52,7 +51,7 @@ public final class EIServerAdminAPIAdminTest extends EIServerContract
     this.doLoginAdmin("someone", "12345678");
 
     final var rCreate =
-      this.postAdminText("/admin/1/0/command", """
+      this.msgSendAdminText("/admin/1/0/command", """
         {
           "%Type": "CommandAdminCreate",
           "Name": "someone-3",
@@ -70,18 +69,18 @@ public final class EIServerAdminAPIAdminTest extends EIServerContract
     assertEquals(200, rCreate.statusCode());
 
     final var rm =
-      this.parseAdmin(rCreate, EISA1ResponseAdminCreate.class);
+      this.msgParseAdmin(rCreate, EISA1ResponseAdminCreate.class);
 
     {
       final var rGet =
-        this.postAdminText("/admin/1/0/command", """
+        this.msgSendAdminText("/admin/1/0/command", """
           {
             "%s": "CommandAdminGet",
             "ID": "%s"
           }""".formatted("%Type", rm.admin().id()));
 
       final var rg =
-        this.parseAdmin(rGet, EISA1ResponseAdminGet.class);
+        this.msgParseAdmin(rGet, EISA1ResponseAdminGet.class);
 
       final var rgu = rg.admin();
       final var rgp = rgu.password();
@@ -96,14 +95,14 @@ public final class EIServerAdminAPIAdminTest extends EIServerContract
 
     {
       final var rGet =
-        this.postAdminText("/admin/1/0/command", """
+        this.msgSendAdminText("/admin/1/0/command", """
           {
             "%s": "CommandAdminGetByName",
             "Name": "%s"
           }""".formatted("%Type", rm.admin().name()));
 
       final var rg =
-        this.parseAdmin(rGet, EISA1ResponseAdminGet.class);
+        this.msgParseAdmin(rGet, EISA1ResponseAdminGet.class);
 
       final var rgu = rg.admin();
       final var rgp = rgu.password();
@@ -118,14 +117,14 @@ public final class EIServerAdminAPIAdminTest extends EIServerContract
 
     {
       final var rGet =
-        this.postAdminText("/admin/1/0/command", """
+        this.msgSendAdminText("/admin/1/0/command", """
           {
             "%s": "CommandAdminGetByEmail",
             "Email": "%s"
           }""".formatted("%Type", rm.admin().email()));
 
       final var rg =
-        this.parseAdmin(rGet, EISA1ResponseAdminGet.class);
+        this.msgParseAdmin(rGet, EISA1ResponseAdminGet.class);
 
       final var rgu = rg.admin();
       final var rgp = rgu.password();
@@ -156,7 +155,7 @@ public final class EIServerAdminAPIAdminTest extends EIServerContract
     this.doLoginAdmin("someone", "12345678");
 
     final var rCreate =
-      this.postAdminText("/admin/1/0/command", """
+      this.msgSendAdminText("/admin/1/0/command", """
         {
           "%Type": "CommandAdminCreate",
           "Name": "someone",
@@ -174,7 +173,7 @@ public final class EIServerAdminAPIAdminTest extends EIServerContract
     assertEquals(400, rCreate.statusCode());
 
     final var rm =
-      this.parseAdmin(rCreate, EISA1ResponseError.class);
+      this.msgParseAdmin(rCreate, EISA1ResponseError.class);
   }
 
   /**
@@ -196,7 +195,7 @@ public final class EIServerAdminAPIAdminTest extends EIServerContract
     this.doLoginAdmin("someone-else", "12345678");
 
     final var rCreate =
-      this.postAdminText("/admin/1/0/command", """
+      this.msgSendAdminText("/admin/1/0/command", """
         {
           "%Type": "CommandAdminCreate",
           "Name": "someone-else2",
@@ -214,7 +213,7 @@ public final class EIServerAdminAPIAdminTest extends EIServerContract
     assertEquals(403, rCreate.statusCode());
 
     final var rm =
-      this.parseAdmin(rCreate, EISA1ResponseError.class);
+      this.msgParseAdmin(rCreate, EISA1ResponseError.class);
 
     assertEquals("You do not have the ADMIN_CREATE permission.", rm.message());
   }
@@ -239,7 +238,7 @@ public final class EIServerAdminAPIAdminTest extends EIServerContract
     this.doLoginAdmin("someone-else", "12345678");
 
     final var rCreate =
-      this.postAdminText("/admin/1/0/command", """
+      this.msgSendAdminText("/admin/1/0/command", """
         {
           "%Type": "CommandAdminCreate",
           "Name": "someone-else2",
@@ -257,7 +256,7 @@ public final class EIServerAdminAPIAdminTest extends EIServerContract
     assertEquals(403, rCreate.statusCode());
 
     final var rm =
-      this.parseAdmin(rCreate, EISA1ResponseError.class);
+      this.msgParseAdmin(rCreate, EISA1ResponseError.class);
 
     assertEquals(
       "An admin cannot be created with more permissions than the creating admin.",
@@ -283,7 +282,7 @@ public final class EIServerAdminAPIAdminTest extends EIServerContract
     this.doLoginAdmin("someone-else", "12345678");
 
     final var rGet =
-      this.postAdminText("/admin/1/0/command", """
+      this.msgSendAdminText("/admin/1/0/command", """
         {
           "%Type": "CommandAdminGet",
           "ID": "77b8f5db-9f5b-409b-a4c0-4d089e5a5dd8"
@@ -292,7 +291,7 @@ public final class EIServerAdminAPIAdminTest extends EIServerContract
     assertEquals(403, rGet.statusCode());
 
     final var rm =
-      this.parseAdmin(rGet, EISA1ResponseError.class);
+      this.msgParseAdmin(rGet, EISA1ResponseError.class);
 
     assertEquals("You do not have the ADMIN_READ permission.", rm.message());
   }
@@ -316,7 +315,7 @@ public final class EIServerAdminAPIAdminTest extends EIServerContract
     this.doLoginAdmin("someone-else", "12345678");
 
     final var rGet =
-      this.postAdminText("/admin/1/0/command", """
+      this.msgSendAdminText("/admin/1/0/command", """
         {
           "%Type": "CommandAdminGetByEmail",
           "Email": "someone@example.com"
@@ -325,7 +324,7 @@ public final class EIServerAdminAPIAdminTest extends EIServerContract
     assertEquals(403, rGet.statusCode());
 
     final var rm =
-      this.parseAdmin(rGet, EISA1ResponseError.class);
+      this.msgParseAdmin(rGet, EISA1ResponseError.class);
 
     assertEquals("You do not have the ADMIN_READ permission.", rm.message());
   }
@@ -349,7 +348,7 @@ public final class EIServerAdminAPIAdminTest extends EIServerContract
     this.doLoginAdmin("someone-else", "12345678");
 
     final var rGet =
-      this.postAdminText("/admin/1/0/command", """
+      this.msgSendAdminText("/admin/1/0/command", """
         {
           "%Type": "CommandAdminGetByName",
           "Name": "someone"
@@ -358,7 +357,7 @@ public final class EIServerAdminAPIAdminTest extends EIServerContract
     assertEquals(403, rGet.statusCode());
 
     final var rm =
-      this.parseAdmin(rGet, EISA1ResponseError.class);
+      this.msgParseAdmin(rGet, EISA1ResponseError.class);
 
     assertEquals("You do not have the ADMIN_READ permission.", rm.message());
   }
@@ -382,7 +381,7 @@ public final class EIServerAdminAPIAdminTest extends EIServerContract
     this.doLoginAdmin("someone-else", "12345678");
 
     final var rGet =
-      this.postAdminText("/admin/1/0/command", """
+      this.msgSendAdminText("/admin/1/0/command", """
         {
           "%Type": "CommandAdminSearch",
           "Query": "someone"
@@ -391,7 +390,7 @@ public final class EIServerAdminAPIAdminTest extends EIServerContract
     assertEquals(403, rGet.statusCode());
 
     final var rm =
-      this.parseAdmin(rGet, EISA1ResponseError.class);
+      this.msgParseAdmin(rGet, EISA1ResponseError.class);
 
     assertEquals("You do not have the ADMIN_READ permission.", rm.message());
   }

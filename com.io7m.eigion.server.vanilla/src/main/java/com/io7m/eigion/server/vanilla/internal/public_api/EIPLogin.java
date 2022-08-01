@@ -18,6 +18,7 @@
 package com.io7m.eigion.server.vanilla.internal.public_api;
 
 import com.io7m.eigion.model.EIPasswordException;
+import com.io7m.eigion.model.EIUserDisplayName;
 import com.io7m.eigion.protocol.api.EIProtocolException;
 import com.io7m.eigion.protocol.public_api.v1.EISP1CommandLogin;
 import com.io7m.eigion.protocol.public_api.v1.EISP1Messages;
@@ -161,7 +162,7 @@ public final class EIPLogin extends HttpServlet
     EIPasswordException, IOException
   {
     final var userOpt =
-      users.userGetForName(login.userName());
+      users.userGetForName(new EIUserDisplayName(login.userName()));
 
     if (userOpt.isEmpty()) {
       throw new EIHTTPErrorStatusException(

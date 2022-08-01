@@ -28,7 +28,6 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Testcontainers(disabledWithoutDocker = true)
 public final class EIServerPublicAPIImagesTest extends EIServerContract
@@ -59,7 +58,7 @@ public final class EIServerPublicAPIImagesTest extends EIServerContract
 
     {
       final var r =
-        this.postPublicBytes(
+        this.msgSendPublicBytes(
           "/public/1/0/login",
           this.messagesPublicV1().serialize(
             new EISP1CommandLogin("someone", "12345678"))
@@ -68,19 +67,19 @@ public final class EIServerPublicAPIImagesTest extends EIServerContract
     }
 
     final var r =
-      this.postPublicBytes("/public/1/0/image/create", data);
+      this.msgSendPublicBytes("/public/1/0/image/create", data);
     assertEquals(200, r.statusCode());
 
     final var created =
-      this.parsePublic(r, EISP1ResponseImageCreated.class);
+      this.msgParsePublic(r, EISP1ResponseImageCreated.class);
 
     {
       final var rk =
-        this.getPublic("/public/1/0/image/get?id=" + created.imageID());
+        this.msgGetPublic("/public/1/0/image/get?id=" + created.imageID());
       assertEquals(200, rk.statusCode());
 
       final var got =
-        this.parsePublic(rk, EISP1ResponseImageGet.class);
+        this.msgParsePublic(rk, EISP1ResponseImageGet.class);
 
       assertEquals(created.imageID(), got.id());
       assertEquals("SHA-256", got.hash().algorithm());
@@ -122,7 +121,7 @@ public final class EIServerPublicAPIImagesTest extends EIServerContract
 
     {
       final var r =
-        this.postPublicBytes(
+        this.msgSendPublicBytes(
           "/public/1/0/login",
           this.messagesPublicV1().serialize(
             new EISP1CommandLogin("someone", "12345678"))
@@ -132,7 +131,7 @@ public final class EIServerPublicAPIImagesTest extends EIServerContract
 
     {
       final var rk =
-        this.getPublic(
+        this.msgGetPublic(
           "/public/1/0/image/get?id=04f25ed5-2fb4-4d19-994c-5f623df18e8b");
       assertEquals(404, rk.statusCode());
     }
@@ -157,7 +156,7 @@ public final class EIServerPublicAPIImagesTest extends EIServerContract
 
     {
       final var r =
-        this.postPublicBytes(
+        this.msgSendPublicBytes(
           "/public/1/0/login",
           this.messagesPublicV1().serialize(
             new EISP1CommandLogin("someone", "12345678"))
@@ -167,19 +166,19 @@ public final class EIServerPublicAPIImagesTest extends EIServerContract
 
     {
       final var rk =
-        this.getPublic("/public/1/0/image/get");
+        this.msgGetPublic("/public/1/0/image/get");
       assertEquals(400, rk.statusCode());
     }
 
     {
       final var rk =
-        this.getPublic("/public/1/0/image/get?x=23");
+        this.msgGetPublic("/public/1/0/image/get?x=23");
       assertEquals(400, rk.statusCode());
     }
 
     {
       final var rk =
-        this.getPublic("/public/1/0/image/get?id=23");
+        this.msgGetPublic("/public/1/0/image/get?id=23");
       assertEquals(400, rk.statusCode());
     }
   }
@@ -243,7 +242,7 @@ public final class EIServerPublicAPIImagesTest extends EIServerContract
 
     {
       final var r =
-        this.postPublicBytes(
+        this.msgSendPublicBytes(
           "/public/1/0/login",
           this.messagesPublicV1().serialize(
             new EISP1CommandLogin("someone", "12345678"))
@@ -252,11 +251,11 @@ public final class EIServerPublicAPIImagesTest extends EIServerContract
     }
 
     final var r =
-      this.postPublicBytes("/public/1/0/image/create", data);
+      this.msgSendPublicBytes("/public/1/0/image/create", data);
     assertEquals(400, r.statusCode());
 
     final var error =
-      this.parsePublic(r, EISP1ResponseError.class);
+      this.msgParsePublic(r, EISP1ResponseError.class);
 
     assertEquals("image", error.errorCode());
   }

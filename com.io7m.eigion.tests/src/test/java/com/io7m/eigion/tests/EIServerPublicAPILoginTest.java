@@ -23,7 +23,6 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Testcontainers(disabledWithoutDocker = true)
 public final class EIServerPublicAPILoginTest extends EIServerContract
@@ -41,12 +40,12 @@ public final class EIServerPublicAPILoginTest extends EIServerContract
     this.serverStartIfNecessary();
 
     final var response =
-      this.postPublicText("/public/1/0/login", "{}");
+      this.msgSendPublicText("/public/1/0/login", "{}");
 
     assertEquals(400, response.statusCode());
 
     final var error =
-      this.parsePublic(response, EISP1ResponseError.class);
+      this.msgParsePublic(response, EISP1ResponseError.class);
 
     assertEquals("protocol", error.errorCode());
     assertEquals(0, this.cookies().getCookieStore().getCookies().size());
@@ -70,7 +69,7 @@ public final class EIServerPublicAPILoginTest extends EIServerContract
     this.createUserSomeone(adminId);
 
     final var response =
-      this.postPublicBytes(
+      this.msgSendPublicBytes(
         "/public/1/0/login",
         this.messagesPublicV1().serialize(
           new EISP1CommandLogin("someone", "12345678"))
@@ -104,7 +103,7 @@ public final class EIServerPublicAPILoginTest extends EIServerContract
     this.createUserSomeone(adminId);
 
     final var response =
-      this.postPublicBytes(
+      this.msgSendPublicBytes(
         "/public/1/0/login",
         this.messagesPublicV1().serialize(
           new EISP1CommandLogin("someonex", "12345678"))
@@ -113,7 +112,7 @@ public final class EIServerPublicAPILoginTest extends EIServerContract
     assertEquals(401, response.statusCode());
 
     final var error =
-      this.parsePublic(response, EISP1ResponseError.class);
+      this.msgParsePublic(response, EISP1ResponseError.class);
 
     assertEquals("authentication", error.errorCode());
     assertEquals(0, this.cookies().getCookieStore().getCookies().size());
@@ -137,7 +136,7 @@ public final class EIServerPublicAPILoginTest extends EIServerContract
     this.createUserSomeone(adminId);
 
     final var response =
-      this.postPublicBytes(
+      this.msgSendPublicBytes(
         "/public/1/0/login",
         this.messagesPublicV1().serialize(
           new EISP1CommandLogin("someone", "12345678x"))
@@ -146,7 +145,7 @@ public final class EIServerPublicAPILoginTest extends EIServerContract
     assertEquals(401, response.statusCode());
 
     final var error =
-      this.parsePublic(response, EISP1ResponseError.class);
+      this.msgParsePublic(response, EISP1ResponseError.class);
 
     assertEquals("authentication", error.errorCode());
     assertEquals(0, this.cookies().getCookieStore().getCookies().size());
@@ -170,7 +169,7 @@ public final class EIServerPublicAPILoginTest extends EIServerContract
     this.createUserSomeone(adminId);
 
     final var response =
-      this.postPublicBytes(
+      this.msgSendPublicBytes(
         "/public/1/0/login",
         this.messagesPublicV1().serialize(
           new EISP1ResponseError(randomUUID(), "x", "e")
@@ -180,7 +179,7 @@ public final class EIServerPublicAPILoginTest extends EIServerContract
     assertEquals(400, response.statusCode());
 
     final var error =
-      this.parsePublic(response, EISP1ResponseError.class);
+      this.msgParsePublic(response, EISP1ResponseError.class);
 
     assertEquals("protocol", error.errorCode());
     assertEquals(0, this.cookies().getCookieStore().getCookies().size());
@@ -199,7 +198,7 @@ public final class EIServerPublicAPILoginTest extends EIServerContract
     this.serverStartIfNecessary();
 
     final var response =
-      this.postPublicBytes(
+      this.msgSendPublicBytes(
         "/public/1/0/login",
         this.messagesPublicV1().serialize(
           new EISP1CommandLogin(
@@ -212,7 +211,7 @@ public final class EIServerPublicAPILoginTest extends EIServerContract
     assertEquals(413, response.statusCode());
 
     final var error =
-      this.parsePublic(response, EISP1ResponseError.class);
+      this.msgParsePublic(response, EISP1ResponseError.class);
 
     assertEquals("limit", error.errorCode());
     assertEquals(0, this.cookies().getCookieStore().getCookies().size());
@@ -236,12 +235,12 @@ public final class EIServerPublicAPILoginTest extends EIServerContract
     this.createUserSomeone(adminId);
 
     final var response =
-      this.getPublic("/public/1/0/login");
+      this.msgGetPublic("/public/1/0/login");
 
     assertEquals(405, response.statusCode());
 
     final var error =
-      this.parsePublic(response, EISP1ResponseError.class);
+      this.msgParsePublic(response, EISP1ResponseError.class);
 
     assertEquals("http", error.errorCode());
     assertEquals(0, this.cookies().getCookieStore().getCookies().size());
