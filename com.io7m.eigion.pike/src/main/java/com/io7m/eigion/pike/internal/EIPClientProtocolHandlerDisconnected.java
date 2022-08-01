@@ -94,6 +94,14 @@ public final class EIPClientProtocolHandlerDisconnected
     throw this.notLoggedIn();
   }
 
+  @Override
+  public void groupCreationReady(
+    final EIToken token)
+    throws EIPClientException
+  {
+    throw this.notLoggedIn();
+  }
+
   private EIPClientException notLoggedIn()
   {
     return new EIPClientException(

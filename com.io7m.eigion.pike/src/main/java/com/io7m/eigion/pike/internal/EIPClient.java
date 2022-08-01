@@ -108,4 +108,12 @@ public final class EIPClient implements EIPClientType
   {
     this.handler.groupCreationCancel(token);
   }
+
+  @Override
+  public void groupCreationReady(
+    final EIToken token)
+    throws EIPClientException, InterruptedException
+  {
+    this.handler.groupCreationReady(token);
+  }
 }

@@ -98,6 +98,7 @@ public final class EIPSController
         new EIPSCommandExit(controller, strings),
         new EIPSCommandGroupCreationBegin(controller, strings),
         new EIPSCommandGroupCreationCancel(controller, strings),
+        new EIPSCommandGroupCreationReady(controller, strings),
         new EIPSCommandGroupCreationRequests(controller, strings),
         new EIPSCommandHelp(controller, strings),
         new EIPSCommandLogin(controller, strings),

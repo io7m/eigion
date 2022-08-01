@@ -67,4 +67,16 @@ public interface EIPClientGroupsType
 
   void groupCreationCancel(EIToken token)
     throws EIPClientException, InterruptedException;
+
+  /**
+   * Mark a group creation request as ready.
+   *
+   * @param token The creation token
+   *
+   * @throws EIPClientException   On errors
+   * @throws InterruptedException On interruption
+   */
+
+  void groupCreationReady(EIToken token)
+    throws EIPClientException, InterruptedException;
 }
