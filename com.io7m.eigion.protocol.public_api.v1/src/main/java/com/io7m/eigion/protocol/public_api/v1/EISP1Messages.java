@@ -76,8 +76,11 @@ public final class EISP1Messages
         .allowClass(EISP1CommandGroupCreateCancel.class)
         .allowClass(EISP1CommandGroupCreateReady.class)
         .allowClass(EISP1CommandGroupCreateRequests.class)
+        .allowClass(EISP1CommandGroups.class)
         .allowClass(EISP1CommandLogin.class)
         .allowClass(EISP1GroupCreationRequest.class)
+        .allowClass(EISP1GroupRole.class)
+        .allowClass(EISP1GroupRoles.class)
         .allowClass(EISP1Hash.class)
         .allowClass(EISP1MessageType.class)
         .allowClass(EISP1ProductSummary.class)
@@ -86,6 +89,7 @@ public final class EISP1Messages
         .allowClass(EISP1ResponseGroupCreateCancel.class)
         .allowClass(EISP1ResponseGroupCreateReady.class)
         .allowClass(EISP1ResponseGroupCreateRequests.class)
+        .allowClass(EISP1ResponseGroups.class)
         .allowClass(EISP1ResponseImageCreated.class)
         .allowClass(EISP1ResponseImageGet.class)
         .allowClass(EISP1ResponseLogin.class)
@@ -94,7 +98,9 @@ public final class EISP1Messages
         .allowClass(URI.class)
         .allowClass(UUID.class)
         .allowClassName(listOf(EISP1GroupCreationRequest.class))
+        .allowClassName(listOf(EISP1GroupRoles.class))
         .allowClassName(listOf(EISP1ProductSummary.class))
+        .allowClassName(setOf(EISP1GroupRole.class))
         .build();
 
     this.mapper =

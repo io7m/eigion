@@ -19,6 +19,7 @@ package com.io7m.eigion.pike.internal;
 
 import com.io7m.eigion.model.EIGroupCreationRequest;
 import com.io7m.eigion.model.EIGroupName;
+import com.io7m.eigion.model.EIGroupRoles;
 import com.io7m.eigion.model.EIToken;
 import com.io7m.eigion.pike.api.EIPClientException;
 import com.io7m.eigion.pike.api.EIPGroupCreationChallenge;
@@ -27,8 +28,10 @@ import com.io7m.eigion.protocol.public_api.v1.EISP1CommandGroupCreateBegin;
 import com.io7m.eigion.protocol.public_api.v1.EISP1CommandGroupCreateCancel;
 import com.io7m.eigion.protocol.public_api.v1.EISP1CommandGroupCreateReady;
 import com.io7m.eigion.protocol.public_api.v1.EISP1CommandGroupCreateRequests;
+import com.io7m.eigion.protocol.public_api.v1.EISP1CommandGroups;
 import com.io7m.eigion.protocol.public_api.v1.EISP1CommandLogin;
 import com.io7m.eigion.protocol.public_api.v1.EISP1GroupCreationRequest;
+import com.io7m.eigion.protocol.public_api.v1.EISP1GroupRoles;
 import com.io7m.eigion.protocol.public_api.v1.EISP1MessageType;
 import com.io7m.eigion.protocol.public_api.v1.EISP1Messages;
 import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseError;
@@ -36,6 +39,7 @@ import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseGroupCreateBegin;
 import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseGroupCreateCancel;
 import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseGroupCreateReady;
 import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseGroupCreateRequests;
+import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseGroups;
 import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseLogin;
 import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseType;
 import org.slf4j.Logger;
@@ -293,6 +297,22 @@ public final class EIPClientProtocolHandler1
       EISP1ResponseGroupCreateReady.class,
       new EISP1CommandGroupCreateReady(token.value())
     );
+  }
+
+  @Override
+  public List<EIGroupRoles> groups()
+    throws EIPClientException, InterruptedException
+  {
+    final var response =
+      this.sendCommand(
+        EISP1ResponseGroups.class,
+        new EISP1CommandGroups()
+      );
+
+    return response.groupRoles()
+      .stream()
+      .map(EISP1GroupRoles::toRoles)
+      .toList();
   }
 
   interface FunctionType<A, B, E extends Exception>

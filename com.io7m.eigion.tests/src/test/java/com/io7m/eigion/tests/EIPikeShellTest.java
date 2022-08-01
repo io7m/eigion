@@ -136,7 +136,7 @@ public final class EIPikeShellTest extends EIWithServerContract
     this.shell = this.createShell(buffer.toString(), this::onExec);
     this.shell.run();
 
-    assertEquals(9, this.commands.size());
+    assertEquals(10, this.commands.size());
     assertTrue(this.commands.stream().allMatch(EIPShellCommandExecuted::succeeded));
   }
 
@@ -252,6 +252,34 @@ public final class EIPikeShellTest extends EIWithServerContract
     final var ex =
       assertThrows(EIPSExitException.class, () -> this.shell.run());
     assertEquals(1, ex.code());
+  }
+
+  /**
+   * Listing groups works.
+   *
+   * @throws Exception On errors
+   */
+
+  @Test
+  public void testGroups()
+    throws Exception
+  {
+    this.serverCreateUser(
+      this.serverCreateAdminInitial("someone", "12345678"),
+      "someone");
+
+    final var buffer = new StringBuilder(256);
+    buffer.append("set --exit-on-failed-command true\n");
+    buffer.append(
+      "login --username someone --password 12345678 --server %s\n"
+        .formatted(this.serverPublicURI()));
+    buffer.append("groups\n");
+
+    this.shell = this.createShell(buffer.toString(), this::onExec);
+    this.shell.run();
+
+    assertEquals(3, this.commands.size());
+    assertTrue(this.commands.stream().allMatch(EIPShellCommandExecuted::succeeded));
   }
 
   /**

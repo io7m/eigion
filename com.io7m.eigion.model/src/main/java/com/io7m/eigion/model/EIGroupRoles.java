@@ -14,20 +14,33 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-package com.io7m.eigion.protocol.public_api.v1;
+
+package com.io7m.eigion.model;
+
+import java.util.Objects;
+import java.util.Set;
 
 /**
- * The type of Public API v1 commands.
+ * The roles a user holds within a group.
+ *
+ * @param group The group
+ * @param roles The roles
  */
 
-public sealed interface EISP1CommandType
-  extends EISP1MessageType
-  permits EISP1CommandGroupCreateBegin,
-  EISP1CommandGroupCreateCancel,
-  EISP1CommandGroupCreateReady,
-  EISP1CommandGroupCreateRequests,
-  EISP1CommandGroups,
-  EISP1CommandLogin
+public record EIGroupRoles(
+  EIGroupName group,
+  Set<EIGroupRole> roles)
 {
+  /**
+   * The roles a user holds within a group.
+   *
+   * @param group The group
+   * @param roles The roles
+   */
 
+  public EIGroupRoles
+  {
+    Objects.requireNonNull(group, "group");
+    Objects.requireNonNull(roles, "roles");
+  }
 }

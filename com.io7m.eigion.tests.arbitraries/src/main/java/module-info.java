@@ -14,7 +14,8 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-import com.io7m.eigion.tests.arbitraries.EIArbEISP1HashProvider;
+import com.io7m.eigion.tests.arbitraries.EIArbEISP1GroupRolesProvider;
+import com.io7m.eigion.tests.arbitraries.EIArbGroupRolesProvider;
 import net.jqwik.api.providers.ArbitraryProvider;
 
 /**
@@ -33,6 +34,8 @@ module com.io7m.eigion.tests.arbitraries
 
   provides ArbitraryProvider
     with
+      EIArbGroupRolesProvider,
+      EIArbEISP1GroupRolesProvider,
       com.io7m.eigion.tests.arbitraries.EIArbAdminProvider,
       com.io7m.eigion.tests.arbitraries.EIArbAdminSummaryProvider,
       com.io7m.eigion.tests.arbitraries.EIArbAuditEventProvider,

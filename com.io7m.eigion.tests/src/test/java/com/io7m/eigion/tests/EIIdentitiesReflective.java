@@ -60,17 +60,30 @@ import com.io7m.eigion.protocol.admin_api.v1.EISA1UserBan;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1UserSummary;
 import com.io7m.eigion.protocol.api.EIProtocolFromModel;
 import com.io7m.eigion.protocol.api.EIProtocolToModel;
+import com.io7m.eigion.protocol.public_api.v1.EISP1CommandGroupCreateBegin;
+import com.io7m.eigion.protocol.public_api.v1.EISP1CommandGroupCreateCancel;
+import com.io7m.eigion.protocol.public_api.v1.EISP1CommandGroupCreateReady;
+import com.io7m.eigion.protocol.public_api.v1.EISP1CommandGroupCreateRequests;
+import com.io7m.eigion.protocol.public_api.v1.EISP1CommandGroups;
 import com.io7m.eigion.protocol.public_api.v1.EISP1CommandLogin;
 import com.io7m.eigion.protocol.public_api.v1.EISP1CommandType;
 import com.io7m.eigion.protocol.public_api.v1.EISP1GroupCreationRequest;
+import com.io7m.eigion.protocol.public_api.v1.EISP1GroupRole;
+import com.io7m.eigion.protocol.public_api.v1.EISP1GroupRoles;
 import com.io7m.eigion.protocol.public_api.v1.EISP1Hash;
 import com.io7m.eigion.protocol.public_api.v1.EISP1MessageType;
 import com.io7m.eigion.protocol.public_api.v1.EISP1Messages;
 import com.io7m.eigion.protocol.public_api.v1.EISP1ProductIdTypeResolver;
 import com.io7m.eigion.protocol.public_api.v1.EISP1ProductSummary;
 import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseError;
+import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseGroupCreateBegin;
+import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseGroupCreateCancel;
+import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseGroupCreateReady;
+import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseGroupCreateRequests;
+import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseGroups;
 import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseImageCreated;
 import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseImageGet;
+import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseLogin;
 import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseProductList;
 import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseType;
 import net.jqwik.api.Arbitraries;
@@ -138,17 +151,30 @@ public final class EIIdentitiesReflective
     EISA1User.class,
     EISA1UserBan.class,
     EISA1UserSummary.class,
+    EISP1CommandGroupCreateBegin.class,
+    EISP1CommandGroupCreateCancel.class,
+    EISP1CommandGroupCreateReady.class,
+    EISP1CommandGroupCreateRequests.class,
+    EISP1CommandGroups.class,
     EISP1CommandLogin.class,
     EISP1CommandType.class,
     EISP1GroupCreationRequest.class,
+    EISP1GroupRole.class,
+    EISP1GroupRoles.class,
     EISP1Hash.class,
     EISP1MessageType.class,
     EISP1Messages.class,
     EISP1ProductIdTypeResolver.class,
     EISP1ProductSummary.class,
     EISP1ResponseError.class,
+    EISP1ResponseGroupCreateBegin.class,
+    EISP1ResponseGroupCreateCancel.class,
+    EISP1ResponseGroupCreateReady.class,
+    EISP1ResponseGroupCreateRequests.class,
+    EISP1ResponseGroups.class,
     EISP1ResponseImageCreated.class,
     EISP1ResponseImageGet.class,
+    EISP1ResponseLogin.class,
     EISP1ResponseProductList.class,
     EISP1ResponseType.class
   );

@@ -16,18 +16,46 @@
 
 package com.io7m.eigion.protocol.public_api.v1;
 
+import com.io7m.eigion.model.EIGroupRole;
+import com.io7m.eigion.protocol.api.EIProtocolFromModel;
+import com.io7m.eigion.protocol.api.EIProtocolToModel;
+
 /**
- * The type of Public API v1 commands.
+ * The role of a user within a group.
  */
 
-public sealed interface EISP1CommandType
-  extends EISP1MessageType
-  permits EISP1CommandGroupCreateBegin,
-  EISP1CommandGroupCreateCancel,
-  EISP1CommandGroupCreateReady,
-  EISP1CommandGroupCreateRequests,
-  EISP1CommandGroups,
-  EISP1CommandLogin
+public enum EISP1GroupRole
 {
+  /**
+   * The user is the founder of the group.
+   */
 
+  FOUNDER;
+
+  /**
+   * @return This role as a model role
+   */
+
+  @EIProtocolToModel
+  public EIGroupRole toRole()
+  {
+    return switch (this) {
+      case FOUNDER -> EIGroupRole.FOUNDER;
+    };
+  }
+
+  /**
+   * @param role The model role
+   *
+   * @return The v1 role
+   */
+
+  @EIProtocolFromModel
+  public static EISP1GroupRole ofRole(
+    final EIGroupRole role)
+  {
+    return switch (role) {
+      case FOUNDER -> FOUNDER;
+    };
+  }
 }

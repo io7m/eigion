@@ -19,6 +19,7 @@ package com.io7m.eigion.pike.internal;
 
 import com.io7m.eigion.model.EIGroupCreationRequest;
 import com.io7m.eigion.model.EIGroupName;
+import com.io7m.eigion.model.EIGroupRoles;
 import com.io7m.eigion.model.EIToken;
 import com.io7m.eigion.pike.api.EIPClientException;
 import com.io7m.eigion.pike.api.EIPGroupCreationChallenge;
@@ -97,6 +98,13 @@ public final class EIPClientProtocolHandlerDisconnected
   @Override
   public void groupCreationReady(
     final EIToken token)
+    throws EIPClientException
+  {
+    throw this.notLoggedIn();
+  }
+
+  @Override
+  public List<EIGroupRoles> groups()
     throws EIPClientException
   {
     throw this.notLoggedIn();

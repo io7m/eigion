@@ -16,18 +16,20 @@
 
 package com.io7m.eigion.protocol.public_api.v1;
 
-/**
- * The type of Public API v1 commands.
- */
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
-public sealed interface EISP1CommandType
-  extends EISP1MessageType
-  permits EISP1CommandGroupCreateBegin,
-  EISP1CommandGroupCreateCancel,
-  EISP1CommandGroupCreateReady,
-  EISP1CommandGroupCreateRequests,
-  EISP1CommandGroups,
-  EISP1CommandLogin
+// CHECKSTYLE:OFF
+
+@JsonDeserialize
+@JsonSerialize
+public record EISP1CommandGroups()
+  implements EISP1CommandType
 {
+  @JsonCreator
+  public EISP1CommandGroups
+  {
 
+  }
 }

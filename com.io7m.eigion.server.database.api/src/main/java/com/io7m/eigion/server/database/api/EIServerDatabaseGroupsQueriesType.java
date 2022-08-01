@@ -19,6 +19,7 @@ package com.io7m.eigion.server.database.api;
 import com.io7m.eigion.model.EIGroupCreationRequest;
 import com.io7m.eigion.model.EIGroupName;
 import com.io7m.eigion.model.EIGroupRole;
+import com.io7m.eigion.model.EIGroupRoles;
 import com.io7m.eigion.model.EIToken;
 
 import java.util.List;
@@ -145,19 +146,16 @@ public non-sealed interface EIServerDatabaseGroupsQueriesType
     throws EIServerDatabaseException;
 
   /**
-   * Get the membership of the given user within the given group. Returns
-   * nothing if the user is not a member of the group.
+   * List the groups of which the given user is a member.
    *
-   * @param name   The group
    * @param userId The user
    *
-   * @return A non-empty value if the user is a member
+   * @return The groups of which the given user is a member
    *
    * @throws EIServerDatabaseException On errors
    */
 
-  Optional<Set<EIGroupRole>> groupMembershipGet(
-    EIGroupName name,
+  List<EIGroupRoles> groupMembershipGet(
     UUID userId)
     throws EIServerDatabaseException;
 

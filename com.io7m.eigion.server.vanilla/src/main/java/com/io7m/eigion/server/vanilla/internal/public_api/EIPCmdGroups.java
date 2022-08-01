@@ -14,14 +14,13 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+
 package com.io7m.eigion.server.vanilla.internal.public_api;
 
-import com.io7m.eigion.protocol.public_api.v1.EISP1CommandGroupCreateBegin;
-import com.io7m.eigion.protocol.public_api.v1.EISP1CommandGroupCreateCancel;
-import com.io7m.eigion.protocol.public_api.v1.EISP1CommandGroupCreateReady;
-import com.io7m.eigion.protocol.public_api.v1.EISP1CommandGroupCreateRequests;
+import com.io7m.eigion.model.EIGroupRoles;
 import com.io7m.eigion.protocol.public_api.v1.EISP1CommandGroups;
-import com.io7m.eigion.protocol.public_api.v1.EISP1CommandType;
+import com.io7m.eigion.protocol.public_api.v1.EISP1GroupRoles;
+import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseGroups;
 import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseException;
 import com.io7m.eigion.server.security.EISecurityException;
@@ -29,21 +28,23 @@ import com.io7m.eigion.server.vanilla.internal.EIHTTPErrorStatusException;
 import com.io7m.eigion.server.vanilla.internal.command_exec.EICommandExecutionResult;
 import com.io7m.eigion.server.vanilla.internal.command_exec.EICommandExecutorType;
 
+import java.util.Objects;
+
 /**
- * A command executor for public commands.
+ * A request to list groups for a user.
  */
 
-public final class EIPCommandExecutor
+public final class EIPCmdGroups
   implements EICommandExecutorType<
   EIPCommandContext,
-  EISP1CommandType,
+  EISP1CommandGroups,
   EISP1ResponseType>
 {
   /**
-   * A command executor for public commands.
+   * A request to list groups for a user.
    */
 
-  public EIPCommandExecutor()
+  public EIPCmdGroups()
   {
 
   }
@@ -51,28 +52,26 @@ public final class EIPCommandExecutor
   @Override
   public EICommandExecutionResult<EISP1ResponseType> execute(
     final EIPCommandContext context,
-    final EISP1CommandType command)
+    final EISP1CommandGroups command)
     throws
     EIServerDatabaseException,
     EIHTTPErrorStatusException,
     EISecurityException
   {
-    if (command instanceof EISP1CommandGroupCreateBegin c) {
-      return new EIPCmdGroupCreateBegin().execute(context, c);
-    }
-    if (command instanceof EISP1CommandGroupCreateRequests c) {
-      return new EIPCmdGroupCreateRequests().execute(context, c);
-    }
-    if (command instanceof EISP1CommandGroupCreateCancel c) {
-      return new EIPCmdGroupCreateCancel().execute(context, c);
-    }
-    if (command instanceof EISP1CommandGroupCreateReady c) {
-      return new EIPCmdGroupCreateReady().execute(context, c);
-    }
-    if (command instanceof EISP1CommandGroups c) {
-      return new EIPCmdGroups().execute(context, c);
-    }
+    Objects.requireNonNull(context, "context");
+    Objects.requireNonNull(command, "command");
 
-    throw new IllegalStateException();
+    final var user = context.user();
+    return new EICommandExecutionResult<>(
+      200,
+      new EISP1ResponseGroups(
+        context.requestId(),
+        user.groupMembership()
+          .entrySet()
+          .stream()
+          .map(e -> new EIGroupRoles(e.getKey(), e.getValue()))
+          .map(EISP1GroupRoles::ofRoles)
+          .toList())
+    );
   }
 }

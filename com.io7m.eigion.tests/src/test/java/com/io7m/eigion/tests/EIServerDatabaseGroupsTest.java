@@ -23,6 +23,7 @@ import com.io7m.eigion.model.EIGroupCreationRequestStatusType.Failed;
 import com.io7m.eigion.model.EIGroupCreationRequestStatusType.InProgress;
 import com.io7m.eigion.model.EIGroupCreationRequestStatusType.Succeeded;
 import com.io7m.eigion.model.EIGroupName;
+import com.io7m.eigion.model.EIGroupRoles;
 import com.io7m.eigion.model.EIPasswordException;
 import com.io7m.eigion.model.EIToken;
 import com.io7m.eigion.model.EIUser;
@@ -107,17 +108,15 @@ public final class EIServerDatabaseGroupsTest extends EIWithDatabaseContract
     groups.groupMembershipSet(groupName, user.id(), Set.of(FOUNDER));
 
     {
-      final var m =
-        groups.groupMembershipGet(groupName, user.id()).orElseThrow();
-      assertEquals(Set.of(FOUNDER), m);
+      final var m = groups.groupMembershipGet(user.id());
+      assertEquals(List.of(new EIGroupRoles(groupName, Set.of(FOUNDER))), m);
     }
 
     groups.groupMembershipSet(groupName, user.id(), Set.of());
 
     {
-      final var m =
-        groups.groupMembershipGet(groupName, user.id()).orElseThrow();
-      assertEquals(Set.of(), m);
+      final var m = groups.groupMembershipGet(user.id());
+      assertEquals(List.of(new EIGroupRoles(groupName, Set.of())), m);
     }
 
     groups.groupMembershipRemove(groupName, user.id());
@@ -140,54 +139,6 @@ public final class EIServerDatabaseGroupsTest extends EIWithDatabaseContract
         "GROUP_USERS_REMOVED",
         "%s|%s".formatted(groupName.value(), user.id()))
     );
-  }
-
-  /**
-   * Nonexistent groups cannot be checked for user membership.
-   *
-   * @throws Exception On errors
-   */
-
-  @Test
-  public void testGroupMembershipNonexistentGroup()
-    throws Exception
-  {
-    assertTrue(this.containerIsRunning());
-
-    final var adminId =
-      this.databaseCreateAdminInitial("someone", "12345678");
-
-    final var transaction =
-      this.transactionOf(EIGION);
-
-    transaction.adminIdSet(adminId);
-
-    final var groups =
-      transaction.queries(EIServerDatabaseGroupsQueriesType.class);
-
-    final var user =
-      createUser(transaction);
-
-    final var groupName =
-      new EIGroupName("com.io7m.eigion.test");
-
-    {
-      final var ex =
-        assertThrows(EIServerDatabaseException.class, () -> {
-          groups.groupMembershipSet(groupName, user.id(), Set.of(FOUNDER));
-        });
-
-      assertEquals("group-nonexistent", ex.errorCode());
-    }
-
-    {
-      final var ex =
-        assertThrows(EIServerDatabaseException.class, () -> {
-          groups.groupMembershipGet(groupName, user.id());
-        });
-
-      assertEquals("group-nonexistent", ex.errorCode());
-    }
   }
 
   /**
@@ -233,7 +184,7 @@ public final class EIServerDatabaseGroupsTest extends EIWithDatabaseContract
     {
       final var ex =
         assertThrows(EIServerDatabaseException.class, () -> {
-          groups.groupMembershipGet(groupName, randomUUID());
+          groups.groupMembershipGet(randomUUID());
         });
 
       assertEquals("user-nonexistent", ex.errorCode());

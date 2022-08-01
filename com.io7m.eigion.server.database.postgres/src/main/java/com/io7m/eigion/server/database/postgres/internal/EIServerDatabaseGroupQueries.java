@@ -23,6 +23,7 @@ import com.io7m.eigion.model.EIGroupCreationRequestStatusType.InProgress;
 import com.io7m.eigion.model.EIGroupCreationRequestStatusType.Succeeded;
 import com.io7m.eigion.model.EIGroupName;
 import com.io7m.eigion.model.EIGroupRole;
+import com.io7m.eigion.model.EIGroupRoles;
 import com.io7m.eigion.model.EIToken;
 import com.io7m.eigion.server.database.api.EIServerDatabaseException;
 import com.io7m.eigion.server.database.api.EIServerDatabaseGroupsQueriesType;
@@ -98,10 +99,9 @@ final class EIServerDatabaseGroupQueries
         );
       }
 
-      default ->
-        throw new IllegalStateException(
-          "Unrecognized status: %s".formatted(statusName)
-        );
+      default -> throw new IllegalStateException(
+        "Unrecognized status: %s".formatted(statusName)
+      );
     };
   }
 
@@ -422,7 +422,9 @@ final class EIServerDatabaseGroupQueries
 
       if (status instanceof Cancelled cancelled) {
         existing.set(GROUPS_CREATION_REQUESTS.STATUS, NAME_CANCELLED);
-        existing.set(GROUPS_CREATION_REQUESTS.COMPLETED, cancelled.timeCompletedValue());
+        existing.set(
+          GROUPS_CREATION_REQUESTS.COMPLETED,
+          cancelled.timeCompletedValue());
         existing.set(GROUPS_CREATION_REQUESTS.MESSAGE, "");
         existing.store();
 
@@ -439,7 +441,9 @@ final class EIServerDatabaseGroupQueries
 
       if (status instanceof Failed failed) {
         existing.set(GROUPS_CREATION_REQUESTS.STATUS, NAME_FAILED);
-        existing.set(GROUPS_CREATION_REQUESTS.COMPLETED, failed.timeCompletedValue());
+        existing.set(
+          GROUPS_CREATION_REQUESTS.COMPLETED,
+          failed.timeCompletedValue());
         existing.set(GROUPS_CREATION_REQUESTS.MESSAGE, failed.message());
         existing.store();
 
@@ -456,7 +460,9 @@ final class EIServerDatabaseGroupQueries
 
       if (status instanceof Succeeded succeeded) {
         existing.set(GROUPS_CREATION_REQUESTS.STATUS, NAME_SUCCEEDED);
-        existing.set(GROUPS_CREATION_REQUESTS.COMPLETED, succeeded.timeCompletedValue());
+        existing.set(
+          GROUPS_CREATION_REQUESTS.COMPLETED,
+          succeeded.timeCompletedValue());
         existing.set(GROUPS_CREATION_REQUESTS.MESSAGE, "");
         existing.store();
 
@@ -573,12 +579,10 @@ final class EIServerDatabaseGroupQueries
   }
 
   @Override
-  public Optional<Set<EIGroupRole>> groupMembershipGet(
-    final EIGroupName name,
+  public List<EIGroupRoles> groupMembershipGet(
     final UUID userId)
     throws EIServerDatabaseException
   {
-    Objects.requireNonNull(name, "name");
     Objects.requireNonNull(userId, "userId");
 
     final var transaction = this.transaction();
@@ -587,27 +591,28 @@ final class EIServerDatabaseGroupQueries
     try {
       checkUserExists(context, userId);
 
-      final var existingGroup =
-        checkGroupExists(context, name);
-      final var groupId =
-        existingGroup.getId();
-
-      final var groupRecordOpt =
-        context.fetchOptional(
-          GROUP_USERS,
-          GROUP_USERS.GROUP_ID.eq(groupId).and(GROUP_USERS.USER_ID.eq(userId)));
-
-      return groupRecordOpt.map(groupUsersRecord -> {
-        return Arrays.stream(groupUsersRecord.get(GROUP_USERS.ROLES)
-                               .split(","))
-          .sorted()
-          .filter(s -> !s.isBlank())
-          .map(EIGroupRole::valueOf)
-          .collect(Collectors.toUnmodifiableSet());
-      });
+      return context.selectFrom(
+          GROUP_USERS.join(GROUPS).on(GROUPS.ID.eq(GROUP_USERS.GROUP_ID)))
+        .where(GROUP_USERS.USER_ID.eq(userId))
+        .stream()
+        .map(EIServerDatabaseGroupQueries::mapGroupRoles)
+        .toList();
     } catch (final DataAccessException e) {
       throw handleDatabaseException(transaction, e);
     }
+  }
+
+  private static EIGroupRoles mapGroupRoles(
+    final Record r)
+  {
+    return new EIGroupRoles(
+      new EIGroupName(r.get(GROUPS.NAME)),
+      Arrays.stream(r.get(GROUP_USERS.ROLES)
+                      .split(","))
+        .filter(s -> !s.isBlank())
+        .map(EIGroupRole::valueOf)
+        .collect(Collectors.toUnmodifiableSet())
+    );
   }
 
   @Override

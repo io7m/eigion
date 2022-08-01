@@ -83,7 +83,7 @@ public abstract class EIWithServerContract
       .createHashed("12345678");
   }
 
-  private static OffsetDateTime timeNow()
+  protected static OffsetDateTime timeNow()
   {
     return OffsetDateTime.now(Clock.systemUTC()).withNano(0);
   }

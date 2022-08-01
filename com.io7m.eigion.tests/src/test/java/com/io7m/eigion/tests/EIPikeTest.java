@@ -16,7 +16,10 @@
 
 package com.io7m.eigion.tests;
 
+import com.io7m.eigion.model.EIGroupCreationRequest;
+import com.io7m.eigion.model.EIGroupCreationRequestStatusType.Succeeded;
 import com.io7m.eigion.model.EIGroupName;
+import com.io7m.eigion.model.EIGroupRole;
 import com.io7m.eigion.model.EIToken;
 import com.io7m.eigion.pike.EIPClients;
 import com.io7m.eigion.pike.api.EIPClientException;
@@ -24,11 +27,15 @@ import com.io7m.eigion.pike.api.EIPClientType;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.URI;
+import java.util.EnumSet;
 import java.util.Locale;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 
 import static com.io7m.eigion.model.EIGroupCreationRequestStatusType.Cancelled;
 import static com.io7m.eigion.model.EIGroupCreationRequestStatusType.InProgress;
@@ -278,5 +285,60 @@ public final class EIPikeTest extends EIWithServerContract
         "49F8ACBA8A607A3C39B335A436D4E764"));
     });
     assertTrue(ex.getMessage().contains("Not found"));
+  }
+
+  /**
+   * Group creation works.
+   *
+   * @throws Exception On errors
+   */
+
+  @Test
+  @Timeout(value = 5L, unit = TimeUnit.SECONDS)
+  public void testGroupCreate()
+    throws Exception
+  {
+    final var user =
+      this.serverCreateUser(
+        this.serverCreateAdminInitial("someone", "12345678"),
+        "someone");
+
+    this.client.login("someone", "12345678", this.serverPublicURI());
+
+    final var groupName =
+      new EIGroupName("com.io7m.ex");
+    final var c =
+      this.client.groupCreationBegin(groupName);
+
+    this.domainCheckers()
+      .enqueue(CompletableFuture.completedFuture(
+        new EIGroupCreationRequest(
+          groupName,
+          user,
+          c.token(),
+          new Succeeded(timeNow(), timeNow())
+        )
+      ));
+
+    this.client.groupCreationReady(c.token());
+
+    while (true) {
+      final var rs =
+        this.client.groupCreationRequests();
+      final var r =
+        rs.get(0);
+
+      if (r.status() instanceof InProgress) {
+        Thread.sleep(100L);
+        continue;
+      }
+
+      break;
+    }
+
+    final var groups = this.client.groups();
+    assertEquals(groups.get(0).group(), groupName);
+    assertEquals(groups.get(0).roles(), EnumSet.allOf(EIGroupRole.class));
+    assertEquals(1, groups.size());
   }
 }

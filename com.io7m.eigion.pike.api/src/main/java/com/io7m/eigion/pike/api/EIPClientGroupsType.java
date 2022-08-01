@@ -19,6 +19,7 @@ package com.io7m.eigion.pike.api;
 
 import com.io7m.eigion.model.EIGroupCreationRequest;
 import com.io7m.eigion.model.EIGroupName;
+import com.io7m.eigion.model.EIGroupRoles;
 import com.io7m.eigion.model.EIToken;
 
 import java.util.List;
@@ -78,5 +79,15 @@ public interface EIPClientGroupsType
    */
 
   void groupCreationReady(EIToken token)
+    throws EIPClientException, InterruptedException;
+
+  /**
+   * @return The groups in which the current user is a member
+   *
+   * @throws EIPClientException   On errors
+   * @throws InterruptedException On interruption
+   */
+
+  List<EIGroupRoles> groups()
     throws EIPClientException, InterruptedException;
 }
