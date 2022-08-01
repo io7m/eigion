@@ -41,6 +41,7 @@ public final class EIServerDatabase implements EIServerDatabaseType
   private final EIProductReleaseSerializersType productsSerializers;
   private final Settings settings;
   private final EIProductReleaseParsersType productReleaseParsers;
+  private final EIServerDatabaseMetrics metrics;
 
   /**
    * The default postgres server database implementation.
@@ -49,13 +50,15 @@ public final class EIServerDatabase implements EIServerDatabaseType
    * @param inDataSource            A pooled data source
    * @param inProductsSerializers   A product release serializer factory
    * @param inProductReleaseParsers A product release parser factory
+   * @param inMetrics               A metrics bean
    */
 
   public EIServerDatabase(
     final Clock inClock,
     final HikariDataSource inDataSource,
     final EIProductReleaseSerializersType inProductsSerializers,
-    final EIProductReleaseParsersType inProductReleaseParsers)
+    final EIProductReleaseParsersType inProductReleaseParsers,
+    final EIServerDatabaseMetrics inMetrics)
   {
     this.clock =
       Objects.requireNonNull(inClock, "clock");
@@ -65,6 +68,8 @@ public final class EIServerDatabase implements EIServerDatabaseType
       Objects.requireNonNull(inProductsSerializers, "inProductsSerializers");
     this.productReleaseParsers =
       Objects.requireNonNull(inProductReleaseParsers, "productReleaseParsers");
+    this.metrics =
+      Objects.requireNonNull(inMetrics, "metrics");
     this.settings =
       new Settings().withRenderNameCase(RenderNameCase.LOWER);
   }
@@ -87,6 +92,15 @@ public final class EIServerDatabase implements EIServerDatabaseType
     } catch (final SQLException e) {
       throw new EIServerDatabaseException(e.getMessage(), e, "sql-error");
     }
+  }
+
+  /**
+   * @return The database metrics
+   */
+
+  public EIServerDatabaseMetrics metrics()
+  {
+    return this.metrics;
   }
 
   /**

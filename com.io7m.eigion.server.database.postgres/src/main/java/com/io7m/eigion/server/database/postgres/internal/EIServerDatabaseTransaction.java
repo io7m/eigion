@@ -34,6 +34,8 @@ import org.jooq.impl.DSL;
 
 import java.sql.SQLException;
 import java.time.Clock;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
@@ -46,14 +48,18 @@ final class EIServerDatabaseTransaction
   implements EIServerDatabaseTransactionType
 {
   private final EIServerDatabaseConnection connection;
+  private Instant timeStart;
   private UUID currentUserId;
   private UUID currentAdminId;
 
   EIServerDatabaseTransaction(
-    final EIServerDatabaseConnection inConnection)
+    final EIServerDatabaseConnection inConnection,
+    final Instant inTimeStart)
   {
     this.connection =
       Objects.requireNonNull(inConnection, "connection");
+    this.timeStart =
+      Objects.requireNonNull(inTimeStart, "timeStart");
   }
 
   void setRole(
@@ -100,7 +106,7 @@ final class EIServerDatabaseTransaction
 
       if (userOpt.isEmpty()) {
         throw new EIServerDatabaseException(
-          "No such user: " + userId,
+          "No such user: %s".formatted(userId),
           "user-nonexistent"
         );
       }
@@ -183,6 +189,9 @@ final class EIServerDatabaseTransaction
   {
     try {
       this.connection.connection().rollback();
+      this.connection.database()
+        .metrics()
+        .addTransactionTimeRolledBack(this.updateTransactionTime());
     } catch (final SQLException e) {
       throw new EIServerDatabaseException(e.getMessage(), e, "sql-error");
     }
@@ -194,9 +203,27 @@ final class EIServerDatabaseTransaction
   {
     try {
       this.connection.connection().commit();
+      this.connection.database()
+        .metrics()
+        .addTransactionTimeCommitted(this.updateTransactionTime());
     } catch (final SQLException e) {
       throw new EIServerDatabaseException(e.getMessage(), e, "sql-error");
     }
+  }
+
+  private double updateTransactionTime()
+  {
+    final var timeNow =
+      this.connection.database()
+        .clock()
+        .instant();
+    final var diff =
+      Duration.between(this.timeStart, timeNow);
+    final var timeMs =
+      (double) diff.toMillis() / 1000.0;
+
+    this.timeStart = timeNow;
+    return timeMs;
   }
 
   @Override

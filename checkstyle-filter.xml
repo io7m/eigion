@@ -22,4 +22,8 @@
   <!-- Bytes to strings -->
   <suppress files="EIDomainCheck\.java"
             checks="IllegalInstantiation"/>
+
+  <!-- MXBeans have specific name conventions. -->
+  <suppress files="EIServerDatabaseMetricsMXBean\.java"
+            checks="TypeName"/>
 </suppressions>

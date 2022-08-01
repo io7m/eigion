@@ -24,6 +24,7 @@ import com.io7m.eigion.server.database.api.EIServerDatabaseException;
 import com.io7m.eigion.server.database.api.EIServerDatabaseFactoryType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseType;
 import com.io7m.eigion.server.database.postgres.internal.EIServerDatabase;
+import com.io7m.eigion.server.database.postgres.internal.EIServerDatabaseMetrics;
 import com.io7m.trasco.api.TrEventExecutingSQL;
 import com.io7m.trasco.api.TrEventType;
 import com.io7m.trasco.api.TrEventUpgrading;
@@ -38,7 +39,13 @@ import org.postgresql.util.PSQLState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.management.InstanceAlreadyExistsException;
+import javax.management.MBeanRegistrationException;
+import javax.management.MalformedObjectNameException;
+import javax.management.NotCompliantMBeanException;
+import javax.management.ObjectName;
 import java.io.IOException;
+import java.lang.management.ManagementFactory;
 import java.math.BigInteger;
 import java.net.URI;
 import java.sql.Connection;
@@ -199,11 +206,15 @@ public final class EIServerDatabases implements EIServerDatabaseFactoryType
         connection.commit();
       }
 
+      final var metrics = new EIServerDatabaseMetrics();
+      setupMetrics(metrics);
+
       return new EIServerDatabase(
         configuration.clock(),
         dataSource,
         this.productsSerializers,
-        this.productsParsers
+        this.productsParsers,
+        metrics
       );
     } catch (final IOException e) {
       throw new EIServerDatabaseException(e.getMessage(), e, "resource");
@@ -213,6 +224,24 @@ public final class EIServerDatabases implements EIServerDatabaseFactoryType
       throw new EIServerDatabaseException(e.getMessage(), e, "sql-revisions");
     } catch (final SQLException e) {
       throw new EIServerDatabaseException(e.getMessage(), e, "sql-error");
+    }
+  }
+
+  private static void setupMetrics(
+    final EIServerDatabaseMetrics metrics)
+  {
+    try {
+      final var server =
+        ManagementFactory.getPlatformMBeanServer();
+      final var objectName =
+        new ObjectName("com.io7m.eigion.server.database.postgres:name=Metrics");
+
+      server.registerMBean(metrics, objectName);
+    } catch (final MalformedObjectNameException
+                   | InstanceAlreadyExistsException
+                   | MBeanRegistrationException
+                   | NotCompliantMBeanException e) {
+      LOG.error("unable to register metrics bean: ", e);
     }
   }
 

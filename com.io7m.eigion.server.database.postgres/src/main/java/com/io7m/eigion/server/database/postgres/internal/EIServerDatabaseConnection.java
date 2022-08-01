@@ -35,7 +35,12 @@ record EIServerDatabaseConnection(
     throws EIServerDatabaseException
   {
     try {
-      final var t = new EIServerDatabaseTransaction(this);
+      final var t =
+        new EIServerDatabaseTransaction(
+          this,
+          this.database.clock().instant()
+        );
+
       t.setRole(this.role);
       t.commit();
       return t;
