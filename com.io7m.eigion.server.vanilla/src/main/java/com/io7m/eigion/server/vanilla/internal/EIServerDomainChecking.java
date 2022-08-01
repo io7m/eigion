@@ -19,12 +19,15 @@ package com.io7m.eigion.server.vanilla.internal;
 
 import com.io7m.eigion.domaincheck.api.EIDomainCheckerType;
 import com.io7m.eigion.model.EIGroupCreationRequest;
+import com.io7m.eigion.model.EIGroupCreationRequestStatusType.Succeeded;
+import com.io7m.eigion.model.EIGroupRole;
 import com.io7m.eigion.server.database.api.EIServerDatabaseGroupsQueriesType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseType;
 import com.io7m.eigion.services.api.EIServiceType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.EnumSet;
 import java.util.Objects;
 
 import static com.io7m.eigion.server.database.api.EIServerDatabaseRole.EIGION;
@@ -103,6 +106,15 @@ public final class EIServerDomainChecking
         final var groups =
           transaction.queries(EIServerDatabaseGroupsQueriesType.class);
         groups.groupCreationRequestComplete(result);
+
+        if (result.status() instanceof Succeeded) {
+          groups.groupMembershipSet(
+            result.groupName(),
+            result.userFounder(),
+            EnumSet.allOf(EIGroupRole.class)
+          );
+        }
+
         transaction.commit();
       }
     } catch (final Exception e) {

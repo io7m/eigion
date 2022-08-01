@@ -260,4 +260,10 @@ final class EIServerDatabaseTransaction
       );
     });
   }
+
+  @Override
+  public Optional<UUID> adminIdIfPresent()
+  {
+    return Optional.ofNullable(this.currentAdminId);
+  }
 }

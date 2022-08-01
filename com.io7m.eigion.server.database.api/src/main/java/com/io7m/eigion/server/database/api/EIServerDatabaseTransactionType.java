@@ -16,6 +16,7 @@
 
 package com.io7m.eigion.server.database.api;
 
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -69,6 +70,15 @@ public interface EIServerDatabaseTransactionType extends AutoCloseable
    */
 
   UUID adminId()
+    throws EIServerDatabaseException;
+
+  /**
+   * @return The current admin ID, if defined
+   *
+   * @throws EIServerDatabaseException On errors
+   */
+
+  Optional<UUID> adminIdIfPresent()
     throws EIServerDatabaseException;
 
   /**

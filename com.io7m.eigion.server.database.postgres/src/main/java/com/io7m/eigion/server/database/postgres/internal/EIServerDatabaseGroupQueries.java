@@ -511,7 +511,6 @@ final class EIServerDatabaseGroupQueries
     Objects.requireNonNull(roles, "roles");
 
     final var transaction = this.transaction();
-    final var admin = transaction.adminId();
     final var context = transaction.createContext();
 
     try {
@@ -535,6 +534,10 @@ final class EIServerDatabaseGroupQueries
           .sorted()
           .collect(Collectors.joining(","));
 
+      final var auditUser =
+        transaction.adminIdIfPresent()
+          .orElse(userId);
+
       final GroupUsersRecord groupRecord;
       if (groupRecordOpt.isPresent()) {
         groupRecord = groupRecordOpt.get();
@@ -547,7 +550,7 @@ final class EIServerDatabaseGroupQueries
           context.insertInto(AUDIT)
             .set(AUDIT.TIME, timeNow)
             .set(AUDIT.TYPE, "GROUP_USERS_ADDED")
-            .set(AUDIT.USER_ID, admin)
+            .set(AUDIT.USER_ID, auditUser)
             .set(AUDIT.MESSAGE, "%s|%s".formatted(name, userId));
 
         insertAuditRecord(audit);
@@ -560,7 +563,7 @@ final class EIServerDatabaseGroupQueries
         context.insertInto(AUDIT)
           .set(AUDIT.TIME, timeNow)
           .set(AUDIT.TYPE, "GROUP_USERS_ROLES_CHANGED")
-          .set(AUDIT.USER_ID, admin)
+          .set(AUDIT.USER_ID, auditUser)
           .set(AUDIT.MESSAGE, "%s|%s|%s".formatted(name, userId, roleString));
 
       insertAuditRecord(audit);

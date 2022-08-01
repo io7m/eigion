@@ -138,7 +138,6 @@ public non-sealed interface EIServerDatabaseGroupsQueriesType
    * @throws EIServerDatabaseException On errors
    */
 
-  @EIServerDatabaseRequiresAdmin
   void groupMembershipSet(
     EIGroupName name,
     UUID userId,
