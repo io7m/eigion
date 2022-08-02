@@ -26,29 +26,36 @@ import java.util.function.Consumer;
 /**
  * The configuration for a shell.
  *
- * @param client        The client
- * @param streams       The streams to use in place of the default controlling
- *                      terminal
- * @param executedLines A function that receives each line when executing it has
- *                      completed
- * @param locale        The locale
+ * @param client             The client
+ * @param streams            The streams to use in place of the default
+ *                           controlling terminal
+ * @param executedLines      A function that receives each line when executing
+ *                           it has completed
+ * @param locale             The locale
+ * @param writeFileSeparator {@code true} if an ASCII file separator (0x1c)
+ *                           should be written after the output of every
+ *                           command
  */
 
 public record EIPShellConfiguration(
   EIPClientType client,
   Optional<EIPShellStreams> streams,
   Consumer<EIPShellCommandExecuted> executedLines,
-  Locale locale)
+  Locale locale,
+  boolean writeFileSeparator)
 {
   /**
    * The configuration for a shell.
    *
-   * @param client        The client
-   * @param streams       The streams to use in place of the default controlling
-   *                      terminal
-   * @param executedLines A function that receives each line when executing it
-   *                      has completed
-   * @param locale        The locale
+   * @param client             The client
+   * @param streams            The streams to use in place of the default
+   *                           controlling terminal
+   * @param executedLines      A function that receives each line when executing
+   *                           it has completed
+   * @param locale             The locale
+   * @param writeFileSeparator {@code true} if an ASCII file separator (0x1c)
+   *                           should be written after the output of every
+   *                           command
    */
 
   public EIPShellConfiguration

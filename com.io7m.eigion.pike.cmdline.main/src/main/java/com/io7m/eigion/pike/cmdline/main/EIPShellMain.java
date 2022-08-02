@@ -137,7 +137,7 @@ public final class EIPShellMain
     final var locale = Locale.getDefault();
     try (var client = clients.create(locale)) {
       final var shellConfiguration =
-        new EIPShellConfiguration(client, empty(), IGNORE, locale);
+        new EIPShellConfiguration(client, empty(), IGNORE, locale, false);
       try (var shell = shells.create(shellConfiguration)) {
         shell.run();
       } catch (final EIPSExitException e) {

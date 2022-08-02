@@ -50,13 +50,15 @@ public final class EIPShell implements EIPShellType
   private final LineReader reader;
   private final EIPSController controller;
   private final Consumer<EIPShellCommandExecuted> onExec;
+  private final boolean writeFileSeparator;
 
   private EIPShell(
     final DefaultParser inParser,
     final Terminal inTerminal,
     final LineReader inReader,
     final EIPSController inCommands,
-    final Consumer<EIPShellCommandExecuted> inOnExec)
+    final Consumer<EIPShellCommandExecuted> inOnExec,
+    final boolean inWriteFileSeparator)
   {
     this.parser =
       Objects.requireNonNull(inParser, "parser");
@@ -68,6 +70,8 @@ public final class EIPShell implements EIPShellType
       Objects.requireNonNull(inCommands, "commands");
     this.onExec =
       Objects.requireNonNull(inOnExec, "inOnExec");
+    this.writeFileSeparator =
+      inWriteFileSeparator;
   }
 
   /**
@@ -139,7 +143,8 @@ public final class EIPShell implements EIPShellType
       terminal,
       reader,
       commands,
-      configuration.executedLines()
+      configuration.executedLines(),
+      configuration.writeFileSeparator()
     );
   }
 
@@ -175,6 +180,14 @@ public final class EIPShell implements EIPShellType
           );
         } catch (final Exception e) {
           // Don't care
+        }
+
+        if (this.writeFileSeparator) {
+          final var writer = this.terminal.writer();
+          writer.write(0x1c);
+          writer.write('\r');
+          writer.write('\n');
+          writer.flush();
         }
 
         if (result == FAILURE

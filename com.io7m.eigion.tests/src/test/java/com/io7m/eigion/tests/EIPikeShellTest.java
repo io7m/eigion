@@ -97,7 +97,8 @@ public final class EIPikeShellTest extends EIWithServerContract
         this.client,
         Optional.of(new EIPShellStreams(input, this.output)),
         executedLines,
-        Locale.getDefault()
+        Locale.getDefault(),
+        false
       )
     );
   }
