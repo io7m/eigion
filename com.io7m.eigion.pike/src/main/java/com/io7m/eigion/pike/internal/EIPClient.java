@@ -174,4 +174,13 @@ public final class EIPClient implements EIPClientType
   {
     this.handler.groupInviteCancel(token);
   }
+
+  @Override
+  public void groupInviteRespond(
+    final EIToken token,
+    final boolean accept)
+    throws EIPClientException, InterruptedException
+  {
+    this.handler.groupInviteRespond(token, accept);
+  }
 }

@@ -168,4 +168,19 @@ public interface EIPClientGroupsType
 
   void groupInviteCancel(EIToken token)
     throws EIPClientException, InterruptedException;
+
+  /**
+   * Respond to the given invite.
+   *
+   * @param token  The invite token
+   * @param accept {@code true} if the invite is to be accepted
+   *
+   * @throws EIPClientException   On errors
+   * @throws InterruptedException On interruption
+   */
+
+  void groupInviteRespond(
+    EIToken token,
+    boolean accept)
+    throws EIPClientException, InterruptedException;
 }

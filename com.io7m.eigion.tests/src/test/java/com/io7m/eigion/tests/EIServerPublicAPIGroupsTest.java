@@ -28,8 +28,10 @@ import com.io7m.eigion.protocol.public_api.v1.EISP1CommandGroupCreateRequests;
 import com.io7m.eigion.protocol.public_api.v1.EISP1CommandGroupInvite;
 import com.io7m.eigion.protocol.public_api.v1.EISP1CommandGroupInviteByName;
 import com.io7m.eigion.protocol.public_api.v1.EISP1CommandGroupInviteCancel;
+import com.io7m.eigion.protocol.public_api.v1.EISP1CommandGroupInviteRespond;
 import com.io7m.eigion.protocol.public_api.v1.EISP1CommandGroupInvitesReceived;
 import com.io7m.eigion.protocol.public_api.v1.EISP1CommandGroupInvitesSent;
+import com.io7m.eigion.protocol.public_api.v1.EISP1CommandGroups;
 import com.io7m.eigion.protocol.public_api.v1.EISP1CommandLogin;
 import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseError;
 import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseGroupCreateBegin;
@@ -38,7 +40,9 @@ import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseGroupCreateReady;
 import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseGroupCreateRequests;
 import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseGroupInvite;
 import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseGroupInviteCancel;
+import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseGroupInviteRespond;
 import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseGroupInvites;
+import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseGroups;
 import com.io7m.eigion.server.database.api.EIServerDatabaseGroupsQueriesType;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
@@ -56,6 +60,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.IntStream;
 
 import static com.io7m.eigion.model.EIGroupRole.USER_INVITE;
+import static com.io7m.eigion.protocol.public_api.v1.EISP1GroupInviteStatus.ACCEPTED;
+import static com.io7m.eigion.protocol.public_api.v1.EISP1GroupInviteStatus.REJECTED;
 import static com.io7m.eigion.server.database.api.EIServerDatabaseQueriesType.earliest;
 import static com.io7m.eigion.server.database.api.EIServerDatabaseRole.EIGION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -1062,6 +1068,159 @@ public final class EIServerPublicAPIGroupsTest extends EIServerContract
       );
 
     assertEquals("group-invite-cancel-wrong-state", error.errorCode());
+  }
+
+  /**
+   * Accepting an invite puts the user into the group.
+   *
+   * @throws Exception On errors
+   */
+
+  @Test
+  public void testGroupInviteAccept()
+    throws Exception
+  {
+    this.serverStartIfNecessary();
+
+    final var adminId =
+      this.createAdminInitial("someone", "12345678");
+    final var user0 =
+      this.createUser(adminId, "someone0");
+    final var user1 =
+      this.createUser(adminId, "someone1");
+    final var group0 =
+      this.createGroup(user0, "com.io7m.ex");
+
+    this.setGroupRoles(user0, "com.io7m.ex", Set.of(USER_INVITE));
+
+    this.loginFor("someone0", "12345678");
+
+    final var r =
+      this.msgSendPublicCommandOrFail(
+        new EISP1CommandGroupInvite("com.io7m.ex", user1),
+        EISP1ResponseGroupInvite.class
+      );
+
+    this.loginFor("someone1", "12345678");
+
+    this.msgSendPublicCommandOrFail(
+      new EISP1CommandGroupInviteRespond(r.token(), true),
+      EISP1ResponseGroupInviteRespond.class
+    );
+
+    final var groups =
+      this.msgSendPublicCommandOrFail(
+        new EISP1CommandGroups(),
+        EISP1ResponseGroups.class
+      );
+
+    final var gr0 = groups.groupRoles().get(0);
+    assertEquals("com.io7m.ex", gr0.group());
+    assertEquals(Set.of(), gr0.roles());
+    assertEquals(1, groups.groupRoles().size());
+
+    final var invites =
+      this.msgSendPublicCommandOrFail(
+        new EISP1CommandGroupInvitesReceived(earliest(), Optional.empty()),
+        EISP1ResponseGroupInvites.class
+      );
+
+    assertEquals(ACCEPTED, invites.invites().get(0).status());
+  }
+
+  /**
+   * It's not possible to accept an invite for someone else.
+   *
+   * @throws Exception On errors
+   */
+
+  @Test
+  public void testGroupInviteAcceptNotYours()
+    throws Exception
+  {
+    this.serverStartIfNecessary();
+
+    final var adminId =
+      this.createAdminInitial("someone", "12345678");
+    final var user0 =
+      this.createUser(adminId, "someone0");
+    final var user1 =
+      this.createUser(adminId, "someone1");
+    final var group0 =
+      this.createGroup(user0, "com.io7m.ex");
+
+    this.setGroupRoles(user0, "com.io7m.ex", Set.of(USER_INVITE));
+
+    this.loginFor("someone0", "12345678");
+
+    final var r =
+      this.msgSendPublicCommandOrFail(
+        new EISP1CommandGroupInvite("com.io7m.ex", user1),
+        EISP1ResponseGroupInvite.class
+      );
+
+    final var error =
+      this.msgSendPublicCommandExpectingError(
+        400,
+        new EISP1CommandGroupInviteRespond(r.token(), true)
+      );
+
+    assertEquals("group-invite-invitee", error.errorCode());
+  }
+
+  /**
+   * Rejecting an invite leaves the user out of the group.
+   *
+   * @throws Exception On errors
+   */
+
+  @Test
+  public void testGroupInviteReject()
+    throws Exception
+  {
+    this.serverStartIfNecessary();
+
+    final var adminId =
+      this.createAdminInitial("someone", "12345678");
+    final var user0 =
+      this.createUser(adminId, "someone0");
+    final var user1 =
+      this.createUser(adminId, "someone1");
+    final var group0 =
+      this.createGroup(user0, "com.io7m.ex");
+
+    this.setGroupRoles(user0, "com.io7m.ex", Set.of(USER_INVITE));
+
+    this.loginFor("someone0", "12345678");
+
+    final var r =
+      this.msgSendPublicCommandOrFail(
+        new EISP1CommandGroupInvite("com.io7m.ex", user1),
+        EISP1ResponseGroupInvite.class
+      );
+
+    this.loginFor("someone1", "12345678");
+
+    this.msgSendPublicCommandOrFail(
+      new EISP1CommandGroupInviteRespond(r.token(), false),
+      EISP1ResponseGroupInviteRespond.class
+    );
+
+    final var groups =
+      this.msgSendPublicCommandOrFail(
+        new EISP1CommandGroups(),
+        EISP1ResponseGroups.class
+      );
+
+    assertEquals(0, groups.groupRoles().size());
+
+    final var invites =
+      this.msgSendPublicCommandOrFail(
+        new EISP1CommandGroupInvitesReceived(earliest(), Optional.empty()),
+        EISP1ResponseGroupInvites.class
+      );
+
+    assertEquals(REJECTED, invites.invites().get(0).status());
   }
 
   private void loginFor(

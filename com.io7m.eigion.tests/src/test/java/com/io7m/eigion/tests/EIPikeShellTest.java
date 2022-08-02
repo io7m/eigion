@@ -136,7 +136,7 @@ public final class EIPikeShellTest extends EIWithServerContract
     this.shell = this.createShell(buffer.toString(), this::onExec);
     this.shell.run();
 
-    assertEquals(14, this.commands.size());
+    assertEquals(15, this.commands.size());
     assertTrue(this.commands.stream().allMatch(EIPShellCommandExecuted::succeeded));
   }
 

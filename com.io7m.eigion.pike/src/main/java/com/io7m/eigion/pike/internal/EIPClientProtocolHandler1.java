@@ -34,6 +34,7 @@ import com.io7m.eigion.protocol.public_api.v1.EISP1CommandGroupCreateRequests;
 import com.io7m.eigion.protocol.public_api.v1.EISP1CommandGroupInvite;
 import com.io7m.eigion.protocol.public_api.v1.EISP1CommandGroupInviteByName;
 import com.io7m.eigion.protocol.public_api.v1.EISP1CommandGroupInviteCancel;
+import com.io7m.eigion.protocol.public_api.v1.EISP1CommandGroupInviteRespond;
 import com.io7m.eigion.protocol.public_api.v1.EISP1CommandGroupInvitesReceived;
 import com.io7m.eigion.protocol.public_api.v1.EISP1CommandGroupInvitesSent;
 import com.io7m.eigion.protocol.public_api.v1.EISP1CommandGroups;
@@ -50,6 +51,7 @@ import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseGroupCreateCancel;
 import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseGroupCreateReady;
 import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseGroupCreateRequests;
 import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseGroupInvite;
+import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseGroupInviteRespond;
 import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseGroupInvites;
 import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseGroups;
 import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseLogin;
@@ -403,6 +405,18 @@ public final class EIPClientProtocolHandler1
     this.sendCommand(
       EISP1ResponseGroupInvites.class,
       new EISP1CommandGroupInviteCancel(token.value())
+    );
+  }
+
+  @Override
+  public void groupInviteRespond(
+    final EIToken token,
+    final boolean accept)
+    throws EIPClientException, InterruptedException
+  {
+    this.sendCommand(
+      EISP1ResponseGroupInviteRespond.class,
+      new EISP1CommandGroupInviteRespond(token.value(), accept)
     );
   }
 

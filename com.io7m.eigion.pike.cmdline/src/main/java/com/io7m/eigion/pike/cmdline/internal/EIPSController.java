@@ -102,6 +102,7 @@ public final class EIPSController
         new EIPSCommandGroupCreationRequests(controller, strings),
         new EIPSCommandGroupInvite(controller, strings),
         new EIPSCommandGroupInviteCancel(controller, strings),
+        new EIPSCommandGroupInviteRespond(controller, strings),
         new EIPSCommandGroupInvitesReceived(controller, strings),
         new EIPSCommandGroupInvitesSent(controller, strings),
         new EIPSCommandGroups(controller, strings),

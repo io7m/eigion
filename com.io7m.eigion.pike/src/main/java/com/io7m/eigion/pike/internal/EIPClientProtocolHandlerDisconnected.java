@@ -160,6 +160,15 @@ public final class EIPClientProtocolHandlerDisconnected
     throw this.notLoggedIn();
   }
 
+  @Override
+  public void groupInviteRespond(
+    final EIToken token,
+    final boolean accept)
+    throws EIPClientException
+  {
+    throw this.notLoggedIn();
+  }
+
   private EIPClientException notLoggedIn()
   {
     return new EIPClientException(

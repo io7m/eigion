@@ -20,5 +20,8 @@
   <entry key="cmd.groupInviteCancel.notInProgress">
     Only invitations in state {0} can be cancelled. This invite is in state {1}.
   </entry>
+  <entry key="cmd.groupInviteRespond.wrongUser">
+    The specified invitation is not addressed to you.
+  </entry>
 
 </properties>

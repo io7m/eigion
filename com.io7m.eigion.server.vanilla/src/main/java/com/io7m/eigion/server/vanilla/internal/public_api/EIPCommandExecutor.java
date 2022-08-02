@@ -23,6 +23,7 @@ import com.io7m.eigion.protocol.public_api.v1.EISP1CommandGroupCreateRequests;
 import com.io7m.eigion.protocol.public_api.v1.EISP1CommandGroupInvite;
 import com.io7m.eigion.protocol.public_api.v1.EISP1CommandGroupInviteByName;
 import com.io7m.eigion.protocol.public_api.v1.EISP1CommandGroupInviteCancel;
+import com.io7m.eigion.protocol.public_api.v1.EISP1CommandGroupInviteRespond;
 import com.io7m.eigion.protocol.public_api.v1.EISP1CommandGroupInvitesReceived;
 import com.io7m.eigion.protocol.public_api.v1.EISP1CommandGroupInvitesSent;
 import com.io7m.eigion.protocol.public_api.v1.EISP1CommandGroups;
@@ -91,6 +92,9 @@ public final class EIPCommandExecutor
     }
     if (command instanceof EISP1CommandGroupInviteCancel c) {
       return new EIPCmdGroupInviteCancel().execute(context, c);
+    }
+    if (command instanceof EISP1CommandGroupInviteRespond c) {
+      return new EIPCmdGroupInviteRespond().execute(context, c);
     }
 
     throw new IllegalStateException();
