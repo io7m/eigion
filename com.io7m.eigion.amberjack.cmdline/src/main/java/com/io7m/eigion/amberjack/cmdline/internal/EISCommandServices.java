@@ -17,7 +17,7 @@
 package com.io7m.eigion.amberjack.cmdline.internal;
 
 import com.io7m.eigion.amberjack.api.EIAClientException;
-import com.io7m.eigion.amberjack.cmdline.EISExitException;
+import com.io7m.eigion.amberjack.cmdline.EIAExitException;
 import org.jline.terminal.Terminal;
 
 import static com.io7m.eigion.amberjack.cmdline.internal.EISCommandResult.SUCCESS;
@@ -53,7 +53,7 @@ public final class EISCommandServices
   protected EISCommandResult runActual(
     final Terminal terminal,
     final Parameters parameters)
-    throws EISExitException, EIAClientException, InterruptedException
+    throws EIAExitException, EIAClientException, InterruptedException
   {
     final var services =
       this.controller().client().services();

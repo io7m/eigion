@@ -56,5 +56,17 @@ public enum EIAdminPermission
    * A permission that allows reading services.
    */
 
-  SERVICE_READ
+  SERVICE_READ,
+
+  /**
+   * A permission that allows reading group invites.
+   */
+
+  GROUP_INVITES_READ,
+
+  /**
+   * A permission that allows writing group invites.
+   */
+
+  GROUP_INVITES_WRITE
 }

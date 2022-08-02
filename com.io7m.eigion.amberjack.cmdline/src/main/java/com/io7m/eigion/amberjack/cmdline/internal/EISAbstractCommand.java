@@ -19,7 +19,7 @@ package com.io7m.eigion.amberjack.cmdline.internal;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.ParameterException;
 import com.io7m.eigion.amberjack.api.EIAClientException;
-import com.io7m.eigion.amberjack.cmdline.EISExitException;
+import com.io7m.eigion.amberjack.cmdline.EIAExitException;
 import org.jline.terminal.Terminal;
 
 import java.util.List;
@@ -117,13 +117,13 @@ public abstract class EISAbstractCommand<T extends EISParameterHolderType>
   protected abstract EISCommandResult runActual(
     Terminal terminal,
     T parameters)
-    throws EISExitException, EIAClientException, InterruptedException;
+    throws EIAExitException, EIAClientException, InterruptedException;
 
   @Override
   public final EISCommandResult run(
     final Terminal terminal,
     final List<String> arguments)
-    throws EISExitException, EIAClientException, InterruptedException
+    throws EIAExitException, EIAClientException, InterruptedException
   {
     final var parameters =
       this.createEmptyParameters();

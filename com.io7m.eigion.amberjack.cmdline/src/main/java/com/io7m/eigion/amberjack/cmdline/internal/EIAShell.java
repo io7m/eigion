@@ -17,10 +17,10 @@
 
 package com.io7m.eigion.amberjack.cmdline.internal;
 
-import com.io7m.eigion.amberjack.cmdline.EISExitException;
-import com.io7m.eigion.amberjack.cmdline.EIShellCommandExecuted;
-import com.io7m.eigion.amberjack.cmdline.EIShellConfiguration;
-import com.io7m.eigion.amberjack.cmdline.EIShellType;
+import com.io7m.eigion.amberjack.cmdline.EIAExitException;
+import com.io7m.eigion.amberjack.cmdline.EIAShellCommandExecuted;
+import com.io7m.eigion.amberjack.cmdline.EIAShellConfiguration;
+import com.io7m.eigion.amberjack.cmdline.EIAShellType;
 import org.jline.reader.EndOfFileException;
 import org.jline.reader.LineReader;
 import org.jline.reader.LineReaderBuilder;
@@ -43,20 +43,22 @@ import static com.io7m.eigion.amberjack.cmdline.internal.EISCommandResult.SUCCES
  * A shell.
  */
 
-public final class EIShell implements EIShellType
+public final class EIAShell implements EIAShellType
 {
   private final DefaultParser parser;
   private final Terminal terminal;
   private final LineReader reader;
   private final EISController controller;
-  private final Consumer<EIShellCommandExecuted> onExec;
+  private final Consumer<EIAShellCommandExecuted> onExec;
+  private final boolean writeFileSeparator;
 
-  private EIShell(
+  private EIAShell(
     final DefaultParser inParser,
     final Terminal inTerminal,
     final LineReader inReader,
     final EISController inCommands,
-    final Consumer<EIShellCommandExecuted> inOnExec)
+    final Consumer<EIAShellCommandExecuted> inOnExec,
+    final boolean inWriteFileSeparator)
   {
     this.parser =
       Objects.requireNonNull(inParser, "parser");
@@ -68,6 +70,8 @@ public final class EIShell implements EIShellType
       Objects.requireNonNull(inCommands, "commands");
     this.onExec =
       Objects.requireNonNull(inOnExec, "inOnExec");
+    this.writeFileSeparator =
+      inWriteFileSeparator;
   }
 
   /**
@@ -80,8 +84,8 @@ public final class EIShell implements EIShellType
    * @throws IOException On errors
    */
 
-  public static EIShellType create(
-    final EIShellConfiguration configuration)
+  public static EIAShellType create(
+    final EIAShellConfiguration configuration)
     throws IOException
   {
     Objects.requireNonNull(configuration, "configuration");
@@ -134,18 +138,19 @@ public final class EIShell implements EIShellType
       );
     }
 
-    return new EIShell(
+    return new EIAShell(
       parser,
       terminal,
       reader,
       commands,
-      configuration.executedLines()
+      configuration.executedLines(),
+      configuration.writeFileSeparator()
     );
   }
 
   @Override
   public void run()
-    throws EISExitException
+    throws EIAExitException
   {
     while (true) {
       try {
@@ -171,15 +176,23 @@ public final class EIShell implements EIShellType
 
         try {
           this.onExec.accept(
-            new EIShellCommandExecuted(text, result == SUCCESS)
+            new EIAShellCommandExecuted(text, result == SUCCESS)
           );
         } catch (final Exception e) {
           // Don't care
         }
 
+        if (this.writeFileSeparator) {
+          final var writer = this.terminal.writer();
+          writer.write(0x1c);
+          writer.write('\r');
+          writer.write('\n');
+          writer.flush();
+        }
+
         if (result == FAILURE
             && this.controller.isFlagSet(EXIT_ON_FAILED_COMMAND)) {
-          throw new EISExitException(1);
+          throw new EIAExitException(1);
         }
       } catch (final UserInterruptException e) {
         continue;

@@ -26,32 +26,39 @@ import java.util.function.Consumer;
 /**
  * The configuration for a shell.
  *
- * @param client        The client
- * @param streams       The streams to use in place of the default controlling
- *                      terminal
- * @param executedLines A function that receives each line when executing it has
- *                      completed
- * @param locale        The locale
+ * @param client             The client
+ * @param streams            The streams to use in place of the default
+ *                           controlling terminal
+ * @param executedLines      A function that receives each line when executing
+ *                           it has completed
+ * @param locale             The locale
+ * @param writeFileSeparator {@code true} if an ASCII file separator (0x1c)
+ *                           should be written after the output of every
+ *                           command
  */
 
-public record EIShellConfiguration(
+public record EIAShellConfiguration(
   EIAClientType client,
-  Optional<EIShellStreams> streams,
-  Consumer<EIShellCommandExecuted> executedLines,
-  Locale locale)
+  Optional<EIAShellStreams> streams,
+  Consumer<EIAShellCommandExecuted> executedLines,
+  Locale locale,
+  boolean writeFileSeparator)
 {
   /**
    * The configuration for a shell.
    *
-   * @param client        The client
-   * @param streams       The streams to use in place of the default controlling
-   *                      terminal
-   * @param executedLines A function that receives each line when executing it
-   *                      has completed
-   * @param locale        The locale
+   * @param client             The client
+   * @param streams            The streams to use in place of the default
+   *                           controlling terminal
+   * @param executedLines      A function that receives each line when executing
+   *                           it has completed
+   * @param locale             The locale
+   * @param writeFileSeparator {@code true} if an ASCII file separator (0x1c)
+   *                           should be written after the output of every
+   *                           command
    */
 
-  public EIShellConfiguration
+  public EIAShellConfiguration
   {
     Objects.requireNonNull(client, "client");
     Objects.requireNonNull(streams, "streams");

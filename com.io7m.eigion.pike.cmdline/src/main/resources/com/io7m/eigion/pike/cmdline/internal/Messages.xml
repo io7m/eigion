@@ -21,7 +21,8 @@ The file must contain this (and only this) exact string:
   {2}
 
 Afterwards, use the group-creation-ready command to tell the server that you
-have completed the above challenge.
+have completed the above challenge. Alternatively, use the group-creation-cancel
+command to cancel the creation of the group.
 ]]></entry>
 
   <entry key="groupCreateRequest.group">Request.Group: {0}</entry>

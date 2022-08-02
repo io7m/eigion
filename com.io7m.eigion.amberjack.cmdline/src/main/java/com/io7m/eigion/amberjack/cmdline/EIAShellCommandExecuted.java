@@ -14,34 +14,30 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-
 package com.io7m.eigion.amberjack.cmdline;
 
-import java.io.Closeable;
-import java.util.Set;
+import java.util.Objects;
 
 /**
- * A shell.
+ * A command was executed.
+ *
+ * @param command   The command
+ * @param succeeded {@code true} if the command succeeded
  */
 
-public interface EIShellType extends Closeable
+public record EIAShellCommandExecuted(
+  String command,
+  boolean succeeded)
 {
   /**
-   * Start the shell, running commands until something prompts the shell to
-   * exit.
+   * A command was executed.
    *
-   * @throws EISExitException An exception raised by a command, indicating that
-   *                          the shell should exit.
+   * @param command   The command
+   * @param succeeded {@code true} if the command succeeded
    */
 
-  void run()
-    throws EISExitException;
-
-  /**
-   * Retrieve the commands supported by this shell.
-   *
-   * @return The supported commands
-   */
-
-  Set<String> commandsSupported();
+  public EIAShellCommandExecuted
+  {
+    Objects.requireNonNull(command, "command");
+  }
 }

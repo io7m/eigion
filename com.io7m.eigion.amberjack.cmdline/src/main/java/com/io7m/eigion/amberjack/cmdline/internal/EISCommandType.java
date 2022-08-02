@@ -18,7 +18,7 @@
 package com.io7m.eigion.amberjack.cmdline.internal;
 
 import com.io7m.eigion.amberjack.api.EIAClientException;
-import com.io7m.eigion.amberjack.cmdline.EISExitException;
+import com.io7m.eigion.amberjack.cmdline.EIAExitException;
 import org.jline.terminal.Terminal;
 
 import java.util.List;
@@ -49,7 +49,7 @@ public interface EISCommandType
    *
    * @return The result
    *
-   * @throws EISExitException     On exit
+   * @throws EIAExitException     On exit
    * @throws EIAClientException   On client errors
    * @throws InterruptedException On interruption
    */
@@ -57,5 +57,5 @@ public interface EISCommandType
   EISCommandResult run(
     Terminal terminal,
     List<String> arguments)
-    throws EISExitException, EIAClientException, InterruptedException;
+    throws EIAExitException, EIAClientException, InterruptedException;
 }

@@ -17,7 +17,7 @@
 package com.io7m.eigion.amberjack.cmdline.internal;
 
 import com.beust.jcommander.Parameter;
-import com.io7m.eigion.amberjack.cmdline.EISExitException;
+import com.io7m.eigion.amberjack.cmdline.EIAExitException;
 import org.jline.terminal.Terminal;
 
 /**
@@ -51,9 +51,9 @@ public final class EISCommandExit
   protected EISCommandResult runActual(
     final Terminal terminal,
     final EISCommandExit.Parameters parameters)
-    throws EISExitException
+    throws EIAExitException
   {
-    throw new EISExitException(parameters.exitCode);
+    throw new EIAExitException(parameters.exitCode);
   }
 
   protected static final class Parameters

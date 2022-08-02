@@ -18,12 +18,12 @@ package com.io7m.eigion.tests;
 
 import com.io7m.eigion.amberjack.EIAClients;
 import com.io7m.eigion.amberjack.api.EIAClientType;
-import com.io7m.eigion.amberjack.cmdline.EISExitException;
-import com.io7m.eigion.amberjack.cmdline.EIShellCommandExecuted;
-import com.io7m.eigion.amberjack.cmdline.EIShellConfiguration;
-import com.io7m.eigion.amberjack.cmdline.EIShellStreams;
-import com.io7m.eigion.amberjack.cmdline.EIShellType;
-import com.io7m.eigion.amberjack.cmdline.EIShells;
+import com.io7m.eigion.amberjack.cmdline.EIAExitException;
+import com.io7m.eigion.amberjack.cmdline.EIAShellCommandExecuted;
+import com.io7m.eigion.amberjack.cmdline.EIAShellConfiguration;
+import com.io7m.eigion.amberjack.cmdline.EIAShellStreams;
+import com.io7m.eigion.amberjack.cmdline.EIAShellType;
+import com.io7m.eigion.amberjack.cmdline.EIAShells;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -56,10 +56,10 @@ public final class EIAmberjackShellTest extends EIWithServerContract
 
   private EIAClients clients;
   private EIAClientType client;
-  private EIShells shells;
+  private EIAShells shells;
   private ByteArrayOutputStream output;
-  private EIShellType shell;
-  private ArrayList<EIShellCommandExecuted> commands;
+  private EIAShellType shell;
+  private ArrayList<EIAShellCommandExecuted> commands;
 
   @BeforeEach
   public void setup()
@@ -70,7 +70,7 @@ public final class EIAmberjackShellTest extends EIWithServerContract
     this.output = new ByteArrayOutputStream();
     this.clients = new EIAClients();
     this.client = this.clients.create(Locale.getDefault());
-    this.shells = new EIShells();
+    this.shells = new EIAShells();
     this.commands = new ArrayList<>();
   }
 
@@ -85,26 +85,27 @@ public final class EIAmberjackShellTest extends EIWithServerContract
     this.shell.close();
   }
 
-  private EIShellType createShell(
+  private EIAShellType createShell(
     final String text,
-    final Consumer<EIShellCommandExecuted> executedLines)
+    final Consumer<EIAShellCommandExecuted> executedLines)
     throws IOException
   {
     final var input =
       new ByteArrayInputStream(text.getBytes(UTF_8));
 
     return this.shells.create(
-      new EIShellConfiguration(
+      new EIAShellConfiguration(
         this.client,
-        Optional.of(new EIShellStreams(input, this.output)),
+        Optional.of(new EIAShellStreams(input, this.output)),
         executedLines,
-        Locale.getDefault()
+        Locale.getDefault(),
+        false
       )
     );
   }
 
   private void onExec(
-    final EIShellCommandExecuted executed)
+    final EIAShellCommandExecuted executed)
   {
     LOG.debug("executed {}", executed);
     this.commands.add(executed);
@@ -136,8 +137,8 @@ public final class EIAmberjackShellTest extends EIWithServerContract
     this.shell = this.createShell(buffer.toString(), this::onExec);
     this.shell.run();
 
-    assertEquals(13, this.commands.size());
-    assertTrue(this.commands.stream().allMatch(EIShellCommandExecuted::succeeded));
+    assertEquals(14, this.commands.size());
+    assertTrue(this.commands.stream().allMatch(EIAShellCommandExecuted::succeeded));
   }
 
   /**
@@ -157,7 +158,7 @@ public final class EIAmberjackShellTest extends EIWithServerContract
     this.shell.run();
 
     assertEquals(1, this.commands.size());
-    assertTrue(this.commands.stream().allMatch(EIShellCommandExecuted::succeeded));
+    assertTrue(this.commands.stream().allMatch(EIAShellCommandExecuted::succeeded));
   }
 
   /**
@@ -177,7 +178,7 @@ public final class EIAmberjackShellTest extends EIWithServerContract
     this.shell.run();
 
     assertEquals(1, this.commands.size());
-    assertTrue(this.commands.stream().noneMatch(EIShellCommandExecuted::succeeded));
+    assertTrue(this.commands.stream().noneMatch(EIAShellCommandExecuted::succeeded));
   }
 
   /**
@@ -202,7 +203,7 @@ public final class EIAmberjackShellTest extends EIWithServerContract
     this.shell.run();
 
     assertEquals(2, this.commands.size());
-    assertTrue(this.commands.stream().allMatch(EIShellCommandExecuted::succeeded));
+    assertTrue(this.commands.stream().allMatch(EIAShellCommandExecuted::succeeded));
   }
 
   /**
@@ -223,7 +224,7 @@ public final class EIAmberjackShellTest extends EIWithServerContract
 
     this.shell = this.createShell(buffer.toString(), this::onExec);
 
-    final var ex = assertThrows(EISExitException.class, () -> this.shell.run());
+    final var ex = assertThrows(EIAExitException.class, () -> this.shell.run());
     assertEquals(1, ex.code());
     assertEquals(2, this.commands.size());
   }
@@ -254,7 +255,7 @@ public final class EIAmberjackShellTest extends EIWithServerContract
     this.shell.run();
 
     assertEquals(7, this.commands.size());
-    assertTrue(this.commands.stream().noneMatch(EIShellCommandExecuted::succeeded));
+    assertTrue(this.commands.stream().noneMatch(EIAShellCommandExecuted::succeeded));
   }
 
   /**
@@ -291,7 +292,7 @@ public final class EIAmberjackShellTest extends EIWithServerContract
     this.shell.run();
 
     assertEquals(6, this.commands.size());
-    assertTrue(this.commands.stream().allMatch(EIShellCommandExecuted::succeeded));
+    assertTrue(this.commands.stream().allMatch(EIAShellCommandExecuted::succeeded));
   }
 
   /**
@@ -332,7 +333,7 @@ public final class EIAmberjackShellTest extends EIWithServerContract
     this.shell.run();
 
     assertEquals(7, this.commands.size());
-    assertTrue(this.commands.stream().allMatch(EIShellCommandExecuted::succeeded));
+    assertTrue(this.commands.stream().allMatch(EIAShellCommandExecuted::succeeded));
   }
 
   /**
@@ -373,7 +374,7 @@ public final class EIAmberjackShellTest extends EIWithServerContract
     this.shell = this.createShell(buffer.toString(), this::onExec);
 
     final var ex =
-      assertThrows(EISExitException.class, () -> this.shell.run());
+      assertThrows(EIAExitException.class, () -> this.shell.run());
     assertEquals(1, ex.code());
   }
 
@@ -405,7 +406,7 @@ public final class EIAmberjackShellTest extends EIWithServerContract
     this.shell.run();
 
     assertEquals(4, this.commands.size());
-    assertTrue(this.commands.stream().allMatch(EIShellCommandExecuted::succeeded));
+    assertTrue(this.commands.stream().allMatch(EIAShellCommandExecuted::succeeded));
   }
 
   /**
@@ -433,7 +434,7 @@ public final class EIAmberjackShellTest extends EIWithServerContract
     this.shell.run();
 
     assertEquals(3, this.commands.size());
-    assertTrue(this.commands.stream().allMatch(EIShellCommandExecuted::succeeded));
+    assertTrue(this.commands.stream().allMatch(EIAShellCommandExecuted::succeeded));
   }
 
   /**
@@ -455,7 +456,7 @@ public final class EIAmberjackShellTest extends EIWithServerContract
     this.shell.run();
 
     assertEquals(1, this.commands.size());
-    assertTrue(this.commands.stream().allMatch(EIShellCommandExecuted::succeeded));
+    assertTrue(this.commands.stream().allMatch(EIAShellCommandExecuted::succeeded));
   }
 
   /**

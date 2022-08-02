@@ -25,6 +25,7 @@ import java.util.Set;
 import static com.io7m.eigion.model.EIAdminPermission.ADMIN_CREATE;
 import static com.io7m.eigion.model.EIAdminPermission.ADMIN_READ;
 import static com.io7m.eigion.model.EIAdminPermission.AUDIT_READ;
+import static com.io7m.eigion.model.EIAdminPermission.GROUP_INVITES_READ;
 import static com.io7m.eigion.model.EIAdminPermission.SERVICE_READ;
 import static com.io7m.eigion.model.EIAdminPermission.USER_READ;
 import static com.io7m.eigion.model.EIAdminPermission.USER_WRITE;
@@ -166,8 +167,17 @@ public final class EISecPolicyDefault implements EISecPolicyType
     if (action instanceof EISecActionAdminRead c) {
       return checkAdminRead(c);
     }
+    if (action instanceof EISecActionGroupInvites c) {
+      return checkGroupInvites(c);
+    }
 
     return new EISecPolicyResultDenied("Operation not permitted.");
+  }
+
+  private static EISecPolicyResultType checkGroupInvites(
+    final EISecActionGroupInvites c)
+  {
+    return checkOwnedPermission(c.admin().permissions(), GROUP_INVITES_READ);
   }
 
   private static EISecPolicyResultType checkAdminCreate(

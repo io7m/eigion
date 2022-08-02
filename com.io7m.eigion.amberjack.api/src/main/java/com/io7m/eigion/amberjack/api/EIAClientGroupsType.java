@@ -14,44 +14,44 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-package com.io7m.eigion.amberjack.internal;
 
-import com.io7m.eigion.amberjack.api.EIAClientAdminType;
-import com.io7m.eigion.amberjack.api.EIAClientAuditType;
-import com.io7m.eigion.amberjack.api.EIAClientException;
-import com.io7m.eigion.amberjack.api.EIAClientGroupsType;
-import com.io7m.eigion.amberjack.api.EIAClientServicesType;
-import com.io7m.eigion.amberjack.api.EIAClientUserType;
+package com.io7m.eigion.amberjack.api;
 
-import java.net.URI;
+import com.io7m.eigion.model.EIGroupInvite;
+import com.io7m.eigion.model.EIGroupInviteStatus;
+import com.io7m.eigion.model.EIGroupName;
+
+import java.time.OffsetDateTime;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 /**
- * A versioned protocol handler.
+ * Commands related to groups.
  */
 
-public interface EIAClientProtocolHandlerType
-  extends EIAClientUserType,
-  EIAClientAdminType,
-  EIAClientServicesType,
-  EIAClientAuditType,
-  EIAClientGroupsType
+public interface EIAClientGroupsType
 {
   /**
-   * Attempt to log in.
+   * Get the list of invites matching the given parameters.
    *
-   * @param user     The user
-   * @param password The password
-   * @param base     The base URI
+   * @param since                The time lower bound
+   * @param withStatus           The required status value
+   * @param withGroupName        The group name in the invite
+   * @param withUserBeingInvited The user being invited
+   * @param withUserInviter      The user doing the inviting
    *
-   * @return A new protocol handler
+   * @return the list of invites
    *
    * @throws EIAClientException   On errors
    * @throws InterruptedException On interruption
    */
 
-  EIAClientProtocolHandlerType login(
-    String user,
-    String password,
-    URI base)
+  List<EIGroupInvite> groupInvites(
+    OffsetDateTime since,
+    Optional<EIGroupName> withGroupName,
+    Optional<UUID> withUserInviter,
+    Optional<UUID> withUserBeingInvited,
+    Optional<EIGroupInviteStatus> withStatus)
     throws EIAClientException, InterruptedException;
 }

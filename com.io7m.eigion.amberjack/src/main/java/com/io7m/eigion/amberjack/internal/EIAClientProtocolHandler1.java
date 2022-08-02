@@ -22,6 +22,9 @@ import com.io7m.eigion.model.EIAdmin;
 import com.io7m.eigion.model.EIAdminPermission;
 import com.io7m.eigion.model.EIAdminSummary;
 import com.io7m.eigion.model.EIAuditEvent;
+import com.io7m.eigion.model.EIGroupInvite;
+import com.io7m.eigion.model.EIGroupInviteStatus;
+import com.io7m.eigion.model.EIGroupName;
 import com.io7m.eigion.model.EIPasswordAlgorithmPBKDF2HmacSHA256;
 import com.io7m.eigion.model.EIPasswordException;
 import com.io7m.eigion.model.EIService;
@@ -37,6 +40,7 @@ import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandAdminGetByEmail;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandAdminGetByName;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandAdminSearch;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandAuditGet;
+import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandGroupInvites;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandLogin;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandServicesList;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandUserCreate;
@@ -44,6 +48,8 @@ import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandUserGet;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandUserGetByEmail;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandUserGetByName;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandUserSearch;
+import com.io7m.eigion.protocol.admin_api.v1.EISA1GroupInvite;
+import com.io7m.eigion.protocol.admin_api.v1.EISA1GroupInviteStatus;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1MessageType;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1Messages;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1Password;
@@ -52,6 +58,7 @@ import com.io7m.eigion.protocol.admin_api.v1.EISA1ResponseAdminGet;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1ResponseAdminList;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1ResponseAuditGet;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1ResponseError;
+import com.io7m.eigion.protocol.admin_api.v1.EISA1ResponseGroupInvites;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1ResponseLogin;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1ResponseServiceList;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1ResponseType;
@@ -512,6 +519,33 @@ public final class EIAClientProtocolHandler1
     } catch (final EIPasswordException e) {
       throw new EIAClientException(e);
     }
+  }
+
+  @Override
+  public List<EIGroupInvite> groupInvites(
+    final OffsetDateTime since,
+    final Optional<EIGroupName> withGroupName,
+    final Optional<UUID> withUserInviter,
+    final Optional<UUID> withUserBeingInvited,
+    final Optional<EIGroupInviteStatus> withStatus)
+    throws EIAClientException, InterruptedException
+  {
+    final var response =
+      this.sendCommand(
+        EISA1ResponseGroupInvites.class,
+        new EISA1CommandGroupInvites(
+          since,
+          withUserInviter,
+          withUserBeingInvited,
+          withGroupName.map(EIGroupName::value),
+          withStatus.map(EISA1GroupInviteStatus::ofStatus)
+        )
+      );
+
+    return response.invites()
+      .stream()
+      .map(EISA1GroupInvite::toInvite)
+      .toList();
   }
 
   interface FunctionType<A, B, E extends Exception>

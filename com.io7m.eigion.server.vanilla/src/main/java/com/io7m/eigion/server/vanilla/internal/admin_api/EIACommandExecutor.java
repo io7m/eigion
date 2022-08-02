@@ -23,6 +23,7 @@ import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandAdminGetByEmail;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandAdminGetByName;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandAdminSearch;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandAuditGet;
+import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandGroupInvites;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandServicesList;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandType;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandUserCreate;
@@ -94,6 +95,9 @@ public final class EIACommandExecutor
     }
     if (command instanceof EISA1CommandAdminGetByEmail c) {
       return new EIACmdAdminGetByEmail().execute(context, c);
+    }
+    if (command instanceof EISA1CommandGroupInvites c) {
+      return new EIACmdGroupInvites().execute(context, c);
     }
 
     throw new IllegalStateException();

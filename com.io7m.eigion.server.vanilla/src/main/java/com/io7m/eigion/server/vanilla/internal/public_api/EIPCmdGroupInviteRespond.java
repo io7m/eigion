@@ -18,16 +18,11 @@
 package com.io7m.eigion.server.vanilla.internal.public_api;
 
 import com.io7m.eigion.model.EIToken;
-import com.io7m.eigion.protocol.public_api.v1.EISP1CommandGroupInviteCancel;
 import com.io7m.eigion.protocol.public_api.v1.EISP1CommandGroupInviteRespond;
-import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseGroupInviteCancel;
 import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseGroupInviteRespond;
 import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseException;
 import com.io7m.eigion.server.database.api.EIServerDatabaseGroupsQueriesType;
-import com.io7m.eigion.server.security.EISecActionGroupInviteCancel;
-import com.io7m.eigion.server.security.EISecPolicyResultDenied;
-import com.io7m.eigion.server.security.EISecurity;
 import com.io7m.eigion.server.security.EISecurityException;
 import com.io7m.eigion.server.vanilla.internal.EIHTTPErrorStatusException;
 import com.io7m.eigion.server.vanilla.internal.command_exec.EICommandExecutionResult;
@@ -35,13 +30,9 @@ import com.io7m.eigion.server.vanilla.internal.command_exec.EICommandExecutorTyp
 
 import java.util.Objects;
 import java.util.Set;
-import java.util.regex.Pattern;
 
 import static com.io7m.eigion.model.EIGroupInviteStatus.ACCEPTED;
-import static com.io7m.eigion.model.EIGroupInviteStatus.CANCELLED;
-import static com.io7m.eigion.model.EIGroupInviteStatus.IN_PROGRESS;
 import static com.io7m.eigion.model.EIGroupInviteStatus.REJECTED;
-import static org.eclipse.jetty.http.HttpStatus.FORBIDDEN_403;
 
 /**
  * A request to respond to a group invite.

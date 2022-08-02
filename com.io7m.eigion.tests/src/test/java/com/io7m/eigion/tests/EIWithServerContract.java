@@ -16,6 +16,7 @@
 
 package com.io7m.eigion.tests;
 
+import com.io7m.eigion.model.EIGroupName;
 import com.io7m.eigion.model.EIGroupPrefix;
 import com.io7m.eigion.model.EIPassword;
 import com.io7m.eigion.model.EIPasswordAlgorithmPBKDF2HmacSHA256;
@@ -28,6 +29,7 @@ import com.io7m.eigion.server.api.EIServerType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseAdminsQueriesType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseConfiguration;
 import com.io7m.eigion.server.database.api.EIServerDatabaseException;
+import com.io7m.eigion.server.database.api.EIServerDatabaseGroupsQueriesType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseUsersQueriesType;
 import com.io7m.eigion.server.database.postgres.EIServerDatabases;
 import com.io7m.eigion.server.vanilla.EIServers;
@@ -49,10 +51,12 @@ import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import static com.io7m.eigion.model.EIGroupRole.FOUNDER;
 import static com.io7m.eigion.server.database.api.EIServerDatabaseCreate.CREATE_DATABASE;
 import static com.io7m.eigion.server.database.api.EIServerDatabaseRole.EIGION;
 import static com.io7m.eigion.server.database.api.EIServerDatabaseUpgrade.UPGRADE_DATABASE;
@@ -270,6 +274,26 @@ public abstract class EIWithServerContract
       } catch (final EIServerException e) {
         this.started.set(false);
         throw new IllegalStateException(e);
+      }
+    }
+  }
+
+  protected final EIGroupName createGroup(
+    final UUID userFounder,
+    final String name)
+    throws EIServerDatabaseException, EIPasswordException
+  {
+    final var database = this.databases.mostRecent();
+    try (var connection = database.openConnection(EIGION)) {
+      try (var transaction = connection.openTransaction()) {
+        final var groups =
+          transaction.queries(EIServerDatabaseGroupsQueriesType.class);
+
+        final var groupName = new EIGroupName(name);
+        groups.groupCreate(groupName, userFounder);
+        groups.groupMembershipSet(groupName, userFounder, Set.of(FOUNDER));
+        transaction.commit();
+        return groupName;
       }
     }
   }

@@ -17,13 +17,13 @@
 
 package com.io7m.eigion.tests;
 
-import com.io7m.eigion.pike.EIPClients;
-import com.io7m.eigion.pike.cmdline.EIPSExitException;
-import com.io7m.eigion.pike.cmdline.EIPShellCommandExecuted;
-import com.io7m.eigion.pike.cmdline.EIPShellConfiguration;
-import com.io7m.eigion.pike.cmdline.EIPShellStreams;
-import com.io7m.eigion.pike.cmdline.EIPShellType;
-import com.io7m.eigion.pike.cmdline.EIPShells;
+import com.io7m.eigion.amberjack.EIAClients;
+import com.io7m.eigion.amberjack.cmdline.EIAExitException;
+import com.io7m.eigion.amberjack.cmdline.EIAShellCommandExecuted;
+import com.io7m.eigion.amberjack.cmdline.EIAShellConfiguration;
+import com.io7m.eigion.amberjack.cmdline.EIAShellStreams;
+import com.io7m.eigion.amberjack.cmdline.EIAShellType;
+import com.io7m.eigion.amberjack.cmdline.EIAShells;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -41,10 +41,10 @@ import java.util.concurrent.TimeUnit;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
-public final class EIPShellExample implements AutoCloseable
+public final class EIAShellExample implements AutoCloseable
 {
-  private final EIPShellType shell;
-  private final ArrayList<EIPShellCommandExecuted> commands;
+  private final EIAShellType shell;
+  private final ArrayList<EIAShellCommandExecuted> commands;
   private final ExecutorService executor;
   private final PipedOutputStream shellWritesTo;
   private final PipedOutputStream writeCommandsToShell;
@@ -53,9 +53,9 @@ public final class EIPShellExample implements AutoCloseable
   private final BufferedWriter shellWriter;
   private final BufferedReader shellReader;
 
-  public EIPShellExample(
-    final EIPShellType inShell,
-    final ArrayList<EIPShellCommandExecuted> inCommands,
+  public EIAShellExample(
+    final EIAShellType inShell,
+    final ArrayList<EIAShellCommandExecuted> inCommands,
     final ExecutorService inExecutor,
     final PipedOutputStream inShellWritesTo,
     final PipedOutputStream inWriteCommandsToShell,
@@ -85,7 +85,7 @@ public final class EIPShellExample implements AutoCloseable
         new InputStreamReader(this.readOutputFromShell, UTF_8));
   }
 
-  public static EIPShellExample create()
+  public static EIAShellExample create()
     throws Exception
   {
     final var shellWritesTo =
@@ -101,20 +101,20 @@ public final class EIPShellExample implements AutoCloseable
     writeCommandsToShell.connect(shellReadsFrom);
 
     final var commands =
-      new ArrayList<EIPShellCommandExecuted>();
+      new ArrayList<EIAShellCommandExecuted>();
     final var clients =
-      new EIPClients();
+      new EIAClients();
     final var local =
       Locale.getDefault();
     final var client =
       clients.create(local);
     final var shells =
-      new EIPShells();
+      new EIAShells();
     final var shell =
-      shells.create(new EIPShellConfiguration(
+      shells.create(new EIAShellConfiguration(
         client,
         Optional.of(
-          new EIPShellStreams(
+          new EIAShellStreams(
             shellReadsFrom,
             shellWritesTo
           )
@@ -131,7 +131,7 @@ public final class EIPShellExample implements AutoCloseable
         return th;
       });
 
-    return new EIPShellExample(
+    return new EIAShellExample(
       shell,
       commands,
       executor,
@@ -157,7 +157,7 @@ public final class EIPShellExample implements AutoCloseable
     this.executor.execute(() -> {
       try {
         this.shell.run();
-      } catch (final EIPSExitException e) {
+      } catch (final EIAExitException e) {
         // OK
       }
     });

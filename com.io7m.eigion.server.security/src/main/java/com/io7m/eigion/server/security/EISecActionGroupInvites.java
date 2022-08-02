@@ -14,30 +14,29 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-package com.io7m.eigion.amberjack.cmdline;
+package com.io7m.eigion.server.security;
+
+import com.io7m.eigion.model.EIAdmin;
 
 import java.util.Objects;
 
 /**
- * A command was executed.
+ * An admin wants to read the group invites.
  *
- * @param command   The command
- * @param succeeded {@code true} if the command succeeded
+ * @param admin The admin
  */
 
-public record EIShellCommandExecuted(
-  String command,
-  boolean succeeded)
+public record EISecActionGroupInvites(EIAdmin admin)
+  implements EISecActionAdminType
 {
   /**
-   * A command was executed.
+   * An admin wants to read the services.
    *
-   * @param command   The command
-   * @param succeeded {@code true} if the command succeeded
+   * @param admin The admin
    */
 
-  public EIShellCommandExecuted
+  public EISecActionGroupInvites
   {
-    Objects.requireNonNull(command, "command");
+    Objects.requireNonNull(admin, "admin");
   }
 }

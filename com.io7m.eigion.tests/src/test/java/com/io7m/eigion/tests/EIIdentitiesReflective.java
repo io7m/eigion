@@ -27,6 +27,7 @@ import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandAdminGetByEmail;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandAdminGetByName;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandAdminSearch;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandAuditGet;
+import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandGroupInvites;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandLogin;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandServicesList;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandType;
@@ -35,6 +36,8 @@ import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandUserGet;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandUserGetByEmail;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandUserGetByName;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandUserSearch;
+import com.io7m.eigion.protocol.admin_api.v1.EISA1GroupInvite;
+import com.io7m.eigion.protocol.admin_api.v1.EISA1GroupInviteStatus;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1GroupRole;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1MessageType;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1Messages;
@@ -45,6 +48,7 @@ import com.io7m.eigion.protocol.admin_api.v1.EISA1ResponseAdminGet;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1ResponseAdminList;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1ResponseAuditGet;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1ResponseError;
+import com.io7m.eigion.protocol.admin_api.v1.EISA1ResponseGroupInvites;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1ResponseLogin;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1ResponseServiceList;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1ResponseType;
@@ -122,6 +126,7 @@ public final class EIIdentitiesReflective
     EISA1CommandAdminGetByName.class,
     EISA1CommandAdminSearch.class,
     EISA1CommandAuditGet.class,
+    EISA1CommandGroupInvites.class,
     EISA1CommandLogin.class,
     EISA1CommandServicesList.class,
     EISA1CommandType.class,
@@ -130,6 +135,8 @@ public final class EIIdentitiesReflective
     EISA1CommandUserGetByEmail.class,
     EISA1CommandUserGetByName.class,
     EISA1CommandUserSearch.class,
+    EISA1GroupInvite.class,
+    EISA1GroupInviteStatus.class,
     EISA1GroupRole.class,
     EISA1MessageType.class,
     EISA1Messages.class,
@@ -140,6 +147,7 @@ public final class EIIdentitiesReflective
     EISA1ResponseAdminList.class,
     EISA1ResponseAuditGet.class,
     EISA1ResponseError.class,
+    EISA1ResponseGroupInvites.class,
     EISA1ResponseLogin.class,
     EISA1ResponseServiceList.class,
     EISA1ResponseType.class,

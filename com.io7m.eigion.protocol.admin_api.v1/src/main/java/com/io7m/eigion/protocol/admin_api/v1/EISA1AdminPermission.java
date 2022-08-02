@@ -60,7 +60,19 @@ public enum EISA1AdminPermission
    * A permission that allows reading services.
    */
 
-  SERVICE_READ;
+  SERVICE_READ,
+
+  /**
+   * A permission that allows reading group invites.
+   */
+
+  GROUP_INVITES_READ,
+
+  /**
+   * A permission that allows writing group invites.
+   */
+
+  GROUP_INVITES_WRITE;
 
   /**
    * @param p The model permission
@@ -79,6 +91,8 @@ public enum EISA1AdminPermission
       case SERVICE_READ -> SERVICE_READ;
       case USER_READ -> USER_READ;
       case USER_WRITE -> USER_WRITE;
+      case GROUP_INVITES_READ -> GROUP_INVITES_READ;
+      case GROUP_INVITES_WRITE -> GROUP_INVITES_WRITE;
     };
   }
 
@@ -96,6 +110,8 @@ public enum EISA1AdminPermission
       case SERVICE_READ -> EIAdminPermission.SERVICE_READ;
       case USER_READ -> EIAdminPermission.USER_READ;
       case USER_WRITE -> EIAdminPermission.USER_WRITE;
+      case GROUP_INVITES_READ -> EIAdminPermission.GROUP_INVITES_READ;
+      case GROUP_INVITES_WRITE -> EIAdminPermission.GROUP_INVITES_WRITE;
     };
   }
 }

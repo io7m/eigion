@@ -28,7 +28,8 @@ public interface EIAClientType
   EIAClientUserType,
   EIAClientAdminType,
   EIAClientServicesType,
-  EIAClientAuditType
+  EIAClientAuditType,
+  EIAClientGroupsType
 {
   /**
    * Log in.

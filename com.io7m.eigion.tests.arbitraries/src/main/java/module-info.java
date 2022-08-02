@@ -42,6 +42,7 @@ module com.io7m.eigion.tests.arbitraries
       com.io7m.eigion.tests.arbitraries.EIArbEISA1AdminProvider,
       com.io7m.eigion.tests.arbitraries.EIArbEISA1AdminSummaryProvider,
       com.io7m.eigion.tests.arbitraries.EIArbEISA1AuditEventProvider,
+      com.io7m.eigion.tests.arbitraries.EIArbEISA1GroupInviteProvider,
       com.io7m.eigion.tests.arbitraries.EIArbEISA1PasswordProvider,
       com.io7m.eigion.tests.arbitraries.EIArbEISA1ServiceProvider,
       com.io7m.eigion.tests.arbitraries.EIArbEISA1SubsetMatchProvider,

@@ -23,6 +23,9 @@ import com.io7m.eigion.model.EIAdmin;
 import com.io7m.eigion.model.EIAdminPermission;
 import com.io7m.eigion.model.EIAdminSummary;
 import com.io7m.eigion.model.EIAuditEvent;
+import com.io7m.eigion.model.EIGroupInvite;
+import com.io7m.eigion.model.EIGroupInviteStatus;
+import com.io7m.eigion.model.EIGroupName;
 import com.io7m.eigion.model.EIService;
 import com.io7m.eigion.model.EISubsetMatch;
 import com.io7m.eigion.model.EIUser;
@@ -36,6 +39,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 
 /**
  * The default client implementation.
@@ -196,5 +200,22 @@ public final class EIAClient implements EIAClientType
     throws EIAClientException, InterruptedException
   {
     return this.handler.adminCreate(name, email, password, permissions);
+  }
+
+  @Override
+  public List<EIGroupInvite> groupInvites(
+    final OffsetDateTime since,
+    final Optional<EIGroupName> withGroupName,
+    final Optional<UUID> withUserInviter,
+    final Optional<UUID> withUserBeingInvited,
+    final Optional<EIGroupInviteStatus> withStatus)
+    throws EIAClientException, InterruptedException
+  {
+    return this.handler.groupInvites(
+      since,
+      withGroupName,
+      withUserInviter,
+      withUserBeingInvited,
+      withStatus);
   }
 }

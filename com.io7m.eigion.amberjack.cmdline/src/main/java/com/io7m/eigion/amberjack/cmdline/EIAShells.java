@@ -14,27 +14,34 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-
 package com.io7m.eigion.amberjack.cmdline;
 
+import com.io7m.eigion.amberjack.cmdline.internal.EIAShell;
+
 import java.io.IOException;
+import java.util.Objects;
 
 /**
  * A factory of shells.
  */
 
-public interface EIShellFactoryType
+public final class EIAShells implements EIAShellFactoryType
 {
   /**
-   * Create a new shell.
-   *
-   * @param configuration The shell configuration
-   *
-   * @return A new shell
-   *
-   * @throws IOException On errors
+   * A factory of shells.
    */
 
-  EIShellType create(EIShellConfiguration configuration)
-    throws IOException;
+  public EIAShells()
+  {
+
+  }
+
+  @Override
+  public EIAShellType create(
+    final EIAShellConfiguration configuration)
+    throws IOException
+  {
+    Objects.requireNonNull(configuration, "configuration");
+    return EIAShell.create(configuration);
+  }
 }

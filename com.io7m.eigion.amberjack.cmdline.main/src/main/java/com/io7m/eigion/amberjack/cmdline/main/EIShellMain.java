@@ -22,10 +22,10 @@ import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.io7m.eigion.amberjack.api.EIAClientException;
 import com.io7m.eigion.amberjack.api.EIAClientFactoryType;
-import com.io7m.eigion.amberjack.cmdline.EISExitException;
-import com.io7m.eigion.amberjack.cmdline.EIShellCommandExecuted;
-import com.io7m.eigion.amberjack.cmdline.EIShellConfiguration;
-import com.io7m.eigion.amberjack.cmdline.EIShellFactoryType;
+import com.io7m.eigion.amberjack.cmdline.EIAExitException;
+import com.io7m.eigion.amberjack.cmdline.EIAShellCommandExecuted;
+import com.io7m.eigion.amberjack.cmdline.EIAShellConfiguration;
+import com.io7m.eigion.amberjack.cmdline.EIAShellFactoryType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,7 +47,7 @@ public final class EIShellMain
   private static final Logger LOG =
     LoggerFactory.getLogger(EIShellMain.class);
 
-  private static final Consumer<EIShellCommandExecuted> IGNORE = s -> {
+  private static final Consumer<EIAShellCommandExecuted> IGNORE = s -> {
   };
 
   private EIShellMain()
@@ -132,15 +132,15 @@ public final class EIShellMain
     final var clients =
       loadOrFail(EIAClientFactoryType.class);
     final var shells =
-      loadOrFail(EIShellFactoryType.class);
+      loadOrFail(EIAShellFactoryType.class);
 
     final var locale = Locale.getDefault();
     try (var client = clients.create(locale)) {
       final var shellConfiguration =
-        new EIShellConfiguration(client, empty(), IGNORE, locale);
+        new EIAShellConfiguration(client, empty(), IGNORE, locale, false);
       try (var shell = shells.create(shellConfiguration)) {
         shell.run();
-      } catch (final EISExitException e) {
+      } catch (final EIAExitException e) {
         return e.code();
       }
     }

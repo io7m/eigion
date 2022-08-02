@@ -21,7 +21,7 @@ package com.io7m.eigion.amberjack.cmdline;
  * A command wants the shell to exit.
  */
 
-public final class EISExitException extends Exception
+public final class EIAExitException extends Exception
 {
   private final int code;
 
@@ -40,7 +40,7 @@ public final class EISExitException extends Exception
    * @param exitCode The exit code
    */
 
-  public EISExitException(
+  public EIAExitException(
     final int exitCode)
   {
     this.code = exitCode;

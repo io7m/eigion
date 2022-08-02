@@ -19,7 +19,7 @@ package com.io7m.eigion.amberjack.cmdline.internal;
 
 import com.io7m.eigion.amberjack.api.EIAClientException;
 import com.io7m.eigion.amberjack.api.EIAClientType;
-import com.io7m.eigion.amberjack.cmdline.EISExitException;
+import com.io7m.eigion.amberjack.cmdline.EIAExitException;
 import org.jline.reader.Completer;
 import org.jline.reader.impl.completer.AggregateCompleter;
 import org.jline.reader.impl.completer.StringsCompleter;
@@ -35,7 +35,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 import java.util.stream.Stream;
 
 import static com.io7m.eigion.amberjack.cmdline.internal.EISCommandResult.FAILURE;
@@ -51,23 +50,6 @@ public final class EISController
 {
   private static final Logger LOG =
     LoggerFactory.getLogger(EISController.class);
-
-  private static final Set<Class<? extends EISCommandType>> COMMAND_TYPES =
-    Set.of(
-      EISCommandAdminCreate.class,
-      EISCommandAdminGet.class,
-      EISCommandAdminSearch.class,
-      EISCommandAudit.class,
-      EISCommandExit.class,
-      EISCommandHelp.class,
-      EISCommandLogin.class,
-      EISCommandServices.class,
-      EISCommandSet.class,
-      EISCommandUserCreate.class,
-      EISCommandUserGet.class,
-      EISCommandUserSearch.class,
-      EISCommandVersion.class
-    );
 
   private final EISStrings strings;
   private final EIAClientType client;
@@ -118,6 +100,7 @@ public final class EISController
         new EISCommandAdminSearch(controller, strings),
         new EISCommandAudit(controller, strings),
         new EISCommandExit(controller, strings),
+        new EISCommandGroupInvites(controller, strings),
         new EISCommandHelp(controller, strings),
         new EISCommandLogin(controller, strings),
         new EISCommandServices(controller, strings),
@@ -174,14 +157,14 @@ public final class EISController
    *
    * @return The command result
    *
-   * @throws EISExitException     On exit
+   * @throws EIAExitException     On exit
    * @throws InterruptedException On interruption
    */
 
   public EISCommandResult execute(
     final Terminal terminal,
     final List<String> words)
-    throws EISExitException, InterruptedException
+    throws EIAExitException, InterruptedException
   {
     Objects.requireNonNull(terminal, "terminal");
     Objects.requireNonNull(words, "words");

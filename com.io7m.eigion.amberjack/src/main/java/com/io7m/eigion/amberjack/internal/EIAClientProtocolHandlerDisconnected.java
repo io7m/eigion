@@ -22,6 +22,9 @@ import com.io7m.eigion.model.EIAdmin;
 import com.io7m.eigion.model.EIAdminPermission;
 import com.io7m.eigion.model.EIAdminSummary;
 import com.io7m.eigion.model.EIAuditEvent;
+import com.io7m.eigion.model.EIGroupInvite;
+import com.io7m.eigion.model.EIGroupInviteStatus;
+import com.io7m.eigion.model.EIGroupName;
 import com.io7m.eigion.model.EIService;
 import com.io7m.eigion.model.EISubsetMatch;
 import com.io7m.eigion.model.EIUser;
@@ -34,6 +37,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 
 /**
  * The "disconnected" protocol handler.
@@ -184,6 +188,18 @@ public final class EIAClientProtocolHandlerDisconnected
     final String email,
     final String password,
     final Set<EIAdminPermission> permissions)
+    throws EIAClientException
+  {
+    throw this.notLoggedIn();
+  }
+
+  @Override
+  public List<EIGroupInvite> groupInvites(
+    final OffsetDateTime since,
+    final Optional<EIGroupName> withGroupName,
+    final Optional<UUID> withUserInviter,
+    final Optional<UUID> withUserBeingInvited,
+    final Optional<EIGroupInviteStatus> withStatus)
     throws EIAClientException
   {
     throw this.notLoggedIn();

@@ -27,6 +27,7 @@ public sealed interface EISecActionAdminType
   extends EISecActionType permits EISecActionAdminCreate,
   EISecActionAdminRead,
   EISecActionAuditRead,
+  EISecActionGroupInvites,
   EISecActionServicesRead,
   EISecActionUserCreate,
   EISecActionUserRead

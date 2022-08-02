@@ -14,37 +14,34 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+
 package com.io7m.eigion.amberjack.cmdline;
 
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.Objects;
+import java.io.Closeable;
+import java.util.Set;
 
 /**
- * Replacement shell streams.
- *
- * @param inputStream  The input stream to use in place of the default
- *                     controlling terminal
- * @param outputStream The output stream to use in place of the default
- *                     controlling terminal
+ * A shell.
  */
 
-public record EIShellStreams(
-  InputStream inputStream,
-  OutputStream outputStream)
+public interface EIAShellType extends Closeable
 {
   /**
-   * Replacement shell streams.
+   * Start the shell, running commands until something prompts the shell to
+   * exit.
    *
-   * @param inputStream  The input stream to use in place of the default
-   *                     controlling terminal
-   * @param outputStream The output stream to use in place of the default
-   *                     controlling terminal
+   * @throws EIAExitException An exception raised by a command, indicating that
+   *                          the shell should exit.
    */
 
-  public EIShellStreams
-  {
-    Objects.requireNonNull(inputStream, "inputStream");
-    Objects.requireNonNull(outputStream, "outputStream");
-  }
+  void run()
+    throws EIAExitException;
+
+  /**
+   * Retrieve the commands supported by this shell.
+   *
+   * @return The supported commands
+   */
+
+  Set<String> commandsSupported();
 }

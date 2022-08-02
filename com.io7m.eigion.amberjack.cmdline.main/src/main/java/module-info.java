@@ -15,7 +15,7 @@
  */
 
 import com.io7m.eigion.amberjack.api.EIAClientFactoryType;
-import com.io7m.eigion.amberjack.cmdline.EIShellFactoryType;
+import com.io7m.eigion.amberjack.cmdline.EIAShellFactoryType;
 
 /**
  * Eigion platform (Amberjack command-line main distribution)
@@ -35,7 +35,7 @@ open module com.io7m.eigion.amberjack.cmdline.main
   requires org.slf4j;
 
   uses EIAClientFactoryType;
-  uses EIShellFactoryType;
+  uses EIAShellFactoryType;
 
   exports com.io7m.eigion.amberjack.cmdline.main;
 }
