@@ -14,29 +14,38 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-package com.io7m.eigion.server.security;
+package com.io7m.eigion.protocol.public_api.v1;
 
-import com.io7m.eigion.model.EIUser;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+
+import java.util.Objects;
+import java.util.UUID;
 
 /**
- * A view of an action within the security policy. An <i>action</i> may (or may
- * not) be performed by a  <i>user</i> according to the security policy.
+ * A response to a request to cancel a group invite.
+ *
+ * @param requestId The request ID
  */
 
-public sealed interface EISecActionUserType
-  extends EISecActionType
-  permits EISecActionGroupCreateBegin,
-  EISecActionGroupCreateCancel,
-  EISecActionGroupCreateReady,
-  EISecActionGroupInvite,
-  EISecActionGroupInviteCancel,
-  EISecActionImageCreate,
-  EISecActionImageRead,
-  EISecActionUserUserComplaintCreate
+@JsonDeserialize
+@JsonSerialize
+public record EISP1ResponseGroupInviteCancel(
+  @JsonProperty(value = "RequestID", required = true)
+  UUID requestId)
+  implements EISP1ResponseType
 {
   /**
-   * @return The user performing the action
+   * A response to a request to cancel a group invite.
+   *
+   * @param requestId The request ID
    */
 
-  EIUser user();
+  @JsonCreator
+  public EISP1ResponseGroupInviteCancel
+  {
+    Objects.requireNonNull(requestId, "requestId");
+  }
 }

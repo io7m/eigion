@@ -14,29 +14,37 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-package com.io7m.eigion.server.security;
+package com.io7m.eigion.protocol.public_api.v1;
 
-import com.io7m.eigion.model.EIUser;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+
+import java.util.Objects;
 
 /**
- * A view of an action within the security policy. An <i>action</i> may (or may
- * not) be performed by a  <i>user</i> according to the security policy.
+ * A request to cancel a group invite.
+ *
+ * @param token    The invite token
  */
 
-public sealed interface EISecActionUserType
-  extends EISecActionType
-  permits EISecActionGroupCreateBegin,
-  EISecActionGroupCreateCancel,
-  EISecActionGroupCreateReady,
-  EISecActionGroupInvite,
-  EISecActionGroupInviteCancel,
-  EISecActionImageCreate,
-  EISecActionImageRead,
-  EISecActionUserUserComplaintCreate
+@JsonDeserialize
+@JsonSerialize
+public record EISP1CommandGroupInviteCancel(
+  @JsonProperty(value = "Token", required = true)
+  String token)
+  implements EISP1CommandType
 {
   /**
-   * @return The user performing the action
+   * A request to cancel a group invite.
+   *
+   * @param token    The invite token
    */
 
-  EIUser user();
+  @JsonCreator
+  public EISP1CommandGroupInviteCancel
+  {
+    Objects.requireNonNull(token, "token");
+  }
 }

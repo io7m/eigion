@@ -31,6 +31,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public interface EIServerPublicMessengerType
 {
@@ -107,6 +108,21 @@ public interface EIServerPublicMessengerType
       "/public/1/0/command",
       this.msgPublic().serialize(command)
     );
+  }
+
+  default EISP1ResponseError msgSendPublicCommandExpectingError(
+    final int statusCode,
+    final EISP1CommandType command)
+    throws Exception
+  {
+    final var r =
+      this.msgSendPublicBytes(
+        "/public/1/0/command",
+        this.msgPublic().serialize(command)
+      );
+
+    assertEquals(statusCode, r.statusCode());
+    return this.msgParsePublic(r, EISP1ResponseError.class);
   }
 
   default <T extends EISP1ResponseType> T msgSendPublicCommandOrFail(

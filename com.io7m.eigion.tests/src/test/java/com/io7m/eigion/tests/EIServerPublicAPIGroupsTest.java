@@ -27,6 +27,7 @@ import com.io7m.eigion.protocol.public_api.v1.EISP1CommandGroupCreateReady;
 import com.io7m.eigion.protocol.public_api.v1.EISP1CommandGroupCreateRequests;
 import com.io7m.eigion.protocol.public_api.v1.EISP1CommandGroupInvite;
 import com.io7m.eigion.protocol.public_api.v1.EISP1CommandGroupInviteByName;
+import com.io7m.eigion.protocol.public_api.v1.EISP1CommandGroupInviteCancel;
 import com.io7m.eigion.protocol.public_api.v1.EISP1CommandGroupInvitesReceived;
 import com.io7m.eigion.protocol.public_api.v1.EISP1CommandGroupInvitesSent;
 import com.io7m.eigion.protocol.public_api.v1.EISP1CommandLogin;
@@ -36,6 +37,7 @@ import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseGroupCreateCancel;
 import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseGroupCreateReady;
 import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseGroupCreateRequests;
 import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseGroupInvite;
+import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseGroupInviteCancel;
 import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseGroupInvites;
 import com.io7m.eigion.server.database.api.EIServerDatabaseGroupsQueriesType;
 import org.junit.jupiter.api.Test;
@@ -47,11 +49,14 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import java.net.http.HttpResponse;
 import java.util.ArrayList;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.IntStream;
 
+import static com.io7m.eigion.model.EIGroupRole.USER_INVITE;
+import static com.io7m.eigion.server.database.api.EIServerDatabaseQueriesType.earliest;
 import static com.io7m.eigion.server.database.api.EIServerDatabaseRole.EIGION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -151,15 +156,25 @@ public final class EIServerPublicAPIGroupsTest extends EIServerContract
       );
 
       final var res0 =
-        this.msgParsePublic(responses.get(0), EISP1ResponseGroupCreateBegin.class);
+        this.msgParsePublic(
+          responses.get(0),
+          EISP1ResponseGroupCreateBegin.class);
       final var res1 =
-        this.msgParsePublic(responses.get(1), EISP1ResponseGroupCreateBegin.class);
+        this.msgParsePublic(
+          responses.get(1),
+          EISP1ResponseGroupCreateBegin.class);
       final var res2 =
-        this.msgParsePublic(responses.get(2), EISP1ResponseGroupCreateBegin.class);
+        this.msgParsePublic(
+          responses.get(2),
+          EISP1ResponseGroupCreateBegin.class);
       final var res3 =
-        this.msgParsePublic(responses.get(3), EISP1ResponseGroupCreateBegin.class);
+        this.msgParsePublic(
+          responses.get(3),
+          EISP1ResponseGroupCreateBegin.class);
       final var res4 =
-        this.msgParsePublic(responses.get(4), EISP1ResponseGroupCreateBegin.class);
+        this.msgParsePublic(
+          responses.get(4),
+          EISP1ResponseGroupCreateBegin.class);
       final var res5 =
         this.msgParsePublic(responses.get(5), EISP1ResponseError.class);
 
@@ -204,11 +219,17 @@ public final class EIServerPublicAPIGroupsTest extends EIServerContract
       );
 
       final var res0 =
-        this.msgParsePublic(responses.get(0), EISP1ResponseGroupCreateBegin.class);
+        this.msgParsePublic(
+          responses.get(0),
+          EISP1ResponseGroupCreateBegin.class);
       final var res1 =
-        this.msgParsePublic(responses.get(1), EISP1ResponseGroupCreateBegin.class);
+        this.msgParsePublic(
+          responses.get(1),
+          EISP1ResponseGroupCreateBegin.class);
       final var res2 =
-        this.msgParsePublic(responses.get(2), EISP1ResponseGroupCreateBegin.class);
+        this.msgParsePublic(
+          responses.get(2),
+          EISP1ResponseGroupCreateBegin.class);
 
       final var listR =
         this.msgSendPublicBytes(
@@ -633,7 +654,7 @@ public final class EIServerPublicAPIGroupsTest extends EIServerContract
     {
       final var invites =
         this.msgSendPublicCommandOrFail(
-          new EISP1CommandGroupInvitesSent(),
+          new EISP1CommandGroupInvitesSent(earliest(), Optional.empty()),
           EISP1ResponseGroupInvites.class
         );
 
@@ -645,7 +666,7 @@ public final class EIServerPublicAPIGroupsTest extends EIServerContract
     {
       final var invites =
         this.msgSendPublicCommandOrFail(
-          new EISP1CommandGroupInvitesReceived(),
+          new EISP1CommandGroupInvitesReceived(earliest(), Optional.empty()),
           EISP1ResponseGroupInvites.class
         );
 
@@ -658,7 +679,7 @@ public final class EIServerPublicAPIGroupsTest extends EIServerContract
     {
       final var invites =
         this.msgSendPublicCommandOrFail(
-          new EISP1CommandGroupInvitesReceived(),
+          new EISP1CommandGroupInvitesReceived(earliest(), Optional.empty()),
           EISP1ResponseGroupInvites.class
         );
 
@@ -670,7 +691,7 @@ public final class EIServerPublicAPIGroupsTest extends EIServerContract
     {
       final var invites =
         this.msgSendPublicCommandOrFail(
-          new EISP1CommandGroupInvitesSent(),
+          new EISP1CommandGroupInvitesSent(earliest(), Optional.empty()),
           EISP1ResponseGroupInvites.class
         );
 
@@ -711,7 +732,7 @@ public final class EIServerPublicAPIGroupsTest extends EIServerContract
     {
       final var invites =
         this.msgSendPublicCommandOrFail(
-          new EISP1CommandGroupInvitesSent(),
+          new EISP1CommandGroupInvitesSent(earliest(), Optional.empty()),
           EISP1ResponseGroupInvites.class
         );
 
@@ -723,7 +744,7 @@ public final class EIServerPublicAPIGroupsTest extends EIServerContract
     {
       final var invites =
         this.msgSendPublicCommandOrFail(
-          new EISP1CommandGroupInvitesReceived(),
+          new EISP1CommandGroupInvitesReceived(earliest(), Optional.empty()),
           EISP1ResponseGroupInvites.class
         );
 
@@ -736,7 +757,7 @@ public final class EIServerPublicAPIGroupsTest extends EIServerContract
     {
       final var invites =
         this.msgSendPublicCommandOrFail(
-          new EISP1CommandGroupInvitesReceived(),
+          new EISP1CommandGroupInvitesReceived(earliest(), Optional.empty()),
           EISP1ResponseGroupInvites.class
         );
 
@@ -748,7 +769,7 @@ public final class EIServerPublicAPIGroupsTest extends EIServerContract
     {
       final var invites =
         this.msgSendPublicCommandOrFail(
-          new EISP1CommandGroupInvitesSent(),
+          new EISP1CommandGroupInvitesSent(earliest(), Optional.empty()),
           EISP1ResponseGroupInvites.class
         );
 
@@ -867,6 +888,180 @@ public final class EIServerPublicAPIGroupsTest extends EIServerContract
       );
 
     assertEquals(403, r.statusCode());
+  }
+
+  /**
+   * Users cannot cancel invites that don't exist.
+   *
+   * @throws Exception On errors
+   */
+
+  @Test
+  public void testGroupInviteNonexistent()
+    throws Exception
+  {
+    this.serverStartIfNecessary();
+
+    final var adminId =
+      this.createAdminInitial("someone", "12345678");
+    final var user0 =
+      this.createUser(adminId, "someone0");
+
+    this.loginFor("someone0", "12345678");
+
+    final var r =
+      this.msgSendPublicCommand(
+        new EISP1CommandGroupInviteCancel(
+          "564739EA8FA5926D4FA5C9734FED462061960A")
+      );
+
+    assertEquals(404, r.statusCode());
+  }
+
+  /**
+   * Users cannot cancel invites in groups other than those to which they have
+   * access.
+   *
+   * @throws Exception On errors
+   */
+
+  @Test
+  public void testGroupInviteNotPermitted()
+    throws Exception
+  {
+    this.serverStartIfNecessary();
+
+    final var adminId =
+      this.createAdminInitial("someone", "12345678");
+    final var user0 =
+      this.createUser(adminId, "someone0");
+    final var user1 =
+      this.createUser(adminId, "someone1");
+    final var group0 =
+      this.createGroup(user0, "com.io7m.ex");
+
+    this.setGroupRoles(user0, "com.io7m.ex", Set.of(USER_INVITE));
+
+    this.loginFor("someone0", "12345678");
+
+    final var r =
+      this.msgSendPublicCommandOrFail(
+        new EISP1CommandGroupInvite("com.io7m.ex", user1),
+        EISP1ResponseGroupInvite.class
+      );
+
+    this.loginFor("someone1", "12345678");
+
+    final var s =
+      this.msgSendPublicCommandExpectingError(
+        403,
+        new EISP1CommandGroupInviteCancel(r.token())
+      );
+
+    assertEquals(
+      "You must have the USER_INVITE or USER_DISMISS roles to cancel invites to this group.",
+      s.message());
+  }
+
+  /**
+   * Users can cancel invites in groups to which they have access.
+   *
+   * @throws Exception On errors
+   */
+
+  @Test
+  public void testGroupInviteCancelPermitted()
+    throws Exception
+  {
+    this.serverStartIfNecessary();
+
+    final var adminId =
+      this.createAdminInitial("someone", "12345678");
+    final var user0 =
+      this.createUser(adminId, "someone0");
+    final var user1 =
+      this.createUser(adminId, "someone1");
+    final var user2 =
+      this.createUser(adminId, "someone2");
+    final var group0 =
+      this.createGroup(user0, "com.io7m.ex");
+
+    this.setGroupRoles(user0, "com.io7m.ex", Set.of(USER_INVITE));
+    this.setGroupRoles(user1, "com.io7m.ex", Set.of(USER_INVITE));
+
+    this.loginFor("someone0", "12345678");
+
+    final var r =
+      this.msgSendPublicCommandOrFail(
+        new EISP1CommandGroupInvite("com.io7m.ex", user2),
+        EISP1ResponseGroupInvite.class
+      );
+
+    this.loginFor("someone1", "12345678");
+
+    this.msgSendPublicCommandOrFail(
+      new EISP1CommandGroupInviteCancel(r.token()),
+      EISP1ResponseGroupInviteCancel.class
+    );
+
+    this.loginFor("someone2", "12345678");
+
+    final var invites =
+      this.msgSendPublicCommandOrFail(
+        new EISP1CommandGroupInvitesReceived(earliest(), Optional.empty()),
+        EISP1ResponseGroupInvites.class
+      ).invites();
+
+    assertEquals(r.token(), invites.get(0).token());
+    assertEquals(1, invites.size());
+  }
+
+  /**
+   * Users cannot cancel invites that are already cancelled.
+   *
+   * @throws Exception On errors
+   */
+
+  @Test
+  public void testGroupInviteCancelledAlready()
+    throws Exception
+  {
+    this.serverStartIfNecessary();
+
+    final var adminId =
+      this.createAdminInitial("someone", "12345678");
+    final var user0 =
+      this.createUser(adminId, "someone0");
+    final var user1 =
+      this.createUser(adminId, "someone1");
+    final var user2 =
+      this.createUser(adminId, "someone2");
+    final var group0 =
+      this.createGroup(user0, "com.io7m.ex");
+
+    this.setGroupRoles(user0, "com.io7m.ex", Set.of(USER_INVITE));
+    this.setGroupRoles(user1, "com.io7m.ex", Set.of(USER_INVITE));
+
+    this.loginFor("someone0", "12345678");
+
+    final var r =
+      this.msgSendPublicCommandOrFail(
+        new EISP1CommandGroupInvite("com.io7m.ex", user2),
+        EISP1ResponseGroupInvite.class
+      );
+
+    this.msgSendPublicCommandOrFail(
+      new EISP1CommandGroupInviteCancel(r.token()),
+      EISP1ResponseGroupInviteCancel.class
+    );
+
+    final var error =
+      this.msgSendPublicCommandExpectingError(
+        400,
+        new EISP1CommandGroupInviteCancel(r.token())
+      );
+
+    assertEquals("group-invite-cancel-wrong-state", error.errorCode());
   }
 
   private void loginFor(

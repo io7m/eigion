@@ -21,31 +21,37 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
+import java.time.OffsetDateTime;
 import java.util.Objects;
 import java.util.UUID;
 
 /**
  * A response to a request to log in.
  *
- * @param requestId The request ID
+ * @param requestId    The request ID
+ * @param lastLoggedIn The time the user last logged in
  */
 
 @JsonDeserialize
 @JsonSerialize
 public record EISP1ResponseLogin(
   @JsonProperty(value = "RequestID", required = true)
-  UUID requestId)
+  UUID requestId,
+  @JsonProperty(value = "LastLoggedIn", required = true)
+  OffsetDateTime lastLoggedIn)
   implements EISP1ResponseType
 {
   /**
    * A response to a request to log in.
    *
-   * @param requestId The request ID
+   * @param requestId    The request ID
+   * @param lastLoggedIn The time the user last logged in
    */
 
   @JsonCreator
   public EISP1ResponseLogin
   {
     Objects.requireNonNull(requestId, "requestId");
+    Objects.requireNonNull(lastLoggedIn, "lastLoggedIn");
   }
 }

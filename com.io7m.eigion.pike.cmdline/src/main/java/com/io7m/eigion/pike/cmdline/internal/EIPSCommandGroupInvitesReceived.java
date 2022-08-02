@@ -16,8 +16,15 @@
 
 package com.io7m.eigion.pike.cmdline.internal;
 
+import com.beust.jcommander.Parameter;
+import com.io7m.eigion.model.EIGroupInviteStatus;
 import com.io7m.eigion.pike.api.EIPClientException;
 import org.jline.terminal.Terminal;
+
+import java.time.Instant;
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
+import java.util.Optional;
 
 import static com.io7m.eigion.pike.cmdline.internal.EIPSCommandResult.SUCCESS;
 
@@ -57,7 +64,10 @@ public final class EIPSCommandGroupInvitesReceived
     final var invites =
       this.controller()
         .client()
-        .groupInvitesReceived();
+        .groupInvitesReceived(
+          parameters.since,
+          Optional.ofNullable(parameters.withStatus)
+        );
 
     final var writer = terminal.writer();
     final var str = this.strings();
@@ -102,6 +112,20 @@ public final class EIPSCommandGroupInvitesReceived
   protected static final class Parameters
     implements EIPSParameterHolderType
   {
+    @Parameter(
+      description = "Only return invites newer than this date.",
+      required = false,
+      converter = EIPSOffsetDateTimeConverter.class,
+      names = "--since")
+    private OffsetDateTime since =
+      OffsetDateTime.ofInstant(Instant.EPOCH, ZoneId.of("UTC"));
+
+    @Parameter(
+      description = "Only return invites with this status.",
+      required = false,
+      names = "--with-status")
+    private EIGroupInviteStatus withStatus;
+
     Parameters()
     {
 

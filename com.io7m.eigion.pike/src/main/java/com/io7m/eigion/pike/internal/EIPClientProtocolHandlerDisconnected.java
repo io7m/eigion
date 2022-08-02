@@ -19,6 +19,7 @@ package com.io7m.eigion.pike.internal;
 
 import com.io7m.eigion.model.EIGroupCreationRequest;
 import com.io7m.eigion.model.EIGroupInvite;
+import com.io7m.eigion.model.EIGroupInviteStatus;
 import com.io7m.eigion.model.EIGroupName;
 import com.io7m.eigion.model.EIGroupRoles;
 import com.io7m.eigion.model.EIToken;
@@ -28,8 +29,10 @@ import com.io7m.eigion.pike.api.EIPGroupCreationChallenge;
 
 import java.net.URI;
 import java.net.http.HttpClient;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -132,14 +135,26 @@ public final class EIPClientProtocolHandlerDisconnected
   }
 
   @Override
-  public List<EIGroupInvite> groupInvitesSent()
+  public List<EIGroupInvite> groupInvitesSent(
+    final OffsetDateTime since,
+    final Optional<EIGroupInviteStatus> withStatus)
     throws EIPClientException
   {
     throw this.notLoggedIn();
   }
 
   @Override
-  public List<EIGroupInvite> groupInvitesReceived()
+  public List<EIGroupInvite> groupInvitesReceived(
+    final OffsetDateTime since,
+    final Optional<EIGroupInviteStatus> withStatus)
+    throws EIPClientException
+  {
+    throw this.notLoggedIn();
+  }
+
+  @Override
+  public void groupInviteCancel(
+    final EIToken token)
     throws EIPClientException
   {
     throw this.notLoggedIn();

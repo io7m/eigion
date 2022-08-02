@@ -258,6 +258,7 @@ create table group_invites (
 ]]></Statement>
 
     <Statement>grant insert, select, delete on group_invites to eigion</Statement>
+    <Statement>grant update (status, completed) on group_invites to eigion</Statement>
 
     <Comment>
       The audit table stores a list of auditable events. Who did it? What did they do? When did they do it?

@@ -204,6 +204,44 @@ public final class EIPikeShellExamplesTest extends EIWithServerContract
     );
 
     this.readUntilFileSeparator("group-invites-received");
+
+    /*
+     * Log in as the other user again.
+     */
+
+    this.writer.write("login --username some0 --password 12345678 --server " + this.serverPublicURI());
+    this.writer.newLine();
+    this.writer.flush();
+    this.readUntilFileSeparator("login");
+
+    /*
+     * Cancel the invite.
+     */
+
+    this.writer.write("group-invite-cancel --token %s".formatted(inviteToken));
+    this.writer.newLine();
+    this.writer.flush();
+    this.readUntilFileSeparator("group-invite-cancel");
+
+    /*
+     * Log in as the other user again.
+     */
+
+    this.writer.write("login --username some1 --password 12345678 --server " + this.serverPublicURI());
+    this.writer.newLine();
+    this.writer.flush();
+    this.readUntilFileSeparator("login");
+
+    /*
+     * The invite is now cancelled.
+     */
+
+    this.writer.write("group-invites-received");
+    this.writer.newLine();
+    this.writer.flush();
+
+    this.readUntilExact("group-invites-received", "Invite.Status: CANCELLED");
+    this.readUntilFileSeparator("group-invites-received");
   }
 
   private String readUntilExact(

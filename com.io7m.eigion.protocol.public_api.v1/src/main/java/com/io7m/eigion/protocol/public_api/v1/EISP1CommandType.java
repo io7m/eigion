@@ -28,6 +28,7 @@ public sealed interface EISP1CommandType
   EISP1CommandGroupCreateRequests,
   EISP1CommandGroupInvite,
   EISP1CommandGroupInviteByName,
+  EISP1CommandGroupInviteCancel,
   EISP1CommandGroupInviteRespond,
   EISP1CommandGroupInvitesReceived,
   EISP1CommandGroupInvitesSent,

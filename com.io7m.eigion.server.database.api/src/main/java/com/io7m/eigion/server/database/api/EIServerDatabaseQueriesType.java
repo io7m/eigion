@@ -17,6 +17,11 @@
 
 package com.io7m.eigion.server.database.api;
 
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+
+import static java.time.ZoneOffset.UTC;
+
 /**
  * The base type of query interfaces.
  */
@@ -29,5 +34,20 @@ public sealed interface EIServerDatabaseQueriesType
   EIServerDatabaseProductsQueriesType,
   EIServerDatabaseUsersQueriesType
 {
+  /**
+   * The earliest possible time considered by the server
+   */
 
+  OffsetDateTime EARLIEST =
+    LocalDateTime.ofEpochSecond(0L, 0, UTC)
+      .atOffset(UTC);
+
+  /**
+   * @return The earliest possible time considered by the server
+   */
+
+  static OffsetDateTime earliest()
+  {
+    return EARLIEST;
+  }
 }

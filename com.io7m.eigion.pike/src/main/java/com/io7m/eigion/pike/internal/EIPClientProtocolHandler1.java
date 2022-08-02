@@ -19,6 +19,7 @@ package com.io7m.eigion.pike.internal;
 
 import com.io7m.eigion.model.EIGroupCreationRequest;
 import com.io7m.eigion.model.EIGroupInvite;
+import com.io7m.eigion.model.EIGroupInviteStatus;
 import com.io7m.eigion.model.EIGroupName;
 import com.io7m.eigion.model.EIGroupRoles;
 import com.io7m.eigion.model.EIToken;
@@ -32,12 +33,14 @@ import com.io7m.eigion.protocol.public_api.v1.EISP1CommandGroupCreateReady;
 import com.io7m.eigion.protocol.public_api.v1.EISP1CommandGroupCreateRequests;
 import com.io7m.eigion.protocol.public_api.v1.EISP1CommandGroupInvite;
 import com.io7m.eigion.protocol.public_api.v1.EISP1CommandGroupInviteByName;
+import com.io7m.eigion.protocol.public_api.v1.EISP1CommandGroupInviteCancel;
 import com.io7m.eigion.protocol.public_api.v1.EISP1CommandGroupInvitesReceived;
 import com.io7m.eigion.protocol.public_api.v1.EISP1CommandGroupInvitesSent;
 import com.io7m.eigion.protocol.public_api.v1.EISP1CommandGroups;
 import com.io7m.eigion.protocol.public_api.v1.EISP1CommandLogin;
 import com.io7m.eigion.protocol.public_api.v1.EISP1GroupCreationRequest;
 import com.io7m.eigion.protocol.public_api.v1.EISP1GroupInvite;
+import com.io7m.eigion.protocol.public_api.v1.EISP1GroupInviteStatus;
 import com.io7m.eigion.protocol.public_api.v1.EISP1GroupRoles;
 import com.io7m.eigion.protocol.public_api.v1.EISP1MessageType;
 import com.io7m.eigion.protocol.public_api.v1.EISP1Messages;
@@ -58,6 +61,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -350,13 +354,18 @@ public final class EIPClientProtocolHandler1
   }
 
   @Override
-  public List<EIGroupInvite> groupInvitesSent()
+  public List<EIGroupInvite> groupInvitesSent(
+    final OffsetDateTime since,
+    final Optional<EIGroupInviteStatus> withStatus)
     throws EIPClientException, InterruptedException
   {
     final var response =
       this.sendCommand(
         EISP1ResponseGroupInvites.class,
-        new EISP1CommandGroupInvitesSent()
+        new EISP1CommandGroupInvitesSent(
+          since,
+          withStatus.map(EISP1GroupInviteStatus::ofStatus)
+        )
       );
 
     return response.invites()
@@ -366,19 +375,35 @@ public final class EIPClientProtocolHandler1
   }
 
   @Override
-  public List<EIGroupInvite> groupInvitesReceived()
+  public List<EIGroupInvite> groupInvitesReceived(
+    final OffsetDateTime since,
+    final Optional<EIGroupInviteStatus> withStatus)
     throws EIPClientException, InterruptedException
   {
     final var response =
       this.sendCommand(
         EISP1ResponseGroupInvites.class,
-        new EISP1CommandGroupInvitesReceived()
+        new EISP1CommandGroupInvitesReceived(
+          since,
+          withStatus.map(EISP1GroupInviteStatus::ofStatus)
+        )
       );
 
     return response.invites()
       .stream()
       .map(EISP1GroupInvite::toInvite)
       .toList();
+  }
+
+  @Override
+  public void groupInviteCancel(
+    final EIToken token)
+    throws EIPClientException, InterruptedException
+  {
+    this.sendCommand(
+      EISP1ResponseGroupInvites.class,
+      new EISP1CommandGroupInviteCancel(token.value())
+    );
   }
 
   interface FunctionType<A, B, E extends Exception>

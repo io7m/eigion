@@ -31,6 +31,7 @@ public sealed interface EISP1ResponseType
   EISP1ResponseGroupCreateReady,
   EISP1ResponseGroupCreateRequests,
   EISP1ResponseGroupInvite,
+  EISP1ResponseGroupInviteCancel,
   EISP1ResponseGroupInviteRespond,
   EISP1ResponseGroupInvites,
   EISP1ResponseGroupLeave,

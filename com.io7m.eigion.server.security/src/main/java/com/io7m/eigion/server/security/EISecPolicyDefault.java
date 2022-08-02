@@ -28,6 +28,7 @@ import static com.io7m.eigion.model.EIAdminPermission.AUDIT_READ;
 import static com.io7m.eigion.model.EIAdminPermission.SERVICE_READ;
 import static com.io7m.eigion.model.EIAdminPermission.USER_READ;
 import static com.io7m.eigion.model.EIAdminPermission.USER_WRITE;
+import static com.io7m.eigion.model.EIGroupRole.USER_DISMISS;
 import static com.io7m.eigion.model.EIGroupRole.USER_INVITE;
 
 /**
@@ -136,6 +137,9 @@ public final class EISecPolicyDefault implements EISecPolicyType
     }
     if (action instanceof EISecActionGroupInvite c) {
       return checkGroupInvite(c);
+    }
+    if (action instanceof EISecActionGroupInviteCancel c) {
+      return checkGroupInviteCancel(c);
     }
 
     return new EISecPolicyResultDenied("Operation not permitted.");
@@ -271,8 +275,35 @@ public final class EISecPolicyDefault implements EISecPolicyType
 
     if (!EIGroupRole.roleSetImplies(roles, USER_INVITE)) {
       return new EISecPolicyResultDenied(
-        "You must have the %s role to invite users to this group"
+        "You must have the %s role to invite users to this group."
           .formatted(USER_INVITE)
+      );
+    }
+
+    return new EISecPolicyResultPermitted();
+  }
+
+  private static EISecPolicyResultType checkGroupInviteCancel(
+    final EISecActionGroupInviteCancel c)
+  {
+    /*
+     * In order to cancel an invite, the user must have the USER_INVITE
+     * or USER_DISMISS role in the group in question.
+     */
+
+    final var membership =
+      c.user().groupMembership();
+    final var roles =
+      membership.getOrDefault(c.invite().group(), Set.of());
+
+    final var hasRoles =
+      EIGroupRole.roleSetImplies(roles, USER_INVITE)
+       || EIGroupRole.roleSetImplies(roles, USER_DISMISS);
+
+    if (!hasRoles) {
+      return new EISecPolicyResultDenied(
+        "You must have the %s or %s roles to cancel invites to this group."
+          .formatted(USER_INVITE, USER_DISMISS)
       );
     }
 

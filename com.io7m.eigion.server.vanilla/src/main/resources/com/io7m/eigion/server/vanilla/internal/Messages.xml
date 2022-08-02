@@ -17,4 +17,8 @@
   <entry key="cmd.groupCreateReady.notInProgress">
     Only creation requests in state {0} can be made ready. This request is in state {1}.
   </entry>
+  <entry key="cmd.groupInviteCancel.notInProgress">
+    Only invitations in state {0} can be cancelled. This invite is in state {1}.
+  </entry>
+
 </properties>

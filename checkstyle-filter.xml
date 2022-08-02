@@ -20,6 +20,8 @@
             checks="NPathComplexity"/>
   <suppress files="EIPCommandExecutor\.java"
             checks="NPathComplexity"/>
+  <suppress files="EISecPolicyDefault\.java"
+            checks="NPathComplexity"/>
 
   <!-- Bytes to strings -->
   <suppress files="EIDomainCheck\.java"

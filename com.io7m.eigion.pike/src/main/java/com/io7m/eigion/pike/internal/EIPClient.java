@@ -18,6 +18,7 @@ package com.io7m.eigion.pike.internal;
 
 import com.io7m.eigion.model.EIGroupCreationRequest;
 import com.io7m.eigion.model.EIGroupInvite;
+import com.io7m.eigion.model.EIGroupInviteStatus;
 import com.io7m.eigion.model.EIGroupName;
 import com.io7m.eigion.model.EIGroupRoles;
 import com.io7m.eigion.model.EIToken;
@@ -29,8 +30,10 @@ import com.io7m.eigion.pike.api.EIPGroupCreationChallenge;
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -147,16 +150,28 @@ public final class EIPClient implements EIPClientType
   }
 
   @Override
-  public List<EIGroupInvite> groupInvitesSent()
+  public List<EIGroupInvite> groupInvitesSent(
+    final OffsetDateTime since,
+    final Optional<EIGroupInviteStatus> withStatus)
     throws EIPClientException, InterruptedException
   {
-    return this.handler.groupInvitesSent();
+    return this.handler.groupInvitesSent(since, withStatus);
   }
 
   @Override
-  public List<EIGroupInvite> groupInvitesReceived()
+  public List<EIGroupInvite> groupInvitesReceived(
+    final OffsetDateTime since,
+    final Optional<EIGroupInviteStatus> withStatus)
     throws EIPClientException, InterruptedException
   {
-    return this.handler.groupInvitesReceived();
+    return this.handler.groupInvitesReceived(since, withStatus);
+  }
+
+  @Override
+  public void groupInviteCancel(
+    final EIToken token)
+    throws EIPClientException, InterruptedException
+  {
+    this.handler.groupInviteCancel(token);
   }
 }

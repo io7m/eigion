@@ -43,6 +43,7 @@ import org.jooq.Record;
 import org.jooq.TableOnConditionStep;
 import org.jooq.exception.DataAccessException;
 
+import java.time.OffsetDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -78,9 +79,9 @@ final class EIServerDatabaseGroupQueries
     USERS.as("USERS_B");
 
   /**
-   * A JOIN expression that allows for supplying usernames for invites. This
-   * is almost always needed when querying invites and so is factored into
-   * a reusable expression here.
+   * A JOIN expression that allows for supplying usernames for invites. This is
+   * almost always needed when querying invites and so is factored into a
+   * reusable expression here.
    */
 
   private static final TableOnConditionStep<Record> BASE_INVITES_JOIN =
@@ -854,11 +855,12 @@ final class EIServerDatabaseGroupQueries
   }
 
   @Override
-  public List<EIGroupInvite> groupInvitesCreatedByUser()
+  public Optional<EIGroupInvite> groupInviteGet(final EIToken token)
     throws EIServerDatabaseException
   {
+    Objects.requireNonNull(token, "token");
+
     final var transaction = this.transaction();
-    final var user = transaction.userId();
     final var context = transaction.createContext();
 
     try {
@@ -875,7 +877,52 @@ final class EIServerDatabaseGroupQueries
           USERS_INVITING.ID,
           USERS_INVITING.NAME)
         .from(BASE_INVITES_JOIN)
-        .where(GROUP_INVITES.USER_INVITING.eq(user))
+        .where(GROUP_INVITES.INVITE_TOKEN.eq(token.value()))
+        .fetchOptional()
+        .map(EIServerDatabaseGroupQueries::joinToInvite);
+    } catch (final DataAccessException e) {
+      throw handleDatabaseException(this.transaction(), e);
+    }
+  }
+
+  @Override
+  public List<EIGroupInvite> groupInvitesCreatedByUser(
+    final OffsetDateTime since,
+    final Optional<EIGroupInviteStatus> withStatus)
+    throws EIServerDatabaseException
+  {
+    Objects.requireNonNull(since, "since");
+    Objects.requireNonNull(withStatus, "withStatus");
+
+    final var transaction = this.transaction();
+    final var user = transaction.userId();
+    final var context = transaction.createContext();
+
+    try {
+      var condition =
+        GROUP_INVITES.USER_INVITING.eq(user)
+          .and(GROUP_INVITES.CREATED.ge(since));
+
+      if (withStatus.isPresent()) {
+        condition = condition.and(
+          GROUP_INVITES.STATUS.eq(withStatus.get().name())
+        );
+      }
+
+      return context.select(
+          GROUP_INVITES.COMPLETED,
+          GROUP_INVITES.CREATED,
+          GROUP_INVITES.GROUP_NAME,
+          GROUP_INVITES.INVITE_TOKEN,
+          GROUP_INVITES.STATUS,
+          GROUP_INVITES.USER_BEING_INVITED,
+          GROUP_INVITES.USER_INVITING,
+          USERS_BEING_INVITED.ID,
+          USERS_BEING_INVITED.NAME,
+          USERS_INVITING.ID,
+          USERS_INVITING.NAME)
+        .from(BASE_INVITES_JOIN)
+        .where(condition)
         .orderBy(GROUP_INVITES.CREATED)
         .stream()
         .map(EIServerDatabaseGroupQueries::joinToInvite)
@@ -886,14 +933,29 @@ final class EIServerDatabaseGroupQueries
   }
 
   @Override
-  public List<EIGroupInvite> groupInvitesReceivedByUser()
+  public List<EIGroupInvite> groupInvitesReceivedByUser(
+    final OffsetDateTime since,
+    final Optional<EIGroupInviteStatus> withStatus)
     throws EIServerDatabaseException
   {
+    Objects.requireNonNull(since, "since");
+    Objects.requireNonNull(withStatus, "withStatus");
+
     final var transaction = this.transaction();
     final var user = transaction.userId();
     final var context = transaction.createContext();
 
     try {
+      var condition =
+        GROUP_INVITES.USER_BEING_INVITED.eq(user)
+          .and(GROUP_INVITES.CREATED.ge(since));
+
+      if (withStatus.isPresent()) {
+        condition = condition.and(
+          GROUP_INVITES.STATUS.eq(withStatus.get().name())
+        );
+      }
+
       return context.select(
           GROUP_INVITES.COMPLETED,
           GROUP_INVITES.CREATED,
@@ -907,11 +969,54 @@ final class EIServerDatabaseGroupQueries
           USERS_INVITING.ID,
           USERS_INVITING.NAME)
         .from(BASE_INVITES_JOIN)
-        .where(GROUP_INVITES.USER_BEING_INVITED.eq(user))
+        .where(condition)
         .orderBy(GROUP_INVITES.CREATED)
         .stream()
         .map(EIServerDatabaseGroupQueries::joinToInvite)
         .toList();
+    } catch (final DataAccessException e) {
+      throw handleDatabaseException(this.transaction(), e);
+    }
+  }
+
+  @Override
+  public void groupInviteSetStatus(
+    final EIToken token,
+    final EIGroupInviteStatus status)
+    throws EIServerDatabaseException
+  {
+    Objects.requireNonNull(token, "token");
+    Objects.requireNonNull(status, "status");
+
+    final var invite =
+      this.groupInviteGet(token)
+        .orElseThrow(() -> {
+          return new EIServerDatabaseException(
+            "Invite does not exist",
+            "group-invite-nonexistent"
+          );
+        });
+
+    final var transaction = this.transaction();
+    final var user = transaction.userId();
+    final var context = transaction.createContext();
+
+    try {
+      final var timeNow = this.currentTime();
+      context.update(GROUP_INVITES)
+        .set(GROUP_INVITES.STATUS, status.name())
+        .set(GROUP_INVITES.COMPLETED, timeNow)
+        .where(GROUP_INVITES.INVITE_TOKEN.eq(invite.token().value()))
+        .execute();
+
+      final var audit =
+        context.insertInto(AUDIT)
+          .set(AUDIT.TIME, timeNow)
+          .set(AUDIT.TYPE, "INVITE_COMPLETED")
+          .set(AUDIT.USER_ID, user)
+          .set(AUDIT.MESSAGE, token.value());
+
+      insertAuditRecord(audit);
     } catch (final DataAccessException e) {
       throw handleDatabaseException(this.transaction(), e);
     }

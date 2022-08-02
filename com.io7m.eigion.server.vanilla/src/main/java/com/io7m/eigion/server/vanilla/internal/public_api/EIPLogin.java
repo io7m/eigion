@@ -18,6 +18,7 @@
 package com.io7m.eigion.server.vanilla.internal.public_api;
 
 import com.io7m.eigion.model.EIPasswordException;
+import com.io7m.eigion.model.EIUser;
 import com.io7m.eigion.model.EIUserDisplayName;
 import com.io7m.eigion.protocol.api.EIProtocolException;
 import com.io7m.eigion.protocol.public_api.v1.EISP1CommandLogin;
@@ -192,12 +193,13 @@ public final class EIPLogin extends HttpServlet
 
     users.userLogin(user.id(), request.getRemoteAddr());
 
-    this.sendLoginResponse(request, response);
+    this.sendLoginResponse(request, response, user);
   }
 
   private void sendLoginResponse(
     final HttpServletRequest request,
-    final HttpServletResponse response)
+    final HttpServletResponse response,
+    final EIUser user)
     throws IOException
   {
     response.setStatus(200);
@@ -205,7 +207,12 @@ public final class EIPLogin extends HttpServlet
 
     try {
       final var data =
-        this.messages.serialize(new EISP1ResponseLogin(requestIdFor(request)));
+        this.messages.serialize(
+          new EISP1ResponseLogin(
+            requestIdFor(request),
+            user.lastLoginTime()
+          )
+        );
       response.setContentLength(data.length + 2);
       try (var output = response.getOutputStream()) {
         output.write(data);

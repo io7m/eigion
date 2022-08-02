@@ -19,6 +19,7 @@ package com.io7m.eigion.server.vanilla.internal.public_api;
 
 import com.io7m.eigion.protocol.public_api.v1.EISP1CommandGroupInvitesSent;
 import com.io7m.eigion.protocol.public_api.v1.EISP1GroupInvite;
+import com.io7m.eigion.protocol.public_api.v1.EISP1GroupInviteStatus;
 import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseGroupInvites;
 import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseException;
@@ -69,7 +70,10 @@ public final class EIPCmdGroupInvitesSent
     transaction.userIdSet(context.user().id());
 
     final var userInvites =
-      groupQueries.groupInvitesCreatedByUser();
+      groupQueries.groupInvitesCreatedByUser(
+        command.since(),
+        command.withStatus().map(EISP1GroupInviteStatus::toStatus)
+      );
 
     final var invites =
       userInvites.stream()

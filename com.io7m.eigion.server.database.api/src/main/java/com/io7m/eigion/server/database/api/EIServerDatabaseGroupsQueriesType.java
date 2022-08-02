@@ -18,11 +18,13 @@ package com.io7m.eigion.server.database.api;
 
 import com.io7m.eigion.model.EIGroupCreationRequest;
 import com.io7m.eigion.model.EIGroupInvite;
+import com.io7m.eigion.model.EIGroupInviteStatus;
 import com.io7m.eigion.model.EIGroupName;
 import com.io7m.eigion.model.EIGroupRole;
 import com.io7m.eigion.model.EIGroupRoles;
 import com.io7m.eigion.model.EIToken;
 
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -204,7 +206,24 @@ public non-sealed interface EIServerDatabaseGroupsQueriesType
     throws EIServerDatabaseException;
 
   /**
+   * Find the invite with the given token, if one exists.
+   *
+   * @param token The token
+   *
+   * @return The invite
+   *
+   * @throws EIServerDatabaseException On errors
+   */
+
+  Optional<EIGroupInvite> groupInviteGet(
+    EIToken token)
+    throws EIServerDatabaseException;
+
+  /**
    * Get the list of invites created by the given user.
+   *
+   * @param since      The time lower bound
+   * @param withStatus The required status value
    *
    * @return the list of invites
    *
@@ -212,18 +231,41 @@ public non-sealed interface EIServerDatabaseGroupsQueriesType
    */
 
   @EIServerDatabaseRequiresUser
-  List<EIGroupInvite> groupInvitesCreatedByUser()
+  List<EIGroupInvite> groupInvitesCreatedByUser(
+    OffsetDateTime since,
+    Optional<EIGroupInviteStatus> withStatus)
     throws EIServerDatabaseException;
 
   /**
    * Get the list of invites received by the given user.
    *
+   * @param since      The time lower bound
+   * @param withStatus The required status value
+   *
    * @return the list of invites
    *
    * @throws EIServerDatabaseException On errors
    */
 
   @EIServerDatabaseRequiresUser
-  List<EIGroupInvite> groupInvitesReceivedByUser()
+  List<EIGroupInvite> groupInvitesReceivedByUser(
+    OffsetDateTime since,
+    Optional<EIGroupInviteStatus> withStatus)
     throws EIServerDatabaseException;
+
+  /**
+   * Set the status of the given invite.
+   *
+   * @param token  The invite token
+   * @param status The status
+   *
+   * @throws EIServerDatabaseException On errors
+   */
+
+  @EIServerDatabaseRequiresUser
+  void groupInviteSetStatus(
+    EIToken token,
+    EIGroupInviteStatus status)
+    throws EIServerDatabaseException;
+
 }

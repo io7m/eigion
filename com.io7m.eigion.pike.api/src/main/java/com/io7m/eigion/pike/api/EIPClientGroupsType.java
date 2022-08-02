@@ -19,12 +19,15 @@ package com.io7m.eigion.pike.api;
 
 import com.io7m.eigion.model.EIGroupCreationRequest;
 import com.io7m.eigion.model.EIGroupInvite;
+import com.io7m.eigion.model.EIGroupInviteStatus;
 import com.io7m.eigion.model.EIGroupName;
 import com.io7m.eigion.model.EIGroupRoles;
 import com.io7m.eigion.model.EIToken;
 import com.io7m.eigion.model.EIUserDisplayName;
 
+import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -125,22 +128,44 @@ public interface EIPClientGroupsType
     throws EIPClientException, InterruptedException;
 
   /**
+   * @param since      Only list invites newer than this date
+   * @param withStatus Only list invites with this status
+   *
    * @return The list of invites the current user has sent
    *
    * @throws EIPClientException   On errors
    * @throws InterruptedException On interruption
    */
 
-  List<EIGroupInvite> groupInvitesSent()
+  List<EIGroupInvite> groupInvitesSent(
+    OffsetDateTime since,
+    Optional<EIGroupInviteStatus> withStatus)
     throws EIPClientException, InterruptedException;
 
   /**
+   * @param since      Only list invites newer than this date
+   * @param withStatus Only list invites with this status
+   *
    * @return The list of invites the current user has received
    *
    * @throws EIPClientException   On errors
    * @throws InterruptedException On interruption
    */
 
-  List<EIGroupInvite> groupInvitesReceived()
+  List<EIGroupInvite> groupInvitesReceived(
+    OffsetDateTime since,
+    Optional<EIGroupInviteStatus> withStatus)
+    throws EIPClientException, InterruptedException;
+
+  /**
+   * Cancel the given invite.
+   *
+   * @param token The invite token
+   *
+   * @throws EIPClientException   On errors
+   * @throws InterruptedException On interruption
+   */
+
+  void groupInviteCancel(EIToken token)
     throws EIPClientException, InterruptedException;
 }

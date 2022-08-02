@@ -17,25 +17,41 @@
 package com.io7m.eigion.protocol.public_api.v1;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
+import java.time.OffsetDateTime;
+import java.util.Objects;
+import java.util.Optional;
+
 /**
  * A request to list invites sent.
+ *
+ * @param since      Only list invites newer than this date
+ * @param withStatus Only list invites with this status
  */
 
 @JsonDeserialize
 @JsonSerialize
-public record EISP1CommandGroupInvitesSent()
+public record EISP1CommandGroupInvitesSent(
+  @JsonProperty(value = "Since", required = true)
+  OffsetDateTime since,
+  @JsonProperty(value = "WithStatus")
+  Optional<EISP1GroupInviteStatus> withStatus)
   implements EISP1CommandType
 {
   /**
-   * A request to invite a user to a group.
+   * A request to list invites sent.
+   *
+   * @param since      Only list invites newer than this date
+   * @param withStatus Only list invites with this status
    */
 
   @JsonCreator
   public EISP1CommandGroupInvitesSent
   {
-
+    Objects.requireNonNull(since, "since");
+    Objects.requireNonNull(withStatus, "withStatus");
   }
 }

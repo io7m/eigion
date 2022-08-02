@@ -36,6 +36,7 @@ import java.util.UUID;
 
 public abstract class EICommandContext<E extends EIProtocolMessageType>
 {
+
   private final EIServiceDirectoryType services;
   private final UUID requestId;
   private final EIServerDatabaseTransactionType transaction;

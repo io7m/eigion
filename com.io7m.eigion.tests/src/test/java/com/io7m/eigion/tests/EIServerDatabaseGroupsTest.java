@@ -32,6 +32,7 @@ import com.io7m.eigion.model.EIUserDisplayName;
 import com.io7m.eigion.model.EIUserEmail;
 import com.io7m.eigion.server.database.api.EIServerDatabaseException;
 import com.io7m.eigion.server.database.api.EIServerDatabaseGroupsQueriesType;
+import com.io7m.eigion.server.database.api.EIServerDatabaseQueriesType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseTransactionType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseUsersQueriesType;
 import org.junit.jupiter.api.Test;
@@ -43,6 +44,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import static com.io7m.eigion.model.EIGroupRole.FOUNDER;
+import static com.io7m.eigion.server.database.api.EIServerDatabaseQueriesType.earliest;
 import static com.io7m.eigion.server.database.api.EIServerDatabaseRole.EIGION;
 import static java.lang.Thread.sleep;
 import static java.time.OffsetDateTime.now;
@@ -899,7 +901,7 @@ public final class EIServerDatabaseGroupsTest extends EIWithDatabaseContract
     transaction.userIdSet(user0.id());
 
     final var invitesBefore =
-      groups.groupInvitesCreatedByUser();
+      groups.groupInvitesCreatedByUser(earliest(), Optional.empty());
     assertEquals(List.of(), invitesBefore);
 
     final var invite0 =
@@ -907,7 +909,7 @@ public final class EIServerDatabaseGroupsTest extends EIWithDatabaseContract
     final var invite1 =
       groups.groupInvite(groupName, user1.id());
     final var invites =
-      groups.groupInvitesCreatedByUser();
+      groups.groupInvitesCreatedByUser(earliest(), Optional.empty());
 
     assertEquals(invite0, invite1);
     assertEquals(List.of(invite0), invites);

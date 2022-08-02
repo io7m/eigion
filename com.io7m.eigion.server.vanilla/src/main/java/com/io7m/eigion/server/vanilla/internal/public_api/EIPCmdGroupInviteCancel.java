@@ -14,15 +14,18 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+
 package com.io7m.eigion.server.vanilla.internal.public_api;
 
-import com.io7m.eigion.protocol.public_api.v1.EISP1CommandGroupInvitesReceived;
-import com.io7m.eigion.protocol.public_api.v1.EISP1GroupInvite;
-import com.io7m.eigion.protocol.public_api.v1.EISP1GroupInviteStatus;
-import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseGroupInvites;
+import com.io7m.eigion.model.EIToken;
+import com.io7m.eigion.protocol.public_api.v1.EISP1CommandGroupInviteCancel;
+import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseGroupInviteCancel;
 import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseException;
 import com.io7m.eigion.server.database.api.EIServerDatabaseGroupsQueriesType;
+import com.io7m.eigion.server.security.EISecActionGroupInviteCancel;
+import com.io7m.eigion.server.security.EISecPolicyResultDenied;
+import com.io7m.eigion.server.security.EISecurity;
 import com.io7m.eigion.server.security.EISecurityException;
 import com.io7m.eigion.server.vanilla.internal.EIHTTPErrorStatusException;
 import com.io7m.eigion.server.vanilla.internal.command_exec.EICommandExecutionResult;
@@ -30,21 +33,25 @@ import com.io7m.eigion.server.vanilla.internal.command_exec.EICommandExecutorTyp
 
 import java.util.Objects;
 
+import static com.io7m.eigion.model.EIGroupInviteStatus.CANCELLED;
+import static com.io7m.eigion.model.EIGroupInviteStatus.IN_PROGRESS;
+import static org.eclipse.jetty.http.HttpStatus.FORBIDDEN_403;
+
 /**
- * A request to list invites.
+ * A request to cancel a group invite.
  */
 
-public final class EIPCmdGroupInvitesReceived
+public final class EIPCmdGroupInviteCancel
   implements EICommandExecutorType<
   EIPCommandContext,
-  EISP1CommandGroupInvitesReceived,
+  EISP1CommandGroupInviteCancel,
   EISP1ResponseType>
 {
   /**
-   * A request to list invites.
+   * A request to cancel a group invite.
    */
 
-  public EIPCmdGroupInvitesReceived()
+  public EIPCmdGroupInviteCancel()
   {
 
   }
@@ -52,7 +59,7 @@ public final class EIPCmdGroupInvitesReceived
   @Override
   public EICommandExecutionResult<EISP1ResponseType> execute(
     final EIPCommandContext context,
-    final EISP1CommandGroupInvitesReceived command)
+    final EISP1CommandGroupInviteCancel command)
     throws
     EIServerDatabaseException,
     EIHTTPErrorStatusException,
@@ -63,25 +70,51 @@ public final class EIPCmdGroupInvitesReceived
 
     final var transaction =
       context.transaction();
+    final var user =
+      context.user();
+
     final var groupQueries =
       transaction.queries(EIServerDatabaseGroupsQueriesType.class);
 
-    transaction.userIdSet(context.user().id());
+    final var token =
+      new EIToken(command.token());
+    final var inviteOpt =
+      groupQueries.groupInviteGet(token);
 
-    final var userInvites =
-      groupQueries.groupInvitesReceivedByUser(
-        command.since(),
-        command.withStatus().map(EISP1GroupInviteStatus::toStatus)
+    if (inviteOpt.isEmpty()) {
+      return context.resultErrorFormatted(404, "notFound", "notFound");
+    }
+
+    final var invite =
+      inviteOpt.get();
+    final var action =
+      new EISecActionGroupInviteCancel(user, invite);
+
+    if (EISecurity.check(action) instanceof EISecPolicyResultDenied denied) {
+      throw new EIHTTPErrorStatusException(
+        FORBIDDEN_403,
+        "group-invite",
+        denied.message()
       );
+    }
 
-    final var invites =
-      userInvites.stream()
-        .map(EISP1GroupInvite::ofInvite)
-        .toList();
+    final var status = invite.status();
+    if (!(status == IN_PROGRESS)) {
+      return context.resultErrorFormatted(
+        400,
+        "group-invite-cancel-wrong-state",
+        "cmd.groupInviteCancel.notInProgress",
+        IN_PROGRESS,
+        status
+      );
+    }
+
+    transaction.userIdSet(user.id());
+    groupQueries.groupInviteSetStatus(invite.token(), CANCELLED);
 
     return new EICommandExecutionResult<>(
       200,
-      new EISP1ResponseGroupInvites(context.requestId(), invites)
+      new EISP1ResponseGroupInviteCancel(context.requestId())
     );
   }
 }

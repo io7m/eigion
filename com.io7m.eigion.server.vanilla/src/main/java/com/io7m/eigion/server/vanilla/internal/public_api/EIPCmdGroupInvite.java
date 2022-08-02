@@ -33,6 +33,7 @@ import com.io7m.eigion.server.vanilla.internal.command_exec.EICommandExecutionRe
 import com.io7m.eigion.server.vanilla.internal.command_exec.EICommandExecutorType;
 
 import java.util.Objects;
+import java.util.Optional;
 
 import static org.eclipse.jetty.http.HttpStatus.FORBIDDEN_403;
 
@@ -84,7 +85,10 @@ public final class EIPCmdGroupInvite
     transaction.userIdSet(userInviting.id());
 
     final var userInvites =
-      groupQueries.groupInvitesCreatedByUser();
+      groupQueries.groupInvitesCreatedByUser(
+        context.now().minusDays(1L),
+        Optional.empty()
+      );
 
     final var action =
       new EISecActionGroupInvite(
