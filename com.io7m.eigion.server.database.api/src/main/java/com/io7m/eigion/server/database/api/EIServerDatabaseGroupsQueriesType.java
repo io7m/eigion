@@ -254,6 +254,28 @@ public non-sealed interface EIServerDatabaseGroupsQueriesType
     throws EIServerDatabaseException;
 
   /**
+   * Get the list of invites matching the given parameters.
+   *
+   * @param since                The time lower bound
+   * @param withStatus           The required status value
+   * @param withGroupName        The group name in the invite
+   * @param withUserBeingInvited The user being invited
+   * @param withUserInviter      The user doing the inviting
+   *
+   * @return the list of invites
+   *
+   * @throws EIServerDatabaseException On errors
+   */
+
+  List<EIGroupInvite> groupInvites(
+    OffsetDateTime since,
+    Optional<EIGroupName> withGroupName,
+    Optional<UUID> withUserInviter,
+    Optional<UUID> withUserBeingInvited,
+    Optional<EIGroupInviteStatus> withStatus)
+    throws EIServerDatabaseException;
+
+  /**
    * Set the status of the given invite.
    *
    * @param token  The invite token

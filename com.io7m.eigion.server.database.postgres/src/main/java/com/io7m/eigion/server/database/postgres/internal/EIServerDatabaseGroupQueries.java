@@ -891,45 +891,13 @@ final class EIServerDatabaseGroupQueries
     final Optional<EIGroupInviteStatus> withStatus)
     throws EIServerDatabaseException
   {
-    Objects.requireNonNull(since, "since");
-    Objects.requireNonNull(withStatus, "withStatus");
-
-    final var transaction = this.transaction();
-    final var user = transaction.userId();
-    final var context = transaction.createContext();
-
-    try {
-      var condition =
-        GROUP_INVITES.USER_INVITING.eq(user)
-          .and(GROUP_INVITES.CREATED.ge(since));
-
-      if (withStatus.isPresent()) {
-        condition = condition.and(
-          GROUP_INVITES.STATUS.eq(withStatus.get().name())
-        );
-      }
-
-      return context.select(
-          GROUP_INVITES.COMPLETED,
-          GROUP_INVITES.CREATED,
-          GROUP_INVITES.GROUP_NAME,
-          GROUP_INVITES.INVITE_TOKEN,
-          GROUP_INVITES.STATUS,
-          GROUP_INVITES.USER_BEING_INVITED,
-          GROUP_INVITES.USER_INVITING,
-          USERS_BEING_INVITED.ID,
-          USERS_BEING_INVITED.NAME,
-          USERS_INVITING.ID,
-          USERS_INVITING.NAME)
-        .from(BASE_INVITES_JOIN)
-        .where(condition)
-        .orderBy(GROUP_INVITES.CREATED)
-        .stream()
-        .map(EIServerDatabaseGroupQueries::joinToInvite)
-        .toList();
-    } catch (final DataAccessException e) {
-      throw handleDatabaseException(this.transaction(), e);
-    }
+    return this.groupInvites(
+      since,
+      Optional.empty(),
+      Optional.of(this.transaction().userId()),
+      Optional.empty(),
+      withStatus
+    );
   }
 
   @Override
@@ -938,18 +906,50 @@ final class EIServerDatabaseGroupQueries
     final Optional<EIGroupInviteStatus> withStatus)
     throws EIServerDatabaseException
   {
+    return this.groupInvites(
+      since,
+      Optional.empty(),
+      Optional.empty(),
+      Optional.of(this.transaction().userId()),
+      withStatus
+    );
+  }
+
+  @Override
+  public List<EIGroupInvite> groupInvites(
+    final OffsetDateTime since,
+    final Optional<EIGroupName> withGroupName,
+    final Optional<UUID> withUserInviter,
+    final Optional<UUID> withUserBeingInvited,
+    final Optional<EIGroupInviteStatus> withStatus)
+    throws EIServerDatabaseException
+  {
     Objects.requireNonNull(since, "since");
+    Objects.requireNonNull(withGroupName, "withGroupName");
+    Objects.requireNonNull(withUserInviter, "withUserInviter");
+    Objects.requireNonNull(withUserBeingInvited, "withUserBeingInvited");
     Objects.requireNonNull(withStatus, "withStatus");
 
     final var transaction = this.transaction();
-    final var user = transaction.userId();
     final var context = transaction.createContext();
 
     try {
-      var condition =
-        GROUP_INVITES.USER_BEING_INVITED.eq(user)
-          .and(GROUP_INVITES.CREATED.ge(since));
-
+      var condition = GROUP_INVITES.CREATED.ge(since);
+      if (withGroupName.isPresent()) {
+        condition = condition.and(
+          GROUP_INVITES.GROUP_NAME.eq(withGroupName.get().value())
+        );
+      }
+      if (withUserInviter.isPresent()) {
+        condition = condition.and(
+          GROUP_INVITES.USER_INVITING.eq(withUserInviter.get())
+        );
+      }
+      if (withUserBeingInvited.isPresent()) {
+        condition = condition.and(
+          GROUP_INVITES.USER_BEING_INVITED.eq(withUserBeingInvited.get())
+        );
+      }
       if (withStatus.isPresent()) {
         condition = condition.and(
           GROUP_INVITES.STATUS.eq(withStatus.get().name())
