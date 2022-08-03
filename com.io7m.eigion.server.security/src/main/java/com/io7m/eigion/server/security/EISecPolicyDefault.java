@@ -174,8 +174,35 @@ public final class EISecPolicyDefault implements EISecPolicyType
     if (action instanceof EISecAdminActionGroupInviteSetStatus c) {
       return checkAdminActionGroupInviteSetStatus(c);
     }
+    if (action instanceof EISecAdminActionUserUpdate c) {
+      return checkAdminActionUserUpdate(c);
+    }
+    if (action instanceof EISecAdminActionUserUnban c) {
+      return checkAdminActionUserUnban(c);
+    }
+    if (action instanceof EISecAdminActionUserBan c) {
+      return checkAdminActionUserBan(c);
+    }
 
     return new EISecPolicyResultDenied("Operation not permitted.");
+  }
+
+  private static EISecPolicyResultType checkAdminActionUserBan(
+    final EISecAdminActionUserBan c)
+  {
+    return checkOwnedPermission(c.admin().permissions(), USER_WRITE);
+  }
+
+  private static EISecPolicyResultType checkAdminActionUserUnban(
+    final EISecAdminActionUserUnban c)
+  {
+    return checkOwnedPermission(c.admin().permissions(), USER_WRITE);
+  }
+
+  private static EISecPolicyResultType checkAdminActionUserUpdate(
+    final EISecAdminActionUserUpdate c)
+  {
+    return checkOwnedPermission(c.admin().permissions(), USER_WRITE);
   }
 
   private static EISecPolicyResultType checkAdminActionGroupInviteSetStatus(

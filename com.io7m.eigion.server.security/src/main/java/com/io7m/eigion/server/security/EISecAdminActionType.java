@@ -30,8 +30,11 @@ public sealed interface EISecAdminActionType
   EISecAdminActionGroupInviteSetStatus,
   EISecAdminActionGroupInvites,
   EISecAdminActionServicesRead,
+  EISecAdminActionUserBan,
   EISecAdminActionUserCreate,
-  EISecAdminActionUserRead
+  EISecAdminActionUserRead,
+  EISecAdminActionUserUnban,
+  EISecAdminActionUserUpdate
 {
   /**
    * @return The admin performing the action

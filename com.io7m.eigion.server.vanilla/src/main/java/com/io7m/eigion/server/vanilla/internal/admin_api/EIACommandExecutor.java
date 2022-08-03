@@ -17,6 +17,7 @@
 
 package com.io7m.eigion.server.vanilla.internal.admin_api;
 
+import com.io7m.eigion.model.EIPasswordException;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandAdminCreate;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandAdminGet;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandAdminGetByEmail;
@@ -27,11 +28,14 @@ import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandGroupInviteSetStatus;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandGroupInvites;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandServicesList;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandType;
+import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandUserBan;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandUserCreate;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandUserGet;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandUserGetByEmail;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandUserGetByName;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandUserSearch;
+import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandUserUnban;
+import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandUserUpdate;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1ResponseType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseException;
 import com.io7m.eigion.server.security.EISecurityException;
@@ -65,7 +69,8 @@ public final class EIACommandExecutor
     throws
     EIServerDatabaseException,
     EISecurityException,
-    EIHTTPErrorStatusException
+    EIHTTPErrorStatusException,
+    EIPasswordException
   {
     if (command instanceof EISA1CommandAuditGet c) {
       return new EIACmdAuditGetByTime().execute(context, c);
@@ -108,6 +113,15 @@ public final class EIACommandExecutor
     }
     if (command instanceof EISA1CommandGroupInviteSetStatus c) {
       return new EIACmdGroupInviteSetStatus().execute(context, c);
+    }
+    if (command instanceof EISA1CommandUserBan c) {
+      return new EIACmdUserBan().execute(context, c);
+    }
+    if (command instanceof EISA1CommandUserUnban c) {
+      return new EIACmdUserUnban().execute(context, c);
+    }
+    if (command instanceof EISA1CommandUserUpdate c) {
+      return new EIACmdUserUpdate().execute(context, c);
     }
 
     throw new IllegalStateException();

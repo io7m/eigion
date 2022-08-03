@@ -16,6 +16,7 @@
 
 package com.io7m.eigion.server.vanilla.internal.command_exec;
 
+import com.io7m.eigion.model.EIPasswordException;
 import com.io7m.eigion.protocol.api.EIProtocolMessageType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseException;
 import com.io7m.eigion.server.security.EISecurityException;
@@ -51,5 +52,5 @@ public interface EICommandExecutorType<
     throws
     EIServerDatabaseException,
     EIHTTPErrorStatusException,
-    EISecurityException;
+    EISecurityException, EIPasswordException;
 }

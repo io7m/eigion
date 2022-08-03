@@ -14,31 +14,33 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-package com.io7m.eigion.protocol.admin_api.v1;
+
+package com.io7m.eigion.tests;
+
+import com.io7m.eigion.server.security.EISecActionType;
+import com.io7m.eigion.server.security.EISecPolicyDenyAll;
+import com.io7m.eigion.server.security.EISecPolicyResultDenied;
+import com.io7m.eigion.server.security.EISecurityException;
+import net.jqwik.api.ForAll;
+import net.jqwik.api.Property;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
- * The type of Admin API v1 commands.
+ * The deny-all policy.
  */
 
-public sealed interface EISA1CommandType
-  extends EISA1MessageType permits EISA1CommandAdminCreate,
-  EISA1CommandAdminGet,
-  EISA1CommandAdminGetByEmail,
-  EISA1CommandAdminGetByName,
-  EISA1CommandAdminSearch,
-  EISA1CommandAuditGet,
-  EISA1CommandGroupInviteSetStatus,
-  EISA1CommandGroupInvites,
-  EISA1CommandLogin,
-  EISA1CommandServicesList,
-  EISA1CommandUserBan,
-  EISA1CommandUserCreate,
-  EISA1CommandUserGet,
-  EISA1CommandUserGetByEmail,
-  EISA1CommandUserGetByName,
-  EISA1CommandUserSearch,
-  EISA1CommandUserUnban,
-  EISA1CommandUserUpdate
+public final class EISecPolicyDenyAllTest
 {
-
+  @Property
+  public void testDenyAll(
+    @ForAll final EISecActionType action)
+    throws EISecurityException
+  {
+    final var policy = EISecPolicyDenyAll.get();
+    assertEquals(
+      EISecPolicyResultDenied.class,
+      policy.check(action).getClass()
+    );
+  }
 }

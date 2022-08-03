@@ -72,6 +72,29 @@ public final class EIPasswordAlgorithmPBKDF2HmacSHA256
   }
 
   @Override
+  public boolean equals(
+    final Object o)
+  {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || !this.getClass().equals(o.getClass())) {
+      return false;
+    }
+    final EIPasswordAlgorithmPBKDF2HmacSHA256 that = (EIPasswordAlgorithmPBKDF2HmacSHA256) o;
+    return this.iterationCount == that.iterationCount && this.keyLength == that.keyLength;
+  }
+
+  @Override
+  public int hashCode()
+  {
+    return Objects.hash(
+      Integer.valueOf(this.iterationCount),
+      Integer.valueOf(this.keyLength)
+    );
+  }
+
+  @Override
   public boolean check(
     final String expectedHash,
     final String receivedPassword,

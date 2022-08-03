@@ -25,12 +25,15 @@ import com.io7m.eigion.model.EIAuditEvent;
 import com.io7m.eigion.model.EIGroupInvite;
 import com.io7m.eigion.model.EIGroupInviteStatus;
 import com.io7m.eigion.model.EIGroupName;
+import com.io7m.eigion.model.EIPassword;
 import com.io7m.eigion.model.EIPasswordAlgorithmPBKDF2HmacSHA256;
 import com.io7m.eigion.model.EIPasswordException;
 import com.io7m.eigion.model.EIService;
 import com.io7m.eigion.model.EISubsetMatch;
 import com.io7m.eigion.model.EIToken;
 import com.io7m.eigion.model.EIUser;
+import com.io7m.eigion.model.EIUserDisplayName;
+import com.io7m.eigion.model.EIUserEmail;
 import com.io7m.eigion.model.EIUserSummary;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1AdminPermission;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1AdminSummary;
@@ -45,11 +48,14 @@ import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandGroupInviteSetStatus;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandGroupInvites;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandLogin;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandServicesList;
+import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandUserBan;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandUserCreate;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandUserGet;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandUserGetByEmail;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandUserGetByName;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandUserSearch;
+import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandUserUnban;
+import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandUserUpdate;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1GroupInvite;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1GroupInviteStatus;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1MessageType;
@@ -65,10 +71,14 @@ import com.io7m.eigion.protocol.admin_api.v1.EISA1ResponseGroupInvites;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1ResponseLogin;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1ResponseServiceList;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1ResponseType;
+import com.io7m.eigion.protocol.admin_api.v1.EISA1ResponseUserBan;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1ResponseUserCreate;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1ResponseUserGet;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1ResponseUserList;
+import com.io7m.eigion.protocol.admin_api.v1.EISA1ResponseUserUnban;
+import com.io7m.eigion.protocol.admin_api.v1.EISA1ResponseUserUpdate;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1SubsetMatch;
+import com.io7m.eigion.protocol.admin_api.v1.EISA1UserBan;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1UserSummary;
 import com.io7m.eigion.protocol.api.EIProtocolException;
 import org.slf4j.Logger;
@@ -291,6 +301,68 @@ public final class EIAClientProtocolHandler1
         this.sendCommand(
           EISA1ResponseUserCreate.class,
           new EISA1CommandUserCreate(name, email, v1Password));
+
+      return message.user().toUser();
+    } catch (final EIPasswordException e) {
+      throw new EIAClientException(e);
+    }
+  }
+
+  @Override
+  public EIUser userUpdate(
+    final UUID id,
+    final Optional<EIUserDisplayName> withName,
+    final Optional<EIUserEmail> withEmail,
+    final Optional<EIPassword> withPassword)
+    throws EIAClientException, InterruptedException
+  {
+    try {
+      final var message =
+        this.sendCommand(
+          EISA1ResponseUserUpdate.class,
+          new EISA1CommandUserUpdate(
+            id,
+            withName.map(EIUserDisplayName::value),
+            withEmail.map(EIUserEmail::value),
+            withPassword.map(EISA1Password::ofPassword))
+        );
+
+      return message.user().toUser();
+    } catch (final EIPasswordException e) {
+      throw new EIAClientException(e);
+    }
+  }
+
+  @Override
+  public EIUser userBan(
+    final UUID id,
+    final Optional<OffsetDateTime> expires,
+    final String reason)
+    throws EIAClientException, InterruptedException
+  {
+    try {
+      final var message =
+        this.sendCommand(
+          EISA1ResponseUserBan.class,
+          new EISA1CommandUserBan(id, new EISA1UserBan(expires, reason))
+        );
+
+      return message.user().toUser();
+    } catch (final EIPasswordException e) {
+      throw new EIAClientException(e);
+    }
+  }
+
+  @Override
+  public EIUser userUnban(final UUID id)
+    throws EIAClientException, InterruptedException
+  {
+    try {
+      final var message =
+        this.sendCommand(
+          EISA1ResponseUserUnban.class,
+          new EISA1CommandUserUnban(id)
+        );
 
       return message.user().toUser();
     } catch (final EIPasswordException e) {

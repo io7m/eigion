@@ -74,7 +74,8 @@ public final class EISA1Messages
   }
 
   private static String mapOf(
-    final Class<?> keyClazz, final String valClazz)
+    final Class<?> keyClazz,
+    final String valClazz)
   {
     return "java.util.Map<%s,%s>"
       .formatted(keyClazz.getCanonicalName(), valClazz);
@@ -104,11 +105,14 @@ public final class EISA1Messages
         .allowClass(EISA1CommandLogin.class)
         .allowClass(EISA1CommandServicesList.class)
         .allowClass(EISA1CommandType.class)
+        .allowClass(EISA1CommandUserBan.class)
         .allowClass(EISA1CommandUserCreate.class)
         .allowClass(EISA1CommandUserGet.class)
         .allowClass(EISA1CommandUserGetByEmail.class)
         .allowClass(EISA1CommandUserGetByName.class)
         .allowClass(EISA1CommandUserSearch.class)
+        .allowClass(EISA1CommandUserUnban.class)
+        .allowClass(EISA1CommandUserUpdate.class)
         .allowClass(EISA1GroupInvite.class)
         .allowClass(EISA1GroupInviteStatus.class)
         .allowClass(EISA1GroupRole.class)
@@ -125,9 +129,12 @@ public final class EISA1Messages
         .allowClass(EISA1ResponseLogin.class)
         .allowClass(EISA1ResponseServiceList.class)
         .allowClass(EISA1ResponseType.class)
+        .allowClass(EISA1ResponseUserBan.class)
         .allowClass(EISA1ResponseUserCreate.class)
         .allowClass(EISA1ResponseUserGet.class)
         .allowClass(EISA1ResponseUserList.class)
+        .allowClass(EISA1ResponseUserUnban.class)
+        .allowClass(EISA1ResponseUserUpdate.class)
         .allowClass(EISA1Service.class)
         .allowClass(EISA1SubsetMatch.class)
         .allowClass(EISA1Transaction.class)

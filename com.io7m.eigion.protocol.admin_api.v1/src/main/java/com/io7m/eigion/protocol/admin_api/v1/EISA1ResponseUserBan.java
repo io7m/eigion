@@ -14,35 +14,43 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-
 package com.io7m.eigion.protocol.admin_api.v1;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+
+import java.util.Objects;
 import java.util.UUID;
 
 /**
- * The type of Admin API v1 responses.
+ * A response to a request to ban a user.
+ *
+ * @param requestId The request ID
+ * @param user      The user
  */
 
-public sealed interface EISA1ResponseType
-  extends EISA1MessageType permits EISA1ResponseAdminCreate,
-  EISA1ResponseAdminGet,
-  EISA1ResponseAdminList,
-  EISA1ResponseAuditGet,
-  EISA1ResponseError,
-  EISA1ResponseGroupInviteSetStatus,
-  EISA1ResponseGroupInvites,
-  EISA1ResponseLogin,
-  EISA1ResponseServiceList,
-  EISA1ResponseUserBan,
-  EISA1ResponseUserCreate,
-  EISA1ResponseUserGet,
-  EISA1ResponseUserList,
-  EISA1ResponseUserUnban,
-  EISA1ResponseUserUpdate
+@JsonDeserialize
+@JsonSerialize
+public record EISA1ResponseUserBan(
+  @JsonProperty(value = "RequestID", required = true)
+  UUID requestId,
+  @JsonProperty(value = "User", required = true)
+  EISA1User user)
+  implements EISA1ResponseType
 {
   /**
-   * @return The server-assigned request ID
+   * A response to a request to ban a user.
+   *
+   * @param requestId The request ID
+   * @param user      The user
    */
 
-  UUID requestId();
+  @JsonCreator
+  public EISA1ResponseUserBan
+  {
+    Objects.requireNonNull(requestId, "requestId");
+    Objects.requireNonNull(user, "user");
+  }
 }

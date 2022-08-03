@@ -184,7 +184,7 @@ public non-sealed interface EIServerDatabaseUsersQueriesType
   /**
    * Record the fact that the given user has logged in.
    *
-   * @param id The user ID
+   * @param id   The user ID
    * @param host The host from which the user logged in
    *
    * @throws EIServerDatabaseException On errors
@@ -196,8 +196,8 @@ public non-sealed interface EIServerDatabaseUsersQueriesType
     throws EIServerDatabaseException;
 
   /**
-   * Search for users that have an ID, email, or name that contains the
-   * given string, case-insensitive.
+   * Search for users that have an ID, email, or name that contains the given
+   * string, case-insensitive.
    *
    * @param query The user query
    *
@@ -207,5 +207,24 @@ public non-sealed interface EIServerDatabaseUsersQueriesType
    */
 
   List<EIUserSummary> userSearch(String query)
+    throws EIServerDatabaseException;
+
+  /**
+   * Update the given user.
+   *
+   * @param id              The user ID
+   * @param withDisplayName The new display name, if desired
+   * @param withEmail       The new email, if desired
+   * @param withPassword    The new password, if desired
+   *
+   * @throws EIServerDatabaseException On errors
+   */
+
+  @EIServerDatabaseRequiresAdmin
+  void userUpdate(
+    UUID id,
+    Optional<EIUserDisplayName> withDisplayName,
+    Optional<EIUserEmail> withEmail,
+    Optional<EIPassword> withPassword)
     throws EIServerDatabaseException;
 }

@@ -16,11 +16,16 @@
 
 package com.io7m.eigion.amberjack.api;
 
+import com.io7m.eigion.model.EIPassword;
 import com.io7m.eigion.model.EIUser;
+import com.io7m.eigion.model.EIUserDisplayName;
+import com.io7m.eigion.model.EIUserEmail;
 import com.io7m.eigion.model.EIUserSummary;
 
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 /**
  * Commands related to users.
@@ -101,5 +106,60 @@ public interface EIAClientUserType
     String name,
     String email,
     String password)
+    throws EIAClientException, InterruptedException;
+
+  /**
+   * Update a user.
+   *
+   * @param id           The user ID
+   * @param withName     The new user name
+   * @param withEmail    The new user email
+   * @param withPassword The new password
+   *
+   * @return The updated user
+   *
+   * @throws EIAClientException   On errors
+   * @throws InterruptedException On interruption
+   */
+
+  EIUser userUpdate(
+    UUID id,
+    Optional<EIUserDisplayName> withName,
+    Optional<EIUserEmail> withEmail,
+    Optional<EIPassword> withPassword)
+    throws EIAClientException, InterruptedException;
+
+  /**
+   * Ban a user.
+   *
+   * @param id      The user ID
+   * @param expires The expiration date, if any
+   * @param reason  The reason
+   *
+   * @return The updated user
+   *
+   * @throws EIAClientException   On errors
+   * @throws InterruptedException On interruption
+   */
+
+  EIUser userBan(
+    UUID id,
+    Optional<OffsetDateTime> expires,
+    String reason)
+    throws EIAClientException, InterruptedException;
+
+  /**
+   * Unban a user.
+   *
+   * @param id The user ID
+   *
+   * @return The updated user
+   *
+   * @throws EIAClientException   On errors
+   * @throws InterruptedException On interruption
+   */
+
+  EIUser userUnban(
+    UUID id)
     throws EIAClientException, InterruptedException;
 }

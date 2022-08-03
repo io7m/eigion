@@ -26,10 +26,13 @@ import com.io7m.eigion.model.EIAuditEvent;
 import com.io7m.eigion.model.EIGroupInvite;
 import com.io7m.eigion.model.EIGroupInviteStatus;
 import com.io7m.eigion.model.EIGroupName;
+import com.io7m.eigion.model.EIPassword;
 import com.io7m.eigion.model.EIService;
 import com.io7m.eigion.model.EISubsetMatch;
 import com.io7m.eigion.model.EIToken;
 import com.io7m.eigion.model.EIUser;
+import com.io7m.eigion.model.EIUserDisplayName;
+import com.io7m.eigion.model.EIUserEmail;
 import com.io7m.eigion.model.EIUserSummary;
 
 import java.io.IOException;
@@ -158,6 +161,34 @@ public final class EIAClient implements EIAClientType
     throws EIAClientException, InterruptedException
   {
     return this.handler.userCreate(name, email, password);
+  }
+
+  @Override
+  public EIUser userUpdate(
+    final UUID id,
+    final Optional<EIUserDisplayName> withName,
+    final Optional<EIUserEmail> withEmail,
+    final Optional<EIPassword> withPassword)
+    throws EIAClientException, InterruptedException
+  {
+    return this.handler.userUpdate(id, withName, withEmail, withPassword);
+  }
+
+  @Override
+  public EIUser userBan(
+    final UUID id,
+    final Optional<OffsetDateTime> expires,
+    final String reason)
+    throws EIAClientException, InterruptedException
+  {
+    return this.handler.userBan(id, expires, reason);
+  }
+
+  @Override
+  public EIUser userUnban(final UUID id)
+    throws EIAClientException, InterruptedException
+  {
+    return this.handler.userUnban(id);
   }
 
   @Override

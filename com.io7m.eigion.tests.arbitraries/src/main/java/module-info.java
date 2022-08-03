@@ -14,9 +14,6 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-import com.io7m.eigion.tests.arbitraries.EIArbEISA1ServiceProvider;
-import com.io7m.eigion.tests.arbitraries.EIArbEISP1ProductSummaryProvider;
-import com.io7m.eigion.tests.arbitraries.EIArbURIProvider;
 import net.jqwik.api.providers.ArbitraryProvider;
 
 /**
@@ -28,10 +25,12 @@ module com.io7m.eigion.tests.arbitraries
   requires static org.osgi.annotation.bundle;
   requires static org.osgi.annotation.versioning;
 
+  requires transitive com.io7m.eigion.model;
   requires transitive com.io7m.eigion.protocol.admin_api.v1;
   requires transitive com.io7m.eigion.protocol.public_api.v1;
-  requires transitive com.io7m.eigion.model;
+  requires transitive com.io7m.eigion.server.security;
   requires transitive net.jqwik.api;
+  requires org.slf4j;
 
   provides ArbitraryProvider
     with
@@ -65,6 +64,7 @@ module com.io7m.eigion.tests.arbitraries
       com.io7m.eigion.tests.arbitraries.EIArbPasswordProvider,
       com.io7m.eigion.tests.arbitraries.EIArbRedactionProvider,
       com.io7m.eigion.tests.arbitraries.EIArbRedactionRequestProvider,
+      com.io7m.eigion.tests.arbitraries.EIArbSecActionProvider,
       com.io7m.eigion.tests.arbitraries.EIArbSubsetMatchProvider,
       com.io7m.eigion.tests.arbitraries.EIArbTokenProvider,
       com.io7m.eigion.tests.arbitraries.EIArbURIProvider,

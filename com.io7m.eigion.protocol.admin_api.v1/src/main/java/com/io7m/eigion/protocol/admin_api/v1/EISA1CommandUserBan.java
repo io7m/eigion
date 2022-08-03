@@ -16,29 +16,39 @@
 
 package com.io7m.eigion.protocol.admin_api.v1;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+
+import java.util.Objects;
+import java.util.UUID;
+
 /**
- * The type of Admin API v1 commands.
+ * A command to ban a user.
+ *
+ * @param id  The user ID
+ * @param ban The ban
  */
 
-public sealed interface EISA1CommandType
-  extends EISA1MessageType permits EISA1CommandAdminCreate,
-  EISA1CommandAdminGet,
-  EISA1CommandAdminGetByEmail,
-  EISA1CommandAdminGetByName,
-  EISA1CommandAdminSearch,
-  EISA1CommandAuditGet,
-  EISA1CommandGroupInviteSetStatus,
-  EISA1CommandGroupInvites,
-  EISA1CommandLogin,
-  EISA1CommandServicesList,
-  EISA1CommandUserBan,
-  EISA1CommandUserCreate,
-  EISA1CommandUserGet,
-  EISA1CommandUserGetByEmail,
-  EISA1CommandUserGetByName,
-  EISA1CommandUserSearch,
-  EISA1CommandUserUnban,
-  EISA1CommandUserUpdate
+@JsonDeserialize
+@JsonSerialize
+public record EISA1CommandUserBan(
+  @JsonProperty(value = "User", required = true)
+  UUID id,
+  @JsonProperty(value = "Ban", required = true)
+  EISA1UserBan ban)
+  implements EISA1CommandType
 {
+  /**
+   * A command to ban a user.
+   *
+   * @param id  The user ID
+   * @param ban The ban
+   */
 
+  public EISA1CommandUserBan
+  {
+    Objects.requireNonNull(id, "id");
+    Objects.requireNonNull(ban, "ban");
+  }
 }

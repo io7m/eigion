@@ -17,6 +17,7 @@
 
 package com.io7m.eigion.server.vanilla.internal.admin_api;
 
+import com.io7m.eigion.model.EIPasswordException;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandType;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1Messages;
 import com.io7m.eigion.protocol.api.EIProtocolException;
@@ -126,7 +127,8 @@ public final class EIACommandServlet extends EIAAuthenticatedServlet
     EIServerDatabaseException,
     IOException,
     EISecurityException,
-    EIHTTPErrorStatusException
+    EIHTTPErrorStatusException,
+    EIPasswordException
   {
     try (var connection = this.database.openConnection(EIGION)) {
       try (var transaction = connection.openTransaction()) {
@@ -149,7 +151,8 @@ public final class EIACommandServlet extends EIAAuthenticatedServlet
     EIServerDatabaseException,
     IOException,
     EISecurityException,
-    EIHTTPErrorStatusException
+    EIHTTPErrorStatusException,
+    EIPasswordException
   {
     final var context =
       new EIACommandContext(

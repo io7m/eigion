@@ -29,6 +29,7 @@ open module com.io7m.eigion.tests
   requires com.io7m.eigion.server.api;
   requires com.io7m.eigion.server.database.api;
   requires com.io7m.eigion.server.database.postgres;
+  requires com.io7m.eigion.server.security;
   requires com.io7m.eigion.server.vanilla;
 
   requires com.fasterxml.jackson.databind;

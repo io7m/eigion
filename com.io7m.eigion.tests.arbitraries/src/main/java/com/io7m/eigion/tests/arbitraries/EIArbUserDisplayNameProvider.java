@@ -14,7 +14,6 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-
 package com.io7m.eigion.tests.arbitraries;
 
 import com.io7m.eigion.model.EIUserDisplayName;
@@ -54,8 +53,9 @@ public final class EIArbUserDisplayNameProvider extends EIArbAbstractProvider
     final var a =
       Arbitraries.strings()
         .ofMinLength(1)
-        .ofMaxLength(64)
+        .ofMaxLength(63)
         .excludeChars(' ', '\t', '\n')
+        .map(s -> 'A' + s)
         .map(EIUserDisplayName::new);
 
     return Set.of(a);

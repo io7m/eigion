@@ -14,31 +14,31 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-package com.io7m.eigion.protocol.admin_api.v1;
+package com.io7m.eigion.model;
+
+import java.util.Objects;
 
 /**
- * The type of Admin API v1 commands.
+ * An exception raised by a password hashing algorithm.
  */
 
-public sealed interface EISA1CommandType
-  extends EISA1MessageType permits EISA1CommandAdminCreate,
-  EISA1CommandAdminGet,
-  EISA1CommandAdminGetByEmail,
-  EISA1CommandAdminGetByName,
-  EISA1CommandAdminSearch,
-  EISA1CommandAuditGet,
-  EISA1CommandGroupInviteSetStatus,
-  EISA1CommandGroupInvites,
-  EISA1CommandLogin,
-  EISA1CommandServicesList,
-  EISA1CommandUserBan,
-  EISA1CommandUserCreate,
-  EISA1CommandUserGet,
-  EISA1CommandUserGetByEmail,
-  EISA1CommandUserGetByName,
-  EISA1CommandUserSearch,
-  EISA1CommandUserUnban,
-  EISA1CommandUserUpdate
+public final class EIPasswordUncheckedException extends RuntimeException
 {
+  /**
+   * Construct an exception.
+   *
+   * @param cause The cause
+   */
 
+  public EIPasswordUncheckedException(
+    final EIPasswordException cause)
+  {
+    super(Objects.requireNonNull(cause, "cause"));
+  }
+
+  @Override
+  public synchronized EIPasswordException getCause()
+  {
+    return (EIPasswordException) super.getCause();
+  }
 }

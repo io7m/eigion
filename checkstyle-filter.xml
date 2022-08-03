@@ -18,8 +18,12 @@
   <!-- Without pattern matching... -->
   <suppress files="EIACommandExecutor\.java"
             checks="NPathComplexity"/>
+  <suppress files="EIACommandExecutor\.java"
+            checks="CyclomaticComplexity"/>
   <suppress files="EIPCommandExecutor\.java"
             checks="NPathComplexity"/>
+  <suppress files="EIPCommandExecutor\.java"
+            checks="CyclomaticComplexity"/>
   <suppress files="EISecPolicyDefault\.java"
             checks="NPathComplexity"/>
 

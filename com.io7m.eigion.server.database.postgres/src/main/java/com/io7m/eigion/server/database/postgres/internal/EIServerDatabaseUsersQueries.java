@@ -489,4 +489,68 @@ final class EIServerDatabaseUsersQueries
       throw handleDatabaseException(this.transaction(), e);
     }
   }
+
+  @Override
+  public void userUpdate(
+    final UUID id,
+    final Optional<EIUserDisplayName> withDisplayName,
+    final Optional<EIUserEmail> withEmail,
+    final Optional<EIPassword> withPassword)
+    throws EIServerDatabaseException
+  {
+    Objects.requireNonNull(id, "id");
+
+    final var transaction = this.transaction();
+    final var context = transaction.createContext();
+    final var owner = transaction.adminId();
+
+    try {
+      final var record = context.fetchOne(USERS, USERS.ID.eq(id));
+      if (record == null) {
+        throw USER_DOES_NOT_EXIST.get();
+      }
+
+      if (withDisplayName.isPresent()) {
+        final var name = withDisplayName.get();
+        record.setName(name.value());
+
+        context.insertInto(AUDIT)
+          .set(AUDIT.TIME, this.currentTime())
+          .set(AUDIT.TYPE, "USER_CHANGED_DISPLAY_NAME")
+          .set(AUDIT.USER_ID, owner)
+          .set(AUDIT.MESSAGE, "%s|%s".formatted(id.toString(), name.value()))
+          .execute();
+      }
+
+      if (withEmail.isPresent()) {
+        final var email = withEmail.get();
+        record.setEmail(email.value());
+
+        context.insertInto(AUDIT)
+          .set(AUDIT.TIME, this.currentTime())
+          .set(AUDIT.TYPE, "USER_CHANGED_EMAIL")
+          .set(AUDIT.USER_ID, owner)
+          .set(AUDIT.MESSAGE, "%s|%s".formatted(id.toString(), email.value()))
+          .execute();
+      }
+
+      if (withPassword.isPresent()) {
+        final var pass = withPassword.get();
+        record.setPasswordAlgo(pass.algorithm().identifier());
+        record.setPasswordHash(pass.hash());
+        record.setPasswordSalt(pass.salt());
+
+        context.insertInto(AUDIT)
+          .set(AUDIT.TIME, this.currentTime())
+          .set(AUDIT.TYPE, "USER_CHANGED_PASSWORD")
+          .set(AUDIT.USER_ID, owner)
+          .set(AUDIT.MESSAGE, id.toString())
+          .execute();
+      }
+
+      record.store();
+    } catch (final DataAccessException e) {
+      throw handleDatabaseException(this.transaction(), e);
+    }
+  }
 }

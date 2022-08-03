@@ -53,8 +53,9 @@ public final class EIArbUserEmailProvider extends EIArbAbstractProvider
     final var a =
       Arbitraries.strings()
         .ofMinLength(1)
-        .ofMaxLength(512)
+        .ofMaxLength(511)
         .excludeChars(' ', '\t', '\n')
+        .map(s -> 'a' + s)
         .map(EIUserEmail::new);
 
     return Set.of(a);

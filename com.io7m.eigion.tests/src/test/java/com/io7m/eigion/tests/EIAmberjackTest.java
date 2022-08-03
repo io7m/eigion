@@ -19,8 +19,10 @@ package com.io7m.eigion.tests;
 import com.io7m.eigion.amberjack.EIAClients;
 import com.io7m.eigion.amberjack.api.EIAClientException;
 import com.io7m.eigion.amberjack.api.EIAClientType;
-import com.io7m.eigion.model.EIGroupInviteStatus;
 import com.io7m.eigion.model.EIGroupName;
+import com.io7m.eigion.model.EIPasswordAlgorithmPBKDF2HmacSHA256;
+import com.io7m.eigion.model.EIUserDisplayName;
+import com.io7m.eigion.model.EIUserEmail;
 import com.io7m.eigion.pike.EIPClients;
 import com.io7m.eigion.pike.api.EIPClientType;
 import org.junit.jupiter.api.AfterEach;
@@ -319,5 +321,65 @@ public final class EIAmberjackTest extends EIWithServerContract
 
     assertEquals(1L, invitesAfter.size());
     assertEquals(CANCELLED, invitesAfter.get(0).status());
+  }
+
+  /**
+   * Users can be banned and unbanned.
+   *
+   * @throws Exception On errors
+   */
+
+  @Test
+  public void testUserBanUnban()
+    throws Exception
+  {
+    final var admin =
+      this.serverCreateAdminInitial("someone", "12345678");
+    final var user0 =
+      this.serverCreateUser(admin, "user0");
+
+    this.client.login("someone", "12345678", this.serverAdminURI());
+
+    final var ub =
+      this.client.userBan(user0, empty(), "No reason.");
+    assertEquals("No reason.", ub.ban().get().reason());
+
+    final var uub = this.client.userUnban(user0);
+    assertEquals(empty(), uub.ban());
+  }
+
+  /**
+   * Users can modified.
+   *
+   * @throws Exception On errors
+   */
+
+  @Test
+  public void testUserUpdate()
+    throws Exception
+  {
+    final var admin =
+      this.serverCreateAdminInitial("someone", "12345678");
+    final var user0 =
+      this.serverCreateUser(admin, "user0");
+
+    this.client.login("someone", "12345678", this.serverAdminURI());
+
+    final var algo =
+      EIPasswordAlgorithmPBKDF2HmacSHA256.create();
+    final var password =
+      algo.createHashed("something_else");
+
+    final var userUpdated =
+      this.client.userUpdate(
+        user0,
+        Optional.of(new EIUserDisplayName("New Name")),
+        Optional.of(new EIUserEmail("other@example.com")),
+        Optional.of(password)
+      );
+
+    assertEquals("New Name", userUpdated.name().value());
+    assertEquals("other@example.com", userUpdated.email().value());
+    assertEquals(password, userUpdated.password());
   }
 }
