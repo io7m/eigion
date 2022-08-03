@@ -17,6 +17,8 @@
 package com.io7m.eigion.protocol.public_api.v1;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.io7m.eigion.model.EIGroupCreationRequest;
@@ -54,12 +56,20 @@ import static com.io7m.eigion.model.EIGroupCreationRequestStatusType.Succeeded;
 @JsonDeserialize
 @JsonSerialize
 public record EISP1GroupCreationRequest(
+  @JsonProperty(value = "GroupName", required = true)
   String groupName,
+  @JsonProperty(value = "UserID", required = true)
   UUID userId,
+  @JsonProperty(value = "Token", required = true)
   String token,
+  @JsonProperty(value = "Status", required = true)
   String status,
+  @JsonProperty(value = "TimeStarted", required = true)
   OffsetDateTime timeStarted,
+  @JsonProperty(value = "TimeCompleted", required = false)
+  @JsonInclude(JsonInclude.Include.NON_ABSENT)
   Optional<OffsetDateTime> timeCompleted,
+  @JsonProperty(value = "Message", required = true)
   String message)
 {
   /**
@@ -83,6 +93,7 @@ public record EISP1GroupCreationRequest(
     Objects.requireNonNull(message, "message");
     Objects.requireNonNull(timeStarted, "timeStarted");
     Objects.requireNonNull(timeCompleted, "timeCompleted");
+    Objects.requireNonNull(message, "message");
   }
 
   /**

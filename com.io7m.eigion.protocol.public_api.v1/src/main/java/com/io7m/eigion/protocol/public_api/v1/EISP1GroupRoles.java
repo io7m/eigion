@@ -17,6 +17,7 @@
 
 package com.io7m.eigion.protocol.public_api.v1;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.io7m.eigion.model.EIGroupName;
 import com.io7m.eigion.model.EIGroupRoles;
 import com.io7m.eigion.protocol.api.EIProtocolFromModel;
@@ -34,7 +35,9 @@ import java.util.stream.Collectors;
  */
 
 public record EISP1GroupRoles(
+  @JsonProperty(value = "Group", required = true)
   String group,
+  @JsonProperty(value = "Roles", required = true)
   Set<EISP1GroupRole> roles)
 {
   /**

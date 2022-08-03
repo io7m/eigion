@@ -16,6 +16,7 @@
 
 package com.io7m.eigion.protocol.admin_api.v1;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
@@ -43,12 +44,16 @@ public record EISA1CommandGroupInvites(
   @JsonProperty(value = "Since", required = true)
   OffsetDateTime since,
   @JsonProperty(value = "WithUserInviting")
+  @JsonInclude(JsonInclude.Include.NON_ABSENT)
   Optional<UUID> withUserInviting,
   @JsonProperty(value = "WithUserBeingInvited")
+  @JsonInclude(JsonInclude.Include.NON_ABSENT)
   Optional<UUID> withUserBeingInvited,
   @JsonProperty(value = "WithGroup")
+  @JsonInclude(JsonInclude.Include.NON_ABSENT)
   Optional<String> withGroup,
   @JsonProperty(value = "WithStatus")
+  @JsonInclude(JsonInclude.Include.NON_ABSENT)
   Optional<EISA1GroupInviteStatus> withStatus)
   implements EISA1CommandType
 {

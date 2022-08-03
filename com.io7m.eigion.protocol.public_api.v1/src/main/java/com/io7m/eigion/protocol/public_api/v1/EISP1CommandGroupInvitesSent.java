@@ -17,6 +17,7 @@
 package com.io7m.eigion.protocol.public_api.v1;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
@@ -38,6 +39,7 @@ public record EISP1CommandGroupInvitesSent(
   @JsonProperty(value = "Since", required = true)
   OffsetDateTime since,
   @JsonProperty(value = "WithStatus")
+  @JsonInclude(JsonInclude.Include.NON_ABSENT)
   Optional<EISP1GroupInviteStatus> withStatus)
   implements EISP1CommandType
 {

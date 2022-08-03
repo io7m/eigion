@@ -16,6 +16,8 @@
 
 package com.io7m.eigion.protocol.admin_api.v1;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.io7m.eigion.model.EIGroupInvite;
 import com.io7m.eigion.model.EIGroupName;
 import com.io7m.eigion.model.EIToken;
@@ -43,14 +45,24 @@ import java.util.UUID;
  */
 
 public record EISA1GroupInvite(
+  @JsonProperty(value = "UserInviting", required = true)
   UUID userInviting,
+  @JsonProperty(value = "UserInvitingName", required = true)
   String userInvitingName,
+  @JsonProperty(value = "UserBeingInvited", required = true)
   UUID userBeingInvited,
+  @JsonProperty(value = "UserBeingInvitedName", required = true)
   String userBeingInvitedName,
+  @JsonProperty(value = "Group", required = true)
   String group,
+  @JsonProperty(value = "Token", required = true)
   String token,
+  @JsonProperty(value = "Status", required = true)
   EISA1GroupInviteStatus status,
+  @JsonProperty(value = "TimeStarted", required = true)
   OffsetDateTime timeStarted,
+  @JsonProperty(value = "TimeCompleted", required = false)
+  @JsonInclude(JsonInclude.Include.NON_ABSENT)
   Optional<OffsetDateTime> timeCompleted)
 {
   /**
