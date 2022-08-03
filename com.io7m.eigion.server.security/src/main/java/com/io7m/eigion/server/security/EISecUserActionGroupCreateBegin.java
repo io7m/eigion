@@ -34,12 +34,12 @@ import java.util.Objects;
  * @param existingRequests The user's existing group requests
  */
 
-public record EISecActionGroupCreateBegin(
+public record EISecUserActionGroupCreateBegin(
   EIUser user,
   OffsetDateTime timeNow,
   List<EIGroupCreationRequest> existingRequests,
   EIGroupName groupName)
-  implements EISecActionUserType
+  implements EISecUserActionType
 {
   /**
    * A user wants to create an image.
@@ -50,7 +50,7 @@ public record EISecActionGroupCreateBegin(
    * @param existingRequests The user's existing group requests
    */
 
-  public EISecActionGroupCreateBegin
+  public EISecUserActionGroupCreateBegin
   {
     Objects.requireNonNull(user, "user");
     Objects.requireNonNull(timeNow, "timeNow");

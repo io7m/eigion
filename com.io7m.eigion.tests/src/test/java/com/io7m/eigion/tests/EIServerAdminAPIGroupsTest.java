@@ -39,7 +39,7 @@ public final class EIServerAdminAPIGroupsTest extends EIServerContract
    */
 
   @Test
-  public void testReadUserSearchNoPermission()
+  public void testGroupInviteReadNoPermission()
     throws Exception
   {
     this.serverStartIfNecessary();
@@ -63,5 +63,39 @@ public final class EIServerAdminAPIGroupsTest extends EIServerContract
       this.msgParseAdmin(rGet, EISA1ResponseError.class);
 
     assertEquals("You do not have the GROUP_INVITES_READ permission.", rm.message());
+  }
+
+  /**
+   * Modifying group invites fails without permissions.
+   *
+   * @throws Exception On errors
+   */
+
+  @Test
+  public void testGroupInviteWriteNoPermission()
+    throws Exception
+  {
+    this.serverStartIfNecessary();
+
+    final var id =
+      this.createAdminInitial("someone", "12345678");
+    this.createAdmin(id, "someone-else", "12345678", Set.of());
+
+    this.doLoginAdmin("someone-else", "12345678");
+
+    final var rGet =
+      this.msgSendAdminText("/admin/1/0/command", """
+        {
+          "%Type": "CommandGroupInviteSetStatus",
+          "Token": "01BA4719C80B6FE911B091A7C05124B64EEECE964E09C0",
+          "Status": "CANCELLED"
+        }""");
+
+    assertEquals(403, rGet.statusCode());
+
+    final var rm =
+      this.msgParseAdmin(rGet, EISA1ResponseError.class);
+
+    assertEquals("You do not have the GROUP_INVITES_WRITE permission.", rm.message());
   }
 }

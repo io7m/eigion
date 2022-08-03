@@ -30,7 +30,7 @@ import com.io7m.eigion.server.vanilla.internal.EIHTTPErrorStatusException;
  */
 
 public interface EICommandExecutorType<
-  C extends EICommandContext,
+  C extends EICommandContext<R>,
   M extends EIProtocolMessageType,
   R extends EIProtocolMessageType>
 {

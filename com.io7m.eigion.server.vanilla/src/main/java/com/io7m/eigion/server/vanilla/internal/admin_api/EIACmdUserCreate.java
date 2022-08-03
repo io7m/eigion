@@ -24,17 +24,20 @@ import com.io7m.eigion.model.EIUser;
 import com.io7m.eigion.model.EIUserDisplayName;
 import com.io7m.eigion.model.EIUserEmail;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandUserCreate;
+import com.io7m.eigion.protocol.admin_api.v1.EISA1ResponseType;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1ResponseUserCreate;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1User;
 import com.io7m.eigion.server.database.api.EIServerDatabaseException;
 import com.io7m.eigion.server.database.api.EIServerDatabaseGroupsQueriesType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseUsersQueriesType;
-import com.io7m.eigion.server.security.EISecActionUserCreate;
+import com.io7m.eigion.server.security.EISecAdminActionUserCreate;
 import com.io7m.eigion.server.security.EISecPolicyResultDenied;
 import com.io7m.eigion.server.security.EISecurity;
 import com.io7m.eigion.server.security.EISecurityException;
 import com.io7m.eigion.server.vanilla.internal.EIHTTPErrorStatusException;
 import com.io7m.eigion.server.vanilla.internal.EIServerConfigurations;
+import com.io7m.eigion.server.vanilla.internal.command_exec.EICommandExecutionResult;
+import com.io7m.eigion.server.vanilla.internal.command_exec.EICommandExecutorType;
 
 import java.util.Map;
 import java.util.Objects;
@@ -49,7 +52,7 @@ import static org.eclipse.jetty.http.HttpStatus.FORBIDDEN_403;
  */
 
 public final class EIACmdUserCreate
-  implements EIACommandExecutorType<EISA1CommandUserCreate>
+  implements EICommandExecutorType<EIACommandContext, EISA1CommandUserCreate, EISA1ResponseType>
 {
   /**
    * A command to create users.
@@ -61,7 +64,7 @@ public final class EIACmdUserCreate
   }
 
   @Override
-  public EIACommandExecutionResult execute(
+  public EICommandExecutionResult<EISA1ResponseType> execute(
     final EIACommandContext context,
     final EISA1CommandUserCreate command)
     throws
@@ -69,7 +72,7 @@ public final class EIACmdUserCreate
     EISecurityException,
     EIHTTPErrorStatusException
   {
-    if (EISecurity.check(new EISecActionUserCreate(context.admin()))
+    if (EISecurity.check(new EISecAdminActionUserCreate(context.admin()))
       instanceof EISecPolicyResultDenied denied) {
       throw new EIHTTPErrorStatusException(
         FORBIDDEN_403,
@@ -153,7 +156,7 @@ public final class EIACmdUserCreate
         Map.of(name, Set.of(FOUNDER))
       );
 
-    return new EIACommandExecutionResult(
+    return new EICommandExecutionResult<>(
       200,
       new EISA1ResponseUserCreate(
         context.requestId(),

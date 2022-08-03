@@ -20,13 +20,16 @@ package com.io7m.eigion.server.vanilla.internal.admin_api;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1Admin;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandAdminGetByName;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1ResponseAdminGet;
+import com.io7m.eigion.protocol.admin_api.v1.EISA1ResponseType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseAdminsQueriesType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseException;
-import com.io7m.eigion.server.security.EISecActionAdminRead;
+import com.io7m.eigion.server.security.EISecAdminActionAdminRead;
 import com.io7m.eigion.server.security.EISecPolicyResultDenied;
 import com.io7m.eigion.server.security.EISecurity;
 import com.io7m.eigion.server.security.EISecurityException;
 import com.io7m.eigion.server.vanilla.internal.EIHTTPErrorStatusException;
+import com.io7m.eigion.server.vanilla.internal.command_exec.EICommandExecutionResult;
+import com.io7m.eigion.server.vanilla.internal.command_exec.EICommandExecutorType;
 
 import static org.eclipse.jetty.http.HttpStatus.FORBIDDEN_403;
 
@@ -35,7 +38,7 @@ import static org.eclipse.jetty.http.HttpStatus.FORBIDDEN_403;
  */
 
 public final class EIACmdAdminGetByName
-  implements EIACommandExecutorType<EISA1CommandAdminGetByName>
+  implements EICommandExecutorType<EIACommandContext, EISA1CommandAdminGetByName, EISA1ResponseType>
 {
   /**
    * A command to retrieve admins.
@@ -47,7 +50,7 @@ public final class EIACmdAdminGetByName
   }
 
   @Override
-  public EIACommandExecutionResult execute(
+  public EICommandExecutionResult<EISA1ResponseType> execute(
     final EIACommandContext context,
     final EISA1CommandAdminGetByName command)
     throws
@@ -55,7 +58,7 @@ public final class EIACmdAdminGetByName
     EISecurityException,
     EIHTTPErrorStatusException
   {
-    if (EISecurity.check(new EISecActionAdminRead(context.admin()))
+    if (EISecurity.check(new EISecAdminActionAdminRead(context.admin()))
       instanceof EISecPolicyResultDenied denied) {
       throw new EIHTTPErrorStatusException(
         FORBIDDEN_403,
@@ -74,7 +77,7 @@ public final class EIACmdAdminGetByName
     }
 
     final var admin = adminOpt.get();
-    return new EIACommandExecutionResult(
+    return new EICommandExecutionResult<>(
       200,
       new EISA1ResponseAdminGet(
         context.requestId(),

@@ -290,4 +290,20 @@ public non-sealed interface EIServerDatabaseGroupsQueriesType
     EIGroupInviteStatus status)
     throws EIServerDatabaseException;
 
+  /**
+   * Set the status of the given invite. This is the "admin" variant and so
+   * will record the ID of an admin into the audit log. It is otherwise
+   * identical to {@link #groupInvite(EIGroupName, UUID)}.
+   *
+   * @param token  The invite token
+   * @param status The status
+   *
+   * @throws EIServerDatabaseException On errors
+   */
+
+  @EIServerDatabaseRequiresAdmin
+  void groupInviteSetStatusAdmin(
+    EIToken token,
+    EIGroupInviteStatus status)
+    throws EIServerDatabaseException;
 }

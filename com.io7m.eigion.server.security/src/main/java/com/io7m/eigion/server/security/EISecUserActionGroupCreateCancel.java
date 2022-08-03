@@ -16,25 +16,33 @@
 
 package com.io7m.eigion.server.security;
 
-import com.io7m.eigion.model.EIAdmin;
+import com.io7m.eigion.model.EIGroupCreationRequest;
+import com.io7m.eigion.model.EIUser;
+
+import java.util.Objects;
 
 /**
- * A view of an action within the security policy. An <i>action</i> may (or may
- * not) be performed by an <i>admin</i> according to the security policy.
+ * A user wants to cancel the creation of a group.
+ *
+ * @param user    The user
+ * @param request The request
  */
 
-public sealed interface EISecActionAdminType
-  extends EISecActionType permits EISecActionAdminCreate,
-  EISecActionAdminRead,
-  EISecActionAuditRead,
-  EISecActionGroupInvites,
-  EISecActionServicesRead,
-  EISecActionUserCreate,
-  EISecActionUserRead
+public record EISecUserActionGroupCreateCancel(
+  EIUser user,
+  EIGroupCreationRequest request)
+  implements EISecUserActionType
 {
   /**
-   * @return The admin performing the action
+   * A user wants to cancel the creation of a group.
+   *
+   * @param user    The user
+   * @param request The request
    */
 
-  EIAdmin admin();
+  public EISecUserActionGroupCreateCancel
+  {
+    Objects.requireNonNull(user, "user");
+    Objects.requireNonNull(request, "request");
+  }
 }

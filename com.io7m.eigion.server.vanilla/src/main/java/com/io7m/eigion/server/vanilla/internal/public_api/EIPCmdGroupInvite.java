@@ -24,7 +24,7 @@ import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseException;
 import com.io7m.eigion.server.database.api.EIServerDatabaseGroupsQueriesType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseUsersQueriesType;
-import com.io7m.eigion.server.security.EISecActionGroupInvite;
+import com.io7m.eigion.server.security.EISecUserActionGroupInvite;
 import com.io7m.eigion.server.security.EISecPolicyResultDenied;
 import com.io7m.eigion.server.security.EISecurity;
 import com.io7m.eigion.server.security.EISecurityException;
@@ -91,7 +91,7 @@ public final class EIPCmdGroupInvite
       );
 
     final var action =
-      new EISecActionGroupInvite(
+      new EISecUserActionGroupInvite(
         userInviting,
         userBeingInvited,
         groupName,

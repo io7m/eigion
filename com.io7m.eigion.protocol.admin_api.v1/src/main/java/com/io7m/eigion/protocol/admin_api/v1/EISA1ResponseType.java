@@ -29,6 +29,7 @@ public sealed interface EISA1ResponseType
   EISA1ResponseAdminList,
   EISA1ResponseAuditGet,
   EISA1ResponseError,
+  EISA1ResponseGroupInviteSetStatus,
   EISA1ResponseGroupInvites,
   EISA1ResponseLogin,
   EISA1ResponseServiceList,

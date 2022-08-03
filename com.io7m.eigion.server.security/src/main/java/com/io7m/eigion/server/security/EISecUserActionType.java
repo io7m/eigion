@@ -18,25 +18,25 @@ package com.io7m.eigion.server.security;
 
 import com.io7m.eigion.model.EIUser;
 
-import java.util.Objects;
-
 /**
- * A user wants to read an image.
- *
- * @param user The user
+ * A view of an action within the security policy. An <i>action</i> may (or may
+ * not) be performed by a  <i>user</i> according to the security policy.
  */
 
-public record EISecActionImageRead(EIUser user)
-  implements EISecActionUserType
+public sealed interface EISecUserActionType
+  extends EISecActionType
+  permits EISecUserActionGroupCreateBegin,
+  EISecUserActionGroupCreateCancel,
+  EISecUserActionGroupCreateReady,
+  EISecUserActionGroupInvite,
+  EISecUserActionGroupInviteCancel,
+  EISecUserActionImageCreate,
+  EISecUserActionImageRead,
+  EISecUserActionUserUserComplaintCreate
 {
   /**
-   * A user wants to read an image.
-   *
-   * @param user The user
+   * @return The user performing the action
    */
 
-  public EISecActionImageRead
-  {
-    Objects.requireNonNull(user, "user");
-  }
+  EIUser user();
 }

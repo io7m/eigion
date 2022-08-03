@@ -19,6 +19,10 @@ package com.io7m.eigion.tests;
 import com.io7m.eigion.amberjack.EIAClients;
 import com.io7m.eigion.amberjack.api.EIAClientException;
 import com.io7m.eigion.amberjack.api.EIAClientType;
+import com.io7m.eigion.model.EIGroupInviteStatus;
+import com.io7m.eigion.model.EIGroupName;
+import com.io7m.eigion.pike.EIPClients;
+import com.io7m.eigion.pike.api.EIPClientType;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -29,7 +33,9 @@ import java.net.URI;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.Optional;
 
+import static com.io7m.eigion.model.EIGroupInviteStatus.CANCELLED;
 import static java.util.Optional.empty;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -46,6 +52,8 @@ public final class EIAmberjackTest extends EIWithServerContract
 
   private EIAClients clients;
   private EIAClientType client;
+  private EIPClients pikes;
+  private EIPClientType pike;
 
   @BeforeEach
   public void setup()
@@ -54,6 +62,8 @@ public final class EIAmberjackTest extends EIWithServerContract
     LOG.debug("setup");
     this.clients = new EIAClients();
     this.client = this.clients.create(Locale.getDefault());
+    this.pikes = new EIPClients();
+    this.pike = this.pikes.create(Locale.getDefault());
   }
 
   @AfterEach
@@ -62,6 +72,7 @@ public final class EIAmberjackTest extends EIWithServerContract
   {
     LOG.debug("tearDown");
     this.client.close();
+    this.pike.close();
   }
 
   /**
@@ -259,5 +270,54 @@ public final class EIAmberjackTest extends EIWithServerContract
     assertEquals(
       List.of(),
       this.client.adminSearch("noone"));
+  }
+
+  /**
+   * Group invites can be cancelled.
+   *
+   * @throws Exception On errors
+   */
+
+  @Test
+  public void testGroupInviteCancel()
+    throws Exception
+  {
+    final var admin =
+      this.serverCreateAdminInitial("someone", "12345678");
+    final var user0 =
+      this.serverCreateUser(admin, "user0");
+    final var user1 =
+      this.serverCreateUser(admin, "user1");
+
+    this.createGroup(user0, "com.io7m.ex");
+
+    this.client.login("someone", "12345678", this.serverAdminURI());
+
+    this.pike.login("user0", "12345678", this.serverPublicURI());
+    this.pike.groupInvite(new EIGroupName("com.io7m.ex"), user1);
+
+    final var invitesBefore =
+      this.client.groupInvites(
+        timeNow().minusDays(1L),
+        empty(),
+        empty(),
+        empty(),
+        empty()
+      );
+
+    assertEquals(1L, invitesBefore.size());
+    this.client.groupInviteSetStatus(invitesBefore.get(0).token(), CANCELLED);
+
+    final var invitesAfter =
+      this.client.groupInvites(
+        timeNow().minusDays(1L),
+        empty(),
+        empty(),
+        empty(),
+        empty()
+      );
+
+    assertEquals(1L, invitesAfter.size());
+    assertEquals(CANCELLED, invitesAfter.get(0).status());
   }
 }

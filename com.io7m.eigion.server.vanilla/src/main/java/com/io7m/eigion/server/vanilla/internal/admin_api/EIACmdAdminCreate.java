@@ -24,13 +24,16 @@ import com.io7m.eigion.protocol.admin_api.v1.EISA1Admin;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1AdminPermission;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandAdminCreate;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1ResponseAdminCreate;
+import com.io7m.eigion.protocol.admin_api.v1.EISA1ResponseType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseAdminsQueriesType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseException;
-import com.io7m.eigion.server.security.EISecActionAdminCreate;
+import com.io7m.eigion.server.security.EISecAdminActionAdminCreate;
 import com.io7m.eigion.server.security.EISecPolicyResultDenied;
 import com.io7m.eigion.server.security.EISecurity;
 import com.io7m.eigion.server.security.EISecurityException;
 import com.io7m.eigion.server.vanilla.internal.EIHTTPErrorStatusException;
+import com.io7m.eigion.server.vanilla.internal.command_exec.EICommandExecutionResult;
+import com.io7m.eigion.server.vanilla.internal.command_exec.EICommandExecutorType;
 
 import java.util.Objects;
 import java.util.UUID;
@@ -43,7 +46,7 @@ import static org.eclipse.jetty.http.HttpStatus.FORBIDDEN_403;
  */
 
 public final class EIACmdAdminCreate
-  implements EIACommandExecutorType<EISA1CommandAdminCreate>
+  implements EICommandExecutorType<EIACommandContext, EISA1CommandAdminCreate, EISA1ResponseType>
 {
   /**
    * A command to create admins.
@@ -55,7 +58,7 @@ public final class EIACmdAdminCreate
   }
 
   @Override
-  public EIACommandExecutionResult execute(
+  public EICommandExecutionResult<EISA1ResponseType> execute(
     final EIACommandContext context,
     final EISA1CommandAdminCreate command)
     throws
@@ -70,7 +73,7 @@ public final class EIACmdAdminCreate
         .collect(Collectors.toUnmodifiableSet());
 
     if (EISecurity.check(
-      new EISecActionAdminCreate(context.admin(), targetPermissions))
+      new EISecAdminActionAdminCreate(context.admin(), targetPermissions))
       instanceof EISecPolicyResultDenied denied) {
       throw new EIHTTPErrorStatusException(
         FORBIDDEN_403,
@@ -114,7 +117,7 @@ public final class EIACmdAdminCreate
       throw e;
     }
 
-    return new EIACommandExecutionResult(
+    return new EICommandExecutionResult<>(
       200,
       new EISA1ResponseAdminCreate(
         context.requestId(),

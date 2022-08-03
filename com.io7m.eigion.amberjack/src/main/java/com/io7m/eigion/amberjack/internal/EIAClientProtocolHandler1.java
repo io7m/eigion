@@ -29,6 +29,7 @@ import com.io7m.eigion.model.EIPasswordAlgorithmPBKDF2HmacSHA256;
 import com.io7m.eigion.model.EIPasswordException;
 import com.io7m.eigion.model.EIService;
 import com.io7m.eigion.model.EISubsetMatch;
+import com.io7m.eigion.model.EIToken;
 import com.io7m.eigion.model.EIUser;
 import com.io7m.eigion.model.EIUserSummary;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1AdminPermission;
@@ -40,6 +41,7 @@ import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandAdminGetByEmail;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandAdminGetByName;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandAdminSearch;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandAuditGet;
+import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandGroupInviteSetStatus;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandGroupInvites;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandLogin;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandServicesList;
@@ -58,6 +60,7 @@ import com.io7m.eigion.protocol.admin_api.v1.EISA1ResponseAdminGet;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1ResponseAdminList;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1ResponseAuditGet;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1ResponseError;
+import com.io7m.eigion.protocol.admin_api.v1.EISA1ResponseGroupInviteSetStatus;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1ResponseGroupInvites;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1ResponseLogin;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1ResponseServiceList;
@@ -546,6 +549,21 @@ public final class EIAClientProtocolHandler1
       .stream()
       .map(EISA1GroupInvite::toInvite)
       .toList();
+  }
+
+  @Override
+  public void groupInviteSetStatus(
+    final EIToken token,
+    final EIGroupInviteStatus status)
+    throws EIAClientException, InterruptedException
+  {
+    this.sendCommand(
+      EISA1ResponseGroupInviteSetStatus.class,
+      new EISA1CommandGroupInviteSetStatus(
+        token.value(),
+        EISA1GroupInviteStatus.ofStatus(status)
+      )
+    );
   }
 
   interface FunctionType<A, B, E extends Exception>

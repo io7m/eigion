@@ -19,15 +19,18 @@ package com.io7m.eigion.server.vanilla.internal.admin_api;
 
 import com.io7m.eigion.model.EIUserDisplayName;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandUserGetByName;
+import com.io7m.eigion.protocol.admin_api.v1.EISA1ResponseType;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1ResponseUserGet;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1User;
 import com.io7m.eigion.server.database.api.EIServerDatabaseException;
 import com.io7m.eigion.server.database.api.EIServerDatabaseUsersQueriesType;
-import com.io7m.eigion.server.security.EISecActionUserRead;
+import com.io7m.eigion.server.security.EISecAdminActionUserRead;
 import com.io7m.eigion.server.security.EISecPolicyResultDenied;
 import com.io7m.eigion.server.security.EISecurity;
 import com.io7m.eigion.server.security.EISecurityException;
 import com.io7m.eigion.server.vanilla.internal.EIHTTPErrorStatusException;
+import com.io7m.eigion.server.vanilla.internal.command_exec.EICommandExecutionResult;
+import com.io7m.eigion.server.vanilla.internal.command_exec.EICommandExecutorType;
 
 import static org.eclipse.jetty.http.HttpStatus.FORBIDDEN_403;
 
@@ -35,7 +38,9 @@ import static org.eclipse.jetty.http.HttpStatus.FORBIDDEN_403;
  * A command to retrieve users.
  */
 
-public final class EIACmdUserGetByName implements EIACommandExecutorType<EISA1CommandUserGetByName>
+public final class EIACmdUserGetByName
+  implements EICommandExecutorType<
+  EIACommandContext, EISA1CommandUserGetByName, EISA1ResponseType>
 {
   /**
    * A command to retrieve users.
@@ -47,7 +52,7 @@ public final class EIACmdUserGetByName implements EIACommandExecutorType<EISA1Co
   }
 
   @Override
-  public EIACommandExecutionResult execute(
+  public EICommandExecutionResult<EISA1ResponseType> execute(
     final EIACommandContext context,
     final EISA1CommandUserGetByName command)
     throws
@@ -55,7 +60,7 @@ public final class EIACmdUserGetByName implements EIACommandExecutorType<EISA1Co
     EISecurityException,
     EIHTTPErrorStatusException
   {
-    if (EISecurity.check(new EISecActionUserRead(context.admin()))
+    if (EISecurity.check(new EISecAdminActionUserRead(context.admin()))
       instanceof EISecPolicyResultDenied denied) {
       throw new EIHTTPErrorStatusException(
         FORBIDDEN_403,
@@ -74,7 +79,7 @@ public final class EIACmdUserGetByName implements EIACommandExecutorType<EISA1Co
     }
 
     final var user = userOpt.get();
-    return new EIACommandExecutionResult(
+    return new EICommandExecutionResult<>(
       200,
       new EISA1ResponseUserGet(
         context.requestId(),

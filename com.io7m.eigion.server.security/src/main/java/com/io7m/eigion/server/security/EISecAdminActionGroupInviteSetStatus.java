@@ -17,33 +17,26 @@
 package com.io7m.eigion.server.security;
 
 import com.io7m.eigion.model.EIAdmin;
-import com.io7m.eigion.model.EIAdminPermission;
 
 import java.util.Objects;
-import java.util.Set;
 
 /**
- * An admin wants to read the audit log.
+ * An admin wants to set the status of a group invite.
  *
- * @param admin             The admin
- * @param targetPermissions The permissions the created admin will have
+ * @param admin The admin
  */
 
-public record EISecActionAdminCreate(
-  EIAdmin admin,
-  Set<EIAdminPermission> targetPermissions)
-  implements EISecActionAdminType
+public record EISecAdminActionGroupInviteSetStatus(EIAdmin admin)
+  implements EISecAdminActionType
 {
   /**
-   * An admin wants to read the audit log.
+   * An admin wants to set the status of a group invite.
    *
-   * @param admin             The admin
-   * @param targetPermissions The permissions the created admin will have
+   * @param admin The admin
    */
 
-  public EISecActionAdminCreate
+  public EISecAdminActionGroupInviteSetStatus
   {
     Objects.requireNonNull(admin, "admin");
-    Objects.requireNonNull(targetPermissions, "targetPermissions");
   }
 }

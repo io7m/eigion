@@ -21,21 +21,21 @@ import com.io7m.eigion.model.EIAdmin;
 import java.util.Objects;
 
 /**
- * An admin wants to read the services.
+ * An admin wants to read one or more users.
  *
  * @param admin The admin
  */
 
-public record EISecActionServicesRead(EIAdmin admin)
-  implements EISecActionAdminType
+public record EISecAdminActionUserRead(EIAdmin admin)
+  implements EISecAdminActionType
 {
   /**
-   * An admin wants to read the services.
+   * An admin wants to read one or more users.
    *
    * @param admin The admin
    */
 
-  public EISecActionServicesRead
+  public EISecAdminActionUserRead
   {
     Objects.requireNonNull(admin, "admin");
   }

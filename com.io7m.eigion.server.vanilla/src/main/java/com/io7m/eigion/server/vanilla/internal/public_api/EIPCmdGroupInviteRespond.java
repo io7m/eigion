@@ -39,10 +39,7 @@ import static com.io7m.eigion.model.EIGroupInviteStatus.REJECTED;
  */
 
 public final class EIPCmdGroupInviteRespond
-  implements EICommandExecutorType<
-  EIPCommandContext,
-  EISP1CommandGroupInviteRespond,
-  EISP1ResponseType>
+  implements EICommandExecutorType<EIPCommandContext, EISP1CommandGroupInviteRespond, EISP1ResponseType>
 {
   /**
    * A request to respond to a group invite.

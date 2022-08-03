@@ -27,6 +27,7 @@ import com.io7m.eigion.model.EIGroupInviteStatus;
 import com.io7m.eigion.model.EIGroupName;
 import com.io7m.eigion.model.EIService;
 import com.io7m.eigion.model.EISubsetMatch;
+import com.io7m.eigion.model.EIToken;
 import com.io7m.eigion.model.EIUser;
 import com.io7m.eigion.model.EIUserSummary;
 
@@ -200,6 +201,15 @@ public final class EIAClientProtocolHandlerDisconnected
     final Optional<UUID> withUserInviter,
     final Optional<UUID> withUserBeingInvited,
     final Optional<EIGroupInviteStatus> withStatus)
+    throws EIAClientException
+  {
+    throw this.notLoggedIn();
+  }
+
+  @Override
+  public void groupInviteSetStatus(
+    final EIToken token,
+    final EIGroupInviteStatus status)
     throws EIAClientException
   {
     throw this.notLoggedIn();

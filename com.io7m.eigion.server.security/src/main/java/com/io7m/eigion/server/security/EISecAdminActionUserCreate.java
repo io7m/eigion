@@ -16,33 +16,27 @@
 
 package com.io7m.eigion.server.security;
 
-import com.io7m.eigion.model.EIGroupCreationRequest;
-import com.io7m.eigion.model.EIUser;
+import com.io7m.eigion.model.EIAdmin;
 
 import java.util.Objects;
 
 /**
- * A user wants to cancel the creation of a group.
+ * An admin wants to create a user.
  *
- * @param user    The user
- * @param request The request
+ * @param admin The admin
  */
 
-public record EISecActionGroupCreateCancel(
-  EIUser user,
-  EIGroupCreationRequest request)
-  implements EISecActionUserType
+public record EISecAdminActionUserCreate(EIAdmin admin)
+  implements EISecAdminActionType
 {
   /**
-   * A user wants to cancel the creation of a group.
+   * An admin wants to create a user.
    *
-   * @param user    The user
-   * @param request The request
+   * @param admin The admin
    */
 
-  public EISecActionGroupCreateCancel
+  public EISecAdminActionUserCreate
   {
-    Objects.requireNonNull(user, "user");
-    Objects.requireNonNull(request, "request");
+    Objects.requireNonNull(admin, "admin");
   }
 }

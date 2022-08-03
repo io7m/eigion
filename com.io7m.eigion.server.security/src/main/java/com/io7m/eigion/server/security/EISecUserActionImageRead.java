@@ -16,33 +16,27 @@
 
 package com.io7m.eigion.server.security;
 
-import com.io7m.eigion.model.EIGroupInvite;
 import com.io7m.eigion.model.EIUser;
 
 import java.util.Objects;
 
 /**
- * A user wants to cancel an invite.
+ * A user wants to read an image.
  *
- * @param user   The user
- * @param invite The invite
+ * @param user The user
  */
 
-public record EISecActionGroupInviteCancel(
-  EIUser user,
-  EIGroupInvite invite)
-  implements EISecActionUserType
+public record EISecUserActionImageRead(EIUser user)
+  implements EISecUserActionType
 {
   /**
-   * A user wants to cancel an invite.
+   * A user wants to read an image.
    *
-   * @param user   The user
-   * @param invite The invite
+   * @param user The user
    */
 
-  public EISecActionGroupInviteCancel
+  public EISecUserActionImageRead
   {
     Objects.requireNonNull(user, "user");
-    Objects.requireNonNull(invite, "invite");
   }
 }

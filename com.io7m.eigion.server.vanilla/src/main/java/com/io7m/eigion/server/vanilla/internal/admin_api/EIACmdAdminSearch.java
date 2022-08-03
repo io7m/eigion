@@ -19,13 +19,16 @@ package com.io7m.eigion.server.vanilla.internal.admin_api;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1AdminSummary;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandAdminSearch;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1ResponseAdminList;
+import com.io7m.eigion.protocol.admin_api.v1.EISA1ResponseType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseAdminsQueriesType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseException;
-import com.io7m.eigion.server.security.EISecActionAdminRead;
+import com.io7m.eigion.server.security.EISecAdminActionAdminRead;
 import com.io7m.eigion.server.security.EISecPolicyResultDenied;
 import com.io7m.eigion.server.security.EISecurity;
 import com.io7m.eigion.server.security.EISecurityException;
 import com.io7m.eigion.server.vanilla.internal.EIHTTPErrorStatusException;
+import com.io7m.eigion.server.vanilla.internal.command_exec.EICommandExecutionResult;
+import com.io7m.eigion.server.vanilla.internal.command_exec.EICommandExecutorType;
 
 import static org.eclipse.jetty.http.HttpStatus.FORBIDDEN_403;
 
@@ -34,7 +37,7 @@ import static org.eclipse.jetty.http.HttpStatus.FORBIDDEN_403;
  */
 
 public final class EIACmdAdminSearch
-  implements EIACommandExecutorType<EISA1CommandAdminSearch>
+  implements EICommandExecutorType<EIACommandContext, EISA1CommandAdminSearch, EISA1ResponseType>
 {
   /**
    * A command to retrieve admins.
@@ -46,7 +49,7 @@ public final class EIACmdAdminSearch
   }
 
   @Override
-  public EIACommandExecutionResult execute(
+  public EICommandExecutionResult<EISA1ResponseType> execute(
     final EIACommandContext context,
     final EISA1CommandAdminSearch command)
     throws
@@ -54,7 +57,7 @@ public final class EIACmdAdminSearch
     EISecurityException,
     EIHTTPErrorStatusException
   {
-    if (EISecurity.check(new EISecActionAdminRead(context.admin()))
+    if (EISecurity.check(new EISecAdminActionAdminRead(context.admin()))
       instanceof EISecPolicyResultDenied denied) {
       throw new EIHTTPErrorStatusException(
         FORBIDDEN_403,
@@ -68,7 +71,7 @@ public final class EIACmdAdminSearch
     final var admins =
       q.adminSearch(command.query());
 
-    return new EIACommandExecutionResult(
+    return new EICommandExecutionResult<>(
       200,
       new EISA1ResponseAdminList(
         context.requestId(),

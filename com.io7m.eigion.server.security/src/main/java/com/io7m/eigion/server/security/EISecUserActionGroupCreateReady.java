@@ -16,27 +16,33 @@
 
 package com.io7m.eigion.server.security;
 
-import com.io7m.eigion.model.EIAdmin;
+import com.io7m.eigion.model.EIGroupCreationRequest;
+import com.io7m.eigion.model.EIUser;
 
 import java.util.Objects;
 
 /**
- * An admin wants to read the audit log.
+ * A user wants to tell the server that a group creation is ready to check.
  *
- * @param admin The admin
+ * @param user    The user
+ * @param request The request
  */
 
-public record EISecActionAuditRead(EIAdmin admin)
-  implements EISecActionAdminType
+public record EISecUserActionGroupCreateReady(
+  EIUser user,
+  EIGroupCreationRequest request)
+  implements EISecUserActionType
 {
   /**
-   * An admin wants to read the audit log.
+   * A user wants to tell the server that a group creation is ready to check.
    *
-   * @param admin The admin
+   * @param user    The user
+   * @param request The request
    */
 
-  public EISecActionAuditRead
+  public EISecUserActionGroupCreateReady
   {
-    Objects.requireNonNull(admin, "admin");
+    Objects.requireNonNull(user, "user");
+    Objects.requireNonNull(request, "request");
   }
 }

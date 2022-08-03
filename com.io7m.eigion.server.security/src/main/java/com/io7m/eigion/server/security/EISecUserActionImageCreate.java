@@ -16,27 +16,27 @@
 
 package com.io7m.eigion.server.security;
 
-import com.io7m.eigion.model.EIAdmin;
+import com.io7m.eigion.model.EIUser;
 
 import java.util.Objects;
 
 /**
- * An admin wants to read the group invites.
+ * A user wants to create an image.
  *
- * @param admin The admin
+ * @param user The user
  */
 
-public record EISecActionGroupInvites(EIAdmin admin)
-  implements EISecActionAdminType
+public record EISecUserActionImageCreate(EIUser user)
+  implements EISecUserActionType
 {
   /**
-   * An admin wants to read the services.
+   * A user wants to create an image.
    *
-   * @param admin The admin
+   * @param user The user
    */
 
-  public EISecActionGroupInvites
+  public EISecUserActionImageCreate
   {
-    Objects.requireNonNull(admin, "admin");
+    Objects.requireNonNull(user, "user");
   }
 }

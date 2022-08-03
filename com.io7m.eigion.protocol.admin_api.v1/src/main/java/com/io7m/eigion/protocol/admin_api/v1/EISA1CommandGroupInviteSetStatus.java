@@ -14,35 +14,40 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-package com.io7m.eigion.server.security;
+package com.io7m.eigion.protocol.admin_api.v1;
 
-import com.io7m.eigion.model.EIGroupCreationRequest;
-import com.io7m.eigion.model.EIUser;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 import java.util.Objects;
 
 /**
- * A user wants to tell the server that a group creation is ready to check.
+ * A command to set the status of an invite token.
  *
- * @param user    The user
- * @param request The request
+ * @param token  The invite token
+ * @param status The invite token status
  */
 
-public record EISecActionGroupCreateReady(
-  EIUser user,
-  EIGroupCreationRequest request)
-  implements EISecActionUserType
+@JsonDeserialize
+@JsonSerialize
+public record EISA1CommandGroupInviteSetStatus(
+  @JsonProperty(value = "Token", required = true)
+  String token,
+  @JsonProperty(value = "Status", required = true)
+  EISA1GroupInviteStatus status)
+  implements EISA1CommandType
 {
   /**
-   * A user wants to tell the server that a group creation is ready to check.
+   * A command to set the status of an invite token.
    *
-   * @param user    The user
-   * @param request The request
+   * @param token  The invite token
+   * @param status The invite token status
    */
 
-  public EISecActionGroupCreateReady
+  public EISA1CommandGroupInviteSetStatus
   {
-    Objects.requireNonNull(user, "user");
-    Objects.requireNonNull(request, "request");
+    Objects.requireNonNull(token, "token");
+    Objects.requireNonNull(status, "status");
   }
 }

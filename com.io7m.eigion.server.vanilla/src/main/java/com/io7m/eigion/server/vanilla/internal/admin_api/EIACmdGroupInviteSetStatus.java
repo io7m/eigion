@@ -14,16 +14,15 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-
 package com.io7m.eigion.server.vanilla.internal.admin_api;
 
-import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandUserGet;
+import com.io7m.eigion.model.EIToken;
+import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandGroupInviteSetStatus;
+import com.io7m.eigion.protocol.admin_api.v1.EISA1ResponseGroupInviteSetStatus;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1ResponseType;
-import com.io7m.eigion.protocol.admin_api.v1.EISA1ResponseUserGet;
-import com.io7m.eigion.protocol.admin_api.v1.EISA1User;
 import com.io7m.eigion.server.database.api.EIServerDatabaseException;
-import com.io7m.eigion.server.database.api.EIServerDatabaseUsersQueriesType;
-import com.io7m.eigion.server.security.EISecAdminActionUserRead;
+import com.io7m.eigion.server.database.api.EIServerDatabaseGroupsQueriesType;
+import com.io7m.eigion.server.security.EISecAdminActionGroupInviteSetStatus;
 import com.io7m.eigion.server.security.EISecPolicyResultDenied;
 import com.io7m.eigion.server.security.EISecurity;
 import com.io7m.eigion.server.security.EISecurityException;
@@ -34,17 +33,17 @@ import com.io7m.eigion.server.vanilla.internal.command_exec.EICommandExecutorTyp
 import static org.eclipse.jetty.http.HttpStatus.FORBIDDEN_403;
 
 /**
- * A command to retrieve users.
+ * A command to set the status of group invites.
  */
 
-public final class EIACmdUserGet
-  implements EICommandExecutorType<EIACommandContext, EISA1CommandUserGet, EISA1ResponseType>
+public final class EIACmdGroupInviteSetStatus
+  implements EICommandExecutorType<EIACommandContext, EISA1CommandGroupInviteSetStatus, EISA1ResponseType>
 {
   /**
-   * A command to retrieve users.
+   * A command to set the status of group invites.
    */
 
-  public EIACmdUserGet()
+  public EIACmdGroupInviteSetStatus()
   {
 
   }
@@ -52,37 +51,36 @@ public final class EIACmdUserGet
   @Override
   public EICommandExecutionResult<EISA1ResponseType> execute(
     final EIACommandContext context,
-    final EISA1CommandUserGet command)
+    final EISA1CommandGroupInviteSetStatus command)
     throws
-    EIServerDatabaseException,
+    EIHTTPErrorStatusException,
     EISecurityException,
-    EIHTTPErrorStatusException
+    EIServerDatabaseException
   {
-    if (EISecurity.check(new EISecAdminActionUserRead(context.admin()))
+    if (EISecurity.check(new EISecAdminActionGroupInviteSetStatus(context.admin()))
       instanceof EISecPolicyResultDenied denied) {
       throw new EIHTTPErrorStatusException(
         FORBIDDEN_403,
-        "user-read",
+        "group-invite-write",
         denied.message()
       );
     }
 
-    final var q =
-      context.transaction().queries(EIServerDatabaseUsersQueriesType.class);
-    final var userOpt =
-      q.userGet(command.id());
+    final var transaction =
+      context.transaction();
+    final var groups =
+      transaction.queries(EIServerDatabaseGroupsQueriesType.class);
 
-    if (userOpt.isEmpty()) {
-      return context.resultErrorFormatted(404, "notFound", "notFound");
-    }
+    transaction.adminIdSet(context.admin().id());
 
-    final var user = userOpt.get();
+    groups.groupInviteSetStatusAdmin(
+      new EIToken(command.token()),
+      command.status().toStatus()
+    );
+
     return new EICommandExecutionResult<>(
       200,
-      new EISA1ResponseUserGet(
-        context.requestId(),
-        EISA1User.ofUser(user)
-      )
+      new EISA1ResponseGroupInviteSetStatus(context.requestId())
     );
   }
 }

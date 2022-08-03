@@ -23,7 +23,7 @@ import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseGroupInviteCancel;
 import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseException;
 import com.io7m.eigion.server.database.api.EIServerDatabaseGroupsQueriesType;
-import com.io7m.eigion.server.security.EISecActionGroupInviteCancel;
+import com.io7m.eigion.server.security.EISecUserActionGroupInviteCancel;
 import com.io7m.eigion.server.security.EISecPolicyResultDenied;
 import com.io7m.eigion.server.security.EISecurity;
 import com.io7m.eigion.server.security.EISecurityException;
@@ -88,7 +88,7 @@ public final class EIPCmdGroupInviteCancel
     final var invite =
       inviteOpt.get();
     final var action =
-      new EISecActionGroupInviteCancel(user, invite);
+      new EISecUserActionGroupInviteCancel(user, invite);
 
     if (EISecurity.check(action) instanceof EISecPolicyResultDenied denied) {
       throw new EIHTTPErrorStatusException(

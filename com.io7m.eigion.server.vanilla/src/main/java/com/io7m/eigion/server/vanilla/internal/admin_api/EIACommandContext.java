@@ -19,12 +19,13 @@ package com.io7m.eigion.server.vanilla.internal.admin_api;
 
 import com.io7m.eigion.model.EIAdmin;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1ResponseError;
+import com.io7m.eigion.protocol.admin_api.v1.EISA1ResponseType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseTransactionType;
 import com.io7m.eigion.server.vanilla.internal.EIServerClock;
 import com.io7m.eigion.server.vanilla.internal.EIServerStrings;
+import com.io7m.eigion.server.vanilla.internal.command_exec.EICommandContext;
 import com.io7m.eigion.services.api.EIServiceDirectoryType;
 
-import java.time.OffsetDateTime;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -33,14 +34,18 @@ import java.util.UUID;
  * transaction).
  */
 
-public final class EIACommandContext
+public final class EIACommandContext extends EICommandContext<EISA1ResponseType>
 {
-  private final EIServiceDirectoryType services;
-  private final UUID requestId;
-  private final EIServerDatabaseTransactionType transaction;
-  private final EIServerClock clock;
-  private final EIServerStrings strings;
   private final EIAdmin admin;
+
+  /**
+   * @return The user executing the command.
+   */
+
+  public EIAdmin admin()
+  {
+    return this.admin;
+  }
 
   /**
    * The context for execution of a command (or set of commands in a
@@ -49,8 +54,8 @@ public final class EIACommandContext
    * @param inServices    The service directory
    * @param inStrings     The string resources
    * @param inRequestId   The request ID
-   * @param inClock       The clock
    * @param inTransaction The transaction
+   * @param inClock       The clock
    * @param inAdmin       The admin executing the command
    */
 
@@ -62,109 +67,16 @@ public final class EIACommandContext
     final EIServerClock inClock,
     final EIAdmin inAdmin)
   {
-    this.services =
-      Objects.requireNonNull(inServices, "services");
-    this.requestId =
-      Objects.requireNonNull(inRequestId, "requestId");
-    this.transaction =
-      Objects.requireNonNull(inTransaction, "transaction");
-    this.clock =
-      Objects.requireNonNull(inClock, "clock");
-    this.strings =
-      Objects.requireNonNull(inStrings, "strings");
-    this.admin =
-      Objects.requireNonNull(inAdmin, "inAdminId");
+    super(inServices, inStrings, inRequestId, inTransaction, inClock);
+    this.admin = Objects.requireNonNull(inAdmin, "inAdmin");
   }
 
-  /**
-   * @return The service directory used during execution
-   */
-
-  public EIServiceDirectoryType services()
-  {
-    return this.services;
-  }
-
-  /**
-   * @return The ID of the incoming request
-   */
-
-  public UUID requestId()
-  {
-    return this.requestId;
-  }
-
-  /**
-   * @return The database transaction
-   */
-
-  public EIServerDatabaseTransactionType transaction()
-  {
-    return this.transaction;
-  }
-
-  /**
-   * @return The current time
-   */
-
-  public OffsetDateTime now()
-  {
-    return this.clock.now();
-  }
-
-  /**
-   * Produce an execution result indicating an error, with a formatted error
-   * message.
-   *
-   * @param statusCode The HTTP status code
-   * @param errorCode  The error code
-   * @param messageId  The string resource message ID
-   * @param args       The string resource format arguments
-   *
-   * @return An execution result
-   */
-
-  public EIACommandExecutionResult resultErrorFormatted(
-    final int statusCode,
-    final String errorCode,
-    final String messageId,
-    final Object... args)
-  {
-    return this.resultError(
-      statusCode,
-      errorCode,
-      this.strings.format(messageId, args)
-    );
-  }
-
-  /**
-   * Produce an execution result indicating an error, with a string constant
-   * message.
-   *
-   * @param statusCode The HTTP status code
-   * @param errorCode  The error code
-   * @param message    The string message
-   *
-   * @return An execution result
-   */
-
-  public EIACommandExecutionResult resultError(
-    final int statusCode,
+  @Override
+  protected EISA1ResponseError error(
+    final UUID id,
     final String errorCode,
     final String message)
   {
-    return new EIACommandExecutionResult(
-      statusCode,
-      new EISA1ResponseError(this.requestId, errorCode, message)
-    );
-  }
-
-  /**
-   * @return The admin executing the command
-   */
-
-  public EIAdmin admin()
-  {
-    return this.admin;
+    return new EISA1ResponseError(id, errorCode, message);
   }
 }

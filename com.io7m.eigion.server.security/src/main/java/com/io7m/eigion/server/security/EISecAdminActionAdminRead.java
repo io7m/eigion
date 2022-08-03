@@ -26,8 +26,8 @@ import java.util.Objects;
  * @param admin The admin
  */
 
-public record EISecActionAdminRead(EIAdmin admin)
-  implements EISecActionAdminType
+public record EISecAdminActionAdminRead(EIAdmin admin)
+  implements EISecAdminActionType
 {
   /**
    * An admin wants to read one or more admins.
@@ -35,7 +35,7 @@ public record EISecActionAdminRead(EIAdmin admin)
    * @param admin The admin
    */
 
-  public EISecActionAdminRead
+  public EISecAdminActionAdminRead
   {
     Objects.requireNonNull(admin, "admin");
   }

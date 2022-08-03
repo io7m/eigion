@@ -14,37 +14,38 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-package com.io7m.eigion.server.vanilla.internal.admin_api;
+package com.io7m.eigion.protocol.admin_api.v1;
 
-import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandType;
-import com.io7m.eigion.server.database.api.EIServerDatabaseException;
-import com.io7m.eigion.server.security.EISecurityException;
-import com.io7m.eigion.server.vanilla.internal.EIHTTPErrorStatusException;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+
+import java.util.Objects;
+import java.util.UUID;
 
 /**
- * The type of command executors.
+ * A response to a request to set the status of an invite.
  *
- * @param <C> The type of accepted commands
+ * @param requestId The request ID
  */
 
-public interface EIACommandExecutorType<C extends EISA1CommandType>
+@JsonDeserialize
+@JsonSerialize
+public record EISA1ResponseGroupInviteSetStatus(
+  @JsonProperty(value = "RequestID", required = true)
+  UUID requestId)
+  implements EISA1ResponseType
 {
   /**
-   * Execute a command.
+   * A response to a request to set the status of an invite.
    *
-   * @param context The execution context
-   * @param command The command
-   *
-   * @return The result of execution
-   *
-   * @throws EIServerDatabaseException On errors
+   * @param requestId The request ID
    */
 
-  EIACommandExecutionResult execute(
-    EIACommandContext context,
-    C command)
-    throws
-    EIServerDatabaseException,
-    EIHTTPErrorStatusException,
-    EISecurityException;
+  @JsonCreator
+  public EISA1ResponseGroupInviteSetStatus
+  {
+    Objects.requireNonNull(requestId, "requestId");
+  }
 }

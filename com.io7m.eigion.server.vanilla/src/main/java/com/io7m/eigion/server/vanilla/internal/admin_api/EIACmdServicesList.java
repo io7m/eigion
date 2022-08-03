@@ -18,12 +18,15 @@ package com.io7m.eigion.server.vanilla.internal.admin_api;
 
 import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandServicesList;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1ResponseServiceList;
+import com.io7m.eigion.protocol.admin_api.v1.EISA1ResponseType;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1Service;
-import com.io7m.eigion.server.security.EISecActionServicesRead;
+import com.io7m.eigion.server.security.EISecAdminActionServicesRead;
 import com.io7m.eigion.server.security.EISecPolicyResultDenied;
 import com.io7m.eigion.server.security.EISecurity;
 import com.io7m.eigion.server.security.EISecurityException;
 import com.io7m.eigion.server.vanilla.internal.EIHTTPErrorStatusException;
+import com.io7m.eigion.server.vanilla.internal.command_exec.EICommandExecutionResult;
+import com.io7m.eigion.server.vanilla.internal.command_exec.EICommandExecutorType;
 import com.io7m.eigion.services.api.EIServiceType;
 
 import static org.eclipse.jetty.http.HttpStatus.FORBIDDEN_403;
@@ -33,7 +36,7 @@ import static org.eclipse.jetty.http.HttpStatus.FORBIDDEN_403;
  */
 
 public final class EIACmdServicesList
-  implements EIACommandExecutorType<EISA1CommandServicesList>
+  implements EICommandExecutorType<EIACommandContext, EISA1CommandServicesList, EISA1ResponseType>
 {
   /**
    * A command to retrieve services.
@@ -53,12 +56,12 @@ public final class EIACmdServicesList
   }
 
   @Override
-  public EIACommandExecutionResult execute(
+  public EICommandExecutionResult<EISA1ResponseType> execute(
     final EIACommandContext context,
     final EISA1CommandServicesList command)
     throws EIHTTPErrorStatusException, EISecurityException
   {
-    if (EISecurity.check(new EISecActionServicesRead(context.admin()))
+    if (EISecurity.check(new EISecAdminActionServicesRead(context.admin()))
       instanceof EISecPolicyResultDenied denied) {
       throw new EIHTTPErrorStatusException(
         FORBIDDEN_403,
@@ -67,7 +70,7 @@ public final class EIACmdServicesList
       );
     }
 
-    return new EIACommandExecutionResult(
+    return new EICommandExecutionResult<>(
       200,
       new EISA1ResponseServiceList(
         context.requestId(),

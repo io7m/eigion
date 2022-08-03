@@ -28,6 +28,7 @@ import com.io7m.eigion.model.EIGroupInviteStatus;
 import com.io7m.eigion.model.EIGroupName;
 import com.io7m.eigion.model.EIService;
 import com.io7m.eigion.model.EISubsetMatch;
+import com.io7m.eigion.model.EIToken;
 import com.io7m.eigion.model.EIUser;
 import com.io7m.eigion.model.EIUserSummary;
 
@@ -216,6 +217,16 @@ public final class EIAClient implements EIAClientType
       withGroupName,
       withUserInviter,
       withUserBeingInvited,
-      withStatus);
+      withStatus
+    );
+  }
+
+  @Override
+  public void groupInviteSetStatus(
+    final EIToken token,
+    final EIGroupInviteStatus status)
+    throws EIAClientException, InterruptedException
+  {
+    this.handler.groupInviteSetStatus(token, status);
   }
 }

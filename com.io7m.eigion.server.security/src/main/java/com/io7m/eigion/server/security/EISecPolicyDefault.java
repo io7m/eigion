@@ -26,6 +26,7 @@ import static com.io7m.eigion.model.EIAdminPermission.ADMIN_CREATE;
 import static com.io7m.eigion.model.EIAdminPermission.ADMIN_READ;
 import static com.io7m.eigion.model.EIAdminPermission.AUDIT_READ;
 import static com.io7m.eigion.model.EIAdminPermission.GROUP_INVITES_READ;
+import static com.io7m.eigion.model.EIAdminPermission.GROUP_INVITES_WRITE;
 import static com.io7m.eigion.model.EIAdminPermission.SERVICE_READ;
 import static com.io7m.eigion.model.EIAdminPermission.USER_READ;
 import static com.io7m.eigion.model.EIAdminPermission.USER_WRITE;
@@ -55,20 +56,20 @@ public final class EISecPolicyDefault implements EISecPolicyType
     return INSTANCE;
   }
 
-  private static EISecPolicyResultType checkAdminRead(
-    final EISecActionAdminRead c)
+  private static EISecPolicyResultType checkAdminActionAdminRead(
+    final EISecAdminActionAdminRead c)
   {
     return checkOwnedPermission(c.admin().permissions(), ADMIN_READ);
   }
 
-  private static EISecPolicyResultType checkServicesRead(
-    final EISecActionServicesRead c)
+  private static EISecPolicyResultType checkAdminActionServicesRead(
+    final EISecAdminActionServicesRead c)
   {
     return checkOwnedPermission(c.admin().permissions(), SERVICE_READ);
   }
 
-  private static EISecPolicyResultType checkUserRead(
-    final EISecActionUserRead c)
+  private static EISecPolicyResultType checkAdminActionUserRead(
+    final EISecAdminActionUserRead c)
   {
     return checkOwnedPermission(c.admin().permissions(), USER_READ);
   }
@@ -85,103 +86,112 @@ public final class EISecPolicyDefault implements EISecPolicyType
     );
   }
 
-  private static EISecPolicyResultType checkUserCreate(
-    final EISecActionUserCreate c)
+  private static EISecPolicyResultType checkAdminActionUserCreate(
+    final EISecAdminActionUserCreate c)
   {
     return checkOwnedPermission(c.admin().permissions(), USER_WRITE);
   }
 
-  private static EISecPolicyResultType checkAuditGet(
-    final EISecActionAuditRead c)
+  private static EISecPolicyResultType checkAdminActionAuditRead(
+    final EISecAdminActionAuditRead c)
   {
     return checkOwnedPermission(c.admin().permissions(), AUDIT_READ);
   }
 
-  private static EISecPolicyResultType checkUserUserComplaintCreate(
-    final EISecActionUserUserComplaintCreate c)
+  private static EISecPolicyResultType checkUserActionUserUserComplaintCreate(
+    final EISecUserActionUserUserComplaintCreate c)
   {
     return new EISecPolicyResultPermitted();
   }
 
-  private static EISecPolicyResultType checkActionImageRead(
-    final EISecActionImageRead a)
+  private static EISecPolicyResultType checkUserActionImageRead(
+    final EISecUserActionImageRead a)
   {
     return new EISecPolicyResultPermitted();
   }
 
-  private static EISecPolicyResultType checkActionImageCreate(
-    final EISecActionImageCreate a)
+  private static EISecPolicyResultType checkUserActionImageCreate(
+    final EISecUserActionImageCreate a)
   {
     return new EISecPolicyResultPermitted();
   }
 
   private static EISecPolicyResultType checkUserAction(
-    final EISecActionUserType action)
+    final EISecUserActionType action)
   {
-    if (action instanceof EISecActionImageRead a) {
-      return checkActionImageRead(a);
+    if (action instanceof EISecUserActionImageRead a) {
+      return checkUserActionImageRead(a);
     }
-    if (action instanceof EISecActionImageCreate a) {
-      return checkActionImageCreate(a);
+    if (action instanceof EISecUserActionImageCreate a) {
+      return checkUserActionImageCreate(a);
     }
-    if (action instanceof EISecActionUserUserComplaintCreate c) {
-      return checkUserUserComplaintCreate(c);
+    if (action instanceof EISecUserActionUserUserComplaintCreate c) {
+      return checkUserActionUserUserComplaintCreate(c);
     }
-    if (action instanceof EISecActionGroupCreateBegin c) {
-      return checkGroupCreateBegin(c);
+    if (action instanceof EISecUserActionGroupCreateBegin c) {
+      return checkUserActionGroupCreateBegin(c);
     }
-    if (action instanceof EISecActionGroupCreateCancel c) {
-      return checkGroupCreateCancel(c);
+    if (action instanceof EISecUserActionGroupCreateCancel c) {
+      return checkUserActionGroupCreateCancel(c);
     }
-    if (action instanceof EISecActionGroupCreateReady c) {
-      return checkGroupCreateReady(c);
+    if (action instanceof EISecUserActionGroupCreateReady c) {
+      return checkUserActionGroupCreateReady(c);
     }
-    if (action instanceof EISecActionGroupInvite c) {
-      return checkGroupInvite(c);
+    if (action instanceof EISecUserActionGroupInvite c) {
+      return checkUserActionGroupInvite(c);
     }
-    if (action instanceof EISecActionGroupInviteCancel c) {
-      return checkGroupInviteCancel(c);
+    if (action instanceof EISecUserActionGroupInviteCancel c) {
+      return checkUserActionGroupInviteCancel(c);
     }
 
     return new EISecPolicyResultDenied("Operation not permitted.");
   }
 
-  private static EISecPolicyResultType checkAdmin(
-    final EISecActionAdminType action)
+  private static EISecPolicyResultType checkAdminAction(
+    final EISecAdminActionType action)
   {
-    if (action instanceof EISecActionAuditRead c) {
-      return checkAuditGet(c);
+    if (action instanceof EISecAdminActionAuditRead c) {
+      return checkAdminActionAuditRead(c);
     }
-    if (action instanceof EISecActionUserCreate c) {
-      return checkUserCreate(c);
+    if (action instanceof EISecAdminActionUserCreate c) {
+      return checkAdminActionUserCreate(c);
     }
-    if (action instanceof EISecActionUserRead c) {
-      return checkUserRead(c);
+    if (action instanceof EISecAdminActionUserRead c) {
+      return checkAdminActionUserRead(c);
     }
-    if (action instanceof EISecActionServicesRead c) {
-      return checkServicesRead(c);
+    if (action instanceof EISecAdminActionServicesRead c) {
+      return checkAdminActionServicesRead(c);
     }
-    if (action instanceof EISecActionAdminCreate c) {
-      return checkAdminCreate(c);
+    if (action instanceof EISecAdminActionAdminCreate c) {
+      return checkAdminActionAdminCreate(c);
     }
-    if (action instanceof EISecActionAdminRead c) {
-      return checkAdminRead(c);
+    if (action instanceof EISecAdminActionAdminRead c) {
+      return checkAdminActionAdminRead(c);
     }
-    if (action instanceof EISecActionGroupInvites c) {
-      return checkGroupInvites(c);
+    if (action instanceof EISecAdminActionGroupInvites c) {
+      return checkAdminActionGroupInvites(c);
+    }
+    if (action instanceof EISecAdminActionGroupInviteSetStatus c) {
+      return checkAdminActionGroupInviteSetStatus(c);
     }
 
     return new EISecPolicyResultDenied("Operation not permitted.");
   }
 
-  private static EISecPolicyResultType checkGroupInvites(
-    final EISecActionGroupInvites c)
+  private static EISecPolicyResultType checkAdminActionGroupInviteSetStatus(
+    final EISecAdminActionGroupInviteSetStatus c)
+  {
+    return checkOwnedPermission(c.admin().permissions(), GROUP_INVITES_WRITE);
+  }
+
+  private static EISecPolicyResultType checkAdminActionGroupInvites(
+    final EISecAdminActionGroupInvites c)
   {
     return checkOwnedPermission(c.admin().permissions(), GROUP_INVITES_READ);
   }
 
-  private static EISecPolicyResultType checkAdminCreate(
-    final EISecActionAdminCreate c)
+  private static EISecPolicyResultType checkAdminActionAdminCreate(
+    final EISecAdminActionAdminCreate c)
   {
     /*
      * The ADMIN_CREATE permission is required to even think about creating
@@ -210,8 +220,8 @@ public final class EISecPolicyDefault implements EISecPolicyType
     return new EISecPolicyResultPermitted();
   }
 
-  private static EISecPolicyResultType checkGroupCreateBegin(
-    final EISecActionGroupCreateBegin c)
+  private static EISecPolicyResultType checkUserActionGroupCreateBegin(
+    final EISecUserActionGroupCreateBegin c)
   {
     /*
      * Group creation requests are rate-limited.
@@ -240,8 +250,8 @@ public final class EISecPolicyDefault implements EISecPolicyType
     return new EISecPolicyResultPermitted();
   }
 
-  private static EISecPolicyResultType checkGroupInvite(
-    final EISecActionGroupInvite c)
+  private static EISecPolicyResultType checkUserActionGroupInvite(
+    final EISecUserActionGroupInvite c)
   {
     /*
      * Invites are rate-limited.
@@ -293,8 +303,8 @@ public final class EISecPolicyDefault implements EISecPolicyType
     return new EISecPolicyResultPermitted();
   }
 
-  private static EISecPolicyResultType checkGroupInviteCancel(
-    final EISecActionGroupInviteCancel c)
+  private static EISecPolicyResultType checkUserActionGroupInviteCancel(
+    final EISecUserActionGroupInviteCancel c)
   {
     /*
      * In order to cancel an invite, the user must have the USER_INVITE
@@ -320,8 +330,8 @@ public final class EISecPolicyDefault implements EISecPolicyType
     return new EISecPolicyResultPermitted();
   }
 
-  private static EISecPolicyResultType checkGroupCreateCancel(
-    final EISecActionGroupCreateCancel c)
+  private static EISecPolicyResultType checkUserActionGroupCreateCancel(
+    final EISecUserActionGroupCreateCancel c)
   {
     if (!Objects.equals(c.user().id(), c.request().userFounder())) {
       return new EISecPolicyResultDenied(
@@ -332,8 +342,8 @@ public final class EISecPolicyDefault implements EISecPolicyType
     return new EISecPolicyResultPermitted();
   }
 
-  private static EISecPolicyResultType checkGroupCreateReady(
-    final EISecActionGroupCreateReady c)
+  private static EISecPolicyResultType checkUserActionGroupCreateReady(
+    final EISecUserActionGroupCreateReady c)
   {
     if (!Objects.equals(c.user().id(), c.request().userFounder())) {
       return new EISecPolicyResultDenied(
@@ -350,10 +360,10 @@ public final class EISecPolicyDefault implements EISecPolicyType
   {
     Objects.requireNonNull(action, "action");
 
-    if (action instanceof EISecActionAdminType admin) {
-      return checkAdmin(admin);
+    if (action instanceof EISecAdminActionType admin) {
+      return checkAdminAction(admin);
     }
-    if (action instanceof EISecActionUserType user) {
+    if (action instanceof EISecUserActionType user) {
       return checkUserAction(user);
     }
     return new EISecPolicyResultDenied("Operation not permitted.");

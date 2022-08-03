@@ -21,13 +21,16 @@ import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandGroupInvites;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1GroupInvite;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1GroupInviteStatus;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1ResponseGroupInvites;
+import com.io7m.eigion.protocol.admin_api.v1.EISA1ResponseType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseException;
 import com.io7m.eigion.server.database.api.EIServerDatabaseGroupsQueriesType;
-import com.io7m.eigion.server.security.EISecActionGroupInvites;
+import com.io7m.eigion.server.security.EISecAdminActionGroupInvites;
 import com.io7m.eigion.server.security.EISecPolicyResultDenied;
 import com.io7m.eigion.server.security.EISecurity;
 import com.io7m.eigion.server.security.EISecurityException;
 import com.io7m.eigion.server.vanilla.internal.EIHTTPErrorStatusException;
+import com.io7m.eigion.server.vanilla.internal.command_exec.EICommandExecutionResult;
+import com.io7m.eigion.server.vanilla.internal.command_exec.EICommandExecutorType;
 
 import static org.eclipse.jetty.http.HttpStatus.FORBIDDEN_403;
 
@@ -36,7 +39,7 @@ import static org.eclipse.jetty.http.HttpStatus.FORBIDDEN_403;
  */
 
 public final class EIACmdGroupInvites
-  implements EIACommandExecutorType<EISA1CommandGroupInvites>
+  implements EICommandExecutorType<EIACommandContext, EISA1CommandGroupInvites, EISA1ResponseType>
 {
   /**
    * A command to retrieve group invites.
@@ -48,7 +51,7 @@ public final class EIACmdGroupInvites
   }
 
   @Override
-  public EIACommandExecutionResult execute(
+  public EICommandExecutionResult<EISA1ResponseType> execute(
     final EIACommandContext context,
     final EISA1CommandGroupInvites command)
     throws
@@ -56,7 +59,7 @@ public final class EIACmdGroupInvites
     EISecurityException,
     EIServerDatabaseException
   {
-    if (EISecurity.check(new EISecActionGroupInvites(context.admin()))
+    if (EISecurity.check(new EISecAdminActionGroupInvites(context.admin()))
       instanceof EISecPolicyResultDenied denied) {
       throw new EIHTTPErrorStatusException(
         FORBIDDEN_403,
@@ -81,7 +84,7 @@ public final class EIACmdGroupInvites
         .map(EISA1GroupInvite::ofInvite)
         .toList();
 
-    return new EIACommandExecutionResult(
+    return new EICommandExecutionResult<>(
       200,
       new EISA1ResponseGroupInvites(
         context.requestId(),

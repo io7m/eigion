@@ -17,15 +17,18 @@
 package com.io7m.eigion.server.vanilla.internal.admin_api;
 
 import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandUserSearch;
+import com.io7m.eigion.protocol.admin_api.v1.EISA1ResponseType;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1ResponseUserList;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1UserSummary;
 import com.io7m.eigion.server.database.api.EIServerDatabaseException;
 import com.io7m.eigion.server.database.api.EIServerDatabaseUsersQueriesType;
-import com.io7m.eigion.server.security.EISecActionUserRead;
+import com.io7m.eigion.server.security.EISecAdminActionUserRead;
 import com.io7m.eigion.server.security.EISecPolicyResultDenied;
 import com.io7m.eigion.server.security.EISecurity;
 import com.io7m.eigion.server.security.EISecurityException;
 import com.io7m.eigion.server.vanilla.internal.EIHTTPErrorStatusException;
+import com.io7m.eigion.server.vanilla.internal.command_exec.EICommandExecutionResult;
+import com.io7m.eigion.server.vanilla.internal.command_exec.EICommandExecutorType;
 
 import static org.eclipse.jetty.http.HttpStatus.FORBIDDEN_403;
 
@@ -34,7 +37,7 @@ import static org.eclipse.jetty.http.HttpStatus.FORBIDDEN_403;
  */
 
 public final class EIACmdUserSearch
-  implements EIACommandExecutorType<EISA1CommandUserSearch>
+  implements EICommandExecutorType<EIACommandContext, EISA1CommandUserSearch, EISA1ResponseType>
 {
   /**
    * A command to retrieve users.
@@ -46,7 +49,7 @@ public final class EIACmdUserSearch
   }
 
   @Override
-  public EIACommandExecutionResult execute(
+  public EICommandExecutionResult<EISA1ResponseType> execute(
     final EIACommandContext context,
     final EISA1CommandUserSearch command)
     throws
@@ -54,7 +57,7 @@ public final class EIACmdUserSearch
     EISecurityException,
     EIHTTPErrorStatusException
   {
-    if (EISecurity.check(new EISecActionUserRead(context.admin()))
+    if (EISecurity.check(new EISecAdminActionUserRead(context.admin()))
       instanceof EISecPolicyResultDenied denied) {
       throw new EIHTTPErrorStatusException(
         FORBIDDEN_403,
@@ -68,7 +71,7 @@ public final class EIACmdUserSearch
     final var users =
       q.userSearch(command.query());
 
-    return new EIACommandExecutionResult(
+    return new EICommandExecutionResult<>(
       200,
       new EISA1ResponseUserList(
         context.requestId(),

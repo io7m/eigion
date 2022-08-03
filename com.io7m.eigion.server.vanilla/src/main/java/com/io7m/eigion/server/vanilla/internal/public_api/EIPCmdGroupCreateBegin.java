@@ -26,7 +26,7 @@ import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseGroupCreateBegin;
 import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseException;
 import com.io7m.eigion.server.database.api.EIServerDatabaseGroupsQueriesType;
-import com.io7m.eigion.server.security.EISecActionGroupCreateBegin;
+import com.io7m.eigion.server.security.EISecUserActionGroupCreateBegin;
 import com.io7m.eigion.server.security.EISecPolicyResultDenied;
 import com.io7m.eigion.server.security.EISecurity;
 import com.io7m.eigion.server.security.EISecurityException;
@@ -81,7 +81,7 @@ public final class EIPCmdGroupCreateBegin
     final var existing =
       queries.groupCreationRequestsForUser(user.id());
     final var action =
-      new EISecActionGroupCreateBegin(user, context.now(), existing, groupName);
+      new EISecUserActionGroupCreateBegin(user, context.now(), existing, groupName);
 
     if (EISecurity.check(action) instanceof EISecPolicyResultDenied denied) {
       throw new EIHTTPErrorStatusException(

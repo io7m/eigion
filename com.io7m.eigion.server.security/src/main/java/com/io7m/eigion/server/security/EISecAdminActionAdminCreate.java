@@ -16,15 +16,34 @@
 
 package com.io7m.eigion.server.security;
 
+import com.io7m.eigion.model.EIAdmin;
+import com.io7m.eigion.model.EIAdminPermission;
+
+import java.util.Objects;
+import java.util.Set;
+
 /**
- * A view of an action within the security policy. An <i>action</i> may (or may
- * not) be performed by a <i>user</i> or <i>admin</i> according to the security
- * policy.
+ * An admin wants to read the audit log.
+ *
+ * @param admin             The admin
+ * @param targetPermissions The permissions the created admin will have
  */
 
-public sealed interface EISecActionType
-  permits EISecAdminActionType,
-  EISecUserActionType
+public record EISecAdminActionAdminCreate(
+  EIAdmin admin,
+  Set<EIAdminPermission> targetPermissions)
+  implements EISecAdminActionType
 {
+  /**
+   * An admin wants to read the audit log.
+   *
+   * @param admin             The admin
+   * @param targetPermissions The permissions the created admin will have
+   */
 
+  public EISecAdminActionAdminCreate
+  {
+    Objects.requireNonNull(admin, "admin");
+    Objects.requireNonNull(targetPermissions, "targetPermissions");
+  }
 }

@@ -100,6 +100,7 @@ public final class EISController
         new EISCommandAdminSearch(controller, strings),
         new EISCommandAudit(controller, strings),
         new EISCommandExit(controller, strings),
+        new EISCommandGroupInviteSetStatus(controller, strings),
         new EISCommandGroupInvites(controller, strings),
         new EISCommandHelp(controller, strings),
         new EISCommandLogin(controller, strings),

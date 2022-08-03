@@ -20,6 +20,7 @@ package com.io7m.eigion.amberjack.api;
 import com.io7m.eigion.model.EIGroupInvite;
 import com.io7m.eigion.model.EIGroupInviteStatus;
 import com.io7m.eigion.model.EIGroupName;
+import com.io7m.eigion.model.EIToken;
 
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -54,4 +55,20 @@ public interface EIAClientGroupsType
     Optional<UUID> withUserBeingInvited,
     Optional<EIGroupInviteStatus> withStatus)
     throws EIAClientException, InterruptedException;
+
+  /**
+   * Set the status of a group invite.
+   *
+   * @param token  The invite token
+   * @param status The invite status
+   *
+   * @throws EIAClientException   On errors
+   * @throws InterruptedException On interruption
+   */
+
+  void groupInviteSetStatus(
+    EIToken token,
+    EIGroupInviteStatus status)
+    throws EIAClientException, InterruptedException;
+
 }

@@ -20,7 +20,7 @@ import com.io7m.eigion.hash.EIHash;
 import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseImageCreated;
 import com.io7m.eigion.server.database.api.EIServerDatabaseImagesQueriesType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseType;
-import com.io7m.eigion.server.security.EISecActionImageCreate;
+import com.io7m.eigion.server.security.EISecUserActionImageCreate;
 import com.io7m.eigion.server.security.EISecPolicyResultDenied;
 import com.io7m.eigion.server.security.EISecurity;
 import com.io7m.eigion.server.vanilla.internal.EIHTTPErrorStatusException;
@@ -89,7 +89,7 @@ public final class EIPImageCreate extends EIPAuthenticatedServlet
     final HttpSession session)
     throws Exception
   {
-    if (EISecurity.check(new EISecActionImageCreate(this.user()))
+    if (EISecurity.check(new EISecUserActionImageCreate(this.user()))
       instanceof EISecPolicyResultDenied denied) {
       throw new EIHTTPErrorStatusException(
         FORBIDDEN_403,

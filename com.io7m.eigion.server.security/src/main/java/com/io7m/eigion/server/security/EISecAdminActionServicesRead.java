@@ -21,21 +21,21 @@ import com.io7m.eigion.model.EIAdmin;
 import java.util.Objects;
 
 /**
- * An admin wants to create a user.
+ * An admin wants to read the services.
  *
  * @param admin The admin
  */
 
-public record EISecActionUserCreate(EIAdmin admin)
-  implements EISecActionAdminType
+public record EISecAdminActionServicesRead(EIAdmin admin)
+  implements EISecAdminActionType
 {
   /**
-   * An admin wants to create a user.
+   * An admin wants to read the services.
    *
    * @param admin The admin
    */
 
-  public EISecActionUserCreate
+  public EISecAdminActionServicesRead
   {
     Objects.requireNonNull(admin, "admin");
   }

@@ -27,6 +27,7 @@ public sealed interface EISA1CommandType
   EISA1CommandAdminGetByName,
   EISA1CommandAdminSearch,
   EISA1CommandAuditGet,
+  EISA1CommandGroupInviteSetStatus,
   EISA1CommandGroupInvites,
   EISA1CommandLogin,
   EISA1CommandServicesList,

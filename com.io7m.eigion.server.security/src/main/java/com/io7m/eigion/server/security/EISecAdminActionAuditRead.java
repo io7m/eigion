@@ -14,41 +14,29 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-package com.io7m.eigion.server.vanilla.internal.admin_api;
+package com.io7m.eigion.server.security;
 
-import com.io7m.eigion.protocol.admin_api.v1.EISA1ResponseType;
+import com.io7m.eigion.model.EIAdmin;
 
 import java.util.Objects;
 
 /**
- * The result of executing an admin command.
+ * An admin wants to read the audit log.
  *
- * @param httpStatus The HTTP status code
- * @param response   The response
+ * @param admin The admin
  */
 
-public record EIACommandExecutionResult(
-  int httpStatus,
-  EISA1ResponseType response)
+public record EISecAdminActionAuditRead(EIAdmin admin)
+  implements EISecAdminActionType
 {
   /**
-   * The result of executing an admin command.
+   * An admin wants to read the audit log.
    *
-   * @param httpStatus The HTTP status code
-   * @param response   The response
+   * @param admin The admin
    */
 
-  public EIACommandExecutionResult
+  public EISecAdminActionAuditRead
   {
-    Objects.requireNonNull(response, "response");
-  }
-
-  /**
-   * @return {@code true} if the HTTP status implies failure
-   */
-
-  public boolean isFailure()
-  {
-    return this.httpStatus >= 400;
+    Objects.requireNonNull(admin, "admin");
   }
 }

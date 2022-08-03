@@ -24,7 +24,7 @@ import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseGroupCreateCancel;
 import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseException;
 import com.io7m.eigion.server.database.api.EIServerDatabaseGroupsQueriesType;
-import com.io7m.eigion.server.security.EISecActionGroupCreateCancel;
+import com.io7m.eigion.server.security.EISecUserActionGroupCreateCancel;
 import com.io7m.eigion.server.security.EISecPolicyResultDenied;
 import com.io7m.eigion.server.security.EISecurity;
 import com.io7m.eigion.server.security.EISecurityException;
@@ -87,7 +87,7 @@ public final class EIPCmdGroupCreateCancel
       existingOpt.get();
 
     final var action =
-      new EISecActionGroupCreateCancel(user, existing);
+      new EISecUserActionGroupCreateCancel(user, existing);
 
     if (EISecurity.check(action) instanceof EISecPolicyResultDenied denied) {
       throw new EIHTTPErrorStatusException(

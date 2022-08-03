@@ -988,6 +988,23 @@ final class EIServerDatabaseGroupQueries
     Objects.requireNonNull(token, "token");
     Objects.requireNonNull(status, "status");
 
+    this.groupInviteSetStatusActual(
+      token,
+      status,
+      this.transaction().userId()
+    );
+  }
+
+  private void groupInviteSetStatusActual(
+    final EIToken token,
+    final EIGroupInviteStatus status,
+    final UUID user)
+    throws EIServerDatabaseException
+  {
+    final var context =
+      this.transaction()
+        .createContext();
+
     final var invite =
       this.groupInviteGet(token)
         .orElseThrow(() -> {
@@ -996,10 +1013,6 @@ final class EIServerDatabaseGroupQueries
             "group-invite-nonexistent"
           );
         });
-
-    final var transaction = this.transaction();
-    final var user = transaction.userId();
-    final var context = transaction.createContext();
 
     try {
       final var timeNow = this.currentTime();
@@ -1020,5 +1033,18 @@ final class EIServerDatabaseGroupQueries
     } catch (final DataAccessException e) {
       throw handleDatabaseException(this.transaction(), e);
     }
+  }
+
+  @Override
+  public void groupInviteSetStatusAdmin(
+    final EIToken token,
+    final EIGroupInviteStatus status)
+    throws EIServerDatabaseException
+  {
+    this.groupInviteSetStatusActual(
+      token,
+      status,
+      this.transaction().adminId()
+    );
   }
 }

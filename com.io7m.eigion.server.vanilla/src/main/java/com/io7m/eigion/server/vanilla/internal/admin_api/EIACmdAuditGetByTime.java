@@ -20,13 +20,16 @@ package com.io7m.eigion.server.vanilla.internal.admin_api;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1AuditEvent;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandAuditGet;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1ResponseAuditGet;
+import com.io7m.eigion.protocol.admin_api.v1.EISA1ResponseType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseAuditQueriesType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseException;
-import com.io7m.eigion.server.security.EISecActionAuditRead;
+import com.io7m.eigion.server.security.EISecAdminActionAuditRead;
 import com.io7m.eigion.server.security.EISecPolicyResultDenied;
 import com.io7m.eigion.server.security.EISecurity;
 import com.io7m.eigion.server.security.EISecurityException;
 import com.io7m.eigion.server.vanilla.internal.EIHTTPErrorStatusException;
+import com.io7m.eigion.server.vanilla.internal.command_exec.EICommandExecutionResult;
+import com.io7m.eigion.server.vanilla.internal.command_exec.EICommandExecutorType;
 
 import static org.eclipse.jetty.http.HttpStatus.FORBIDDEN_403;
 
@@ -35,7 +38,7 @@ import static org.eclipse.jetty.http.HttpStatus.FORBIDDEN_403;
  */
 
 public final class EIACmdAuditGetByTime
-  implements EIACommandExecutorType<EISA1CommandAuditGet>
+  implements EICommandExecutorType<EIACommandContext, EISA1CommandAuditGet, EISA1ResponseType>
 {
   /**
    * A command to retrieve audit logs by a time range.
@@ -47,7 +50,7 @@ public final class EIACmdAuditGetByTime
   }
 
   @Override
-  public EIACommandExecutionResult execute(
+  public EICommandExecutionResult<EISA1ResponseType> execute(
     final EIACommandContext context,
     final EISA1CommandAuditGet command)
     throws
@@ -55,7 +58,7 @@ public final class EIACmdAuditGetByTime
     EIHTTPErrorStatusException,
     EISecurityException
   {
-    if (EISecurity.check(new EISecActionAuditRead(context.admin()))
+    if (EISecurity.check(new EISecAdminActionAuditRead(context.admin()))
       instanceof EISecPolicyResultDenied denied) {
       throw new EIHTTPErrorStatusException(
         FORBIDDEN_403,
@@ -78,7 +81,7 @@ public final class EIACmdAuditGetByTime
         command.messages().toSubsetMatch()
       );
 
-    return new EIACommandExecutionResult(
+    return new EICommandExecutionResult<>(
       200,
       new EISA1ResponseAuditGet(
         context.requestId(),

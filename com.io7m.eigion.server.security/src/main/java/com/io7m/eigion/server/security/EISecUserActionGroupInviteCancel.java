@@ -16,27 +16,33 @@
 
 package com.io7m.eigion.server.security;
 
+import com.io7m.eigion.model.EIGroupInvite;
 import com.io7m.eigion.model.EIUser;
 
+import java.util.Objects;
+
 /**
- * A view of an action within the security policy. An <i>action</i> may (or may
- * not) be performed by a  <i>user</i> according to the security policy.
+ * A user wants to cancel an invite.
+ *
+ * @param user   The user
+ * @param invite The invite
  */
 
-public sealed interface EISecActionUserType
-  extends EISecActionType
-  permits EISecActionGroupCreateBegin,
-  EISecActionGroupCreateCancel,
-  EISecActionGroupCreateReady,
-  EISecActionGroupInvite,
-  EISecActionGroupInviteCancel,
-  EISecActionImageCreate,
-  EISecActionImageRead,
-  EISecActionUserUserComplaintCreate
+public record EISecUserActionGroupInviteCancel(
+  EIUser user,
+  EIGroupInvite invite)
+  implements EISecUserActionType
 {
   /**
-   * @return The user performing the action
+   * A user wants to cancel an invite.
+   *
+   * @param user   The user
+   * @param invite The invite
    */
 
-  EIUser user();
+  public EISecUserActionGroupInviteCancel
+  {
+    Objects.requireNonNull(user, "user");
+    Objects.requireNonNull(invite, "invite");
+  }
 }

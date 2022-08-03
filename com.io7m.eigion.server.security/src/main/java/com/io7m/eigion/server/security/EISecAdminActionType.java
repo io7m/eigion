@@ -16,27 +16,26 @@
 
 package com.io7m.eigion.server.security;
 
-import com.io7m.eigion.model.EIUser;
-
-import java.util.Objects;
+import com.io7m.eigion.model.EIAdmin;
 
 /**
- * A user wants to create an image.
- *
- * @param user The user
+ * A view of an action within the security policy. An <i>action</i> may (or may
+ * not) be performed by an <i>admin</i> according to the security policy.
  */
 
-public record EISecActionImageCreate(EIUser user)
-  implements EISecActionUserType
+public sealed interface EISecAdminActionType
+  extends EISecActionType permits EISecAdminActionAdminCreate,
+  EISecAdminActionAdminRead,
+  EISecAdminActionAuditRead,
+  EISecAdminActionGroupInviteSetStatus,
+  EISecAdminActionGroupInvites,
+  EISecAdminActionServicesRead,
+  EISecAdminActionUserCreate,
+  EISecAdminActionUserRead
 {
   /**
-   * A user wants to create an image.
-   *
-   * @param user The user
+   * @return The admin performing the action
    */
 
-  public EISecActionImageCreate
-  {
-    Objects.requireNonNull(user, "user");
-  }
+  EIAdmin admin();
 }

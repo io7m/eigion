@@ -23,6 +23,7 @@ import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandAdminGetByEmail;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandAdminGetByName;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandAdminSearch;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandAuditGet;
+import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandGroupInviteSetStatus;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandGroupInvites;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandServicesList;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandType;
@@ -31,16 +32,22 @@ import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandUserGet;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandUserGetByEmail;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandUserGetByName;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandUserSearch;
+import com.io7m.eigion.protocol.admin_api.v1.EISA1ResponseType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseException;
 import com.io7m.eigion.server.security.EISecurityException;
 import com.io7m.eigion.server.vanilla.internal.EIHTTPErrorStatusException;
+import com.io7m.eigion.server.vanilla.internal.command_exec.EICommandExecutionResult;
+import com.io7m.eigion.server.vanilla.internal.command_exec.EICommandExecutorType;
 
 /**
  * A general executor for any command.
  */
 
 public final class EIACommandExecutor
-  implements EIACommandExecutorType<EISA1CommandType>
+  implements EICommandExecutorType<
+  EIACommandContext,
+  EISA1CommandType,
+  EISA1ResponseType>
 {
   /**
    * A general executor for any command.
@@ -52,7 +59,7 @@ public final class EIACommandExecutor
   }
 
   @Override
-  public EIACommandExecutionResult execute(
+  public EICommandExecutionResult<EISA1ResponseType> execute(
     final EIACommandContext context,
     final EISA1CommandType command)
     throws
@@ -98,6 +105,9 @@ public final class EIACommandExecutor
     }
     if (command instanceof EISA1CommandGroupInvites c) {
       return new EIACmdGroupInvites().execute(context, c);
+    }
+    if (command instanceof EISA1CommandGroupInviteSetStatus c) {
+      return new EIACmdGroupInviteSetStatus().execute(context, c);
     }
 
     throw new IllegalStateException();

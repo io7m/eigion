@@ -31,11 +31,11 @@ import java.util.Objects;
  *                                          complaint is being made)
  */
 
-public record EISecActionUserUserComplaintCreate(
+public record EISecUserActionUserUserComplaintCreate(
   EIUser user,
   int totalUnresolvedComplaintsFromUser,
   EIUser userTarget)
-  implements EISecActionUserType
+  implements EISecUserActionType
 {
   /**
    * A user wants to create a complaint about another user.
@@ -49,7 +49,7 @@ public record EISecActionUserUserComplaintCreate(
    *                                          complaint is being made)
    */
 
-  public EISecActionUserUserComplaintCreate
+  public EISecUserActionUserUserComplaintCreate
   {
     Objects.requireNonNull(userTarget, "userTarget");
   }

@@ -35,13 +35,13 @@ import java.util.Objects;
  * @param timeNow             The current time
  */
 
-public record EISecActionGroupInvite(
+public record EISecUserActionGroupInvite(
   EIUser userInviting,
   EIUser userBeingInvited,
   EIGroupName group,
   OffsetDateTime timeNow,
   List<EIGroupInvite> userInvitingInvites)
-  implements EISecActionUserType
+  implements EISecUserActionType
 {
   /**
    * A user wants to invite another user to a group.
@@ -53,7 +53,7 @@ public record EISecActionGroupInvite(
    * @param timeNow             The current time
    */
 
-  public EISecActionGroupInvite
+  public EISecUserActionGroupInvite
   {
     Objects.requireNonNull(userInviting, "userInviting");
     Objects.requireNonNull(userBeingInvited, "userBeingInvited");
