@@ -26,6 +26,7 @@ public sealed interface EISP1CommandType
   EISP1CommandGroupCreateCancel,
   EISP1CommandGroupCreateReady,
   EISP1CommandGroupCreateRequests,
+  EISP1CommandGroupGrant,
   EISP1CommandGroupInvite,
   EISP1CommandGroupInviteByName,
   EISP1CommandGroupInviteCancel,
@@ -34,7 +35,8 @@ public sealed interface EISP1CommandType
   EISP1CommandGroupInvitesSent,
   EISP1CommandGroupLeave,
   EISP1CommandGroups,
-  EISP1CommandLogin
+  EISP1CommandLogin,
+  EISP1CommandUserSelf
 {
 
 }

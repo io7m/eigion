@@ -14,32 +14,35 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-package com.io7m.eigion.pike.api;
+package com.io7m.eigion.server.security;
 
-import java.io.Closeable;
-import java.net.URI;
+import com.io7m.eigion.model.EIGroupName;
+import com.io7m.eigion.model.EIUser;
+
+import java.util.Objects;
 
 /**
- * The type of clients.
+ * A user wants to leave a group.
+ *
+ * @param user      The user
+ * @param groupName The group name
  */
 
-public interface EIPClientType
-  extends Closeable, EIPClientGroupsType, EIPClientUsersType
+public record EISecUserActionGroupLeave(
+  EIUser user,
+  EIGroupName groupName)
+  implements EISecUserActionType
 {
   /**
-   * Log in.
+   * A user wants to leave a group.
    *
-   * @param user     The admin username
-   * @param password The password
-   * @param base     The base URI
-   *
-   * @throws EIPClientException   On errors
-   * @throws InterruptedException On interruption
+   * @param user      The user
+   * @param groupName The group name
    */
 
-  void login(
-    String user,
-    String password,
-    URI base)
-    throws EIPClientException, InterruptedException;
+  public EISecUserActionGroupLeave
+  {
+    Objects.requireNonNull(user, "user");
+    Objects.requireNonNull(groupName, "groupName");
+  }
 }

@@ -34,12 +34,16 @@ import org.slf4j.LoggerFactory;
 import java.net.URI;
 import java.util.EnumSet;
 import java.util.Locale;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
 import static com.io7m.eigion.model.EIGroupCreationRequestStatusType.Cancelled;
 import static com.io7m.eigion.model.EIGroupCreationRequestStatusType.InProgress;
+import static com.io7m.eigion.model.EIGroupRole.USER_DISMISS;
+import static com.io7m.eigion.model.EIGroupRole.USER_INVITE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -340,5 +344,90 @@ public final class EIPikeTest extends EIWithServerContract
     assertEquals(groups.get(0).group(), groupName);
     assertEquals(groups.get(0).roles(), EnumSet.allOf(EIGroupRole.class));
     assertEquals(1, groups.size());
+  }
+
+  /**
+   * Granting roles in a group works.
+   *
+   * @throws Exception On errors
+   */
+
+  @Test
+  public void testGroupGrant()
+    throws Exception
+  {
+    final var admin =
+      this.serverCreateAdminInitial("someone", "12345678");
+    final var user0 =
+      this.serverCreateUser(admin, "some0");
+    final var user1 =
+      this.serverCreateUser(admin, "some1");
+
+    this.groupCreate(user0, "com.io7m.ex");
+    this.groupAddUser(user1, "com.io7m.ex", Set.of(USER_INVITE));
+
+    this.client.login("some0", "12345678", this.serverPublicURI());
+    this.client.groupGrant(new EIGroupName("com.io7m.ex"), user1, USER_DISMISS);
+  }
+
+  /**
+   * Unowned roles cannot be granted.
+   *
+   * @throws Exception On errors
+   */
+
+  @Test
+  public void testGroupGrantNotOwned()
+    throws Exception
+  {
+    final var admin =
+      this.serverCreateAdminInitial("someone", "12345678");
+    final var user0 =
+      this.serverCreateUser(admin, "some0");
+    final var user1 =
+      this.serverCreateUser(admin, "some1");
+
+    this.groupCreate(user0, "com.io7m.ex");
+    this.groupAddUser(user1, "com.io7m.ex", Set.of(USER_INVITE));
+
+    this.client.login("some1", "12345678", this.serverPublicURI());
+
+    final var ex =
+    assertThrows(EIPClientException.class, () -> {
+      this.client.groupGrant(new EIGroupName("com.io7m.ex"), user1, USER_DISMISS);
+    });
+    assertTrue(ex.getMessage().contains("USER_DISMISS role"));
+  }
+
+  /**
+   * Leaving a group works.
+   *
+   * @throws Exception On errors
+   */
+
+  @Test
+  public void testGroupLeave()
+    throws Exception
+  {
+    final var admin =
+      this.serverCreateAdminInitial("someone", "12345678");
+    final var user0 =
+      this.serverCreateUser(admin, "some0");
+    final var user1 =
+      this.serverCreateUser(admin, "some1");
+
+    final var groupName = new EIGroupName("com.io7m.ex");
+    this.groupCreate(user0, groupName.value());
+    this.groupAddUser(user1, groupName.value(), Set.of(USER_INVITE));
+
+    this.client.login("some1", "12345678", this.serverPublicURI());
+
+    final var self0 = this.client.userSelf();
+    assertTrue(self0.groupMembership().containsKey(groupName));
+
+    this.client.groupLeave(groupName);
+
+    final var self1 = this.client.userSelf();
+    assertFalse(self1.groupMembership().containsKey(groupName));
   }
 }

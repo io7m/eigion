@@ -14,32 +14,28 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-package com.io7m.eigion.pike.api;
+package com.io7m.eigion.protocol.public_api.v1;
 
-import java.io.Closeable;
-import java.net.URI;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 /**
- * The type of clients.
+ * A request to retrieve the user's own user profile.
  */
 
-public interface EIPClientType
-  extends Closeable, EIPClientGroupsType, EIPClientUsersType
+@JsonDeserialize
+@JsonSerialize
+public record EISP1CommandUserSelf()
+  implements EISP1CommandType
 {
   /**
-   * Log in.
-   *
-   * @param user     The admin username
-   * @param password The password
-   * @param base     The base URI
-   *
-   * @throws EIPClientException   On errors
-   * @throws InterruptedException On interruption
+   * A request to retrieve the user's own user profile.
    */
 
-  void login(
-    String user,
-    String password,
-    URI base)
-    throws EIPClientException, InterruptedException;
+  @JsonCreator
+  public EISP1CommandUserSelf
+  {
+
+  }
 }

@@ -291,7 +291,7 @@ public final class EIAmberjackTest extends EIWithServerContract
     final var user1 =
       this.serverCreateUser(admin, "user1");
 
-    this.createGroup(user0, "com.io7m.ex");
+    this.groupCreate(user0, "com.io7m.ex");
 
     this.client.login("someone", "12345678", this.serverAdminURI());
 

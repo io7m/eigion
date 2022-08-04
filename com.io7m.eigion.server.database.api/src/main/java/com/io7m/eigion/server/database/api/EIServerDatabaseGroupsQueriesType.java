@@ -171,7 +171,6 @@ public non-sealed interface EIServerDatabaseGroupsQueriesType
    * @throws EIServerDatabaseException On errors
    */
 
-  @EIServerDatabaseRequiresAdmin
   void groupMembershipRemove(
     EIGroupName name,
     UUID userId)

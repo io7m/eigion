@@ -21,6 +21,7 @@ import com.io7m.eigion.model.EIGroupCreationRequest;
 import com.io7m.eigion.model.EIGroupInvite;
 import com.io7m.eigion.model.EIGroupInviteStatus;
 import com.io7m.eigion.model.EIGroupName;
+import com.io7m.eigion.model.EIGroupRole;
 import com.io7m.eigion.model.EIGroupRoles;
 import com.io7m.eigion.model.EIToken;
 import com.io7m.eigion.model.EIUserDisplayName;
@@ -182,5 +183,34 @@ public interface EIPClientGroupsType
   void groupInviteRespond(
     EIToken token,
     boolean accept)
+    throws EIPClientException, InterruptedException;
+
+  /**
+   * Leave a group.
+   *
+   * @param group The group name
+   *
+   * @throws EIPClientException   On errors
+   * @throws InterruptedException On interruption
+   */
+
+  void groupLeave(EIGroupName group)
+    throws EIPClientException, InterruptedException;
+
+  /**
+   * Grant a role to a user within the given group.
+   *
+   * @param group         The group name
+   * @param userReceiving The user that will receive the role
+   * @param role          The role
+   *
+   * @throws EIPClientException   On errors
+   * @throws InterruptedException On interruption
+   */
+
+  void groupGrant(
+    EIGroupName group,
+    UUID userReceiving,
+    EIGroupRole role)
     throws EIPClientException, InterruptedException;
 }

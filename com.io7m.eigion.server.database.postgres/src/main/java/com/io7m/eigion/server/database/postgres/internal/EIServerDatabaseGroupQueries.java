@@ -699,7 +699,6 @@ final class EIServerDatabaseGroupQueries
     Objects.requireNonNull(userId, "userId");
 
     final var transaction = this.transaction();
-    final var admin = transaction.adminId();
     final var context = transaction.createContext();
 
     try {
@@ -727,7 +726,7 @@ final class EIServerDatabaseGroupQueries
           context.insertInto(AUDIT)
             .set(AUDIT.TIME, timeNow)
             .set(AUDIT.TYPE, "GROUP_USERS_REMOVED")
-            .set(AUDIT.USER_ID, admin)
+            .set(AUDIT.USER_ID, userId)
             .set(AUDIT.MESSAGE, "%s|%s".formatted(name, userId));
 
         insertAuditRecord(audit);

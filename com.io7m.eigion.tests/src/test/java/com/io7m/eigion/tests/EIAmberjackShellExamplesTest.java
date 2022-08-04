@@ -105,7 +105,7 @@ public final class EIAmberjackShellExamplesTest extends EIWithServerContract
     final var user1 =
       this.serverCreateUser(admin, "some1");
 
-    this.createGroup(user0, "com.io7m.ex");
+    this.groupCreate(user0, "com.io7m.ex");
 
     /*
      * Log in.

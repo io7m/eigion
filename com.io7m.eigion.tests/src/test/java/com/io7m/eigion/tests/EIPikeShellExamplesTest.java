@@ -21,6 +21,7 @@ import com.io7m.eigion.model.EIGroupCreationRequest;
 import com.io7m.eigion.model.EIGroupCreationRequestStatusType.Succeeded;
 import com.io7m.eigion.model.EIGroupName;
 import com.io7m.eigion.model.EIToken;
+import com.io7m.eigion.model.EIUser;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -35,9 +36,12 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
+import static com.io7m.eigion.model.EIGroupRole.USER_DISMISS;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
 public final class EIPikeShellExamplesTest extends EIWithServerContract
@@ -554,6 +558,96 @@ public final class EIPikeShellExamplesTest extends EIWithServerContract
 
     final var lines = this.readUntilFileSeparator("groups");
     assertFalse(lines.stream().anyMatch(s -> s.contains("com.io7m.ex")));
+  }
+
+  /**
+   * Leaving a group works.
+   *
+   * @throws Exception On errors
+   */
+
+  @Test
+  @Timeout(value = 10L, unit = TimeUnit.SECONDS)
+  public void testGroupLeave()
+    throws Exception
+  {
+    final var admin =
+      this.serverCreateAdminInitial("someone", "12345678");
+    final var user0 =
+      this.serverCreateUser(admin, "some0");
+    final var user1 =
+      this.serverCreateUser(admin, "some1");
+
+    this.groupCreate(user0, "com.io7m.ex");
+    this.groupAddUser(user1, "com.io7m.ex", Set.of());
+
+    /*
+     * Log in.
+     */
+
+    this.writer.write("login --username some1 --password 12345678 --server " + this.serverPublicURI());
+    this.writer.newLine();
+    this.writer.flush();
+    this.readUntilFileSeparator("login");
+
+    /*
+     * Leave the group.
+     */
+
+    this.writer.write("group-leave --group com.io7m.ex");
+    this.writer.newLine();
+    this.writer.flush();
+    this.readUntilFileSeparator("group-leave");
+
+    final var u = this.userGet(user1);
+    assertFalse(u.groupMembership()
+                  .containsKey(new EIGroupName("com.io7m.ex")));
+  }
+
+  /**
+   * Granting a role works.
+   *
+   * @throws Exception On errors
+   */
+
+  @Test
+  @Timeout(value = 10L, unit = TimeUnit.SECONDS)
+  public void testGroupGrant()
+    throws Exception
+  {
+    final var admin =
+      this.serverCreateAdminInitial("someone", "12345678");
+    final var user0 =
+      this.serverCreateUser(admin, "some0");
+    final var user1 =
+      this.serverCreateUser(admin, "some1");
+
+    this.groupCreate(user0, "com.io7m.ex");
+    this.groupAddUser(user1, "com.io7m.ex", Set.of());
+
+    /*
+     * Log in.
+     */
+
+    this.writer.write("login --username some0 --password 12345678 --server " + this.serverPublicURI());
+    this.writer.newLine();
+    this.writer.flush();
+    this.readUntilFileSeparator("login");
+
+    /*
+     * Grant a role.
+     */
+
+    this.writer.write("group-grant --group com.io7m.ex --user-id " + user1 + " --role USER_DISMISS");
+    this.writer.newLine();
+    this.writer.flush();
+    this.readUntilFileSeparator("group-grant");
+
+    final var u = this.userGet(user1);
+    assertEquals(
+      Set.of(USER_DISMISS),
+      u.groupMembership().get(new EIGroupName("com.io7m.ex"))
+    );
   }
 
   private String readUntilExact(

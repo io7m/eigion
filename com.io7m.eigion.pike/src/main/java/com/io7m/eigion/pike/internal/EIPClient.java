@@ -20,8 +20,10 @@ import com.io7m.eigion.model.EIGroupCreationRequest;
 import com.io7m.eigion.model.EIGroupInvite;
 import com.io7m.eigion.model.EIGroupInviteStatus;
 import com.io7m.eigion.model.EIGroupName;
+import com.io7m.eigion.model.EIGroupRole;
 import com.io7m.eigion.model.EIGroupRoles;
 import com.io7m.eigion.model.EIToken;
+import com.io7m.eigion.model.EIUser;
 import com.io7m.eigion.model.EIUserDisplayName;
 import com.io7m.eigion.pike.api.EIPClientException;
 import com.io7m.eigion.pike.api.EIPClientType;
@@ -182,5 +184,30 @@ public final class EIPClient implements EIPClientType
     throws EIPClientException, InterruptedException
   {
     this.handler.groupInviteRespond(token, accept);
+  }
+
+  @Override
+  public void groupLeave(
+    final EIGroupName group)
+    throws EIPClientException, InterruptedException
+  {
+    this.handler.groupLeave(group);
+  }
+
+  @Override
+  public void groupGrant(
+    final EIGroupName group,
+    final UUID userReceiving,
+    final EIGroupRole role)
+    throws EIPClientException, InterruptedException
+  {
+    this.handler.groupGrant(group, userReceiving, role);
+  }
+
+  @Override
+  public EIUser userSelf()
+    throws EIPClientException, InterruptedException
+  {
+    return this.handler.userSelf();
   }
 }

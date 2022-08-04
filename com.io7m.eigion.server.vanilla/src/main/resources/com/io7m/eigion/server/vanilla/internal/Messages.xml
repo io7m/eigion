@@ -23,5 +23,8 @@
   <entry key="cmd.groupInviteRespond.wrongUser">
     The specified invitation is not addressed to you.
   </entry>
+  <entry key="cmd.groupLeave.founder">
+    You are the founder of group {0} and therefore cannot leave it.
+  </entry>
 
 </properties>

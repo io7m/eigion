@@ -14,32 +14,26 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+
 package com.io7m.eigion.pike.api;
 
-import java.io.Closeable;
-import java.net.URI;
+import com.io7m.eigion.model.EIUser;
 
 /**
- * The type of clients.
+ * Commands related to users.
  */
 
-public interface EIPClientType
-  extends Closeable, EIPClientGroupsType, EIPClientUsersType
+public interface EIPClientUsersType
 {
   /**
-   * Log in.
+   * Retrieve the current user profile.
    *
-   * @param user     The admin username
-   * @param password The password
-   * @param base     The base URI
+   * @return The current user
    *
    * @throws EIPClientException   On errors
    * @throws InterruptedException On interruption
    */
 
-  void login(
-    String user,
-    String password,
-    URI base)
+  EIUser userSelf()
     throws EIPClientException, InterruptedException;
 }

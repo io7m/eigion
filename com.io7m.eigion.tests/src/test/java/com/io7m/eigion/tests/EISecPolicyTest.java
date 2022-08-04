@@ -44,17 +44,19 @@ import com.io7m.eigion.server.security.EISecPolicyResultPermitted;
 import com.io7m.eigion.server.security.EISecUserActionGroupCreateBegin;
 import com.io7m.eigion.server.security.EISecUserActionGroupCreateCancel;
 import com.io7m.eigion.server.security.EISecUserActionGroupCreateReady;
+import com.io7m.eigion.server.security.EISecUserActionGroupGrant;
 import com.io7m.eigion.server.security.EISecUserActionGroupInvite;
 import com.io7m.eigion.server.security.EISecUserActionGroupInviteCancel;
+import com.io7m.eigion.server.security.EISecUserActionGroupLeave;
 import com.io7m.eigion.server.security.EISecUserActionImageCreate;
 import com.io7m.eigion.server.security.EISecUserActionImageRead;
 import com.io7m.eigion.server.security.EISecurityException;
 import net.jqwik.api.ForAll;
 import net.jqwik.api.Property;
-import org.junit.jupiter.api.Assumptions;
 
 import java.time.OffsetDateTime;
 import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -71,9 +73,11 @@ import static com.io7m.eigion.model.EIAdminPermission.GROUP_INVITES_WRITE;
 import static com.io7m.eigion.model.EIAdminPermission.SERVICE_READ;
 import static com.io7m.eigion.model.EIAdminPermission.USER_READ;
 import static com.io7m.eigion.model.EIAdminPermission.USER_WRITE;
+import static com.io7m.eigion.model.EIGroupRole.FOUNDER;
 import static com.io7m.eigion.model.EIGroupRole.USER_DISMISS;
 import static com.io7m.eigion.model.EIGroupRole.USER_INVITE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assumptions.assumeFalse;
 
 /**
  * The security policy tests.
@@ -918,7 +922,7 @@ public final class EISecPolicyTest
     throws Exception
   {
     final var other = UUID.randomUUID();
-    Assumptions.assumeFalse(Objects.equals(user.id(), other));
+    assumeFalse(Objects.equals(user.id(), other));
 
     final var withoutOwner =
       new EIGroupCreationRequest(
@@ -973,7 +977,7 @@ public final class EISecPolicyTest
     throws Exception
   {
     final var other = UUID.randomUUID();
-    Assumptions.assumeFalse(Objects.equals(user.id(), other));
+    assumeFalse(Objects.equals(user.id(), other));
 
     final var withoutOwner =
       new EIGroupCreationRequest(
@@ -1342,5 +1346,397 @@ public final class EISecPolicyTest
     throws Exception
   {
     permitted(new EISecUserActionImageRead(user));
+  }
+
+  /**
+   * A user that is not in a group cannot grant anything for that group.
+   *
+   * @param userGranting  The user granting the role
+   * @param userReceiving The user receiving the role
+   * @param role          The role
+   * @param groupName     The group name
+   *
+   * @throws Exception On errors
+   */
+
+  @Property
+  public void testUserActionGroupGrantNotInGroupA(
+    @ForAll final EIUser userGranting,
+    @ForAll final EIUser userReceiving,
+    @ForAll final EIGroupName groupName,
+    @ForAll final EIGroupRole role)
+    throws Exception
+  {
+    assumeFalse(role == FOUNDER);
+
+    final var membershipA =
+      new HashMap<>(userGranting.groupMembership());
+
+    membershipA.remove(groupName);
+
+    final var membershipB =
+      new HashMap<>(userReceiving.groupMembership());
+
+    membershipB.put(groupName, EnumSet.allOf(EIGroupRole.class));
+
+    final var userGrantingActual =
+      new EIUser(
+        userGranting.id(),
+        userGranting.name(),
+        userGranting.email(),
+        userGranting.created(),
+        userGranting.lastLoginTime(),
+        userGranting.password(),
+        userGranting.ban(),
+        membershipA
+      );
+
+    final var userReceivingActual =
+      new EIUser(
+        userGranting.id(),
+        userGranting.name(),
+        userGranting.email(),
+        userGranting.created(),
+        userGranting.lastLoginTime(),
+        userGranting.password(),
+        userGranting.ban(),
+        membershipB
+      );
+
+    denied(new EISecUserActionGroupGrant(
+      userGrantingActual,
+      groupName,
+      role,
+      userReceivingActual
+    ));
+  }
+
+  /**
+   * A user cannot grant anything for a user that is not in that group.
+   *
+   * @param userGranting  The user granting the role
+   * @param userReceiving The user receiving the role
+   * @param role          The role
+   * @param groupName     The group name
+   *
+   * @throws Exception On errors
+   */
+
+  @Property
+  public void testUserActionGroupGrantNotInGroupB(
+    @ForAll final EIUser userGranting,
+    @ForAll final EIUser userReceiving,
+    @ForAll final EIGroupName groupName,
+    @ForAll final EIGroupRole role)
+    throws Exception
+  {
+    assumeFalse(role == FOUNDER);
+
+    final var membershipA =
+      new HashMap<>(userGranting.groupMembership());
+
+    membershipA.put(groupName, Set.of(role));
+
+    final var membershipB =
+      new HashMap<>(userReceiving.groupMembership());
+
+    membershipB.remove(groupName);
+
+    final var userGrantingActual =
+      new EIUser(
+        userGranting.id(),
+        userGranting.name(),
+        userGranting.email(),
+        userGranting.created(),
+        userGranting.lastLoginTime(),
+        userGranting.password(),
+        userGranting.ban(),
+        membershipA
+      );
+
+    final var userReceivingActual =
+      new EIUser(
+        userGranting.id(),
+        userGranting.name(),
+        userGranting.email(),
+        userGranting.created(),
+        userGranting.lastLoginTime(),
+        userGranting.password(),
+        userGranting.ban(),
+        membershipB
+      );
+
+    denied(new EISecUserActionGroupGrant(
+      userGrantingActual,
+      groupName,
+      role,
+      userReceivingActual
+    ));
+  }
+
+  /**
+   * A user cannot grant a role that it does not have.
+   *
+   * @param userGranting  The user granting the role
+   * @param userReceiving The user receiving the role
+   * @param role          The role
+   * @param groupName     The group name
+   *
+   * @throws Exception On errors
+   */
+
+  @Property
+  public void testUserActionGroupGrantNotAvailable(
+    @ForAll final EIUser userGranting,
+    @ForAll final EIUser userReceiving,
+    @ForAll final EIGroupName groupName,
+    @ForAll final EIGroupRole role)
+    throws Exception
+  {
+    assumeFalse(role == FOUNDER);
+
+    final var membershipA =
+      new HashMap<>(userGranting.groupMembership());
+
+    membershipA.put(groupName, Set.of());
+
+    final var membershipB =
+      new HashMap<>(userReceiving.groupMembership());
+
+    membershipB.put(groupName, EnumSet.allOf(EIGroupRole.class));
+
+    final var userGrantingActual =
+      new EIUser(
+        userGranting.id(),
+        userGranting.name(),
+        userGranting.email(),
+        userGranting.created(),
+        userGranting.lastLoginTime(),
+        userGranting.password(),
+        userGranting.ban(),
+        membershipA
+      );
+
+    final var userReceivingActual =
+      new EIUser(
+        userGranting.id(),
+        userGranting.name(),
+        userGranting.email(),
+        userGranting.created(),
+        userGranting.lastLoginTime(),
+        userGranting.password(),
+        userGranting.ban(),
+        membershipB
+      );
+
+    denied(new EISecUserActionGroupGrant(
+      userGrantingActual,
+      groupName,
+      role,
+      userReceivingActual
+    ));
+  }
+
+  /**
+   * A user can grant a role it has to other users in the group.
+   *
+   * @param userGranting  The user granting the role
+   * @param userReceiving The user receiving the role
+   * @param role          The role
+   * @param groupName     The group name
+   *
+   * @throws Exception On errors
+   */
+
+  @Property
+  public void testUserActionGroupGrant(
+    @ForAll final EIUser userGranting,
+    @ForAll final EIUser userReceiving,
+    @ForAll final EIGroupName groupName,
+    @ForAll final EIGroupRole role)
+    throws Exception
+  {
+    assumeFalse(role == FOUNDER);
+
+    final var membershipA =
+      new HashMap<>(userGranting.groupMembership());
+
+    membershipA.put(groupName, Set.of(role));
+
+    final var membershipB =
+      new HashMap<>(userReceiving.groupMembership());
+
+    membershipB.put(groupName, EnumSet.allOf(EIGroupRole.class));
+
+    final var userGrantingActual =
+      new EIUser(
+        userGranting.id(),
+        userGranting.name(),
+        userGranting.email(),
+        userGranting.created(),
+        userGranting.lastLoginTime(),
+        userGranting.password(),
+        userGranting.ban(),
+        membershipA
+      );
+
+    final var userReceivingActual =
+      new EIUser(
+        userGranting.id(),
+        userGranting.name(),
+        userGranting.email(),
+        userGranting.created(),
+        userGranting.lastLoginTime(),
+        userGranting.password(),
+        userGranting.ban(),
+        membershipB
+      );
+
+    permitted(new EISecUserActionGroupGrant(
+      userGrantingActual,
+      groupName,
+      role,
+      userReceivingActual
+    ));
+  }
+
+  /**
+   * A user can grant a role it has to other users in the group.
+   *
+   * @param userGranting  The user granting the role
+   * @param userReceiving The user receiving the role
+   * @param role          The role
+   * @param groupName     The group name
+   *
+   * @throws Exception On errors
+   */
+
+  @Property
+  public void testUserActionGroupGrantFounderAlt(
+    @ForAll final EIUser userGranting,
+    @ForAll final EIUser userReceiving,
+    @ForAll final EIGroupName groupName,
+    @ForAll final EIGroupRole role)
+    throws Exception
+  {
+    assumeFalse(role == FOUNDER);
+
+    final var membershipA =
+      new HashMap<>(userGranting.groupMembership());
+
+    membershipA.put(groupName, Set.of(FOUNDER));
+
+    final var membershipB =
+      new HashMap<>(userReceiving.groupMembership());
+
+    membershipB.put(groupName, EnumSet.allOf(EIGroupRole.class));
+
+    final var userGrantingActual =
+      new EIUser(
+        userGranting.id(),
+        userGranting.name(),
+        userGranting.email(),
+        userGranting.created(),
+        userGranting.lastLoginTime(),
+        userGranting.password(),
+        userGranting.ban(),
+        membershipA
+      );
+
+    final var userReceivingActual =
+      new EIUser(
+        userGranting.id(),
+        userGranting.name(),
+        userGranting.email(),
+        userGranting.created(),
+        userGranting.lastLoginTime(),
+        userGranting.password(),
+        userGranting.ban(),
+        membershipB
+      );
+
+    permitted(new EISecUserActionGroupGrant(
+      userGrantingActual,
+      groupName,
+      role,
+      userReceivingActual
+    ));
+  }
+
+  /**
+   * A user cannot grant the FOUNDER role.
+   *
+   * @param userGranting  The user granting the role
+   * @param userReceiving The user receiving the role
+   * @param groupName     The group name
+   *
+   * @throws Exception On errors
+   */
+
+  @Property
+  public void testUserActionGroupGrantFounder(
+    @ForAll final EIUser userGranting,
+    @ForAll final EIUser userReceiving,
+    @ForAll final EIGroupName groupName)
+    throws Exception
+  {
+    final var membershipA =
+      new HashMap<>(userGranting.groupMembership());
+
+    membershipA.put(groupName, Set.of(FOUNDER));
+
+    final var membershipB =
+      new HashMap<>(userReceiving.groupMembership());
+
+    membershipB.put(groupName, Set.of());
+
+    final var userGrantingActual =
+      new EIUser(
+        userGranting.id(),
+        userGranting.name(),
+        userGranting.email(),
+        userGranting.created(),
+        userGranting.lastLoginTime(),
+        userGranting.password(),
+        userGranting.ban(),
+        membershipA
+      );
+
+    final var userReceivingActual =
+      new EIUser(
+        userGranting.id(),
+        userGranting.name(),
+        userGranting.email(),
+        userGranting.created(),
+        userGranting.lastLoginTime(),
+        userGranting.password(),
+        userGranting.ban(),
+        membershipB
+      );
+
+    denied(new EISecUserActionGroupGrant(
+      userGrantingActual,
+      groupName,
+      FOUNDER,
+      userReceivingActual
+    ));
+  }
+
+  /**
+   * A user can always leave a group (subject to integrity constraints).
+   *
+   * @param user      The user granting the role
+   * @param groupName The group name
+   *
+   * @throws Exception On errors
+   */
+
+  @Property
+  public void testUserActionGroupGrantFounder(
+    @ForAll final EIUser user,
+    @ForAll final EIGroupName groupName)
+    throws Exception
+  {
+    permitted(new EISecUserActionGroupLeave(user, groupName));
   }
 }

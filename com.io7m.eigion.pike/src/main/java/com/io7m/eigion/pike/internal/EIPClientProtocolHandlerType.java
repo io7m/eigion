@@ -18,6 +18,7 @@ package com.io7m.eigion.pike.internal;
 
 import com.io7m.eigion.pike.api.EIPClientException;
 import com.io7m.eigion.pike.api.EIPClientGroupsType;
+import com.io7m.eigion.pike.api.EIPClientUsersType;
 
 import java.net.URI;
 
@@ -26,7 +27,7 @@ import java.net.URI;
  */
 
 public interface EIPClientProtocolHandlerType
-  extends EIPClientGroupsType
+  extends EIPClientGroupsType, EIPClientUsersType
 {
   /**
    * Attempt to log in.

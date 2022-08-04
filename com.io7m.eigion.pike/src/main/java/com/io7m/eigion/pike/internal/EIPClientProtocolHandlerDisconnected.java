@@ -21,8 +21,10 @@ import com.io7m.eigion.model.EIGroupCreationRequest;
 import com.io7m.eigion.model.EIGroupInvite;
 import com.io7m.eigion.model.EIGroupInviteStatus;
 import com.io7m.eigion.model.EIGroupName;
+import com.io7m.eigion.model.EIGroupRole;
 import com.io7m.eigion.model.EIGroupRoles;
 import com.io7m.eigion.model.EIToken;
+import com.io7m.eigion.model.EIUser;
 import com.io7m.eigion.model.EIUserDisplayName;
 import com.io7m.eigion.pike.api.EIPClientException;
 import com.io7m.eigion.pike.api.EIPGroupCreationChallenge;
@@ -169,6 +171,24 @@ public final class EIPClientProtocolHandlerDisconnected
     throw this.notLoggedIn();
   }
 
+  @Override
+  public void groupLeave(
+    final EIGroupName group)
+    throws EIPClientException
+  {
+    throw this.notLoggedIn();
+  }
+
+  @Override
+  public void groupGrant(
+    final EIGroupName group,
+    final UUID userReceiving,
+    final EIGroupRole role)
+    throws EIPClientException
+  {
+    throw this.notLoggedIn();
+  }
+
   private EIPClientException notLoggedIn()
   {
     return new EIPClientException(
@@ -176,4 +196,10 @@ public final class EIPClientProtocolHandlerDisconnected
     );
   }
 
+  @Override
+  public EIUser userSelf()
+    throws EIPClientException
+  {
+    throw this.notLoggedIn();
+  }
 }

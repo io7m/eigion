@@ -21,8 +21,11 @@ import com.io7m.eigion.model.EIGroupCreationRequest;
 import com.io7m.eigion.model.EIGroupInvite;
 import com.io7m.eigion.model.EIGroupInviteStatus;
 import com.io7m.eigion.model.EIGroupName;
+import com.io7m.eigion.model.EIGroupRole;
 import com.io7m.eigion.model.EIGroupRoles;
+import com.io7m.eigion.model.EIPasswordException;
 import com.io7m.eigion.model.EIToken;
+import com.io7m.eigion.model.EIUser;
 import com.io7m.eigion.model.EIUserDisplayName;
 import com.io7m.eigion.pike.api.EIPClientException;
 import com.io7m.eigion.pike.api.EIPGroupCreationChallenge;
@@ -31,17 +34,21 @@ import com.io7m.eigion.protocol.public_api.v1.EISP1CommandGroupCreateBegin;
 import com.io7m.eigion.protocol.public_api.v1.EISP1CommandGroupCreateCancel;
 import com.io7m.eigion.protocol.public_api.v1.EISP1CommandGroupCreateReady;
 import com.io7m.eigion.protocol.public_api.v1.EISP1CommandGroupCreateRequests;
+import com.io7m.eigion.protocol.public_api.v1.EISP1CommandGroupGrant;
 import com.io7m.eigion.protocol.public_api.v1.EISP1CommandGroupInvite;
 import com.io7m.eigion.protocol.public_api.v1.EISP1CommandGroupInviteByName;
 import com.io7m.eigion.protocol.public_api.v1.EISP1CommandGroupInviteCancel;
 import com.io7m.eigion.protocol.public_api.v1.EISP1CommandGroupInviteRespond;
 import com.io7m.eigion.protocol.public_api.v1.EISP1CommandGroupInvitesReceived;
 import com.io7m.eigion.protocol.public_api.v1.EISP1CommandGroupInvitesSent;
+import com.io7m.eigion.protocol.public_api.v1.EISP1CommandGroupLeave;
 import com.io7m.eigion.protocol.public_api.v1.EISP1CommandGroups;
 import com.io7m.eigion.protocol.public_api.v1.EISP1CommandLogin;
+import com.io7m.eigion.protocol.public_api.v1.EISP1CommandUserSelf;
 import com.io7m.eigion.protocol.public_api.v1.EISP1GroupCreationRequest;
 import com.io7m.eigion.protocol.public_api.v1.EISP1GroupInvite;
 import com.io7m.eigion.protocol.public_api.v1.EISP1GroupInviteStatus;
+import com.io7m.eigion.protocol.public_api.v1.EISP1GroupRole;
 import com.io7m.eigion.protocol.public_api.v1.EISP1GroupRoles;
 import com.io7m.eigion.protocol.public_api.v1.EISP1MessageType;
 import com.io7m.eigion.protocol.public_api.v1.EISP1Messages;
@@ -50,12 +57,15 @@ import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseGroupCreateBegin;
 import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseGroupCreateCancel;
 import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseGroupCreateReady;
 import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseGroupCreateRequests;
+import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseGroupGrant;
 import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseGroupInvite;
 import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseGroupInviteRespond;
 import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseGroupInvites;
+import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseGroupLeave;
 import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseGroups;
 import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseLogin;
 import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseType;
+import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseUserSelf;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -418,6 +428,51 @@ public final class EIPClientProtocolHandler1
       EISP1ResponseGroupInviteRespond.class,
       new EISP1CommandGroupInviteRespond(token.value(), accept)
     );
+  }
+
+  @Override
+  public void groupLeave(
+    final EIGroupName group)
+    throws EIPClientException, InterruptedException
+  {
+    this.sendCommand(
+      EISP1ResponseGroupLeave.class,
+      new EISP1CommandGroupLeave(group.value())
+    );
+  }
+
+  @Override
+  public void groupGrant(
+    final EIGroupName group,
+    final UUID userReceiving,
+    final EIGroupRole role)
+    throws EIPClientException, InterruptedException
+  {
+    this.sendCommand(
+      EISP1ResponseGroupGrant.class,
+      new EISP1CommandGroupGrant(
+        userReceiving,
+        group.value(),
+        EISP1GroupRole.ofRole(role)
+      )
+    );
+  }
+
+  @Override
+  public EIUser userSelf()
+    throws EIPClientException, InterruptedException
+  {
+    try {
+      final var response =
+        this.sendCommand(
+          EISP1ResponseUserSelf.class,
+          new EISP1CommandUserSelf()
+        );
+
+      return response.user().toUser();
+    } catch (final EIPasswordException e) {
+      throw new EIPClientException(e);
+    }
   }
 
   interface FunctionType<A, B, E extends Exception>

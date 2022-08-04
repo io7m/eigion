@@ -28,8 +28,10 @@ public sealed interface EISecUserActionType
   permits EISecUserActionGroupCreateBegin,
   EISecUserActionGroupCreateCancel,
   EISecUserActionGroupCreateReady,
+  EISecUserActionGroupGrant,
   EISecUserActionGroupInvite,
   EISecUserActionGroupInviteCancel,
+  EISecUserActionGroupLeave,
   EISecUserActionImageCreate,
   EISecUserActionImageRead,
   EISecUserActionUserUserComplaintCreate

@@ -143,6 +143,12 @@ public final class EISecPolicyDefault implements EISecPolicyType
     if (action instanceof EISecUserActionGroupInviteCancel c) {
       return checkUserActionGroupInviteCancel(c);
     }
+    if (action instanceof EISecUserActionGroupGrant c) {
+      return checkUserActionGroupGrant(c);
+    }
+    if (action instanceof EISecUserActionGroupLeave c) {
+      return checkUserActionGroupLeave(c);
+    }
 
     return new EISecPolicyResultDenied("Operation not permitted.");
   }
@@ -328,6 +334,50 @@ public final class EISecPolicyDefault implements EISecPolicyType
     }
 
     return new EISecPolicyResultPermitted();
+  }
+
+  private static EISecPolicyResultType checkUserActionGroupLeave(
+    final EISecUserActionGroupLeave c)
+  {
+    return new EISecPolicyResultPermitted();
+  }
+
+  private static EISecPolicyResultType checkUserActionGroupGrant(
+    final EISecUserActionGroupGrant c)
+  {
+    /*
+     * The FOUNDER role cannot be granted.
+     */
+
+    if (c.role() == EIGroupRole.FOUNDER) {
+      return new EISecPolicyResultDenied("The FOUNDER role cannot be granted.");
+    }
+
+    /*
+     * A user can only grant a role to another user if both users are in
+     * the group, and the granting user actually has the role.
+     */
+
+    final var membershipSender =
+      c.user().groupMembership().get(c.groupName());
+    final var membershipReceiver =
+      c.userReceiving().groupMembership().get(c.groupName());
+
+    if (membershipSender != null && membershipReceiver != null) {
+      if (EIGroupRole.roleSetImplies(membershipSender, c.role())) {
+        return new EISecPolicyResultPermitted();
+      }
+
+      return new EISecPolicyResultDenied(
+        "You must have the %s role to in order to grant it."
+          .formatted(c.role())
+      );
+    }
+
+    return new EISecPolicyResultDenied(
+      "Both granting and receiving users must be in the group %s."
+        .formatted(c.groupName())
+    );
   }
 
   private static EISecPolicyResultType checkUserActionGroupInviteCancel(

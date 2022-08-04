@@ -16,7 +16,11 @@ com.io7m.eigion.tests.arbitraries.EIArbEISP1GroupCreationRequestProvider
 com.io7m.eigion.tests.arbitraries.EIArbEISP1GroupInviteProvider
 com.io7m.eigion.tests.arbitraries.EIArbEISP1GroupRolesProvider
 com.io7m.eigion.tests.arbitraries.EIArbEISP1HashProvider
+com.io7m.eigion.tests.arbitraries.EIArbEISP1PasswordProvider
 com.io7m.eigion.tests.arbitraries.EIArbEISP1ProductSummaryProvider
+com.io7m.eigion.tests.arbitraries.EIArbEISP1UserBanProvider
+com.io7m.eigion.tests.arbitraries.EIArbEISP1UserProvider
+com.io7m.eigion.tests.arbitraries.EIArbEISP1UserSummaryProvider
 com.io7m.eigion.tests.arbitraries.EIArbGroupCreationRequestProvider
 com.io7m.eigion.tests.arbitraries.EIArbGroupCreationRequestStatusProvider
 com.io7m.eigion.tests.arbitraries.EIArbGroupInviteProvider

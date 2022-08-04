@@ -14,32 +14,38 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-package com.io7m.eigion.pike.api;
+package com.io7m.eigion.protocol.public_api.v1;
 
-import java.io.Closeable;
-import java.net.URI;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+
+import java.util.Objects;
+import java.util.UUID;
 
 /**
- * The type of clients.
+ * A response to a request to grant a role within a group.
+ *
+ * @param requestId The request ID
  */
 
-public interface EIPClientType
-  extends Closeable, EIPClientGroupsType, EIPClientUsersType
+@JsonDeserialize
+@JsonSerialize
+public record EISP1ResponseGroupGrant(
+  @JsonProperty(value = "RequestID", required = true)
+  UUID requestId)
+  implements EISP1ResponseType
 {
   /**
-   * Log in.
+   * A response to a request to grant a role within a group.
    *
-   * @param user     The admin username
-   * @param password The password
-   * @param base     The base URI
-   *
-   * @throws EIPClientException   On errors
-   * @throws InterruptedException On interruption
+   * @param requestId The request ID
    */
 
-  void login(
-    String user,
-    String password,
-    URI base)
-    throws EIPClientException, InterruptedException;
+  @JsonCreator
+  public EISP1ResponseGroupGrant
+  {
+    Objects.requireNonNull(requestId, "requestId");
+  }
 }

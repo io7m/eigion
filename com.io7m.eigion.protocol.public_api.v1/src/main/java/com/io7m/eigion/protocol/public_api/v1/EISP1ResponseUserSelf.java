@@ -14,38 +14,43 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-
 package com.io7m.eigion.protocol.public_api.v1;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+
+import java.util.Objects;
 import java.util.UUID;
 
 /**
- * The type of Public API v1 responses.
+ * A response to a request to retrieve the user's own user profile.
+ *
+ * @param requestId The request ID
+ * @param user      The user
  */
 
-public sealed interface EISP1ResponseType
-  extends EISP1MessageType
-  permits EISP1ResponseError,
-  EISP1ResponseGroupCreateBegin,
-  EISP1ResponseGroupCreateCancel,
-  EISP1ResponseGroupCreateReady,
-  EISP1ResponseGroupCreateRequests,
-  EISP1ResponseGroupGrant,
-  EISP1ResponseGroupInvite,
-  EISP1ResponseGroupInviteCancel,
-  EISP1ResponseGroupInviteRespond,
-  EISP1ResponseGroupInvites,
-  EISP1ResponseGroupLeave,
-  EISP1ResponseGroups,
-  EISP1ResponseImageCreated,
-  EISP1ResponseImageGet,
-  EISP1ResponseLogin,
-  EISP1ResponseProductList,
-  EISP1ResponseUserSelf
+@JsonDeserialize
+@JsonSerialize
+public record EISP1ResponseUserSelf(
+  @JsonProperty(value = "RequestID", required = true)
+  UUID requestId,
+  @JsonProperty(value = "User", required = true)
+  EISP1User user)
+  implements EISP1ResponseType
 {
   /**
-   * @return The server-assigned request ID
+   * A response to a request to leave a group.
+   *
+   * @param requestId The request ID
+   * @param user      The user
    */
 
-  UUID requestId();
+  @JsonCreator
+  public EISP1ResponseUserSelf
+  {
+    Objects.requireNonNull(requestId, "requestId");
+    Objects.requireNonNull(user, "user");
+  }
 }

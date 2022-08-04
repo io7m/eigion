@@ -56,6 +56,7 @@ public sealed interface EISP1MessageType
       EISP1CommandGroupCreateCancel.class,
       EISP1CommandGroupCreateReady.class,
       EISP1CommandGroupCreateRequests.class,
+      EISP1CommandGroupGrant.class,
       EISP1CommandGroupInvite.class,
       EISP1CommandGroupInviteByName.class,
       EISP1CommandGroupInviteCancel.class,
@@ -65,17 +66,20 @@ public sealed interface EISP1MessageType
       EISP1CommandGroupLeave.class,
       EISP1CommandGroups.class,
       EISP1CommandLogin.class,
+      EISP1CommandUserSelf.class,
       EISP1GroupCreationRequest.class,
       EISP1GroupInviteStatus.class,
       EISP1GroupRoles.class,
       EISP1Hash.class,
       EISP1MessageType.class,
+      EISP1Password.class,
       EISP1ProductSummary.class,
       EISP1ResponseError.class,
       EISP1ResponseGroupCreateBegin.class,
       EISP1ResponseGroupCreateCancel.class,
       EISP1ResponseGroupCreateReady.class,
       EISP1ResponseGroupCreateRequests.class,
+      EISP1ResponseGroupGrant.class,
       EISP1ResponseGroupInvite.class,
       EISP1ResponseGroupInviteCancel.class,
       EISP1ResponseGroupInviteRespond.class,
@@ -85,7 +89,11 @@ public sealed interface EISP1MessageType
       EISP1ResponseImageCreated.class,
       EISP1ResponseImageGet.class,
       EISP1ResponseLogin.class,
-      EISP1ResponseProductList.class
+      EISP1ResponseProductList.class,
+      EISP1ResponseUserSelf.class,
+      EISP1User.class,
+      EISP1UserBan.class,
+      EISP1UserSummary.class
     ).collect(toUnmodifiableMap(identity(), EISP1MessageType::typeIdOf));
   /**
    * A mapping of type IDs to classes.

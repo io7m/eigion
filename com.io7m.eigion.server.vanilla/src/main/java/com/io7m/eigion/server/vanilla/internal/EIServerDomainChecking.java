@@ -128,4 +128,11 @@ public final class EIServerDomainChecking
   {
     LOG.error("error handling request: ", throwable);
   }
+
+  @Override
+  public String toString()
+  {
+    return "[EIServerDomainChecking 0x%s]"
+      .formatted(Long.toUnsignedString(this.hashCode()));
+  }
 }

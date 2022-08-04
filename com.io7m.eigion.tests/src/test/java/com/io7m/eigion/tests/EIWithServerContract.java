@@ -18,9 +18,11 @@ package com.io7m.eigion.tests;
 
 import com.io7m.eigion.model.EIGroupName;
 import com.io7m.eigion.model.EIGroupPrefix;
+import com.io7m.eigion.model.EIGroupRole;
 import com.io7m.eigion.model.EIPassword;
 import com.io7m.eigion.model.EIPasswordAlgorithmPBKDF2HmacSHA256;
 import com.io7m.eigion.model.EIPasswordException;
+import com.io7m.eigion.model.EIUser;
 import com.io7m.eigion.model.EIUserDisplayName;
 import com.io7m.eigion.model.EIUserEmail;
 import com.io7m.eigion.server.api.EIServerConfiguration;
@@ -278,7 +280,7 @@ public abstract class EIWithServerContract
     }
   }
 
-  protected final EIGroupName createGroup(
+  protected final EIGroupName groupCreate(
     final UUID userFounder,
     final String name)
     throws EIServerDatabaseException, EIPasswordException
@@ -294,6 +296,40 @@ public abstract class EIWithServerContract
         groups.groupMembershipSet(groupName, userFounder, Set.of(FOUNDER));
         transaction.commit();
         return groupName;
+      }
+    }
+  }
+
+  protected final void groupAddUser(
+    final UUID user,
+    final String groupName,
+    final Set<EIGroupRole> roles)
+    throws EIServerDatabaseException
+  {
+    final var database = this.databases.mostRecent();
+    try (var connection = database.openConnection(EIGION)) {
+      try (var transaction = connection.openTransaction()) {
+        final var groups =
+          transaction.queries(EIServerDatabaseGroupsQueriesType.class);
+
+        final var g = new EIGroupName(groupName);
+        groups.groupMembershipSet(g, user, roles);
+        transaction.commit();
+      }
+    }
+  }
+
+  protected final EIUser userGet(
+    final UUID id)
+    throws EIServerDatabaseException
+  {
+    final var database = this.databases.mostRecent();
+    try (var connection = database.openConnection(EIGION)) {
+      try (var transaction = connection.openTransaction()) {
+        final var users =
+          transaction.queries(EIServerDatabaseUsersQueriesType.class);
+
+        return users.userGetRequire(id);
       }
     }
   }
