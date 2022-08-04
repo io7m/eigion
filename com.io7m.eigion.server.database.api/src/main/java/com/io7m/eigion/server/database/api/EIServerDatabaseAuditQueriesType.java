@@ -56,10 +56,11 @@ public non-sealed interface EIServerDatabaseAuditQueriesType
   /**
    * Create an audit event.
    *
-   * @param userId  The user ID of the event
-   * @param time    The event time
-   * @param type    The event type
-   * @param message The event message
+   * @param userId       The user ID of the event
+   * @param time         The event time
+   * @param type         The event type
+   * @param message      The event message
+   * @param confidential The event confidentiality
    *
    * @throws EIServerDatabaseException On errors
    */
@@ -68,6 +69,7 @@ public non-sealed interface EIServerDatabaseAuditQueriesType
     UUID userId,
     OffsetDateTime time,
     String type,
-    String message)
+    String message,
+    boolean confidential)
     throws EIServerDatabaseException;
 }

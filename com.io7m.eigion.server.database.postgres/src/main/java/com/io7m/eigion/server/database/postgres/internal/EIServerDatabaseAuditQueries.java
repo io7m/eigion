@@ -123,7 +123,8 @@ final class EIServerDatabaseAuditQueries
     final UUID userId,
     final OffsetDateTime time,
     final String type,
-    final String message)
+    final String message,
+    final boolean confidential)
     throws EIServerDatabaseException
   {
     Objects.requireNonNull(userId, "userId");
@@ -140,6 +141,7 @@ final class EIServerDatabaseAuditQueries
         .set(AUDIT.TYPE, type)
         .set(AUDIT.USER_ID, userId)
         .set(AUDIT.MESSAGE, message)
+        .set(AUDIT.CONFIDENTIAL, Boolean.valueOf(confidential))
         .execute();
     } catch (final DataAccessException e) {
       throw handleDatabaseException(this.transaction(), e);

@@ -5,10 +5,16 @@
   "https://checkstyle.org/dtds/suppressions_1_0.dtd">
 
 <suppressions>
+  <!-- Secondary record constructors require parameter name shadowing. -->
   <suppress files="EIStorageName\.java"
             checks="HiddenField"/>
+
   <suppress files="EILoggingHTTPRequestLayout\.java"
             checks="JavadocVariable"/>
+
+  <!-- Secondary record constructors require parameter name shadowing. -->
+  <suppress files="EIAuditEvent\.java"
+            checks="HiddenField"/>
 
   <suppress files="EISCommandVersion\.java"
             checks="IllegalInstantiation"/>

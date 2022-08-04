@@ -151,15 +151,15 @@ public final class EIServerDatabaseAuditTest
       transaction.queries(EIServerDatabaseAuditQueriesType.class);
 
     final var then = now();
-    audit.auditPut(ADMIN_UUID, then.plusSeconds(1), "ET_0", "E0");
-    audit.auditPut(ADMIN_UUID, then.plusSeconds(2), "ET_0", "E1");
-    audit.auditPut(ADMIN_UUID, then.plusSeconds(3), "ET_0", "E2");
-    audit.auditPut(ADMIN_UUID, then.plusSeconds(4), "ET_1", "F3");
-    audit.auditPut(ADMIN_UUID, then.plusSeconds(5), "ET_1", "F4");
-    audit.auditPut(ADMIN_UUID, then.plusSeconds(6), "ET_1", "F5");
-    audit.auditPut(ADMIN_UUID, then.plusSeconds(7), "ET_2", "G6");
-    audit.auditPut(ADMIN_UUID, then.plusSeconds(8), "ET_2", "G7");
-    audit.auditPut(ADMIN_UUID, then.plusSeconds(9), "ET_2", "G8");
+    audit.auditPut(ADMIN_UUID, then.plusSeconds(1), "ET_0", "E0", false);
+    audit.auditPut(ADMIN_UUID, then.plusSeconds(2), "ET_0", "E1", false);
+    audit.auditPut(ADMIN_UUID, then.plusSeconds(3), "ET_0", "E2", false);
+    audit.auditPut(ADMIN_UUID, then.plusSeconds(4), "ET_1", "F3", false);
+    audit.auditPut(ADMIN_UUID, then.plusSeconds(5), "ET_1", "F4", false);
+    audit.auditPut(ADMIN_UUID, then.plusSeconds(6), "ET_1", "F5", false);
+    audit.auditPut(ADMIN_UUID, then.plusSeconds(7), "ET_2", "G6", false);
+    audit.auditPut(ADMIN_UUID, then.plusSeconds(8), "ET_2", "G7", false);
+    audit.auditPut(ADMIN_UUID, then.plusSeconds(9), "ET_2", "G8", false);
 
     transaction.commit();
 

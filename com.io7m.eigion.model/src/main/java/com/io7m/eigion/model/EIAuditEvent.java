@@ -23,11 +23,13 @@ import java.util.UUID;
 /**
  * An audit event.
  *
- * @param id      The unique event ID
- * @param owner   The event owner
- * @param time    The event time
- * @param message The event message
- * @param type    The event type
+ * @param id           The unique event ID
+ * @param owner        The event owner
+ * @param time         The event time
+ * @param message      The event message
+ * @param type         The event type
+ * @param confidential {@code true} if the message contains confidential
+ *                     information
  */
 
 public record EIAuditEvent(
@@ -35,16 +37,19 @@ public record EIAuditEvent(
   UUID owner,
   OffsetDateTime time,
   String type,
-  String message)
+  String message,
+  boolean confidential)
 {
   /**
    * An audit event.
    *
-   * @param id      The unique event ID
-   * @param owner   The event owner
-   * @param time    The event time
-   * @param message The event message
-   * @param type    The event type
+   * @param id           The unique event ID
+   * @param owner        The event owner
+   * @param time         The event time
+   * @param message      The event message
+   * @param type         The event type
+   * @param confidential {@code true} if the message contains confidential
+   *                     information
    */
 
   public EIAuditEvent
@@ -53,5 +58,25 @@ public record EIAuditEvent(
     Objects.requireNonNull(time, "time");
     Objects.requireNonNull(type, "type");
     Objects.requireNonNull(message, "message");
+  }
+
+  /**
+   * An audit event without confidential information.
+   *
+   * @param id      The unique event ID
+   * @param owner   The event owner
+   * @param time    The event time
+   * @param message The event message
+   * @param type    The event type
+   */
+
+  public EIAuditEvent(
+    final long id,
+    final UUID owner,
+    final OffsetDateTime time,
+    final String type,
+    final String message)
+  {
+    this(id, owner, time, type, message, false);
   }
 }

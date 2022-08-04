@@ -106,7 +106,8 @@ final class EIServerDatabaseImagesQueries
           .set(AUDIT.TIME, time)
           .set(AUDIT.TYPE, "IMAGE_CREATED")
           .set(AUDIT.USER_ID, owner)
-          .set(AUDIT.MESSAGE, id.toString());
+          .set(AUDIT.MESSAGE, id.toString())
+          .set(AUDIT.CONFIDENTIAL, Boolean.FALSE);
 
       insertAuditRecord(audit);
 
@@ -231,7 +232,8 @@ final class EIServerDatabaseImagesQueries
           .set(AUDIT.TIME, time)
           .set(AUDIT.TYPE, redactType)
           .set(AUDIT.USER_ID, owner)
-          .set(AUDIT.MESSAGE, imageId.toString());
+          .set(AUDIT.MESSAGE, imageId.toString())
+          .set(AUDIT.CONFIDENTIAL, Boolean.FALSE);
 
       insertAuditRecord(audit);
     } catch (final DataAccessException e) {

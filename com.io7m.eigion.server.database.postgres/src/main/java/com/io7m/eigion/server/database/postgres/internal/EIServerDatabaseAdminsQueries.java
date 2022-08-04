@@ -185,7 +185,8 @@ final class EIServerDatabaseAdminsQueries
           .set(AUDIT.TIME, this.currentTime())
           .set(AUDIT.TYPE, "ADMIN_CREATED")
           .set(AUDIT.USER_ID, id)
-          .set(AUDIT.MESSAGE, id.toString());
+          .set(AUDIT.MESSAGE, id.toString())
+          .set(AUDIT.CONFIDENTIAL, Boolean.FALSE);
 
       audit.execute();
       return this.adminGet(id).orElseThrow();
@@ -277,7 +278,8 @@ final class EIServerDatabaseAdminsQueries
           .set(AUDIT.TIME, this.currentTime())
           .set(AUDIT.TYPE, "ADMIN_CREATED")
           .set(AUDIT.USER_ID, id)
-          .set(AUDIT.MESSAGE, id.toString());
+          .set(AUDIT.MESSAGE, id.toString())
+          .set(AUDIT.CONFIDENTIAL, Boolean.FALSE);
 
       audit.execute();
       return this.adminGet(id).orElseThrow();
@@ -367,12 +369,18 @@ final class EIServerDatabaseAdminsQueries
       existing.setLastLoginTime(time);
       existing.store();
 
+      /*
+       * The audit event is considered confidential because IP addresses
+       * are tentatively considered confidential.
+       */
+
       final var audit =
         context.insertInto(AUDIT)
           .set(AUDIT.TIME, time)
           .set(AUDIT.TYPE, "ADMIN_LOGGED_IN")
           .set(AUDIT.USER_ID, id)
-          .set(AUDIT.MESSAGE, host);
+          .set(AUDIT.MESSAGE, host)
+          .set(AUDIT.CONFIDENTIAL, Boolean.TRUE);
 
       audit.execute();
     } catch (final DataAccessException e) {

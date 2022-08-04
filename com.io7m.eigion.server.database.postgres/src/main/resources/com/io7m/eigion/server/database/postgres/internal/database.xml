@@ -266,11 +266,12 @@ create table group_invites (
 
     <Statement><![CDATA[
 create table audit (
-  id      bigint                   not null primary key generated always as identity,
-  user_id uuid                     not null,
-  time    timestamp with time zone not null,
-  type    varchar(1000000)         not null,
-  message varchar(1000000)         not null,
+  id             bigint                   not null primary key generated always as identity,
+  user_id        uuid                     not null,
+  time           timestamp with time zone not null,
+  type           varchar(1000000)         not null,
+  message        varchar(1000000)         not null,
+  confidential   boolean                  not null,
 
   foreign key (user_id) references user_ids (id)
 )

@@ -620,7 +620,8 @@ final class EIServerDatabaseProductsQueries
           .set(AUDIT.TIME, time)
           .set(AUDIT.TYPE, "CATEGORY_CREATED")
           .set(AUDIT.USER_ID, owner)
-          .set(AUDIT.MESSAGE, text);
+          .set(AUDIT.MESSAGE, text)
+          .set(AUDIT.CONFIDENTIAL, Boolean.FALSE);
 
       insertAuditRecord(audit);
       return new EIProductCategory(text, Optional.empty());
@@ -696,7 +697,8 @@ final class EIServerDatabaseProductsQueries
           .set(AUDIT.TIME, time)
           .set(AUDIT.TYPE, redactType)
           .set(AUDIT.USER_ID, owner)
-          .set(AUDIT.MESSAGE, category);
+          .set(AUDIT.MESSAGE, category)
+          .set(AUDIT.CONFIDENTIAL, Boolean.FALSE);
 
       insertAuditRecord(audit);
       return new EIProductCategory(
@@ -769,7 +771,8 @@ final class EIServerDatabaseProductsQueries
           .set(AUDIT.TIME, time)
           .set(AUDIT.TYPE, "PRODUCT_CREATED")
           .set(AUDIT.USER_ID, owner)
-          .set(AUDIT.MESSAGE, id.show());
+          .set(AUDIT.MESSAGE, id.show())
+          .set(AUDIT.CONFIDENTIAL, Boolean.FALSE);
 
       insertAuditRecord(audit);
       return new EIProduct(
@@ -850,7 +853,8 @@ final class EIServerDatabaseProductsQueries
           .set(AUDIT.TIME, time)
           .set(AUDIT.TYPE, auditType)
           .set(AUDIT.USER_ID, owner)
-          .set(AUDIT.MESSAGE, redactionReason(redacted, id));
+          .set(AUDIT.MESSAGE, redactionReason(redacted, id))
+          .set(AUDIT.CONFIDENTIAL, Boolean.FALSE);
 
       insertAuditRecord(audit);
     } catch (final DataAccessException e) {
@@ -947,7 +951,8 @@ final class EIServerDatabaseProductsQueries
           .set(AUDIT.TIME, this.currentTime())
           .set(AUDIT.TYPE, "PRODUCT_CATEGORY_ADDED")
           .set(AUDIT.USER_ID, owner)
-          .set(AUDIT.MESSAGE, id.show() + ":" + category.value());
+          .set(AUDIT.MESSAGE, id.show() + ":" + category.value())
+          .set(AUDIT.CONFIDENTIAL, Boolean.FALSE);
 
       insertAuditRecord(audit);
     } catch (final DataAccessException e) {
@@ -992,7 +997,8 @@ final class EIServerDatabaseProductsQueries
             .set(AUDIT.TIME, this.currentTime())
             .set(AUDIT.TYPE, "PRODUCT_CATEGORY_REMOVED")
             .set(AUDIT.USER_ID, owner)
-            .set(AUDIT.MESSAGE, id.show() + ":" + category.value());
+            .set(AUDIT.MESSAGE, id.show() + ":" + category.value())
+            .set(AUDIT.CONFIDENTIAL, Boolean.FALSE);
 
         insertAuditRecord(audit);
       }
@@ -1037,7 +1043,8 @@ final class EIServerDatabaseProductsQueries
           .set(AUDIT.TIME, this.currentTime())
           .set(AUDIT.TYPE, "PRODUCT_TITLE_SET")
           .set(AUDIT.USER_ID, owner)
-          .set(AUDIT.MESSAGE, id.show() + ":" + title);
+          .set(AUDIT.MESSAGE, id.show() + ":" + title)
+          .set(AUDIT.CONFIDENTIAL, Boolean.FALSE);
 
       insertAuditRecord(audit);
     } catch (final DataAccessException e) {
@@ -1082,7 +1089,8 @@ final class EIServerDatabaseProductsQueries
           .set(AUDIT.TIME, this.currentTime())
           .set(AUDIT.TYPE, "PRODUCT_DESCRIPTION_SET")
           .set(AUDIT.USER_ID, owner)
-          .set(AUDIT.MESSAGE, id.show());
+          .set(AUDIT.MESSAGE, id.show())
+          .set(AUDIT.CONFIDENTIAL, Boolean.FALSE);
 
       insertAuditRecord(audit);
     } catch (final DataAccessException e) {
@@ -1159,7 +1167,8 @@ final class EIServerDatabaseProductsQueries
           .set(AUDIT.TIME, time)
           .set(AUDIT.TYPE, "PRODUCT_RELEASE_CREATED")
           .set(AUDIT.USER_ID, owner)
-          .set(AUDIT.MESSAGE, id.show() + ":" + version.show());
+          .set(AUDIT.MESSAGE, id.show() + ":" + version.show())
+          .set(AUDIT.CONFIDENTIAL, Boolean.FALSE);
 
       insertAuditRecord(audit);
     } catch (final DataAccessException e) {
@@ -1233,7 +1242,8 @@ final class EIServerDatabaseProductsQueries
           .set(AUDIT.TIME, time)
           .set(AUDIT.TYPE, redactionType)
           .set(AUDIT.USER_ID, owner)
-          .set(AUDIT.MESSAGE, id.show() + ":" + version.show());
+          .set(AUDIT.MESSAGE, id.show() + ":" + version.show())
+          .set(AUDIT.CONFIDENTIAL, Boolean.FALSE);
 
       insertAuditRecord(audit);
     } catch (final DataAccessException e) {

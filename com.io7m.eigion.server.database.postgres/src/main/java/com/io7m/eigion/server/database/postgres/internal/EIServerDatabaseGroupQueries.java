@@ -306,7 +306,8 @@ final class EIServerDatabaseGroupQueries
           .set(AUDIT.TIME, timeNow)
           .set(AUDIT.TYPE, "GROUP_CREATED")
           .set(AUDIT.USER_ID, userFounder)
-          .set(AUDIT.MESSAGE, name.value());
+          .set(AUDIT.MESSAGE, name.value())
+          .set(AUDIT.CONFIDENTIAL, Boolean.FALSE);
 
       insertAuditRecord(audit);
     } catch (final DataAccessException e) {
@@ -363,7 +364,8 @@ final class EIServerDatabaseGroupQueries
           .set(AUDIT.TIME, timeNow)
           .set(AUDIT.TYPE, "GROUP_CREATION_REQUESTED")
           .set(AUDIT.USER_ID, userId)
-          .set(AUDIT.MESSAGE, "%s|%s".formatted(groupName, token));
+          .set(AUDIT.MESSAGE, "%s|%s".formatted(groupName, token))
+          .set(AUDIT.CONFIDENTIAL, Boolean.FALSE);
 
       insertAuditRecord(audit);
     } catch (final DataAccessException e) {
@@ -520,7 +522,8 @@ final class EIServerDatabaseGroupQueries
             .set(AUDIT.TIME, this.currentTime())
             .set(AUDIT.TYPE, "GROUP_CREATION_REQUEST_CANCELLED")
             .set(AUDIT.USER_ID, userId)
-            .set(AUDIT.MESSAGE, "%s|%s".formatted(groupName, token));
+            .set(AUDIT.MESSAGE, "%s|%s".formatted(groupName, token))
+            .set(AUDIT.CONFIDENTIAL, Boolean.FALSE);
 
         insertAuditRecord(audit);
         return;
@@ -539,7 +542,8 @@ final class EIServerDatabaseGroupQueries
             .set(AUDIT.TIME, this.currentTime())
             .set(AUDIT.TYPE, "GROUP_CREATION_REQUEST_FAILED")
             .set(AUDIT.USER_ID, userId)
-            .set(AUDIT.MESSAGE, "%s|%s".formatted(groupName, token));
+            .set(AUDIT.MESSAGE, "%s|%s".formatted(groupName, token))
+            .set(AUDIT.CONFIDENTIAL, Boolean.FALSE);
 
         insertAuditRecord(audit);
         return;
@@ -558,7 +562,8 @@ final class EIServerDatabaseGroupQueries
             .set(AUDIT.TIME, this.currentTime())
             .set(AUDIT.TYPE, "GROUP_CREATION_REQUEST_SUCCEEDED")
             .set(AUDIT.USER_ID, userId)
-            .set(AUDIT.MESSAGE, "%s|%s".formatted(groupName, token));
+            .set(AUDIT.MESSAGE, "%s|%s".formatted(groupName, token))
+            .set(AUDIT.CONFIDENTIAL, Boolean.FALSE);
 
         insertAuditRecord(audit);
 
@@ -628,7 +633,8 @@ final class EIServerDatabaseGroupQueries
             .set(AUDIT.TIME, timeNow)
             .set(AUDIT.TYPE, "GROUP_USERS_ADDED")
             .set(AUDIT.USER_ID, auditUser)
-            .set(AUDIT.MESSAGE, "%s|%s".formatted(name, userId));
+            .set(AUDIT.MESSAGE, "%s|%s".formatted(name, userId))
+            .set(AUDIT.CONFIDENTIAL, Boolean.FALSE);
 
         insertAuditRecord(audit);
       }
@@ -641,7 +647,8 @@ final class EIServerDatabaseGroupQueries
           .set(AUDIT.TIME, timeNow)
           .set(AUDIT.TYPE, "GROUP_USERS_ROLES_CHANGED")
           .set(AUDIT.USER_ID, auditUser)
-          .set(AUDIT.MESSAGE, "%s|%s|%s".formatted(name, userId, roleString));
+          .set(AUDIT.MESSAGE, "%s|%s|%s".formatted(name, userId, roleString))
+          .set(AUDIT.CONFIDENTIAL, Boolean.FALSE);
 
       insertAuditRecord(audit);
     } catch (final DataAccessException e) {
@@ -712,7 +719,8 @@ final class EIServerDatabaseGroupQueries
             .set(AUDIT.TIME, timeNow)
             .set(AUDIT.TYPE, "GROUP_USERS_REMOVED")
             .set(AUDIT.USER_ID, userId)
-            .set(AUDIT.MESSAGE, "%s|%s".formatted(name, userId));
+            .set(AUDIT.MESSAGE, "%s|%s".formatted(name, userId))
+            .set(AUDIT.CONFIDENTIAL, Boolean.FALSE);
 
         insertAuditRecord(audit);
       }
@@ -818,7 +826,8 @@ final class EIServerDatabaseGroupQueries
           .set(AUDIT.USER_ID, userInviting)
           .set(
             AUDIT.MESSAGE,
-            "%s|%s|%s".formatted(group, userBeingInvited, token.value()));
+            "%s|%s|%s".formatted(group, userBeingInvited, token.value()))
+          .set(AUDIT.CONFIDENTIAL, Boolean.FALSE);
 
       insertAuditRecord(audit);
 
@@ -1011,7 +1020,8 @@ final class EIServerDatabaseGroupQueries
           .set(AUDIT.TIME, timeNow)
           .set(AUDIT.TYPE, "INVITE_COMPLETED")
           .set(AUDIT.USER_ID, user)
-          .set(AUDIT.MESSAGE, token.value());
+          .set(AUDIT.MESSAGE, token.value())
+          .set(AUDIT.CONFIDENTIAL, Boolean.FALSE);
 
       insertAuditRecord(audit);
     } catch (final DataAccessException e) {

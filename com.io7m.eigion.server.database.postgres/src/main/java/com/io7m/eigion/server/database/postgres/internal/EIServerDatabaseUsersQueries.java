@@ -61,6 +61,7 @@ import static com.io7m.eigion.server.database.postgres.internal.Tables.USER_BANS
 import static com.io7m.eigion.server.database.postgres.internal.Tables.USER_IDS;
 import static com.io7m.eigion.server.database.postgres.internal.tables.Audit.AUDIT;
 import static com.io7m.eigion.server.database.postgres.internal.tables.Users.USERS;
+import static java.lang.Boolean.TRUE;
 
 final class EIServerDatabaseUsersQueries
   extends EIBaseQueries
@@ -239,7 +240,8 @@ final class EIServerDatabaseUsersQueries
           .set(AUDIT.TIME, this.currentTime())
           .set(AUDIT.TYPE, "USER_CREATED")
           .set(AUDIT.USER_ID, admin)
-          .set(AUDIT.MESSAGE, id.toString());
+          .set(AUDIT.MESSAGE, id.toString())
+          .set(AUDIT.CONFIDENTIAL, Boolean.FALSE);
 
       audit.execute();
       return this.userGet(id).orElseThrow();
@@ -379,7 +381,8 @@ final class EIServerDatabaseUsersQueries
           .set(AUDIT.TIME, this.currentTime())
           .set(AUDIT.TYPE, "USER_BANNED")
           .set(AUDIT.USER_ID, owner)
-          .set(AUDIT.MESSAGE, id + ": " + reason);
+          .set(AUDIT.MESSAGE, id + ": " + reason)
+          .set(AUDIT.CONFIDENTIAL, Boolean.FALSE);
 
       audit.execute();
     } catch (final DataAccessException e) {
@@ -408,7 +411,8 @@ final class EIServerDatabaseUsersQueries
           .set(AUDIT.TIME, this.currentTime())
           .set(AUDIT.TYPE, "USER_UNBANNED")
           .set(AUDIT.USER_ID, owner)
-          .set(AUDIT.MESSAGE, id.toString());
+          .set(AUDIT.MESSAGE, id.toString())
+          .set(AUDIT.CONFIDENTIAL, Boolean.FALSE);
 
       audit.execute();
     } catch (final DataAccessException e) {
@@ -444,12 +448,18 @@ final class EIServerDatabaseUsersQueries
       existing.setLastLoginTime(time);
       existing.store();
 
+      /*
+       * The audit event is considered confidential because IP addresses
+       * are tentatively considered confidential.
+       */
+
       final var audit =
         context.insertInto(AUDIT)
           .set(AUDIT.TIME, time)
           .set(AUDIT.TYPE, "USER_LOGGED_IN")
           .set(AUDIT.USER_ID, id)
-          .set(AUDIT.MESSAGE, host);
+          .set(AUDIT.MESSAGE, host)
+          .set(AUDIT.CONFIDENTIAL, TRUE);
 
       audit.execute();
     } catch (final DataAccessException e) {
@@ -524,6 +534,7 @@ final class EIServerDatabaseUsersQueries
           .set(AUDIT.TYPE, "USER_CHANGED_DISPLAY_NAME")
           .set(AUDIT.USER_ID, owner)
           .set(AUDIT.MESSAGE, "%s|%s".formatted(id.toString(), name.value()))
+          .set(AUDIT.CONFIDENTIAL, Boolean.FALSE)
           .execute();
       }
 
@@ -531,11 +542,16 @@ final class EIServerDatabaseUsersQueries
         final var email = withEmail.get();
         record.setEmail(email.value());
 
+        /*
+         * Email addresses are confidential.
+         */
+
         context.insertInto(AUDIT)
           .set(AUDIT.TIME, this.currentTime())
           .set(AUDIT.TYPE, "USER_CHANGED_EMAIL")
           .set(AUDIT.USER_ID, owner)
           .set(AUDIT.MESSAGE, "%s|%s".formatted(id.toString(), email.value()))
+          .set(AUDIT.CONFIDENTIAL, TRUE)
           .execute();
       }
 
@@ -550,6 +566,7 @@ final class EIServerDatabaseUsersQueries
           .set(AUDIT.TYPE, "USER_CHANGED_PASSWORD")
           .set(AUDIT.USER_ID, owner)
           .set(AUDIT.MESSAGE, id.toString())
+          .set(AUDIT.CONFIDENTIAL, Boolean.FALSE)
           .execute();
       }
 
