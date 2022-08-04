@@ -58,6 +58,14 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.CATEGORY_NONEXISTENT;
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.GROUP_NONEXISTENT;
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.IO_ERROR;
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.PRODUCT_DUPLICATE;
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.PRODUCT_NONEXISTENT;
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.RELEASE_DUPLICATE;
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.RELEASE_NONEXISTENT;
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.SERIALIZATION_ERROR;
 import static com.io7m.eigion.product.parser.api.EIProductSchemas.RELEASE_CONTENT_TYPE;
 import static com.io7m.eigion.server.database.api.EIServerDatabaseIncludeRedacted.INCLUDE_REDACTED;
 import static com.io7m.eigion.server.database.postgres.internal.EIServerDatabaseExceptions.handleDatabaseException;
@@ -258,7 +266,7 @@ final class EIServerDatabaseProductsQueries
     if (categoryRecOpt.isEmpty()) {
       throw new EIServerDatabaseException(
         "Category does not exist",
-        "category-nonexistent"
+        CATEGORY_NONEXISTENT
       );
     }
 
@@ -266,7 +274,7 @@ final class EIServerDatabaseProductsQueries
     if (!filterRedactedIfNecessary(categoryRec, includeRedacted)) {
       throw new EIServerDatabaseException(
         "Category does not exist",
-        "category-nonexistent"
+        CATEGORY_NONEXISTENT
       );
     }
 
@@ -370,7 +378,7 @@ final class EIServerDatabaseProductsQueries
     return fetchProductReleaseID(id, version, context).orElseThrow(() -> {
       return new EIServerDatabaseException(
         "Product release does not exist",
-        "release-nonexistent"
+        RELEASE_NONEXISTENT
       );
     });
   }
@@ -386,7 +394,7 @@ final class EIServerDatabaseProductsQueries
       .orElseThrow(() -> {
         return new EIServerDatabaseException(
           "Product does not exist",
-          "product-nonexistent"
+          PRODUCT_NONEXISTENT
         );
       });
   }
@@ -497,18 +505,18 @@ final class EIServerDatabaseProductsQueries
             yield this.transaction().productReleaseParsers()
               .parse(URI.create("urn:source"), stream);
           } catch (final IOException e) {
-            throw new EIServerDatabaseException(e.getMessage(), e, "io-error");
+            throw new EIServerDatabaseException(e.getMessage(), e, IO_ERROR);
           } catch (final ParseException e) {
             throw new EIServerDatabaseException(
               e.getMessage(),
               e,
-              "serialization");
+              SERIALIZATION_ERROR);
           }
         }
         default -> {
           throw new EIServerDatabaseException(
             "Unrecognized manifest type: " + manifestType,
-            "serialization"
+            SERIALIZATION_ERROR
           );
         }
       };
@@ -724,7 +732,7 @@ final class EIServerDatabaseProductsQueries
       if (existing.isPresent()) {
         throw new EIServerDatabaseException(
           "Product already exists",
-          "product-duplicate"
+          PRODUCT_DUPLICATE
         );
       }
 
@@ -733,7 +741,7 @@ final class EIServerDatabaseProductsQueries
           .orElseThrow(() -> {
             return new EIServerDatabaseException(
               "Group does not exist",
-              "group-nonexistent"
+              GROUP_NONEXISTENT
             );
           });
 
@@ -1110,7 +1118,7 @@ final class EIServerDatabaseProductsQueries
         if (Objects.equals(existing.version(), version)) {
           throw new EIServerDatabaseException(
             String.format("Release version %s already exists", version.show()),
-            "release-duplicate"
+            RELEASE_DUPLICATE
           );
         }
       }
@@ -1157,7 +1165,7 @@ final class EIServerDatabaseProductsQueries
     } catch (final DataAccessException e) {
       throw handleDatabaseException(this.transaction(), e);
     } catch (final SerializeException e) {
-      throw new EIServerDatabaseException(e.getMessage(), e, "serialization");
+      throw new EIServerDatabaseException(e.getMessage(), e, SERIALIZATION_ERROR);
     }
   }
 

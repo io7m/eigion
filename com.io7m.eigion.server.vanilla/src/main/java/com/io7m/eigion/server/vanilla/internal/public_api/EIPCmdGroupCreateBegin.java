@@ -36,6 +36,7 @@ import com.io7m.eigion.server.vanilla.internal.command_exec.EICommandExecutorTyp
 
 import java.util.Objects;
 
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.SECURITY_POLICY_DENIED;
 import static org.eclipse.jetty.http.HttpStatus.FORBIDDEN_403;
 
 /**
@@ -86,7 +87,7 @@ public final class EIPCmdGroupCreateBegin
     if (EISecurity.check(action) instanceof EISecPolicyResultDenied denied) {
       throw new EIHTTPErrorStatusException(
         FORBIDDEN_403,
-        "group-create-begin",
+        SECURITY_POLICY_DENIED,
         denied.message()
       );
     }

@@ -38,6 +38,11 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.Objects;
 
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.AUTHENTICATION_ERROR;
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.HTTP_METHOD_ERROR;
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.PASSWORD_ERROR;
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.PROTOCOL_ERROR;
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.SQL_ERROR;
 import static com.io7m.eigion.server.database.api.EIServerDatabaseRole.EIGION;
 import static com.io7m.eigion.server.vanilla.internal.EIServerRequestDecoration.requestIdFor;
 import static com.io7m.eigion.server.vanilla.logging.EIServerMDCRequestProcessor.mdcForRequest;
@@ -95,7 +100,7 @@ public final class EIALogin extends HttpServlet
         if (!Objects.equals(request.getMethod(), "POST")) {
           throw new EIHTTPErrorStatusException(
             METHOD_NOT_ALLOWED_405,
-            "http",
+            HTTP_METHOD_ERROR,
             this.strings.format("methodNotAllowed")
           );
         }
@@ -126,7 +131,7 @@ public final class EIALogin extends HttpServlet
           response,
           requestIdFor(request),
           INTERNAL_SERVER_ERROR_500,
-          "password",
+          PASSWORD_ERROR,
           e.getMessage()
         );
       } catch (final EIServerDatabaseException e) {
@@ -135,7 +140,7 @@ public final class EIALogin extends HttpServlet
           response,
           requestIdFor(request),
           INTERNAL_SERVER_ERROR_500,
-          "database",
+          SQL_ERROR,
           e.getMessage()
         );
       }
@@ -158,7 +163,7 @@ public final class EIALogin extends HttpServlet
     if (adminOpt.isEmpty()) {
       throw new EIHTTPErrorStatusException(
         UNAUTHORIZED_401,
-        "authentication",
+        AUTHENTICATION_ERROR,
         this.strings.format("loginFailed")
       );
     }
@@ -171,7 +176,7 @@ public final class EIALogin extends HttpServlet
     if (!ok) {
       throw new EIHTTPErrorStatusException(
         UNAUTHORIZED_401,
-        "authentication",
+        AUTHENTICATION_ERROR,
         this.strings.format("loginFailed")
       );
     }
@@ -219,7 +224,7 @@ public final class EIALogin extends HttpServlet
     } catch (final EIProtocolException e) {
       throw new EIHTTPErrorStatusException(
         BAD_REQUEST_400,
-        "protocol",
+        PROTOCOL_ERROR,
         e.getMessage(),
         e
       );
@@ -227,7 +232,7 @@ public final class EIALogin extends HttpServlet
 
     throw new EIHTTPErrorStatusException(
       BAD_REQUEST_400,
-      "protocol",
+      PROTOCOL_ERROR,
       this.strings.format("expectedCommand", "CommandLogin")
     );
   }

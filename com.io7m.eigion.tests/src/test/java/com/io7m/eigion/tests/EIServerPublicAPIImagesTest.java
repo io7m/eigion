@@ -27,6 +27,7 @@ import java.net.URI;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.IMAGE_INVALID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @Testcontainers(disabledWithoutDocker = true)
@@ -257,6 +258,6 @@ public final class EIServerPublicAPIImagesTest extends EIServerContract
     final var error =
       this.msgParsePublic(r, EISP1ResponseError.class);
 
-    assertEquals("image", error.errorCode());
+    assertEquals(IMAGE_INVALID.id(), error.errorCode());
   }
 }

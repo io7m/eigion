@@ -33,6 +33,10 @@ import org.slf4j.LoggerFactory;
 
 import java.util.UUID;
 
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.HTTP_PARAMETER_INVALID;
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.HTTP_PARAMETER_NONEXISTENT;
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.IMAGE_NONEXISTENT;
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.SECURITY_POLICY_DENIED;
 import static com.io7m.eigion.server.database.api.EIServerDatabaseIncludeRedacted.EXCLUDE_REDACTED;
 import static com.io7m.eigion.server.database.api.EIServerDatabaseRole.EIGION;
 import static com.io7m.eigion.server.vanilla.internal.EIServerRequestDecoration.requestIdFor;
@@ -81,7 +85,7 @@ public final class EIPImageGet extends EIPAuthenticatedServlet
       instanceof EISecPolicyResultDenied denied) {
       throw new EIHTTPErrorStatusException(
         FORBIDDEN_403,
-        "operationNotPermitted",
+        SECURITY_POLICY_DENIED,
         denied.message()
       );
     }
@@ -95,7 +99,7 @@ public final class EIPImageGet extends EIPAuthenticatedServlet
     if (idRaw == null) {
       throw new EIHTTPErrorStatusException(
         400,
-        "missingParameter",
+        HTTP_PARAMETER_NONEXISTENT,
         this.strings().format("missingParameter", "id")
       );
     }
@@ -106,7 +110,7 @@ public final class EIPImageGet extends EIPAuthenticatedServlet
     } catch (final Exception e) {
       throw new EIHTTPErrorStatusException(
         400,
-        "invalidParameter",
+        HTTP_PARAMETER_INVALID,
         this.strings().format("invalidParameter", "id")
       );
     }
@@ -138,7 +142,7 @@ public final class EIPImageGet extends EIPAuthenticatedServlet
               servletResponse,
               requestId,
               404,
-              "nonexistent",
+              IMAGE_NONEXISTENT,
               this.strings().format("notFound")
             );
         }

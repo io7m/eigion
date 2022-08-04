@@ -33,6 +33,7 @@ import java.math.BigInteger;
 import java.text.ParseException;
 import java.util.Optional;
 
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.HTTP_PARAMETER_INVALID;
 import static com.io7m.eigion.server.database.api.EIServerDatabaseRole.EIGION;
 import static com.io7m.eigion.server.vanilla.internal.EIServerRequestDecoration.requestIdFor;
 import static org.eclipse.jetty.http.HttpStatus.BAD_REQUEST_400;
@@ -89,7 +90,7 @@ public final class EIPProducts extends EIPAuthenticatedServlet
       } catch (final ParseException e) {
         throw new EIHTTPErrorStatusException(
           BAD_REQUEST_400,
-          "parameter",
+          HTTP_PARAMETER_INVALID,
           this.strings().format("invalidParameter", "start")
         );
       }

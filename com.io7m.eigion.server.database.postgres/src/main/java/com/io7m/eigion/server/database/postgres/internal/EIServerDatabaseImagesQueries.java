@@ -34,6 +34,9 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.IMAGE_DUPLICATE;
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.IMAGE_NONEXISTENT;
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.USER_NONEXISTENT;
 import static com.io7m.eigion.server.database.api.EIServerDatabaseIncludeRedacted.EXCLUDE_REDACTED;
 import static com.io7m.eigion.server.database.api.EIServerDatabaseIncludeRedacted.INCLUDE_REDACTED;
 import static com.io7m.eigion.server.database.postgres.internal.EIServerDatabaseExceptions.handleDatabaseException;
@@ -74,7 +77,7 @@ final class EIServerDatabaseImagesQueries
       if (this.imageGet(id, INCLUDE_REDACTED).isPresent()) {
         throw new EIServerDatabaseException(
           "Image already exists",
-          "image-duplicate"
+          IMAGE_DUPLICATE
         );
       }
 
@@ -179,7 +182,7 @@ final class EIServerDatabaseImagesQueries
       if (this.imageGet(imageId, INCLUDE_REDACTED).isEmpty()) {
         throw new EIServerDatabaseException(
           "Image does not exist",
-          "image-nonexistent"
+          IMAGE_NONEXISTENT
         );
       }
 
@@ -243,7 +246,7 @@ final class EIServerDatabaseImagesQueries
     return this.users.userGet(creator).orElseThrow(() -> {
       return new EIServerDatabaseException(
         String.format("User with ID %s does not exist", creator),
-        "user-nonexistent"
+        USER_NONEXISTENT
       );
     });
   }

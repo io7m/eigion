@@ -21,6 +21,10 @@ import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseError;
 import org.junit.jupiter.api.Test;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.AUTHENTICATION_ERROR;
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.HTTP_METHOD_ERROR;
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.HTTP_SIZE_LIMIT;
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.PROTOCOL_ERROR;
 import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -47,7 +51,7 @@ public final class EIServerPublicAPILoginTest extends EIServerContract
     final var error =
       this.msgParsePublic(response, EISP1ResponseError.class);
 
-    assertEquals("protocol", error.errorCode());
+    assertEquals(PROTOCOL_ERROR.id(), error.errorCode());
     assertEquals(0, this.cookies().getCookieStore().getCookies().size());
   }
 
@@ -114,7 +118,7 @@ public final class EIServerPublicAPILoginTest extends EIServerContract
     final var error =
       this.msgParsePublic(response, EISP1ResponseError.class);
 
-    assertEquals("authentication", error.errorCode());
+    assertEquals(AUTHENTICATION_ERROR.id(), error.errorCode());
     assertEquals(0, this.cookies().getCookieStore().getCookies().size());
   }
 
@@ -147,7 +151,7 @@ public final class EIServerPublicAPILoginTest extends EIServerContract
     final var error =
       this.msgParsePublic(response, EISP1ResponseError.class);
 
-    assertEquals("authentication", error.errorCode());
+    assertEquals(AUTHENTICATION_ERROR.id(), error.errorCode());
     assertEquals(0, this.cookies().getCookieStore().getCookies().size());
   }
 
@@ -181,7 +185,7 @@ public final class EIServerPublicAPILoginTest extends EIServerContract
     final var error =
       this.msgParsePublic(response, EISP1ResponseError.class);
 
-    assertEquals("protocol", error.errorCode());
+    assertEquals(PROTOCOL_ERROR.id(), error.errorCode());
     assertEquals(0, this.cookies().getCookieStore().getCookies().size());
   }
 
@@ -213,7 +217,7 @@ public final class EIServerPublicAPILoginTest extends EIServerContract
     final var error =
       this.msgParsePublic(response, EISP1ResponseError.class);
 
-    assertEquals("limit", error.errorCode());
+    assertEquals(HTTP_SIZE_LIMIT.id(), error.errorCode());
     assertEquals(0, this.cookies().getCookieStore().getCookies().size());
   }
 
@@ -242,7 +246,7 @@ public final class EIServerPublicAPILoginTest extends EIServerContract
     final var error =
       this.msgParsePublic(response, EISP1ResponseError.class);
 
-    assertEquals("http", error.errorCode());
+    assertEquals(HTTP_METHOD_ERROR.id(), error.errorCode());
     assertEquals(0, this.cookies().getCookieStore().getCookies().size());
   }
 }

@@ -59,6 +59,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.IntStream;
 
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.GROUP_INVITE_WRONG_STATE;
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.GROUP_INVITE_WRONG_USER;
 import static com.io7m.eigion.model.EIGroupRole.USER_INVITE;
 import static com.io7m.eigion.protocol.public_api.v1.EISP1GroupInviteStatus.ACCEPTED;
 import static com.io7m.eigion.protocol.public_api.v1.EISP1GroupInviteStatus.REJECTED;
@@ -1067,7 +1069,7 @@ public final class EIServerPublicAPIGroupsTest extends EIServerContract
         new EISP1CommandGroupInviteCancel(r.token())
       );
 
-    assertEquals("group-invite-cancel-wrong-state", error.errorCode());
+    assertEquals(GROUP_INVITE_WRONG_STATE.id(), error.errorCode());
   }
 
   /**
@@ -1165,7 +1167,7 @@ public final class EIServerPublicAPIGroupsTest extends EIServerContract
         new EISP1CommandGroupInviteRespond(r.token(), true)
       );
 
-    assertEquals("group-invite-invitee", error.errorCode());
+    assertEquals(GROUP_INVITE_WRONG_USER.id(), error.errorCode());
   }
 
   /**

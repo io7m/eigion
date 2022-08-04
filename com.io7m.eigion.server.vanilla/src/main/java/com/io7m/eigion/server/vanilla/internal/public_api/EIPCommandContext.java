@@ -17,6 +17,7 @@
 
 package com.io7m.eigion.server.vanilla.internal.public_api;
 
+import com.io7m.eigion.error_codes.EIErrorCode;
 import com.io7m.eigion.model.EIUser;
 import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseError;
 import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseType;
@@ -73,9 +74,9 @@ public final class EIPCommandContext extends EICommandContext<EISP1ResponseType>
   @Override
   protected EISP1ResponseError error(
     final UUID id,
-    final String errorCode,
+    final EIErrorCode errorCode,
     final String message)
   {
-    return new EISP1ResponseError(id, errorCode, message);
+    return new EISP1ResponseError(id, errorCode.id(), message);
   }
 }

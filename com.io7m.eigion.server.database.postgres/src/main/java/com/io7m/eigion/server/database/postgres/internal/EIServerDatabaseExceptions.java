@@ -24,6 +24,11 @@ import org.postgresql.util.PSQLState;
 
 import java.util.Objects;
 
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.OPERATION_NOT_PERMITTED;
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.SQL_ERROR;
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.SQL_ERROR_FOREIGN_KEY;
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.SQL_ERROR_UNIQUE;
+
 /**
  * Functions to handle database exceptions.
  */
@@ -52,7 +57,7 @@ public final class EIServerDatabaseExceptions
 
     final EIServerDatabaseException result = switch (e.sqlState()) {
       case "42501" -> {
-        yield new EIServerDatabaseException(m, e, "operation-not-permitted");
+        yield new EIServerDatabaseException(m, e, OPERATION_NOT_PERMITTED);
       }
 
       default -> {
@@ -67,16 +72,16 @@ public final class EIServerDatabaseExceptions
         if (actual != null) {
           yield switch (actual) {
             case FOREIGN_KEY_VIOLATION -> {
-              yield new EIServerDatabaseException(m, e, "foreign-key");
+              yield new EIServerDatabaseException(m, e, SQL_ERROR_FOREIGN_KEY);
             }
             case UNIQUE_VIOLATION -> {
-              yield new EIServerDatabaseException(m, e, "unique");
+              yield new EIServerDatabaseException(m, e, SQL_ERROR_UNIQUE);
             }
-            default -> new EIServerDatabaseException(m, e, "sql-error");
+            default -> new EIServerDatabaseException(m, e, SQL_ERROR);
           };
         }
 
-        yield new EIServerDatabaseException(m, e, "sql-error");
+        yield new EIServerDatabaseException(m, e, SQL_ERROR);
       }
     };
 

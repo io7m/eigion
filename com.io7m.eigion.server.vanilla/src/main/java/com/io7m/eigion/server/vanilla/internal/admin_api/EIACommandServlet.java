@@ -38,6 +38,7 @@ import java.io.IOException;
 import java.util.Objects;
 import java.util.UUID;
 
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.PROTOCOL_ERROR;
 import static com.io7m.eigion.server.database.api.EIServerDatabaseRole.EIGION;
 import static com.io7m.eigion.server.vanilla.internal.EIServerRequestDecoration.requestIdFor;
 import static org.eclipse.jetty.http.HttpStatus.BAD_REQUEST_400;
@@ -106,7 +107,7 @@ public final class EIACommandServlet extends EIAAuthenticatedServlet
     } catch (final EIProtocolException e) {
       throw new EIHTTPErrorStatusException(
         BAD_REQUEST_400,
-        "protocol",
+        PROTOCOL_ERROR,
         e.getMessage(),
         e
       );
@@ -114,7 +115,7 @@ public final class EIACommandServlet extends EIAAuthenticatedServlet
 
     throw new EIHTTPErrorStatusException(
       BAD_REQUEST_400,
-      "protocol",
+      PROTOCOL_ERROR,
       this.strings().format("expectedCommand", "EISA1CommandType")
     );
   }

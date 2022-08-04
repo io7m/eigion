@@ -32,6 +32,7 @@ import com.io7m.eigion.server.vanilla.internal.EIHTTPErrorStatusException;
 import com.io7m.eigion.server.vanilla.internal.command_exec.EICommandExecutionResult;
 import com.io7m.eigion.server.vanilla.internal.command_exec.EICommandExecutorType;
 
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.SECURITY_POLICY_DENIED;
 import static org.eclipse.jetty.http.HttpStatus.FORBIDDEN_403;
 
 /**
@@ -63,7 +64,7 @@ public final class EIACmdGroupInvites
       instanceof EISecPolicyResultDenied denied) {
       throw new EIHTTPErrorStatusException(
         FORBIDDEN_403,
-        "group-invites-read",
+        SECURITY_POLICY_DENIED,
         denied.message()
       );
     }

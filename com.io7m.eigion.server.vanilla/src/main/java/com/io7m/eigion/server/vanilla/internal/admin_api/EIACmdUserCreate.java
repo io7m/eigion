@@ -23,6 +23,7 @@ import com.io7m.eigion.model.EIPasswordException;
 import com.io7m.eigion.model.EIUser;
 import com.io7m.eigion.model.EIUserDisplayName;
 import com.io7m.eigion.model.EIUserEmail;
+import com.io7m.eigion.model.EIValidityException;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1CommandUserCreate;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1ResponseType;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1ResponseUserCreate;
@@ -44,6 +45,10 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.GROUP_NAME_INVALID;
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.PASSWORD_ERROR;
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.SECURITY_POLICY_DENIED;
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.USER_DUPLICATE_NAME;
 import static com.io7m.eigion.model.EIGroupRole.FOUNDER;
 import static org.eclipse.jetty.http.HttpStatus.FORBIDDEN_403;
 
@@ -76,7 +81,7 @@ public final class EIACmdUserCreate
       instanceof EISecPolicyResultDenied denied) {
       throw new EIHTTPErrorStatusException(
         FORBIDDEN_403,
-        "user-create",
+        SECURITY_POLICY_DENIED,
         denied.message()
       );
     }
@@ -100,7 +105,7 @@ public final class EIACmdUserCreate
     try {
       password = command.password().toPassword();
     } catch (final EIPasswordException e) {
-      return context.resultError(400, "protocol", e.getMessage());
+      return context.resultError(400, PASSWORD_ERROR, e.getMessage());
     }
 
     final EIUser createdUser;
@@ -113,7 +118,7 @@ public final class EIACmdUserCreate
         password
       );
     } catch (final EIServerDatabaseException e) {
-      if (Objects.equals(e.errorCode(), "user-duplicate-name")) {
+      if (Objects.equals(e.errorCode(), USER_DUPLICATE_NAME)) {
         return context.resultError(
           400,
           e.errorCode(),
@@ -133,10 +138,10 @@ public final class EIACmdUserCreate
     final EIGroupName name;
     try {
       name = userGroupPrefix.toGroupName(gid);
-    } catch (final IllegalArgumentException e) {
+    } catch (final EIValidityException e) {
       return context.resultError(
         500,
-        "group-name-invalid",
+        GROUP_NAME_INVALID,
         e.getMessage()
       );
     }

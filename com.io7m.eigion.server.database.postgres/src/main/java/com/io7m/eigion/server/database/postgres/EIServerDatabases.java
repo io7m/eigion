@@ -55,6 +55,10 @@ import java.util.Optional;
 import java.util.ServiceLoader;
 import java.util.function.Consumer;
 
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.IO_ERROR;
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.SQL_ERROR;
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.SQL_REVISION_ERROR;
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.TRASCO_ERROR;
 import static com.io7m.trasco.api.TrExecutorUpgrade.FAIL_INSTEAD_OF_UPGRADING;
 import static com.io7m.trasco.api.TrExecutorUpgrade.PERFORM_UPGRADES;
 import static java.math.BigInteger.valueOf;
@@ -217,13 +221,13 @@ public final class EIServerDatabases implements EIServerDatabaseFactoryType
         metrics
       );
     } catch (final IOException e) {
-      throw new EIServerDatabaseException(e.getMessage(), e, "resource");
+      throw new EIServerDatabaseException(e.getMessage(), e, IO_ERROR);
     } catch (final TrException e) {
-      throw new EIServerDatabaseException(e.getMessage(), e, "trasco");
+      throw new EIServerDatabaseException(e.getMessage(), e, TRASCO_ERROR);
     } catch (final ParseException e) {
-      throw new EIServerDatabaseException(e.getMessage(), e, "sql-revisions");
+      throw new EIServerDatabaseException(e.getMessage(), e, SQL_REVISION_ERROR);
     } catch (final SQLException e) {
-      throw new EIServerDatabaseException(e.getMessage(), e, "sql-error");
+      throw new EIServerDatabaseException(e.getMessage(), e, SQL_ERROR);
     }
   }
 

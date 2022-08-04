@@ -15,17 +15,13 @@
  */
 
 /**
- * Eigion platform (Server database API)
+ * Eigion platform (error codes).
  */
 
-module com.io7m.eigion.server.database.api
+module com.io7m.eigion.error_codes
 {
-  requires static org.osgi.annotation.bundle;
   requires static org.osgi.annotation.versioning;
+  requires static org.osgi.annotation.bundle;
 
-  requires transitive com.io7m.eigion.error_codes;
-  requires transitive com.io7m.eigion.model;
-  requires transitive com.io7m.eigion.services.api;
-
-  exports com.io7m.eigion.server.database.api;
+  exports com.io7m.eigion.error_codes;
 }

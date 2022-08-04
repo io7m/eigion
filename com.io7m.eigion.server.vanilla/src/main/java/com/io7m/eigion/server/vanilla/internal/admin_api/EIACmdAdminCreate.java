@@ -39,6 +39,9 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.ADMIN_DUPLICATE_NAME;
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.PASSWORD_ERROR;
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.SECURITY_POLICY_DENIED;
 import static org.eclipse.jetty.http.HttpStatus.FORBIDDEN_403;
 
 /**
@@ -77,7 +80,7 @@ public final class EIACmdAdminCreate
       instanceof EISecPolicyResultDenied denied) {
       throw new EIHTTPErrorStatusException(
         FORBIDDEN_403,
-        "admin-create",
+        SECURITY_POLICY_DENIED,
         denied.message()
       );
     }
@@ -93,7 +96,7 @@ public final class EIACmdAdminCreate
     try {
       password = command.password().toPassword();
     } catch (final EIPasswordException e) {
-      return context.resultError(400, "protocol", e.getMessage());
+      return context.resultError(400, PASSWORD_ERROR, e.getMessage());
     }
 
     final EIAdmin createdAdmin;
@@ -107,7 +110,7 @@ public final class EIACmdAdminCreate
         targetPermissions
       );
     } catch (final EIServerDatabaseException e) {
-      if (Objects.equals(e.errorCode(), "admin-duplicate-name")) {
+      if (Objects.equals(e.errorCode(), ADMIN_DUPLICATE_NAME)) {
         return context.resultError(
           400,
           e.errorCode(),

@@ -41,6 +41,12 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.ADMIN_DUPLICATE_EMAIL;
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.ADMIN_DUPLICATE_ID;
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.ADMIN_DUPLICATE_NAME;
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.ADMIN_NONEXISTENT;
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.ADMIN_NOT_INITIAL;
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.PASSWORD_ERROR;
 import static com.io7m.eigion.server.database.postgres.internal.EIServerDatabaseExceptions.handleDatabaseException;
 import static com.io7m.eigion.server.database.postgres.internal.Tables.USER_IDS;
 import static com.io7m.eigion.server.database.postgres.internal.tables.Admins.ADMINS;
@@ -115,7 +121,7 @@ final class EIServerDatabaseAdminsQueries
     return new EIServerDatabaseException(
       exception.getMessage(),
       exception,
-      "password-error"
+      PASSWORD_ERROR
     );
   }
 
@@ -147,7 +153,7 @@ final class EIServerDatabaseAdminsQueries
       if (existing.isNotEmpty()) {
         throw new EIServerDatabaseException(
           "Admin already exists",
-          "admin-not-initial"
+          ADMIN_NOT_INITIAL
         );
       }
 
@@ -216,7 +222,7 @@ final class EIServerDatabaseAdminsQueries
         if (existing.isPresent()) {
           throw new EIServerDatabaseException(
             "Admin ID already exists",
-            "admin-duplicate-id"
+            ADMIN_DUPLICATE_ID
           );
         }
       }
@@ -227,7 +233,7 @@ final class EIServerDatabaseAdminsQueries
         if (existing.isPresent()) {
           throw new EIServerDatabaseException(
             "Admin name already exists",
-            "admin-duplicate-name"
+            ADMIN_DUPLICATE_NAME
           );
         }
       }
@@ -238,7 +244,7 @@ final class EIServerDatabaseAdminsQueries
         if (existing.isPresent()) {
           throw new EIServerDatabaseException(
             "Email already exists",
-            "admin-duplicate-email"
+            ADMIN_DUPLICATE_EMAIL
           );
         }
       }
@@ -353,7 +359,7 @@ final class EIServerDatabaseAdminsQueries
       if (!existingOpt.isPresent()) {
         throw new EIServerDatabaseException(
           "Admin does not exist",
-          "admin-nonexistent"
+          ADMIN_NONEXISTENT
         );
       }
 

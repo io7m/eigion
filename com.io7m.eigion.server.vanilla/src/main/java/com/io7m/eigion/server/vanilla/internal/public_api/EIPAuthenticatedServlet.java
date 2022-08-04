@@ -41,6 +41,9 @@ import java.io.IOException;
 import java.util.Objects;
 import java.util.UUID;
 
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.AUTHENTICATION_ERROR;
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.PASSWORD_ERROR;
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.SQL_ERROR;
 import static com.io7m.eigion.server.database.api.EIServerDatabaseRole.EIGION;
 import static com.io7m.eigion.server.vanilla.internal.EIServerRequestDecoration.requestIdFor;
 import static com.io7m.eigion.server.vanilla.logging.EIServerMDCRequestProcessor.mdcForRequest;
@@ -156,7 +159,7 @@ public abstract class EIPAuthenticatedServlet extends HttpServlet
           servletResponse,
           requestIdFor(request),
           HttpStatus.UNAUTHORIZED_401,
-          "unauthorized",
+          AUTHENTICATION_ERROR,
           this.strings.format("unauthorized")
         );
       } catch (final EIHTTPErrorStatusException e) {
@@ -173,7 +176,7 @@ public abstract class EIPAuthenticatedServlet extends HttpServlet
           servletResponse,
           requestIdFor(request),
           INTERNAL_SERVER_ERROR_500,
-          "password",
+          PASSWORD_ERROR,
           e.getMessage()
         );
       } catch (final EIServerDatabaseException e) {
@@ -182,7 +185,7 @@ public abstract class EIPAuthenticatedServlet extends HttpServlet
           servletResponse,
           requestIdFor(request),
           INTERNAL_SERVER_ERROR_500,
-          "database",
+          SQL_ERROR,
           e.getMessage()
         );
       } catch (final Exception e) {

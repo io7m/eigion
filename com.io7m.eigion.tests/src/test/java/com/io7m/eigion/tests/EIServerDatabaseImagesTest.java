@@ -28,6 +28,8 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.util.Optional;
 
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.IMAGE_DUPLICATE;
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.IMAGE_NONEXISTENT;
 import static com.io7m.eigion.model.EIRedaction.redactionOpt;
 import static com.io7m.eigion.model.EIRedactionRequest.redactionRequestOpt;
 import static com.io7m.eigion.server.database.api.EIServerDatabaseIncludeRedacted.EXCLUDE_REDACTED;
@@ -99,7 +101,7 @@ public final class EIServerDatabaseImagesTest extends EIWithDatabaseContract
       final var ex = assertThrows(EIServerDatabaseException.class, () -> {
         images.imageCreate(id, hash);
       });
-      assertEquals("image-duplicate", ex.errorCode());
+      assertEquals(IMAGE_DUPLICATE, ex.errorCode());
     }
 
     checkAuditLog(
@@ -176,7 +178,7 @@ public final class EIServerDatabaseImagesTest extends EIWithDatabaseContract
       final var ex = assertThrows(EIServerDatabaseException.class, () -> {
         images.imageRedact(randomUUID(), Optional.empty());
       });
-      assertEquals("image-nonexistent", ex.errorCode());
+      assertEquals(IMAGE_NONEXISTENT, ex.errorCode());
     }
 
     checkAuditLog(

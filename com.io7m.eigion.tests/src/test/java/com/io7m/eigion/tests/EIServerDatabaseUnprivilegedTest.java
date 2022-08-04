@@ -42,6 +42,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Stream;
 
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.OPERATION_NOT_PERMITTED;
 import static com.io7m.eigion.model.EIRedactionRequest.redactionRequest;
 import static com.io7m.eigion.model.EIRedactionRequest.redactionRequestOpt;
 import static com.io7m.eigion.server.database.api.EIServerDatabaseIncludeRedacted.INCLUDE_REDACTED;
@@ -127,7 +128,7 @@ public final class EIServerDatabaseUnprivilegedTest extends
                 EIHash.sha256Of("hello".getBytes(UTF_8))
               );
             });
-          assertEquals("operation-not-permitted", ex.errorCode());
+          assertEquals(OPERATION_NOT_PERMITTED, ex.errorCode());
         }
       },
 
@@ -141,7 +142,7 @@ public final class EIServerDatabaseUnprivilegedTest extends
             assertThrows(EIServerDatabaseException.class, () -> {
               images.imageGet(randomUUID(), INCLUDE_REDACTED);
             });
-          assertEquals("operation-not-permitted", ex.errorCode());
+          assertEquals(OPERATION_NOT_PERMITTED, ex.errorCode());
         }
       },
 
@@ -155,7 +156,7 @@ public final class EIServerDatabaseUnprivilegedTest extends
             assertThrows(EIServerDatabaseException.class, () -> {
               images.imageRedact(randomUUID(), Optional.empty());
             });
-          assertEquals("operation-not-permitted", ex.errorCode());
+          assertEquals(OPERATION_NOT_PERMITTED, ex.errorCode());
         }
       },
 
@@ -174,7 +175,7 @@ public final class EIServerDatabaseUnprivilegedTest extends
             assertThrows(EIServerDatabaseException.class, () -> {
               products.productCategoryAdd(id, category0);
             });
-          assertEquals("operation-not-permitted", ex.errorCode());
+          assertEquals(OPERATION_NOT_PERMITTED, ex.errorCode());
         }
       },
 
@@ -193,7 +194,7 @@ public final class EIServerDatabaseUnprivilegedTest extends
             assertThrows(EIServerDatabaseException.class, () -> {
               products.productCategoryRemove(id, category0);
             });
-          assertEquals("operation-not-permitted", ex.errorCode());
+          assertEquals(OPERATION_NOT_PERMITTED, ex.errorCode());
         }
       },
 
@@ -207,7 +208,7 @@ public final class EIServerDatabaseUnprivilegedTest extends
             assertThrows(EIServerDatabaseException.class, () -> {
               products.productsAll(INCLUDE_REDACTED);
             });
-          assertEquals("operation-not-permitted", ex.errorCode());
+          assertEquals(OPERATION_NOT_PERMITTED, ex.errorCode());
         }
       },
 
@@ -226,7 +227,7 @@ public final class EIServerDatabaseUnprivilegedTest extends
             assertThrows(EIServerDatabaseException.class, () -> {
               products.productRedact(id, Optional.of(redaction));
             });
-          assertEquals("operation-not-permitted", ex.errorCode());
+          assertEquals(OPERATION_NOT_PERMITTED, ex.errorCode());
         }
       },
 
@@ -243,7 +244,7 @@ public final class EIServerDatabaseUnprivilegedTest extends
             assertThrows(EIServerDatabaseException.class, () -> {
               products.productCreate(id);
             });
-          assertEquals("operation-not-permitted", ex.errorCode());
+          assertEquals(OPERATION_NOT_PERMITTED, ex.errorCode());
         }
       },
 
@@ -257,7 +258,7 @@ public final class EIServerDatabaseUnprivilegedTest extends
             assertThrows(EIServerDatabaseException.class, () -> {
               products.categoryCreate("Category 0");
             });
-          assertEquals("operation-not-permitted", ex.errorCode());
+          assertEquals(OPERATION_NOT_PERMITTED, ex.errorCode());
         }
       },
 
@@ -273,7 +274,7 @@ public final class EIServerDatabaseUnprivilegedTest extends
                 "Category 0",
                 redactionRequestOpt(now(), "X"));
             });
-          assertEquals("operation-not-permitted", ex.errorCode());
+          assertEquals(OPERATION_NOT_PERMITTED, ex.errorCode());
         }
       },
 
@@ -287,7 +288,7 @@ public final class EIServerDatabaseUnprivilegedTest extends
             assertThrows(EIServerDatabaseException.class, () -> {
               products.categories(INCLUDE_REDACTED);
             });
-          assertEquals("operation-not-permitted", ex.errorCode());
+          assertEquals(OPERATION_NOT_PERMITTED, ex.errorCode());
         }
       },
 
@@ -308,7 +309,7 @@ public final class EIServerDatabaseUnprivilegedTest extends
                   .createHashed("12345678")
               );
             });
-          assertEquals("operation-not-permitted", ex.errorCode());
+          assertEquals(OPERATION_NOT_PERMITTED, ex.errorCode());
         }
       },
 
@@ -321,7 +322,7 @@ public final class EIServerDatabaseUnprivilegedTest extends
             assertThrows(EIServerDatabaseException.class, () -> {
               users.userGet(randomUUID());
             });
-          assertEquals("operation-not-permitted", ex.errorCode());
+          assertEquals(OPERATION_NOT_PERMITTED, ex.errorCode());
         }
       },
 
@@ -335,7 +336,7 @@ public final class EIServerDatabaseUnprivilegedTest extends
             assertThrows(EIServerDatabaseException.class, () -> {
               users.userGetForEmail(new EIUserEmail("someone@example.com"));
             });
-          assertEquals("operation-not-permitted", ex.errorCode());
+          assertEquals(OPERATION_NOT_PERMITTED, ex.errorCode());
         }
       },
 
@@ -349,7 +350,7 @@ public final class EIServerDatabaseUnprivilegedTest extends
             assertThrows(EIServerDatabaseException.class, () -> {
               users.userGetForName(new EIUserDisplayName("someone"));
             });
-          assertEquals("operation-not-permitted", ex.errorCode());
+          assertEquals(OPERATION_NOT_PERMITTED, ex.errorCode());
         }
       },
 
@@ -366,7 +367,7 @@ public final class EIServerDatabaseUnprivilegedTest extends
                 Optional.of(now()),
                 "reason");
             });
-          assertEquals("operation-not-permitted", ex.errorCode());
+          assertEquals(OPERATION_NOT_PERMITTED, ex.errorCode());
         }
       },
 
@@ -380,7 +381,7 @@ public final class EIServerDatabaseUnprivilegedTest extends
             assertThrows(EIServerDatabaseException.class, () -> {
               users.userUnban(randomUUID());
             });
-          assertEquals("operation-not-permitted", ex.errorCode());
+          assertEquals(OPERATION_NOT_PERMITTED, ex.errorCode());
         }
       },
 
@@ -396,7 +397,7 @@ public final class EIServerDatabaseUnprivilegedTest extends
             assertThrows(EIServerDatabaseException.class, () -> {
               products.productSetTitle(id, "title");
             });
-          assertEquals("operation-not-permitted", ex.errorCode());
+          assertEquals(OPERATION_NOT_PERMITTED, ex.errorCode());
         }
       },
 
@@ -412,7 +413,7 @@ public final class EIServerDatabaseUnprivilegedTest extends
             assertThrows(EIServerDatabaseException.class, () -> {
               products.productSetDescription(id, new EIRichText("x", "y"));
             });
-          assertEquals("operation-not-permitted", ex.errorCode());
+          assertEquals(OPERATION_NOT_PERMITTED, ex.errorCode());
         }
       },
 
@@ -428,7 +429,7 @@ public final class EIServerDatabaseUnprivilegedTest extends
             assertThrows(EIServerDatabaseException.class, () -> {
               products.product(id, INCLUDE_REDACTED);
             });
-          assertEquals("operation-not-permitted", ex.errorCode());
+          assertEquals(OPERATION_NOT_PERMITTED, ex.errorCode());
         }
       },
 
@@ -444,7 +445,7 @@ public final class EIServerDatabaseUnprivilegedTest extends
                 randomUUID(),
                 EIHash.sha256Of("hello".getBytes(UTF_8)));
             });
-          assertEquals("operation-not-permitted", ex.errorCode());
+          assertEquals(OPERATION_NOT_PERMITTED, ex.errorCode());
         }
       },
 
@@ -458,7 +459,7 @@ public final class EIServerDatabaseUnprivilegedTest extends
             assertThrows(EIServerDatabaseException.class, () -> {
               images.imageRedact(randomUUID(), Optional.empty());
             });
-          assertEquals("operation-not-permitted", ex.errorCode());
+          assertEquals(OPERATION_NOT_PERMITTED, ex.errorCode());
         }
       },
 
@@ -485,7 +486,7 @@ public final class EIServerDatabaseUnprivilegedTest extends
                 )
               );
             });
-          assertEquals("operation-not-permitted", ex.errorCode());
+          assertEquals(OPERATION_NOT_PERMITTED, ex.errorCode());
         }
       }
 

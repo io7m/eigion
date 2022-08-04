@@ -26,6 +26,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Objects;
 
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.HTTP_SIZE_LIMIT;
+
 /**
  * Methods to handle request size limits.
  */
@@ -72,7 +74,7 @@ public final class EIRequestLimits implements EIServiceType
       if (Integer.compareUnsigned(specifiedLength, maximum) > 0) {
         throw new EIHTTPErrorStatusException(
           HttpStatus.PAYLOAD_TOO_LARGE_413,
-          "limit",
+          HTTP_SIZE_LIMIT,
           this.strings.format(
             "requestTooLarge",
             Integer.toUnsignedString(specifiedLength))

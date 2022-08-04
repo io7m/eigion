@@ -27,6 +27,10 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.util.Set;
 
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.ADMIN_DUPLICATE_EMAIL;
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.ADMIN_DUPLICATE_ID;
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.ADMIN_DUPLICATE_NAME;
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.ADMIN_NONEXISTENT;
 import static com.io7m.eigion.server.database.api.EIServerDatabaseRole.EIGION;
 import static java.time.OffsetDateTime.now;
 import static java.util.UUID.randomUUID;
@@ -56,7 +60,7 @@ public final class EIServerDatabaseAdminsTest extends EIWithDatabaseContract
       assertThrows(EIServerDatabaseException.class, () -> {
         transaction.adminIdSet(randomUUID());
       });
-    assertEquals("admin-nonexistent", ex.errorCode());
+    assertEquals(ADMIN_NONEXISTENT, ex.errorCode());
   }
 
   /**
@@ -174,7 +178,7 @@ public final class EIServerDatabaseAdminsTest extends EIWithDatabaseContract
         );
       });
 
-    assertEquals("admin-duplicate-id", ex.errorCode());
+    assertEquals(ADMIN_DUPLICATE_ID, ex.errorCode());
   }
 
   /**
@@ -224,7 +228,7 @@ public final class EIServerDatabaseAdminsTest extends EIWithDatabaseContract
         );
       });
 
-    assertEquals("admin-duplicate-email", ex.errorCode());
+    assertEquals(ADMIN_DUPLICATE_EMAIL, ex.errorCode());
   }
 
   /**
@@ -274,7 +278,7 @@ public final class EIServerDatabaseAdminsTest extends EIWithDatabaseContract
         );
       });
 
-    assertEquals("admin-duplicate-name", ex.errorCode());
+    assertEquals(ADMIN_DUPLICATE_NAME, ex.errorCode());
   }
 
   /**
@@ -342,7 +346,7 @@ public final class EIServerDatabaseAdminsTest extends EIWithDatabaseContract
       assertThrows(EIServerDatabaseException.class, () -> {
         admins.adminLogin(randomUUID(), "127.0.0.1");
       });
-    assertEquals("admin-nonexistent", ex.errorCode());
+    assertEquals(ADMIN_NONEXISTENT, ex.errorCode());
   }
 
   private static EIPassword createBadPassword()

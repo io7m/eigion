@@ -40,6 +40,12 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.ADMIN_NONEXISTENT;
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.ADMIN_UNSET;
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.SQL_ERROR;
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.SQL_ERROR_UNSUPPORTED_QUERY_CLASS;
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.USER_NONEXISTENT;
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.USER_UNSET;
 import static com.io7m.eigion.server.database.postgres.internal.Tables.ADMINS;
 import static com.io7m.eigion.server.database.postgres.internal.Tables.USERS;
 import static org.jooq.SQLDialect.POSTGRES;
@@ -107,14 +113,14 @@ final class EIServerDatabaseTransaction
       if (userOpt.isEmpty()) {
         throw new EIServerDatabaseException(
           "No such user: %s".formatted(userId),
-          "user-nonexistent"
+          USER_NONEXISTENT
         );
       }
 
       this.currentUserId = userId;
       this.currentAdminId = null;
     } catch (final DataAccessException e) {
-      throw new EIServerDatabaseException(e.getMessage(), e, "sql-error");
+      throw new EIServerDatabaseException(e.getMessage(), e, SQL_ERROR);
     }
   }
 
@@ -125,7 +131,7 @@ final class EIServerDatabaseTransaction
     return Optional.ofNullable(this.currentUserId).orElseThrow(() -> {
       return new EIServerDatabaseException(
         "A user must be set before calling this method.",
-        "user-unset"
+        USER_UNSET
       );
     });
   }
@@ -165,7 +171,7 @@ final class EIServerDatabaseTransaction
 
     throw new EIServerDatabaseException(
       "Unsupported query type: %s".formatted(qClass),
-      "unsupported-query-class"
+      SQL_ERROR_UNSUPPORTED_QUERY_CLASS
     );
   }
 
@@ -193,7 +199,7 @@ final class EIServerDatabaseTransaction
         .metrics()
         .addTransactionTimeRolledBack(this.updateTransactionTime());
     } catch (final SQLException e) {
-      throw new EIServerDatabaseException(e.getMessage(), e, "sql-error");
+      throw new EIServerDatabaseException(e.getMessage(), e, SQL_ERROR);
     }
   }
 
@@ -207,7 +213,7 @@ final class EIServerDatabaseTransaction
         .metrics()
         .addTransactionTimeCommitted(this.updateTransactionTime());
     } catch (final SQLException e) {
-      throw new EIServerDatabaseException(e.getMessage(), e, "sql-error");
+      throw new EIServerDatabaseException(e.getMessage(), e, SQL_ERROR);
     }
   }
 
@@ -265,14 +271,14 @@ final class EIServerDatabaseTransaction
       if (adminOpt.isEmpty()) {
         throw new EIServerDatabaseException(
           "No such admin: " + adminId,
-          "admin-nonexistent"
+          ADMIN_NONEXISTENT
         );
       }
 
       this.currentUserId = null;
       this.currentAdminId = adminId;
     } catch (final DataAccessException e) {
-      throw new EIServerDatabaseException(e.getMessage(), e, "sql-error");
+      throw new EIServerDatabaseException(e.getMessage(), e, SQL_ERROR);
     }
   }
 
@@ -283,7 +289,7 @@ final class EIServerDatabaseTransaction
     return Optional.ofNullable(this.currentAdminId).orElseThrow(() -> {
       return new EIServerDatabaseException(
         "An admin must be set before calling this method.",
-        "admin-unset"
+        ADMIN_UNSET
       );
     });
   }

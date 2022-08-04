@@ -17,6 +17,7 @@
 
 package com.io7m.eigion.server.vanilla.internal.admin_api;
 
+import com.io7m.eigion.error_codes.EIErrorCode;
 import com.io7m.eigion.model.EIAdmin;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1ResponseError;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1ResponseType;
@@ -74,9 +75,9 @@ public final class EIACommandContext extends EICommandContext<EISA1ResponseType>
   @Override
   protected EISA1ResponseError error(
     final UUID id,
-    final String errorCode,
+    final EIErrorCode errorCode,
     final String message)
   {
-    return new EISA1ResponseError(id, errorCode, message);
+    return new EISA1ResponseError(id, errorCode.id(), message);
   }
 }

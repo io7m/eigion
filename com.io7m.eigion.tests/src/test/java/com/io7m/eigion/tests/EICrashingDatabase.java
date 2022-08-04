@@ -22,6 +22,8 @@ import com.io7m.eigion.server.database.api.EIServerDatabaseException;
 import com.io7m.eigion.server.database.api.EIServerDatabaseRole;
 import com.io7m.eigion.server.database.api.EIServerDatabaseType;
 
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.SQL_ERROR;
+
 public final class EICrashingDatabase implements EIServerDatabaseType
 {
   public EICrashingDatabase()
@@ -40,7 +42,7 @@ public final class EICrashingDatabase implements EIServerDatabaseType
     final EIServerDatabaseRole role)
     throws EIServerDatabaseException
   {
-    throw new EIServerDatabaseException("Crash!", "database-error");
+    throw new EIServerDatabaseException("Crash!", SQL_ERROR);
   }
 
   @Override

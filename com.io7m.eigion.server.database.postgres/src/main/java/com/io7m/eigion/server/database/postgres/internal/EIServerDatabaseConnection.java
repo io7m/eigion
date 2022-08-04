@@ -24,6 +24,8 @@ import com.io7m.eigion.server.database.api.EIServerDatabaseTransactionType;
 import java.sql.Connection;
 import java.sql.SQLException;
 
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.SQL_ERROR;
+
 record EIServerDatabaseConnection(
   EIServerDatabase database,
   Connection connection,
@@ -45,7 +47,7 @@ record EIServerDatabaseConnection(
       t.commit();
       return t;
     } catch (final SQLException e) {
-      throw new EIServerDatabaseException(e.getMessage(), e, "sql-error");
+      throw new EIServerDatabaseException(e.getMessage(), e, SQL_ERROR);
     }
   }
 
@@ -58,7 +60,7 @@ record EIServerDatabaseConnection(
         this.connection.close();
       }
     } catch (final SQLException e) {
-      throw new EIServerDatabaseException(e.getMessage(), e, "database-error");
+      throw new EIServerDatabaseException(e.getMessage(), e, SQL_ERROR);
     }
   }
 }

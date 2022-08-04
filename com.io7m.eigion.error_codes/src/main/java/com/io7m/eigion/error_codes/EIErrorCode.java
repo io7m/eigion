@@ -14,18 +14,42 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+package com.io7m.eigion.error_codes;
+
+import java.util.Objects;
+import java.util.regex.Pattern;
+
 /**
- * Eigion platform (Server database API)
+ * The type of error codes.
+ *
+ * @param id The error code identifier
  */
 
-module com.io7m.eigion.server.database.api
+public record EIErrorCode(String id)
 {
-  requires static org.osgi.annotation.bundle;
-  requires static org.osgi.annotation.versioning;
+  private static final Pattern VALID_ERROR_CODE =
+    Pattern.compile("[a-z][a-z\\-]+");
 
-  requires transitive com.io7m.eigion.error_codes;
-  requires transitive com.io7m.eigion.model;
-  requires transitive com.io7m.eigion.services.api;
+  /**
+   * The type of error codes.
+   *
+   * @param id The error code identifier
+   */
 
-  exports com.io7m.eigion.server.database.api;
+  public EIErrorCode
+  {
+    Objects.requireNonNull(id, "id");
+
+    if (!VALID_ERROR_CODE.matcher(id).matches()) {
+      throw new IllegalArgumentException(
+        "Error code identifiers must match %s".formatted(VALID_ERROR_CODE)
+      );
+    }
+  }
+
+  @Override
+  public String toString()
+  {
+    return this.id;
+  }
 }

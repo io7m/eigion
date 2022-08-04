@@ -52,6 +52,14 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.GROUP_DUPLICATE;
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.GROUP_INVITE_NONEXISTENT;
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.GROUP_INVITE_SELF;
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.GROUP_NONEXISTENT;
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.GROUP_REQUEST_DUPLICATE;
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.GROUP_REQUEST_NONEXISTENT;
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.GROUP_REQUEST_WRONG_USER;
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.USER_NONEXISTENT;
 import static com.io7m.eigion.model.EIGroupCreationRequestStatusType.Cancelled;
 import static com.io7m.eigion.model.EIGroupCreationRequestStatusType.NAME_CANCELLED;
 import static com.io7m.eigion.model.EIGroupCreationRequestStatusType.NAME_FAILED;
@@ -157,7 +165,7 @@ final class EIServerDatabaseGroupQueries
     if (existingGroup.isPresent()) {
       throw new EIServerDatabaseException(
         "Group already exists",
-        "group-duplicate"
+        GROUP_DUPLICATE
       );
     }
   }
@@ -171,7 +179,7 @@ final class EIServerDatabaseGroupQueries
       .orElseThrow(() -> {
         return new EIServerDatabaseException(
           "User does not exist",
-          "user-nonexistent"
+          USER_NONEXISTENT
         );
       });
   }
@@ -185,7 +193,7 @@ final class EIServerDatabaseGroupQueries
       .orElseThrow(() -> {
         return new EIServerDatabaseException(
           "Group does not exist",
-          "group-nonexistent"
+          GROUP_NONEXISTENT
         );
       });
   }
@@ -201,7 +209,7 @@ final class EIServerDatabaseGroupQueries
     if (!Objects.equals(requestUser, userId)) {
       throw new EIServerDatabaseException(
         "Group request not owned by this user",
-        "group-request-wrong-user"
+        GROUP_REQUEST_WRONG_USER
       );
     }
   }
@@ -217,29 +225,6 @@ final class EIServerDatabaseGroupQueries
         .map(EIGroupRole::valueOf)
         .collect(Collectors.toUnmodifiableSet())
     );
-  }
-
-  private static EIGroupInvite mapInvite(
-    final String inviterName,
-    final Record r)
-  {
-    return new EIGroupInvite(
-      r.get(GROUP_INVITES.USER_INVITING),
-      new EIUserDisplayName(inviterName),
-      r.get(GROUP_INVITES.USER_BEING_INVITED),
-      new EIUserDisplayName(r.get(USERS.NAME)),
-      new EIGroupName(r.get(GROUP_INVITES.GROUP_NAME)),
-      new EIToken(r.get(GROUP_INVITES.INVITE_TOKEN)),
-      mapInviteStatus(r.get(GROUP_INVITES.STATUS)),
-      r.get(GROUP_INVITES.CREATED),
-      Optional.ofNullable(r.get(GROUP_INVITES.COMPLETED))
-    );
-  }
-
-  private static EIGroupInviteStatus mapInviteStatus(
-    final String status)
-  {
-    return EIGroupInviteStatus.valueOf(status);
   }
 
   private static EIGroupInvite joinToInvite(
@@ -357,7 +342,7 @@ final class EIServerDatabaseGroupQueries
       if (existingGroupRequest.isPresent()) {
         throw new EIServerDatabaseException(
           "Group request already exists",
-          "group-request-duplicate"
+          GROUP_REQUEST_DUPLICATE
         );
       }
 
@@ -508,7 +493,7 @@ final class EIServerDatabaseGroupQueries
               .and(GROUPS_CREATION_REQUESTS.GROUP_NAME.eq(groupName.value())))
           .orElseThrow(() -> new EIServerDatabaseException(
             "Group request does not exist",
-            "group-request-nonexistent"
+            GROUP_REQUEST_NONEXISTENT
           ));
 
       checkUserForRequest(userId, existing);
@@ -776,7 +761,7 @@ final class EIServerDatabaseGroupQueries
       if (userInviting.equals(userBeingInvited)) {
         throw new EIServerDatabaseException(
           "Group inviter and invitee must be different.",
-          "group-inviter-invitee"
+          GROUP_INVITE_SELF
         );
       }
 
@@ -1009,7 +994,7 @@ final class EIServerDatabaseGroupQueries
         .orElseThrow(() -> {
           return new EIServerDatabaseException(
             "Invite does not exist",
-            "group-invite-nonexistent"
+            GROUP_INVITE_NONEXISTENT
           );
         });
 

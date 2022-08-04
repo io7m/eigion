@@ -17,6 +17,7 @@
 
 package com.io7m.eigion.server.vanilla.internal.admin_api;
 
+import com.io7m.eigion.error_codes.EIErrorCode;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1MessageType;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1Messages;
 import com.io7m.eigion.protocol.admin_api.v1.EISA1ResponseError;
@@ -64,14 +65,14 @@ public final class EIASends implements EIServiceType
     final HttpServletResponse response,
     final UUID requestId,
     final int statusCode,
-    final String errorCode,
+    final EIErrorCode errorCode,
     final String message)
     throws IOException
   {
     this.send(
       response,
       statusCode,
-      new EISA1ResponseError(requestId, errorCode, message)
+      new EISA1ResponseError(requestId, errorCode.id(), message)
     );
   }
 

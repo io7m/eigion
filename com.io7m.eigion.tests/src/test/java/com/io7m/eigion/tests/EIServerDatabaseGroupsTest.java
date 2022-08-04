@@ -42,6 +42,11 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.GROUP_DUPLICATE;
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.GROUP_INVITE_SELF;
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.GROUP_REQUEST_DUPLICATE;
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.GROUP_REQUEST_NONEXISTENT;
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.USER_NONEXISTENT;
 import static com.io7m.eigion.model.EIGroupRole.FOUNDER;
 import static com.io7m.eigion.server.database.api.EIServerDatabaseQueriesType.earliest;
 import static com.io7m.eigion.server.database.api.EIServerDatabaseRole.EIGION;
@@ -191,7 +196,7 @@ public final class EIServerDatabaseGroupsTest extends EIWithDatabaseContract
           groups.groupMembershipSet(groupName, randomUUID(), Set.of(FOUNDER));
         });
 
-      assertEquals("user-nonexistent", ex.errorCode());
+      assertEquals(USER_NONEXISTENT, ex.errorCode());
     }
 
     {
@@ -200,7 +205,7 @@ public final class EIServerDatabaseGroupsTest extends EIWithDatabaseContract
           groups.groupMembershipGet(randomUUID());
         });
 
-      assertEquals("user-nonexistent", ex.errorCode());
+      assertEquals(USER_NONEXISTENT, ex.errorCode());
     }
   }
 
@@ -240,7 +245,7 @@ public final class EIServerDatabaseGroupsTest extends EIWithDatabaseContract
         groups.groupCreate(groupName, user.id());
       });
 
-    assertEquals("group-duplicate", ex.errorCode());
+    assertEquals(GROUP_DUPLICATE, ex.errorCode());
   }
 
   /**
@@ -271,10 +276,10 @@ public final class EIServerDatabaseGroupsTest extends EIWithDatabaseContract
 
     final var ex =
       assertThrows(EIServerDatabaseException.class, () -> {
-        groups.groupCreate(groupName, UUID.randomUUID());
+        groups.groupCreate(groupName, randomUUID());
       });
 
-    assertEquals("user-nonexistent", ex.errorCode());
+    assertEquals(USER_NONEXISTENT, ex.errorCode());
   }
 
   /**
@@ -424,7 +429,7 @@ public final class EIServerDatabaseGroupsTest extends EIWithDatabaseContract
         groups.groupCreationRequestComplete(request1);
       });
 
-    assertEquals("group-request-nonexistent", ex.errorCode());
+    assertEquals(GROUP_REQUEST_NONEXISTENT, ex.errorCode());
   }
 
   /**
@@ -469,7 +474,7 @@ public final class EIServerDatabaseGroupsTest extends EIWithDatabaseContract
         groups.groupCreationRequestComplete(request0);
       });
 
-    assertEquals("group-request-nonexistent", ex.errorCode());
+    assertEquals(GROUP_REQUEST_NONEXISTENT, ex.errorCode());
   }
 
   /**
@@ -527,7 +532,7 @@ public final class EIServerDatabaseGroupsTest extends EIWithDatabaseContract
         assertThrows(EIServerDatabaseException.class, () -> {
           groups.groupCreationRequestComplete(requestSucceeded);
         });
-      assertEquals("group-duplicate", ex.errorCode());
+      assertEquals(GROUP_DUPLICATE, ex.errorCode());
     }
   }
 
@@ -575,7 +580,7 @@ public final class EIServerDatabaseGroupsTest extends EIWithDatabaseContract
         groups.groupCreationRequestStart(request0);
       });
 
-    assertEquals("group-duplicate", ex.errorCode());
+    assertEquals(GROUP_DUPLICATE, ex.errorCode());
   }
 
   /**
@@ -622,7 +627,7 @@ public final class EIServerDatabaseGroupsTest extends EIWithDatabaseContract
         groups.groupCreationRequestStart(request0);
       });
 
-    assertEquals("group-request-duplicate", ex.errorCode());
+    assertEquals(GROUP_REQUEST_DUPLICATE, ex.errorCode());
   }
 
   /**
@@ -952,6 +957,6 @@ public final class EIServerDatabaseGroupsTest extends EIWithDatabaseContract
       assertThrows(EIServerDatabaseException.class, () -> {
         groups.groupInvite(groupName, user0.id());
       });
-    assertEquals("group-inviter-invitee", ex.errorCode());
+    assertEquals(GROUP_INVITE_SELF, ex.errorCode());
   }
 }

@@ -17,6 +17,8 @@
 
 package com.io7m.eigion.server.vanilla.internal;
 
+import com.io7m.eigion.error_codes.EIErrorCode;
+
 import java.util.Objects;
 
 /**
@@ -26,7 +28,7 @@ import java.util.Objects;
 public final class EIHTTPErrorStatusException extends Exception
 {
   private final int statusCode;
-  private final String errorCode;
+  private final EIErrorCode errorCode;
 
   /**
    * Construct an exception.
@@ -38,7 +40,7 @@ public final class EIHTTPErrorStatusException extends Exception
 
   public EIHTTPErrorStatusException(
     final int inStatusCode,
-    final String inErrorCode,
+    final EIErrorCode inErrorCode,
     final String inMessage)
   {
     super(Objects.requireNonNull(inMessage, "message"));
@@ -58,7 +60,7 @@ public final class EIHTTPErrorStatusException extends Exception
 
   public EIHTTPErrorStatusException(
     final int inStatusCode,
-    final String inErrorCode,
+    final EIErrorCode inErrorCode,
     final String inMessage,
     final Throwable cause)
   {
@@ -79,7 +81,7 @@ public final class EIHTTPErrorStatusException extends Exception
 
   public EIHTTPErrorStatusException(
     final int inStatusCode,
-    final String inErrorCode,
+    final EIErrorCode inErrorCode,
     final Throwable cause)
   {
     super(Objects.requireNonNull(cause, "cause"));
@@ -100,7 +102,7 @@ public final class EIHTTPErrorStatusException extends Exception
    * @return The error code
    */
 
-  public String errorCode()
+  public EIErrorCode errorCode()
   {
     return this.errorCode;
   }

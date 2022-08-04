@@ -17,6 +17,7 @@
 
 package com.io7m.eigion.server.vanilla.internal.command_exec;
 
+import com.io7m.eigion.error_codes.EIErrorCode;
 import com.io7m.eigion.protocol.api.EIProtocolMessageType;
 import com.io7m.eigion.server.database.api.EIServerDatabaseTransactionType;
 import com.io7m.eigion.server.vanilla.internal.EIServerClock;
@@ -36,7 +37,6 @@ import java.util.UUID;
 
 public abstract class EICommandContext<E extends EIProtocolMessageType>
 {
-
   private final EIServiceDirectoryType services;
   private final UUID requestId;
   private final EIServerDatabaseTransactionType transaction;
@@ -123,7 +123,7 @@ public abstract class EICommandContext<E extends EIProtocolMessageType>
 
   public EICommandExecutionResult<E> resultErrorFormatted(
     final int statusCode,
-    final String errorCode,
+    final EIErrorCode errorCode,
     final String messageId,
     final Object... args)
   {
@@ -147,7 +147,7 @@ public abstract class EICommandContext<E extends EIProtocolMessageType>
 
   public EICommandExecutionResult<E> resultError(
     final int statusCode,
-    final String errorCode,
+    final EIErrorCode errorCode,
     final String message)
   {
     return new EICommandExecutionResult<>(
@@ -158,7 +158,7 @@ public abstract class EICommandContext<E extends EIProtocolMessageType>
 
   protected abstract E error(
     UUID id,
-    String errorCode,
+    EIErrorCode errorCode,
     String message
   );
 }

@@ -17,6 +17,7 @@
 
 package com.io7m.eigion.server.vanilla.internal.public_api;
 
+import com.io7m.eigion.error_codes.EIErrorCode;
 import com.io7m.eigion.protocol.api.EIProtocolException;
 import com.io7m.eigion.protocol.public_api.v1.EISP1MessageType;
 import com.io7m.eigion.protocol.public_api.v1.EISP1Messages;
@@ -64,14 +65,14 @@ public final class EIPSends implements EIServiceType
     final HttpServletResponse response,
     final UUID requestId,
     final int statusCode,
-    final String errorCode,
+    final EIErrorCode errorCode,
     final String message)
     throws IOException
   {
     this.send(
       response,
       statusCode,
-      new EISP1ResponseError(requestId, errorCode, message)
+      new EISP1ResponseError(requestId, errorCode.id(), message)
     );
   }
 

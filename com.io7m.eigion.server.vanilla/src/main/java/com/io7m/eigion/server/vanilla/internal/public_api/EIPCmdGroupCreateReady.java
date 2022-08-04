@@ -34,6 +34,9 @@ import com.io7m.eigion.server.vanilla.internal.command_exec.EICommandExecutorTyp
 
 import java.util.Objects;
 
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.GROUP_REQUEST_NONEXISTENT;
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.GROUP_REQUEST_WRONG_STATE;
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.SECURITY_POLICY_DENIED;
 import static com.io7m.eigion.model.EIGroupCreationRequestStatusType.InProgress;
 import static com.io7m.eigion.model.EIGroupCreationRequestStatusType.NAME_IN_PROGRESS;
 import static org.eclipse.jetty.http.HttpStatus.FORBIDDEN_403;
@@ -84,7 +87,7 @@ public final class EIPCmdGroupCreateReady
       queries.groupCreationRequest(token);
 
     if (existingOpt.isEmpty()) {
-      return context.resultErrorFormatted(404, "not-found", "notFound");
+      return context.resultErrorFormatted(404, GROUP_REQUEST_NONEXISTENT, "notFound");
     }
 
     final var existing =
@@ -95,7 +98,7 @@ public final class EIPCmdGroupCreateReady
     if (EISecurity.check(action) instanceof EISecPolicyResultDenied denied) {
       throw new EIHTTPErrorStatusException(
         FORBIDDEN_403,
-        "group-create-ready",
+        SECURITY_POLICY_DENIED,
         denied.message()
       );
     }
@@ -104,7 +107,7 @@ public final class EIPCmdGroupCreateReady
     if (!(status instanceof InProgress)) {
       return context.resultErrorFormatted(
         400,
-        "group-create-wrong-state",
+        GROUP_REQUEST_WRONG_STATE,
         "cmd.groupCreateReady.notInProgress",
         NAME_IN_PROGRESS,
         status.name()

@@ -31,6 +31,8 @@ import com.io7m.eigion.server.vanilla.internal.command_exec.EICommandExecutorTyp
 import java.util.Objects;
 import java.util.Set;
 
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.GROUP_INVITE_NONEXISTENT;
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.GROUP_INVITE_WRONG_USER;
 import static com.io7m.eigion.model.EIGroupInviteStatus.ACCEPTED;
 import static com.io7m.eigion.model.EIGroupInviteStatus.REJECTED;
 
@@ -76,14 +78,14 @@ public final class EIPCmdGroupInviteRespond
       groupQueries.groupInviteGet(token);
 
     if (inviteOpt.isEmpty()) {
-      return context.resultErrorFormatted(404, "notFound", "notFound");
+      return context.resultErrorFormatted(404, GROUP_INVITE_NONEXISTENT, "notFound");
     }
 
     final var invite = inviteOpt.get();
     if (!Objects.equals(invite.userBeingInvited(), user.id())) {
       return context.resultErrorFormatted(
         400,
-        "group-invite-invitee",
+        GROUP_INVITE_WRONG_USER,
         "cmd.groupInviteRespond.wrongUser"
       );
     }

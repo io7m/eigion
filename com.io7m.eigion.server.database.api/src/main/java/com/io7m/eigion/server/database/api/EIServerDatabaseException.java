@@ -17,6 +17,8 @@
 
 package com.io7m.eigion.server.database.api;
 
+import com.io7m.eigion.error_codes.EIErrorCode;
+
 import java.util.Objects;
 
 /**
@@ -25,7 +27,7 @@ import java.util.Objects;
 
 public final class EIServerDatabaseException extends Exception
 {
-  private final String errorCode;
+  private final EIErrorCode errorCode;
 
   /**
    * Create an exception.
@@ -36,7 +38,7 @@ public final class EIServerDatabaseException extends Exception
 
   public EIServerDatabaseException(
     final String message,
-    final String inErrorCode)
+    final EIErrorCode inErrorCode)
   {
     super(Objects.requireNonNull(message, "message"));
     this.errorCode =
@@ -54,7 +56,7 @@ public final class EIServerDatabaseException extends Exception
   public EIServerDatabaseException(
     final String message,
     final Throwable cause,
-    final String inErrorCode)
+    final EIErrorCode inErrorCode)
   {
     super(
       Objects.requireNonNull(message, "message"),
@@ -72,7 +74,7 @@ public final class EIServerDatabaseException extends Exception
 
   public EIServerDatabaseException(
     final Throwable cause,
-    final String inErrorCode)
+    final EIErrorCode inErrorCode)
   {
     super(Objects.requireNonNull(cause, "cause"));
     this.errorCode =
@@ -83,7 +85,7 @@ public final class EIServerDatabaseException extends Exception
    * @return An error code used to identify the general cause of the exception
    */
 
-  public String errorCode()
+  public EIErrorCode errorCode()
   {
     return this.errorCode;
   }

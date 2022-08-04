@@ -30,6 +30,8 @@ import java.sql.SQLException;
 import java.time.Clock;
 import java.util.Objects;
 
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.SQL_ERROR;
+
 /**
  * The default postgres server database implementation.
  */
@@ -90,7 +92,7 @@ public final class EIServerDatabase implements EIServerDatabaseType
       conn.setAutoCommit(false);
       return new EIServerDatabaseConnection(this, conn, role);
     } catch (final SQLException e) {
-      throw new EIServerDatabaseException(e.getMessage(), e, "sql-error");
+      throw new EIServerDatabaseException(e.getMessage(), e, SQL_ERROR);
     }
   }
 

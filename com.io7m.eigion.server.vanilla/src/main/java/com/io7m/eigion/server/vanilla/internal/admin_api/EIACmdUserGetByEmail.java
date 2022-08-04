@@ -32,6 +32,8 @@ import com.io7m.eigion.server.vanilla.internal.EIHTTPErrorStatusException;
 import com.io7m.eigion.server.vanilla.internal.command_exec.EICommandExecutionResult;
 import com.io7m.eigion.server.vanilla.internal.command_exec.EICommandExecutorType;
 
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.SECURITY_POLICY_DENIED;
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.USER_NONEXISTENT;
 import static org.eclipse.jetty.http.HttpStatus.FORBIDDEN_403;
 
 /**
@@ -63,7 +65,7 @@ public final class EIACmdUserGetByEmail
       instanceof EISecPolicyResultDenied denied) {
       throw new EIHTTPErrorStatusException(
         FORBIDDEN_403,
-        "user-read",
+        SECURITY_POLICY_DENIED,
         denied.message()
       );
     }
@@ -74,7 +76,7 @@ public final class EIACmdUserGetByEmail
       q.userGetForEmail(new EIUserEmail(command.email()));
 
     if (userOpt.isEmpty()) {
-      return context.resultErrorFormatted(404, "notFound", "notFound");
+      return context.resultErrorFormatted(404, USER_NONEXISTENT, "notFound");
     }
 
     final var user = userOpt.get();

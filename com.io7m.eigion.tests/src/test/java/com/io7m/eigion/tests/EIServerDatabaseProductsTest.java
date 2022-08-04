@@ -51,6 +51,10 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
 
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.CATEGORY_NONEXISTENT;
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.PRODUCT_DUPLICATE;
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.PRODUCT_NONEXISTENT;
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.RELEASE_DUPLICATE;
 import static com.io7m.eigion.model.EIRedactionRequest.redactionRequest;
 import static com.io7m.eigion.model.EIRedactionRequest.redactionRequestOpt;
 import static com.io7m.eigion.server.database.api.EIServerDatabaseIncludeRedacted.EXCLUDE_REDACTED;
@@ -177,7 +181,7 @@ public final class EIServerDatabaseProductsTest extends EIWithDatabaseContract
             redactionReq
           );
         });
-      assertEquals("category-nonexistent", ex.errorCode());
+      assertEquals(CATEGORY_NONEXISTENT, ex.errorCode());
     }
 
     checkAuditLog(
@@ -302,7 +306,7 @@ public final class EIServerDatabaseProductsTest extends EIWithDatabaseContract
         products.productCreate(id);
       });
 
-    assertEquals("product-duplicate", ex.errorCode());
+    assertEquals(PRODUCT_DUPLICATE, ex.errorCode());
   }
 
   private EIUser createTestUser(
@@ -365,7 +369,7 @@ public final class EIServerDatabaseProductsTest extends EIWithDatabaseContract
       );
     });
 
-    assertEquals("product-nonexistent", ex.errorCode());
+    assertEquals(PRODUCT_NONEXISTENT, ex.errorCode());
 
     final var redaction =
       redactionRequest(timeNow(), "X");
@@ -377,7 +381,7 @@ public final class EIServerDatabaseProductsTest extends EIWithDatabaseContract
       );
     });
 
-    assertEquals("product-nonexistent", ex.errorCode());
+    assertEquals(PRODUCT_NONEXISTENT, ex.errorCode());
   }
 
   /**
@@ -761,7 +765,7 @@ public final class EIServerDatabaseProductsTest extends EIWithDatabaseContract
         assertThrows(EIServerDatabaseException.class, () -> {
           products.productReleaseCreate(id, release);
         });
-      assertEquals("release-duplicate", ex.errorCode());
+      assertEquals(RELEASE_DUPLICATE, ex.errorCode());
     }
 
     checkAuditLog(

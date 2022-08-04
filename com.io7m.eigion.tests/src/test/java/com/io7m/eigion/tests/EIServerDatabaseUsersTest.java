@@ -25,6 +25,10 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.util.Optional;
 
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.USER_DUPLICATE_EMAIL;
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.USER_DUPLICATE_ID;
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.USER_DUPLICATE_NAME;
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.USER_NONEXISTENT;
 import static com.io7m.eigion.server.database.api.EIServerDatabaseRole.EIGION;
 import static java.time.OffsetDateTime.now;
 import static java.util.UUID.randomUUID;
@@ -55,7 +59,7 @@ public final class EIServerDatabaseUsersTest extends EIWithDatabaseContract
       assertThrows(EIServerDatabaseException.class, () -> {
         transaction.userIdSet(randomUUID());
       });
-    assertEquals("user-nonexistent", ex.errorCode());
+    assertEquals(USER_NONEXISTENT, ex.errorCode());
   }
 
   /**
@@ -190,7 +194,7 @@ public final class EIServerDatabaseUsersTest extends EIWithDatabaseContract
         );
       });
 
-    assertEquals("user-duplicate-id", ex.errorCode());
+    assertEquals(USER_DUPLICATE_ID, ex.errorCode());
   }
 
   /**
@@ -244,7 +248,7 @@ public final class EIServerDatabaseUsersTest extends EIWithDatabaseContract
         );
       });
 
-    assertEquals("user-duplicate-email", ex.errorCode());
+    assertEquals(USER_DUPLICATE_EMAIL, ex.errorCode());
   }
 
   /**
@@ -298,7 +302,7 @@ public final class EIServerDatabaseUsersTest extends EIWithDatabaseContract
         );
       });
 
-    assertEquals("user-duplicate-name", ex.errorCode());
+    assertEquals(USER_DUPLICATE_NAME, ex.errorCode());
   }
 
   /**
@@ -445,6 +449,6 @@ public final class EIServerDatabaseUsersTest extends EIWithDatabaseContract
       assertThrows(EIServerDatabaseException.class, () -> {
         users.userLogin(randomUUID(), "127.0.0.1");
       });
-    assertEquals("user-nonexistent", ex.errorCode());
+    assertEquals(USER_NONEXISTENT, ex.errorCode());
   }
 }

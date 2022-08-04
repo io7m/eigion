@@ -49,6 +49,11 @@ import java.util.UUID;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.PASSWORD_ERROR;
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.USER_DUPLICATE_EMAIL;
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.USER_DUPLICATE_ID;
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.USER_DUPLICATE_NAME;
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.USER_NONEXISTENT;
 import static com.io7m.eigion.server.database.postgres.internal.EIServerDatabaseExceptions.handleDatabaseException;
 import static com.io7m.eigion.server.database.postgres.internal.Tables.GROUPS;
 import static com.io7m.eigion.server.database.postgres.internal.Tables.GROUP_USERS;
@@ -64,7 +69,7 @@ final class EIServerDatabaseUsersQueries
   private static final Supplier<EIServerDatabaseException> USER_DOES_NOT_EXIST = () -> {
     return new EIServerDatabaseException(
       "User does not exist",
-      "user-nonexistent"
+      USER_NONEXISTENT
     );
   };
 
@@ -126,7 +131,7 @@ final class EIServerDatabaseUsersQueries
     return new EIServerDatabaseException(
       exception.getMessage(),
       exception,
-      "password-error"
+      PASSWORD_ERROR
     );
   }
 
@@ -183,7 +188,7 @@ final class EIServerDatabaseUsersQueries
         if (existing.isPresent()) {
           throw new EIServerDatabaseException(
             "User ID already exists",
-            "user-duplicate-id"
+            USER_DUPLICATE_ID
           );
         }
       }
@@ -194,7 +199,7 @@ final class EIServerDatabaseUsersQueries
         if (existing.isPresent()) {
           throw new EIServerDatabaseException(
             "User name already exists",
-            "user-duplicate-name"
+            USER_DUPLICATE_NAME
           );
         }
       }
@@ -205,7 +210,7 @@ final class EIServerDatabaseUsersQueries
         if (existing.isPresent()) {
           throw new EIServerDatabaseException(
             "Email already exists",
-            "user-duplicate-email"
+            USER_DUPLICATE_EMAIL
           );
         }
       }
@@ -431,7 +436,7 @@ final class EIServerDatabaseUsersQueries
       if (!existingOpt.isPresent()) {
         throw new EIServerDatabaseException(
           "User does not exist",
-          "user-nonexistent"
+          USER_NONEXISTENT
         );
       }
 

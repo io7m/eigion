@@ -31,6 +31,8 @@ import com.io7m.eigion.server.vanilla.internal.EIHTTPErrorStatusException;
 import com.io7m.eigion.server.vanilla.internal.command_exec.EICommandExecutionResult;
 import com.io7m.eigion.server.vanilla.internal.command_exec.EICommandExecutorType;
 
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.ADMIN_NONEXISTENT;
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.SECURITY_POLICY_DENIED;
 import static org.eclipse.jetty.http.HttpStatus.FORBIDDEN_403;
 
 /**
@@ -62,7 +64,7 @@ public final class EIACmdAdminGetByName
       instanceof EISecPolicyResultDenied denied) {
       throw new EIHTTPErrorStatusException(
         FORBIDDEN_403,
-        "admin-read",
+        SECURITY_POLICY_DENIED,
         denied.message()
       );
     }
@@ -73,7 +75,7 @@ public final class EIACmdAdminGetByName
       q.adminGetForName(command.name());
 
     if (adminOpt.isEmpty()) {
-      return context.resultErrorFormatted(404, "notFound", "notFound");
+      return context.resultErrorFormatted(404, ADMIN_NONEXISTENT, "notFound");
     }
 
     final var admin = adminOpt.get();

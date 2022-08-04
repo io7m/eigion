@@ -33,6 +33,9 @@ import com.io7m.eigion.server.vanilla.internal.command_exec.EICommandExecutorTyp
 
 import java.util.Objects;
 
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.GROUP_INVITE_NONEXISTENT;
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.GROUP_INVITE_WRONG_STATE;
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.SECURITY_POLICY_DENIED;
 import static com.io7m.eigion.model.EIGroupInviteStatus.CANCELLED;
 import static com.io7m.eigion.model.EIGroupInviteStatus.IN_PROGRESS;
 import static org.eclipse.jetty.http.HttpStatus.FORBIDDEN_403;
@@ -82,7 +85,7 @@ public final class EIPCmdGroupInviteCancel
       groupQueries.groupInviteGet(token);
 
     if (inviteOpt.isEmpty()) {
-      return context.resultErrorFormatted(404, "notFound", "notFound");
+      return context.resultErrorFormatted(404, GROUP_INVITE_NONEXISTENT, "notFound");
     }
 
     final var invite =
@@ -93,7 +96,7 @@ public final class EIPCmdGroupInviteCancel
     if (EISecurity.check(action) instanceof EISecPolicyResultDenied denied) {
       throw new EIHTTPErrorStatusException(
         FORBIDDEN_403,
-        "group-invite",
+        SECURITY_POLICY_DENIED,
         denied.message()
       );
     }
@@ -102,7 +105,7 @@ public final class EIPCmdGroupInviteCancel
     if (!(status == IN_PROGRESS)) {
       return context.resultErrorFormatted(
         400,
-        "group-invite-cancel-wrong-state",
+        GROUP_INVITE_WRONG_STATE,
         "cmd.groupInviteCancel.notInProgress",
         IN_PROGRESS,
         status

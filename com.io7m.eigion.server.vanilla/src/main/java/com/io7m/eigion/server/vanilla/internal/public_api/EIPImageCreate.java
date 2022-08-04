@@ -39,6 +39,8 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.UUID;
 
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.IMAGE_INVALID;
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.SECURITY_POLICY_DENIED;
 import static com.io7m.eigion.server.database.api.EIServerDatabaseRole.EIGION;
 import static com.io7m.eigion.server.vanilla.internal.EIServerRequestDecoration.requestIdFor;
 import static org.eclipse.jetty.http.HttpStatus.BAD_REQUEST_400;
@@ -93,7 +95,7 @@ public final class EIPImageCreate extends EIPAuthenticatedServlet
       instanceof EISecPolicyResultDenied denied) {
       throw new EIHTTPErrorStatusException(
         FORBIDDEN_403,
-        "image",
+        SECURITY_POLICY_DENIED,
         denied.message()
       );
     }
@@ -189,7 +191,7 @@ public final class EIPImageCreate extends EIPAuthenticatedServlet
 
     throw new EIHTTPErrorStatusException(
       BAD_REQUEST_400,
-      "image",
+      IMAGE_INVALID,
       this.strings().format("invalidImage")
     );
   }
