@@ -1,5 +1,3 @@
-com.io7m.eigion.tests.arbitraries.EIArbAdminProvider
-com.io7m.eigion.tests.arbitraries.EIArbAdminSummaryProvider
 com.io7m.eigion.tests.arbitraries.EIArbAuditEventProvider
 com.io7m.eigion.tests.arbitraries.EIArbCreationProvider
 com.io7m.eigion.tests.arbitraries.EIArbGroupCreationRequestProvider
@@ -10,16 +8,10 @@ com.io7m.eigion.tests.arbitraries.EIArbGroupPrefixProvider
 com.io7m.eigion.tests.arbitraries.EIArbGroupRolesProvider
 com.io7m.eigion.tests.arbitraries.EIArbHashProvider
 com.io7m.eigion.tests.arbitraries.EIArbOffsetDateTimeProvider
-com.io7m.eigion.tests.arbitraries.EIArbPasswordProvider
 com.io7m.eigion.tests.arbitraries.EIArbRedactionProvider
 com.io7m.eigion.tests.arbitraries.EIArbRedactionRequestProvider
 com.io7m.eigion.tests.arbitraries.EIArbTokenProvider
 com.io7m.eigion.tests.arbitraries.EIArbURIProvider
 com.io7m.eigion.tests.arbitraries.EIArbUUIDProvider
-com.io7m.eigion.tests.arbitraries.EIArbUserBanProvider
 com.io7m.eigion.tests.arbitraries.EIArbUserDisplayNameProvider
-com.io7m.eigion.tests.arbitraries.EIArbUserEmailProvider
 com.io7m.eigion.tests.arbitraries.EIArbUserProvider
-com.io7m.eigion.tests.arbitraries.EIArbUserSummaryProvider
-com.io7m.eigion.tests.arbitraries.EIArbUserUserComplaintProvider
-com.io7m.eigion.tests.arbitraries.EIArbUserUserComplaintResolutionProvider
