@@ -45,7 +45,6 @@ module com.io7m.eigion.tests.arbitraries
       com.io7m.eigion.tests.arbitraries.EIArbPasswordProvider,
       com.io7m.eigion.tests.arbitraries.EIArbRedactionProvider,
       com.io7m.eigion.tests.arbitraries.EIArbRedactionRequestProvider,
-      com.io7m.eigion.tests.arbitraries.EIArbSubsetMatchProvider,
       com.io7m.eigion.tests.arbitraries.EIArbTokenProvider,
       com.io7m.eigion.tests.arbitraries.EIArbURIProvider,
       com.io7m.eigion.tests.arbitraries.EIArbUUIDProvider,

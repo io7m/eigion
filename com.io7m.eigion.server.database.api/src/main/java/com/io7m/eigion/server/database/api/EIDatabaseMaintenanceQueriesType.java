@@ -14,32 +14,21 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-package com.io7m.eigion.model;
-
-import java.util.Objects;
+package com.io7m.eigion.server.database.api;
 
 /**
- * A specification of a subset. Include all items matching {@code include}, and
- * then, from that set, exclude all items matching {@code exclude}.
- *
- * @param include The items to include
- * @param exclude The items to exclude
- * @param <T>     The type of values
+ * The database queries involving maintenance.
  */
 
-public record EISubsetMatch<T>(T include, T exclude)
+public non-sealed interface EIDatabaseMaintenanceQueriesType
+  extends EIDatabaseQueriesType
 {
   /**
-   * A specification of a subset. Include all items matching {@code include},
-   * and then, from that set, exclude all items matching {@code exclude}.
+   * Run maintenance tasks.
    *
-   * @param include The items to include
-   * @param exclude The items to exclude
+   * @throws EIDatabaseException On errors
    */
 
-  public EISubsetMatch
-  {
-    Objects.requireNonNull(include, "include");
-    Objects.requireNonNull(exclude, "exclude");
-  }
+  void runMaintenance()
+    throws EIDatabaseException;
 }
