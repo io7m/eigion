@@ -39,6 +39,7 @@
     <module>com.io7m.eigion.model</module>
     <module>com.io7m.eigion.news.xml</module>
     <module>com.io7m.eigion.preferences</module>
+    <module>com.io7m.eigion.server.api</module>
     <module>com.io7m.eigion.server.database.api</module>
     <module>com.io7m.eigion.server.database.postgres</module>
     <module>com.io7m.eigion.services.api</module>
