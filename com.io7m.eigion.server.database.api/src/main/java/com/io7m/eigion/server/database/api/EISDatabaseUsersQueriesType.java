@@ -16,34 +16,48 @@
 
 package com.io7m.eigion.server.database.api;
 
-import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
+import com.io7m.eigion.model.EIUser;
 
-import static java.time.ZoneOffset.UTC;
+import java.util.Optional;
+import java.util.UUID;
 
 /**
- * The base type of query interfaces.
+ * The database queries involving users.
  */
 
-public sealed interface EISDatabaseQueriesType
-  permits EISDatabaseAuditQueriesType,
-  EISDatabaseMaintenanceQueriesType,
-  EISDatabaseUsersQueriesType
+public non-sealed interface EISDatabaseUsersQueriesType
+  extends EISDatabaseQueriesType
 {
   /**
-   * The earliest possible time considered by the server
+   * Update the given user.
+   *
+   * @param user The user
+   *
+   * @throws EISDatabaseException On errors
    */
 
-  OffsetDateTime EARLIEST =
-    LocalDateTime.ofEpochSecond(0L, 0, UTC)
-      .atOffset(UTC);
+  void userPut(EIUser user)
+    throws EISDatabaseException;
 
   /**
-   * @return The earliest possible time considered by the server
+   * @param id The user ID
+   *
+   * @return The user
+   *
+   * @throws EISDatabaseException On errors
    */
 
-  static OffsetDateTime earliest()
-  {
-    return EARLIEST;
-  }
+  Optional<EIUser> userGet(UUID id)
+    throws EISDatabaseException;
+
+  /**
+   * @param id The user ID
+   *
+   * @return The user
+   *
+   * @throws EISDatabaseException On errors
+   */
+
+  EIUser userGetRequire(UUID id)
+    throws EISDatabaseException;
 }

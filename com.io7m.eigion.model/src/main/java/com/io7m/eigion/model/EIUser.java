@@ -16,10 +16,8 @@
 
 package com.io7m.eigion.model;
 
-import java.time.OffsetDateTime;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -27,47 +25,23 @@ import java.util.UUID;
  * Information for a single user.
  *
  * @param id              The user's ID
- * @param name            The user's name
- * @param email           The user's email
- * @param password        The user's password
- * @param created         The date the user was created
- * @param lastLoginTime   The date the user last logged in
- * @param ban             The user's ban, if one exists
  * @param groupMembership The groups in which the user is a member
  */
 
 public record EIUser(
   UUID id,
-  EIUserDisplayName name,
-  EIUserEmail email,
-  OffsetDateTime created,
-  OffsetDateTime lastLoginTime,
-  EIPassword password,
-  Optional<EIUserBan> ban,
   Map<EIGroupName, Set<EIGroupRole>> groupMembership)
 {
   /**
    * Information for a single user.
    *
    * @param id              The user's ID
-   * @param name            The user's name
-   * @param email           The user's email
-   * @param password        The user's password
-   * @param created         The date the user was created
-   * @param lastLoginTime   The date the user last logged in
-   * @param ban             The user's ban, if one exists
    * @param groupMembership The groups in which the user is a member
    */
 
   public EIUser
   {
     Objects.requireNonNull(id, "id");
-    Objects.requireNonNull(name, "name");
-    Objects.requireNonNull(email, "email");
-    Objects.requireNonNull(created, "created");
-    Objects.requireNonNull(lastLoginTime, "lastLoginTime");
-    Objects.requireNonNull(password, "password");
-    Objects.requireNonNull(ban, "ban");
     Objects.requireNonNull(groupMembership, "groupMembership");
   }
 }

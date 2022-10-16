@@ -38,6 +38,19 @@ create table schema_version (
 
   <Schema versionCurrent="1">
     <Comment>
+      The users table stores the current set of users.
+    </Comment>
+
+    <Statement><![CDATA[
+create table users (
+  id    uuid  not null primary key,
+  name  text  not null
+)
+]]></Statement>
+
+    <Statement>grant select, insert, update on users to eigion</Statement>
+
+    <Comment>
       The audit table stores a list of auditable events. Who did it? What did they do? When did they do it?
     </Comment>
 
@@ -47,7 +60,9 @@ create table audit (
   user_id        uuid                     not null,
   time           timestamp with time zone not null,
   type           text                     not null,
-  message        text                     not null
+  message        text                     not null,
+
+  foreign key (user_id) references users (id)
 )
 ]]></Statement>
 

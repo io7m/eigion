@@ -21,6 +21,7 @@ import com.io7m.eigion.server.database.api.EISDatabaseException;
 import com.io7m.eigion.server.database.api.EISDatabaseQueriesType;
 import com.io7m.eigion.server.database.api.EISDatabaseRole;
 import com.io7m.eigion.server.database.api.EISDatabaseTransactionType;
+import com.io7m.eigion.server.database.api.EISDatabaseUsersQueriesType;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.context.Context;
@@ -111,6 +112,9 @@ final class EISDatabaseTransaction
   {
     if (Objects.equals(qClass, EISDatabaseAuditQueriesType.class)) {
       return qClass.cast(new EISDatabaseAuditQueries(this));
+    }
+    if (Objects.equals(qClass, EISDatabaseUsersQueriesType.class)) {
+      return qClass.cast(new EISDatabaseUsersQueries(this));
     }
 
     throw new EISDatabaseException(
