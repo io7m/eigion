@@ -82,13 +82,13 @@ public final class EISDatabase implements EISDatabaseType
         .build();
 
     this.transactions =
-      meters.counterBuilder("IdDatabase.transactions")
+      meters.counterBuilder("EISDatabase.transactions")
         .build();
     this.transactionCommits =
-      meters.counterBuilder("IdDatabase.commits")
+      meters.counterBuilder("EISDatabase.commits")
         .build();
     this.transactionRollbacks =
-      meters.counterBuilder("IdDatabase.commits")
+      meters.counterBuilder("EISDatabase.commits")
         .build();
   }
 
