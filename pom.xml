@@ -8,7 +8,7 @@
   <parent>
     <groupId>com.io7m.primogenitor</groupId>
     <artifactId>com.io7m.primogenitor.full</artifactId>
-    <version>7.1.0</version>
+    <version>7.1.1</version>
   </parent>
 
   <groupId>com.io7m.eigion</groupId>
@@ -21,10 +21,6 @@
   <url>https://www.io7m.com/software/eigion</url>
 
   <modules>
-    <module>com.io7m.eigion.amberjack.api</module>
-    <module>com.io7m.eigion.amberjack.cmdline.main</module>
-    <module>com.io7m.eigion.amberjack.cmdline</module>
-    <module>com.io7m.eigion.amberjack</module>
     <module>com.io7m.eigion.client.api</module>
     <module>com.io7m.eigion.client.database.api</module>
     <module>com.io7m.eigion.client.database</module>
@@ -42,22 +38,7 @@
     <module>com.io7m.eigion.launcher.main</module>
     <module>com.io7m.eigion.model</module>
     <module>com.io7m.eigion.news.xml</module>
-    <module>com.io7m.eigion.pike.api</module>
-    <module>com.io7m.eigion.pike.cmdline.main</module>
-    <module>com.io7m.eigion.pike.cmdline</module>
-    <module>com.io7m.eigion.pike</module>
     <module>com.io7m.eigion.preferences</module>
-    <module>com.io7m.eigion.product.parser.api</module>
-    <module>com.io7m.eigion.product.parser</module>
-    <module>com.io7m.eigion.protocol.admin_api.v1</module>
-    <module>com.io7m.eigion.protocol.api</module>
-    <module>com.io7m.eigion.protocol.public_api.v1</module>
-    <module>com.io7m.eigion.protocol.versions</module>
-    <module>com.io7m.eigion.server.api</module>
-    <module>com.io7m.eigion.server.database.api</module>
-    <module>com.io7m.eigion.server.database.postgres</module>
-    <module>com.io7m.eigion.server.security</module>
-    <module>com.io7m.eigion.server.vanilla</module>
     <module>com.io7m.eigion.services.api</module>
     <module>com.io7m.eigion.storage.api</module>
     <module>com.io7m.eigion.storage.derby</module>

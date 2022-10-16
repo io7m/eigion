@@ -37,7 +37,7 @@ import java.net.http.HttpClient;
 import java.util.Optional;
 import java.util.UUID;
 
-import static com.io7m.eigion.tests.EIServerContract.timeNow;
+import static com.io7m.eigion.tests.EITime.timeNow;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 

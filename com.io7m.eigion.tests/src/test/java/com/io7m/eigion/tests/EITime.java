@@ -14,25 +14,20 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/**
- * Eigion platform (Admin protocol v1)
- */
 
-module com.io7m.eigion.protocol.admin_api.v1
+package com.io7m.eigion.tests;
+
+import java.time.OffsetDateTime;
+
+public final class EITime
 {
-  requires static org.osgi.annotation.bundle;
-  requires static org.osgi.annotation.versioning;
+  private EITime()
+  {
 
-  requires transitive com.io7m.eigion.model;
-  requires transitive com.io7m.eigion.protocol.api;
-  requires transitive com.io7m.eigion.services.api;
+  }
 
-  requires com.io7m.dixmont.core;
-  requires com.fasterxml.jackson.datatype.jsr310;
-  requires com.fasterxml.jackson.datatype.jdk8;
-
-  exports com.io7m.eigion.protocol.admin_api.v1;
-
-  opens com.io7m.eigion.protocol.admin_api.v1
-    to com.fasterxml.jackson.databind;
+  public static OffsetDateTime timeNow()
+  {
+    return OffsetDateTime.now();
+  }
 }

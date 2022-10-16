@@ -21,16 +21,6 @@
 open module com.io7m.eigion.tests
 {
   requires com.io7m.eigion.launcher.felix;
-  requires com.io7m.eigion.product.parser.api;
-  requires com.io7m.eigion.product.parser;
-  requires com.io7m.eigion.protocol.admin_api.v1;
-  requires com.io7m.eigion.protocol.public_api.v1;
-  requires com.io7m.eigion.protocol.versions;
-  requires com.io7m.eigion.server.api;
-  requires com.io7m.eigion.server.database.api;
-  requires com.io7m.eigion.server.database.postgres;
-  requires com.io7m.eigion.server.security;
-  requires com.io7m.eigion.server.vanilla;
 
   requires com.fasterxml.jackson.databind;
   requires com.io7m.jmulticlose.core;

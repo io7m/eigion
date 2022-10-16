@@ -26,11 +26,7 @@ module com.io7m.eigion.tests.arbitraries
   requires static org.osgi.annotation.versioning;
 
   requires transitive com.io7m.eigion.model;
-  requires transitive com.io7m.eigion.protocol.admin_api.v1;
-  requires transitive com.io7m.eigion.protocol.public_api.v1;
-  requires transitive com.io7m.eigion.server.security;
   requires transitive net.jqwik.api;
-  requires org.slf4j;
 
   provides ArbitraryProvider
     with
@@ -38,25 +34,6 @@ module com.io7m.eigion.tests.arbitraries
       com.io7m.eigion.tests.arbitraries.EIArbAdminSummaryProvider,
       com.io7m.eigion.tests.arbitraries.EIArbAuditEventProvider,
       com.io7m.eigion.tests.arbitraries.EIArbCreationProvider,
-      com.io7m.eigion.tests.arbitraries.EIArbEISA1AdminProvider,
-      com.io7m.eigion.tests.arbitraries.EIArbEISA1AdminSummaryProvider,
-      com.io7m.eigion.tests.arbitraries.EIArbEISA1AuditEventProvider,
-      com.io7m.eigion.tests.arbitraries.EIArbEISA1GroupInviteProvider,
-      com.io7m.eigion.tests.arbitraries.EIArbEISA1PasswordProvider,
-      com.io7m.eigion.tests.arbitraries.EIArbEISA1ServiceProvider,
-      com.io7m.eigion.tests.arbitraries.EIArbEISA1SubsetMatchProvider,
-      com.io7m.eigion.tests.arbitraries.EIArbEISA1UserBanProvider,
-      com.io7m.eigion.tests.arbitraries.EIArbEISA1UserProvider,
-      com.io7m.eigion.tests.arbitraries.EIArbEISA1UserSummaryProvider,
-      com.io7m.eigion.tests.arbitraries.EIArbEISP1GroupCreationRequestProvider,
-      com.io7m.eigion.tests.arbitraries.EIArbEISP1GroupInviteProvider,
-      com.io7m.eigion.tests.arbitraries.EIArbEISP1GroupRolesProvider,
-      com.io7m.eigion.tests.arbitraries.EIArbEISP1HashProvider,
-      com.io7m.eigion.tests.arbitraries.EIArbEISP1PasswordProvider,
-      com.io7m.eigion.tests.arbitraries.EIArbEISP1ProductSummaryProvider,
-      com.io7m.eigion.tests.arbitraries.EIArbEISP1UserBanProvider,
-      com.io7m.eigion.tests.arbitraries.EIArbEISP1UserProvider,
-      com.io7m.eigion.tests.arbitraries.EIArbEISP1UserSummaryProvider,
       com.io7m.eigion.tests.arbitraries.EIArbGroupCreationRequestProvider,
       com.io7m.eigion.tests.arbitraries.EIArbGroupCreationRequestStatusProvider,
       com.io7m.eigion.tests.arbitraries.EIArbGroupInviteProvider,
@@ -68,7 +45,6 @@ module com.io7m.eigion.tests.arbitraries
       com.io7m.eigion.tests.arbitraries.EIArbPasswordProvider,
       com.io7m.eigion.tests.arbitraries.EIArbRedactionProvider,
       com.io7m.eigion.tests.arbitraries.EIArbRedactionRequestProvider,
-      com.io7m.eigion.tests.arbitraries.EIArbSecActionProvider,
       com.io7m.eigion.tests.arbitraries.EIArbSubsetMatchProvider,
       com.io7m.eigion.tests.arbitraries.EIArbTokenProvider,
       com.io7m.eigion.tests.arbitraries.EIArbURIProvider,
