@@ -14,17 +14,36 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-
 package com.io7m.eigion.server.database.api;
 
-import com.io7m.eigion.model.EIAuditEvent;
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+
+import static java.time.ZoneOffset.UTC;
 
 /**
- * The type of audit event searches.
+ * The base type of query interfaces.
  */
 
-public interface EIDatabaseAuditEventsSearchType
-  extends EIDatabasePagedQueryType<EIDatabaseAuditQueriesType, EIAuditEvent>
+public sealed interface EISDatabaseQueriesType
+  permits
+  EISDatabaseAuditQueriesType,
+  EISDatabaseMaintenanceQueriesType
 {
+  /**
+   * The earliest possible time considered by the server
+   */
 
+  OffsetDateTime EARLIEST =
+    LocalDateTime.ofEpochSecond(0L, 0, UTC)
+      .atOffset(UTC);
+
+  /**
+   * @return The earliest possible time considered by the server
+   */
+
+  static OffsetDateTime earliest()
+  {
+    return EARLIEST;
+  }
 }

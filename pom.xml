@@ -40,6 +40,7 @@
     <module>com.io7m.eigion.news.xml</module>
     <module>com.io7m.eigion.preferences</module>
     <module>com.io7m.eigion.server.database.api</module>
+    <module>com.io7m.eigion.server.database.postgres</module>
     <module>com.io7m.eigion.services.api</module>
     <module>com.io7m.eigion.storage.api</module>
     <module>com.io7m.eigion.storage.derby</module>
@@ -52,13 +53,14 @@
   <properties>
     <com.io7m.anethum.version>0.0.2</com.io7m.anethum.version>
     <com.io7m.jade.version>1.0.2</com.io7m.jade.version>
+    <com.io7m.jqpage.version>0.0.2</com.io7m.jqpage.version>
     <com.io7m.jxtrand.version>1.1.0</com.io7m.jxtrand.version>
-    <com.io7m.trasco.version>0.0.2</com.io7m.trasco.version>
+    <com.io7m.trasco.version>0.0.5</com.io7m.trasco.version>
     <io7m.api.previousVersion>0.0.1-SNAPSHOT</io7m.api.previousVersion>
     <jackson.version>2.13.3</jackson.version>
     <javafx.version>18.0.1</javafx.version>
     <jetty.version>11.0.11</jetty.version>
-    <jooq.version>3.17.2</jooq.version>
+    <jooq.version>3.17.4</jooq.version>
     <logback.version>1.3.0-alpha16</logback.version>
     <opentelemetry.version>1.18.0</opentelemetry.version>
     <org.apache.derby.version>10.16.1.1</org.apache.derby.version>
@@ -358,6 +360,11 @@
         <version>${jooq.version}</version>
       </dependency>
       <dependency>
+        <groupId>org.jooq</groupId>
+        <artifactId>jooq-postgres-extensions</artifactId>
+        <version>${jooq.version}</version>
+      </dependency>
+      <dependency>
         <groupId>org.apache.derby</groupId>
         <artifactId>derbyclient</artifactId>
         <version>${org.apache.derby.version}</version>
@@ -468,6 +475,11 @@
         <groupId>org.jetbrains.kotlin</groupId>
         <artifactId>kotlin-stdlib</artifactId>
         <version>1.7.10</version>
+      </dependency>
+      <dependency>
+        <groupId>com.io7m.jqpage</groupId>
+        <artifactId>com.io7m.jqpage.core</artifactId>
+        <version>${com.io7m.jqpage.version}</version>
       </dependency>
     </dependencies>
   </dependencyManagement>

@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<Schemas xmlns="urn:com.io7m.trasco.database.statements:1:0">
+  <Schema versionCurrent="0">
+    <Comment>
+      The eigion role is a least-privilege role that can perform only those operations required to run the system and
+      no others.
+    </Comment>
+
+    <Statement><![CDATA[
+create role eigion with nosuperuser nocreatedb nocreaterole noinherit nologin;
+]]></Statement>
+
+    <Comment>
+      The eigion_none role is a no-privilege role that cannot perform any actions.
+    </Comment>
+
+    <Statement><![CDATA[
+create role eigion_none with nosuperuser nocreatedb nocreaterole noinherit nologin;
+]]></Statement>
+
+    <Comment>
+      The schema version table stores the current version of the database schema. Implementations are expected to query
+      this table on connecting to the database in order to ensure that the calling code is compatible with the tables in
+      the database.
+    </Comment>
+
+    <Statement><![CDATA[
+create table schema_version (
+  version_ban   char(1) not null default 'x',
+  version_number bigint  not null,
+
+  constraint check_ban_primary primary key (version_ban),
+  constraint check_ban_baned check (version_ban = 'x')
+)
+]]></Statement>
+  </Schema>
+
+  <Schema versionCurrent="1">
+    <Comment>
+      The audit table stores a list of auditable events. Who did it? What did they do? When did they do it?
+    </Comment>
+
+    <Statement><![CDATA[
+create table audit (
+  id             bigint                   not null primary key generated always as identity,
+  user_id        uuid                     not null,
+  time           timestamp with time zone not null,
+  type           text                     not null,
+  message        text                     not null
+)
+]]></Statement>
+
+    <Statement>grant insert, select on audit to eigion</Statement>
+  </Schema>
+
+</Schemas>

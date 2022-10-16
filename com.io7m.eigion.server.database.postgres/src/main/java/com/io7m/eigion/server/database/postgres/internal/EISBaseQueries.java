@@ -14,24 +14,41 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+package com.io7m.eigion.server.database.postgres.internal;
 
-package com.io7m.eigion.server.database.api;
+import io.opentelemetry.api.trace.Span;
+
+import java.time.OffsetDateTime;
+import java.util.Objects;
 
 /**
- * Create or do not create a database.
+ * The base type of queries.
  */
 
-public enum EIDatabaseCreate
+abstract class EISBaseQueries
 {
-  /**
-   * Create the database.
-   */
+  private final EISDatabaseTransaction transaction;
 
-  CREATE_DATABASE,
+  protected EISBaseQueries(
+    final EISDatabaseTransaction inTransaction)
+  {
+    this.transaction =
+      Objects.requireNonNull(inTransaction, "transaction");
+  }
 
-  /**
-   * Do not create the database.
-   */
+  protected final Span transactionSpan()
+  {
+    return this.transaction.span();
+  }
 
-  DO_NOT_CREATE_DATABASE
+  protected final EISDatabaseTransaction transaction()
+  {
+    return this.transaction;
+  }
+
+  protected final OffsetDateTime currentTime()
+  {
+    return OffsetDateTime.now(this.transaction.clock())
+      .withNano(0);
+  }
 }

@@ -14,27 +14,23 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-
 package com.io7m.eigion.server.database.api;
 
 /**
- * The type of database connections.
+ * The roles used by the server database.
  */
 
-public interface EIDatabaseConnectionType extends AutoCloseable
+public enum EISDatabaseRole
 {
-  @Override
-  void close()
-    throws EIDatabaseException;
-
   /**
-   * Begin a new transaction.
-   *
-   * @return The transaction
-   *
-   * @throws EIDatabaseException On errors
+   * The main eigion role.
    */
 
-  EIDatabaseTransactionType openTransaction()
-    throws EIDatabaseException;
+  EIGION,
+
+  /**
+   * The null role; has no privileges and cannot do anything.
+   */
+
+  NONE
 }

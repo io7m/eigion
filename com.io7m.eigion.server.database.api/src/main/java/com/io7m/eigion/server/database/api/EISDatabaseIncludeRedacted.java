@@ -14,21 +14,24 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+
 package com.io7m.eigion.server.database.api;
 
 /**
- * The database queries involving maintenance.
+ * Whether to include redacted items.
  */
 
-public non-sealed interface EIDatabaseMaintenanceQueriesType
-  extends EIDatabaseQueriesType
+public enum EISDatabaseIncludeRedacted
 {
   /**
-   * Run maintenance tasks.
-   *
-   * @throws EIDatabaseException On errors
+   * Include redacted items.
    */
 
-  void runMaintenance()
-    throws EIDatabaseException;
+  INCLUDE_REDACTED,
+
+  /**
+   * Exclude redacted items.
+   */
+
+  EXCLUDE_REDACTED
 }

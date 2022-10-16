@@ -14,24 +14,31 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-
 package com.io7m.eigion.server.database.api;
 
+import com.io7m.eigion.services.api.EIServiceType;
+
 /**
- * Whether to include redacted items.
+ * An open database.
  */
 
-public enum EIDatabaseIncludeRedacted
+public interface EISDatabaseType extends AutoCloseable, EIServiceType
 {
-  /**
-   * Include redacted items.
-   */
-
-  INCLUDE_REDACTED,
+  @Override
+  void close()
+    throws EISDatabaseException;
 
   /**
-   * Exclude redacted items.
+   * Open a database connection using the given role.
+   *
+   * @param role The role
+   *
+   * @return A database connection
+   *
+   * @throws EISDatabaseException On errors
    */
 
-  EXCLUDE_REDACTED
+  EISDatabaseConnectionType openConnection(
+    EISDatabaseRole role)
+    throws EISDatabaseException;
 }

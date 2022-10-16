@@ -16,34 +16,37 @@
 
 package com.io7m.eigion.server.database.api;
 
-import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
+import io.opentelemetry.api.OpenTelemetry;
 
-import static java.time.ZoneOffset.UTC;
+import java.util.function.Consumer;
 
 /**
- * The base type of query interfaces.
+ * The type of server database factories.
  */
 
-public sealed interface EIDatabaseQueriesType
-  permits
-  EIDatabaseAuditQueriesType,
-  EIDatabaseMaintenanceQueriesType
+public interface EISDatabaseFactoryType
 {
   /**
-   * The earliest possible time considered by the server
+   * @return The database kind (such as "POSTGRESQL")
    */
 
-  OffsetDateTime EARLIEST =
-    LocalDateTime.ofEpochSecond(0L, 0, UTC)
-      .atOffset(UTC);
+  String kind();
 
   /**
-   * @return The earliest possible time considered by the server
+   * Open a database.
+   *
+   * @param configuration   The database configuration
+   * @param openTelemetry   The OpenTelemetry instance
+   * @param startupMessages A function that will receive startup messages
+   *
+   * @return A database
+   *
+   * @throws EISDatabaseException On errors
    */
 
-  static OffsetDateTime earliest()
-  {
-    return EARLIEST;
-  }
+  EISDatabaseType open(
+    EISDatabaseConfiguration configuration,
+    OpenTelemetry openTelemetry,
+    Consumer<String> startupMessages)
+    throws EISDatabaseException;
 }

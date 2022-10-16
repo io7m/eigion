@@ -14,39 +14,17 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+
 package com.io7m.eigion.server.database.api;
 
-import io.opentelemetry.api.OpenTelemetry;
-
-import java.util.function.Consumer;
+import com.io7m.eigion.model.EIAuditEvent;
 
 /**
- * The type of server database factories.
+ * The type of audit event searches.
  */
 
-public interface EIDatabaseFactoryType
+public interface EISDatabaseAuditEventsSearchType
+  extends EISDatabasePagedQueryType<EISDatabaseAuditQueriesType, EIAuditEvent>
 {
-  /**
-   * @return The database kind (such as "POSTGRESQL")
-   */
 
-  String kind();
-
-  /**
-   * Open a database.
-   *
-   * @param configuration   The database configuration
-   * @param openTelemetry   The OpenTelemetry instance
-   * @param startupMessages A function that will receive startup messages
-   *
-   * @return A database
-   *
-   * @throws EIDatabaseException On errors
-   */
-
-  EIDatabaseType open(
-    EIDatabaseConfiguration configuration,
-    OpenTelemetry openTelemetry,
-    Consumer<String> startupMessages)
-    throws EIDatabaseException;
 }

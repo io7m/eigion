@@ -25,7 +25,7 @@ import java.util.Objects;
  * The type of exceptions raised by the server database.
  */
 
-public final class EIDatabaseException extends EIException
+public final class EISDatabaseException extends EIException
 {
   /**
    * Create an exception.
@@ -34,7 +34,7 @@ public final class EIDatabaseException extends EIException
    * @param inErrorCode The error code
    */
 
-  public EIDatabaseException(
+  public EISDatabaseException(
     final String message,
     final EIErrorCode inErrorCode)
   {
@@ -49,7 +49,7 @@ public final class EIDatabaseException extends EIException
    * @param inErrorCode The error code
    */
 
-  public EIDatabaseException(
+  public EISDatabaseException(
     final String message,
     final Throwable cause,
     final EIErrorCode inErrorCode)
@@ -68,7 +68,7 @@ public final class EIDatabaseException extends EIException
    * @param inErrorCode The error code
    */
 
-  public EIDatabaseException(
+  public EISDatabaseException(
     final Throwable cause,
     final EIErrorCode inErrorCode)
   {

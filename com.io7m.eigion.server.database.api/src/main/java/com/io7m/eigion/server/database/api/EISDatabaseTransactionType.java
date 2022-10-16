@@ -14,23 +14,48 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-
 package com.io7m.eigion.server.database.api;
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-
 /**
- * An annotation indicating that a method requires an admin ID to be set.
+ * A database transaction. If the transaction is closed, it is automatically
+ * rolled back.
  */
 
-@Documented
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.METHOD)
-public @interface EIDatabaseRequiresAdmin
+public interface EISDatabaseTransactionType extends AutoCloseable
 {
+  @Override
+  void close()
+    throws EISDatabaseException;
 
+  /**
+   * Obtain queries for the transaction.
+   *
+   * @param queryClass The query type
+   * @param <T>        The query type
+   *
+   * @return Queries
+   *
+   * @throws EISDatabaseException On errors
+   */
+
+  <T extends EISDatabaseQueriesType> T queries(Class<T> queryClass)
+    throws EISDatabaseException;
+
+  /**
+   * Roll back the transaction.
+   *
+   * @throws EISDatabaseException On errors
+   */
+
+  void rollback()
+    throws EISDatabaseException;
+
+  /**
+   * Commit the transaction.
+   *
+   * @throws EISDatabaseException On errors
+   */
+
+  void commit()
+    throws EISDatabaseException;
 }

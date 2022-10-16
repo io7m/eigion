@@ -14,31 +14,27 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+
 package com.io7m.eigion.server.database.api;
 
-import com.io7m.eigion.services.api.EIServiceType;
-
 /**
- * An open database.
+ * The type of database connections.
  */
 
-public interface EIDatabaseType extends AutoCloseable, EIServiceType
+public interface EISDatabaseConnectionType extends AutoCloseable
 {
   @Override
   void close()
-    throws EIDatabaseException;
+    throws EISDatabaseException;
 
   /**
-   * Open a database connection using the given role.
+   * Begin a new transaction.
    *
-   * @param role The role
+   * @return The transaction
    *
-   * @return A database connection
-   *
-   * @throws EIDatabaseException On errors
+   * @throws EISDatabaseException On errors
    */
 
-  EIDatabaseConnectionType openConnection(
-    EIDatabaseRole role)
-    throws EIDatabaseException;
+  EISDatabaseTransactionType openTransaction()
+    throws EISDatabaseException;
 }

@@ -21,7 +21,7 @@ package com.io7m.eigion.server.database.api;
  * Upgrade or do not upgrade a database.
  */
 
-public enum EIDatabaseUpgrade
+public enum EISDatabaseUpgrade
 {
   /**
    * Upgrade the database.

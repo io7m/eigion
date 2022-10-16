@@ -32,14 +32,14 @@ import java.util.Objects;
  * @param clock         A clock for time retrievals
  */
 
-public record EIDatabaseConfiguration(
+public record EISDatabaseConfiguration(
   String user,
   String password,
   String address,
   int port,
   String databaseName,
-  EIDatabaseCreate create,
-  EIDatabaseUpgrade upgrade,
+  EISDatabaseCreate create,
+  EISDatabaseUpgrade upgrade,
   Clock clock)
 {
   /**
@@ -55,7 +55,7 @@ public record EIDatabaseConfiguration(
    * @param clock         A clock for time retrievals
    */
 
-  public EIDatabaseConfiguration
+  public EISDatabaseConfiguration
   {
     Objects.requireNonNull(user, "user");
     Objects.requireNonNull(password, "password");

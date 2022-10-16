@@ -25,8 +25,8 @@ import java.util.UUID;
  * The database queries involving the audit log.
  */
 
-public non-sealed interface EIDatabaseAuditQueriesType
-  extends EIDatabaseQueriesType
+public non-sealed interface EISDatabaseAuditQueriesType
+  extends EISDatabaseQueriesType
 {
   /**
    * Retrieve all audit events from the database matching the given parameters.
@@ -35,12 +35,12 @@ public non-sealed interface EIDatabaseAuditQueriesType
    *
    * @return A series of audit events, sorted by time
    *
-   * @throws EIDatabaseException On errors
+   * @throws EISDatabaseException On errors
    */
 
-  EIDatabaseAuditEventsSearchType auditEventsSearch(
+  EISDatabaseAuditEventsSearchType auditEventsSearch(
     EIAuditSearchParameters parameters)
-    throws EIDatabaseException;
+    throws EISDatabaseException;
 
   /**
    * Create an audit event.
@@ -50,7 +50,7 @@ public non-sealed interface EIDatabaseAuditQueriesType
    * @param type    The event type
    * @param message The event message
    *
-   * @throws EIDatabaseException On errors
+   * @throws EISDatabaseException On errors
    */
 
   void auditPut(
@@ -58,6 +58,6 @@ public non-sealed interface EIDatabaseAuditQueriesType
     OffsetDateTime time,
     String type,
     String message)
-    throws EIDatabaseException;
+    throws EISDatabaseException;
 
 }

@@ -26,7 +26,7 @@ import com.io7m.eigion.model.EIPage;
  * @param <T> The type of result values
  */
 
-public interface EIDatabasePagedQueryType<Q extends EIDatabaseQueriesType, T>
+public interface EISDatabasePagedQueryType<Q extends EISDatabaseQueriesType, T>
 {
   /**
    * Get data for the current page.
@@ -35,37 +35,37 @@ public interface EIDatabasePagedQueryType<Q extends EIDatabaseQueriesType, T>
    *
    * @return A page of results
    *
-   * @throws EIDatabaseException On errors
+   * @throws EISDatabaseException On errors
    */
 
   EIPage<T> pageCurrent(Q queries)
-    throws EIDatabaseException;
+    throws EISDatabaseException;
 
   /**
    * Get data for the next page. If the current page is the last page, the
-   * function acts as {@link #pageCurrent(EIDatabaseQueriesType)}.
+   * function acts as {@link #pageCurrent(EISDatabaseQueriesType)}.
    *
    * @param queries The query interface
    *
    * @return A page of results
    *
-   * @throws EIDatabaseException On errors
+   * @throws EISDatabaseException On errors
    */
 
   EIPage<T> pageNext(Q queries)
-    throws EIDatabaseException;
+    throws EISDatabaseException;
 
   /**
    * Get data for the previous page. If the current page is the first page, the
-   * function acts as {@link #pageCurrent(EIDatabaseQueriesType)}.
+   * function acts as {@link #pageCurrent(EISDatabaseQueriesType)}.
    *
    * @param queries The query interface
    *
    * @return A page of results
    *
-   * @throws EIDatabaseException On errors
+   * @throws EISDatabaseException On errors
    */
 
   EIPage<T> pagePrevious(Q queries)
-    throws EIDatabaseException;
+    throws EISDatabaseException;
 }

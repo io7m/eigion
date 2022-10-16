@@ -14,23 +14,23 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+
 package com.io7m.eigion.server.database.api;
 
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
 /**
- * The roles used by the server database.
+ * An annotation indicating that a method requires an admin ID to be set.
  */
 
-public enum EIDatabaseRole
+@Documented
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
+public @interface EISDatabaseRequiresAdmin
 {
-  /**
-   * The main eigion role.
-   */
 
-  EIGION,
-
-  /**
-   * The null role; has no privileges and cannot do anything.
-   */
-
-  NONE
 }
