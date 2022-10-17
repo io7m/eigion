@@ -14,28 +14,40 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+
+package com.io7m.eigion.protocol.api;
+
 /**
- * Eigion platform (Database)
+ * The interface exposed by protocol message handlers.
+ *
+ * @param <T> The type of protocol messages
  */
 
-module com.io7m.eigion.client.database
+public interface EIProtocolMessagesType<T extends EIProtocolMessageType>
 {
-  requires static org.osgi.annotation.bundle;
-  requires static org.osgi.annotation.versioning;
+  /**
+   * Parse a message from the given bytes.
+   *
+   * @param data The bytes
+   *
+   * @return A parsed message
+   *
+   * @throws EIProtocolException If parsing fails
+   */
 
-  requires transitive com.io7m.eigion.client.database.api;
+  T parse(byte[] data)
+    throws EIProtocolException;
 
-  requires com.io7m.anethum.common;
-  requires com.io7m.trasco.api;
-  requires com.io7m.trasco.vanilla;
-  requires java.sql;
-  requires org.apache.derby.tools;
-  requires org.jooq;
-  requires org.slf4j;
+  /**
+   * Serialize the given message to a byte array.
+   *
+   * @param message The message
+   *
+   * @return The serialized message as a byte array
+   *
+   * @throws EIProtocolException If serialization fails
+   */
 
-  exports com.io7m.eigion.client.database;
-
-  exports com.io7m.eigion.client.database.internal.tables to org.jooq;
-  exports com.io7m.eigion.client.database.internal.tables.records to org.jooq;
-  exports com.io7m.eigion.client.database.internal to org.jooq;
+  byte[] serialize(T message)
+    throws EIProtocolException;
 }

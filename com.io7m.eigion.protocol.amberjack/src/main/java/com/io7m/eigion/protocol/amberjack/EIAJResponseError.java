@@ -14,28 +14,39 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+package com.io7m.eigion.protocol.amberjack;
+
+import com.io7m.eigion.error_codes.EIErrorCode;
+
+import java.util.Objects;
+import java.util.UUID;
+
 /**
- * Eigion platform (Database)
+ * An error response.
+ *
+ * @param requestId The request that prompted this response
+ * @param errorCode The error code
+ * @param message The error message
  */
 
-module com.io7m.eigion.client.database
+public record EIAJResponseError(
+  UUID requestId,
+  EIErrorCode errorCode,
+  String message)
+  implements EIAJResponseType
 {
-  requires static org.osgi.annotation.bundle;
-  requires static org.osgi.annotation.versioning;
+  /**
+   * The response to {@link EIAJCommandLogin}.
+   *
+   * @param requestId The request that prompted this response
+   * @param errorCode The error code
+   * @param message The error message
+   */
 
-  requires transitive com.io7m.eigion.client.database.api;
-
-  requires com.io7m.anethum.common;
-  requires com.io7m.trasco.api;
-  requires com.io7m.trasco.vanilla;
-  requires java.sql;
-  requires org.apache.derby.tools;
-  requires org.jooq;
-  requires org.slf4j;
-
-  exports com.io7m.eigion.client.database;
-
-  exports com.io7m.eigion.client.database.internal.tables to org.jooq;
-  exports com.io7m.eigion.client.database.internal.tables.records to org.jooq;
-  exports com.io7m.eigion.client.database.internal to org.jooq;
+  public EIAJResponseError
+  {
+    Objects.requireNonNull(requestId, "requestId");
+    Objects.requireNonNull(errorCode, "errorCode");
+    Objects.requireNonNull(message, "message");
+  }
 }

@@ -14,28 +14,21 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+
+package com.io7m.eigion.protocol.amberjack;
+
+import java.util.UUID;
+
 /**
- * Eigion platform (Database)
+ * The type of Amberjack responses.
  */
 
-module com.io7m.eigion.client.database
+public sealed interface EIAJResponseType extends EIAJMessageType
+  permits EIAJResponseError, EIAJResponseLogin
 {
-  requires static org.osgi.annotation.bundle;
-  requires static org.osgi.annotation.versioning;
+  /**
+   * @return The request that prompted the response
+   */
 
-  requires transitive com.io7m.eigion.client.database.api;
-
-  requires com.io7m.anethum.common;
-  requires com.io7m.trasco.api;
-  requires com.io7m.trasco.vanilla;
-  requires java.sql;
-  requires org.apache.derby.tools;
-  requires org.jooq;
-  requires org.slf4j;
-
-  exports com.io7m.eigion.client.database;
-
-  exports com.io7m.eigion.client.database.internal.tables to org.jooq;
-  exports com.io7m.eigion.client.database.internal.tables.records to org.jooq;
-  exports com.io7m.eigion.client.database.internal to org.jooq;
+  UUID requestId();
 }

@@ -14,6 +14,25 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+import com.io7m.eigion.tests.arbitraries.EIArbAmberjackMessageProvider;
+import com.io7m.eigion.tests.arbitraries.EIArbAuditEventProvider;
+import com.io7m.eigion.tests.arbitraries.EIArbCreationProvider;
+import com.io7m.eigion.tests.arbitraries.EIArbErrorCodeProvider;
+import com.io7m.eigion.tests.arbitraries.EIArbGroupCreationRequestProvider;
+import com.io7m.eigion.tests.arbitraries.EIArbGroupCreationRequestStatusProvider;
+import com.io7m.eigion.tests.arbitraries.EIArbGroupInviteProvider;
+import com.io7m.eigion.tests.arbitraries.EIArbGroupNameProvider;
+import com.io7m.eigion.tests.arbitraries.EIArbGroupPrefixProvider;
+import com.io7m.eigion.tests.arbitraries.EIArbGroupRolesProvider;
+import com.io7m.eigion.tests.arbitraries.EIArbHashProvider;
+import com.io7m.eigion.tests.arbitraries.EIArbOffsetDateTimeProvider;
+import com.io7m.eigion.tests.arbitraries.EIArbRedactionProvider;
+import com.io7m.eigion.tests.arbitraries.EIArbRedactionRequestProvider;
+import com.io7m.eigion.tests.arbitraries.EIArbTokenProvider;
+import com.io7m.eigion.tests.arbitraries.EIArbURIProvider;
+import com.io7m.eigion.tests.arbitraries.EIArbUUIDProvider;
+import com.io7m.eigion.tests.arbitraries.EIArbUserDisplayNameProvider;
+import com.io7m.eigion.tests.arbitraries.EIArbUserProvider;
 import net.jqwik.api.providers.ArbitraryProvider;
 
 /**
@@ -25,28 +44,31 @@ module com.io7m.eigion.tests.arbitraries
   requires static org.osgi.annotation.bundle;
   requires static org.osgi.annotation.versioning;
 
+  requires transitive com.io7m.eigion.protocol.amberjack;
   requires transitive com.io7m.eigion.model;
   requires transitive net.jqwik.api;
 
   provides ArbitraryProvider
     with
-      com.io7m.eigion.tests.arbitraries.EIArbAuditEventProvider,
-      com.io7m.eigion.tests.arbitraries.EIArbCreationProvider,
-      com.io7m.eigion.tests.arbitraries.EIArbGroupCreationRequestProvider,
-      com.io7m.eigion.tests.arbitraries.EIArbGroupCreationRequestStatusProvider,
-      com.io7m.eigion.tests.arbitraries.EIArbGroupInviteProvider,
-      com.io7m.eigion.tests.arbitraries.EIArbGroupNameProvider,
-      com.io7m.eigion.tests.arbitraries.EIArbGroupPrefixProvider,
-      com.io7m.eigion.tests.arbitraries.EIArbGroupRolesProvider,
-      com.io7m.eigion.tests.arbitraries.EIArbHashProvider,
-      com.io7m.eigion.tests.arbitraries.EIArbOffsetDateTimeProvider,
-      com.io7m.eigion.tests.arbitraries.EIArbRedactionProvider,
-      com.io7m.eigion.tests.arbitraries.EIArbRedactionRequestProvider,
-      com.io7m.eigion.tests.arbitraries.EIArbTokenProvider,
-      com.io7m.eigion.tests.arbitraries.EIArbURIProvider,
-      com.io7m.eigion.tests.arbitraries.EIArbUUIDProvider,
-      com.io7m.eigion.tests.arbitraries.EIArbUserDisplayNameProvider,
-      com.io7m.eigion.tests.arbitraries.EIArbUserProvider
+      EIArbAmberjackMessageProvider,
+      EIArbAuditEventProvider,
+      EIArbCreationProvider,
+      EIArbGroupCreationRequestProvider,
+      EIArbGroupCreationRequestStatusProvider,
+      EIArbGroupInviteProvider,
+      EIArbGroupNameProvider,
+      EIArbGroupPrefixProvider,
+      EIArbGroupRolesProvider,
+      EIArbHashProvider,
+      EIArbOffsetDateTimeProvider,
+      EIArbRedactionProvider,
+      EIArbRedactionRequestProvider,
+      EIArbTokenProvider,
+      EIArbURIProvider,
+      EIArbUUIDProvider,
+      EIArbUserDisplayNameProvider,
+      EIArbUserProvider,
+      EIArbErrorCodeProvider
     ;
 
   exports com.io7m.eigion.tests.arbitraries;

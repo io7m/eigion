@@ -115,24 +115,4 @@ public final class EIClientTest
     this.client.login("user", "pass");
     assertEquals(CLIENT_LOGGED_IN, this.client.loginStatus().get());
   }
-
-  /**
-   * Fetching news works.
-   *
-   * @throws Exception On errors
-   */
-
-  @Test
-  public void testNews()
-    throws Exception
-  {
-    this.servlets.addServlet(EIV1NewsOK.class, "/v1/news");
-    this.server.start();
-
-    final var news = this.client.news();
-    assertTrue(news.resolution() instanceof EISucceeded);
-
-    final var items = news.result().orElseThrow();
-    assertEquals(5, items.size());
-  }
 }

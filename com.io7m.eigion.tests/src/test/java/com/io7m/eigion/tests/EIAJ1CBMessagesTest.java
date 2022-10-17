@@ -14,28 +14,31 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/**
- * Eigion platform (Database)
- */
 
-module com.io7m.eigion.client.database
+package com.io7m.eigion.tests;
+
+import com.io7m.eigion.protocol.amberjack.EIAJMessageType;
+import com.io7m.eigion.protocol.amberjack.cb.EIAJCB1Messages;
+import net.jqwik.api.ForAll;
+import net.jqwik.api.Property;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+public final class EIAJ1CBMessagesTest
 {
-  requires static org.osgi.annotation.bundle;
-  requires static org.osgi.annotation.versioning;
+  private static final EIAJCB1Messages MESSAGES =
+    new EIAJCB1Messages();
 
-  requires transitive com.io7m.eigion.client.database.api;
+  @Property(tries = 2000)
+  public void testSerialization(
+    final @ForAll EIAJMessageType message)
+    throws Exception
+  {
+    final var data =
+      MESSAGES.serialize(message);
+    final var m =
+      MESSAGES.parse(data);
 
-  requires com.io7m.anethum.common;
-  requires com.io7m.trasco.api;
-  requires com.io7m.trasco.vanilla;
-  requires java.sql;
-  requires org.apache.derby.tools;
-  requires org.jooq;
-  requires org.slf4j;
-
-  exports com.io7m.eigion.client.database;
-
-  exports com.io7m.eigion.client.database.internal.tables to org.jooq;
-  exports com.io7m.eigion.client.database.internal.tables.records to org.jooq;
-  exports com.io7m.eigion.client.database.internal to org.jooq;
+    assertEquals(message, m);
+  }
 }

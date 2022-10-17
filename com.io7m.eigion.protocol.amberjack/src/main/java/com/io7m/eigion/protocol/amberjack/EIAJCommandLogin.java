@@ -14,28 +14,32 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+package com.io7m.eigion.protocol.amberjack;
+
+import java.util.Objects;
+
 /**
- * Eigion platform (Database)
+ * The login command.
+ *
+ * @param userName The username
+ * @param password The password
  */
 
-module com.io7m.eigion.client.database
+public record EIAJCommandLogin(
+  String userName,
+  String password)
+  implements EIAJCommandType<EIAJResponseLogin>
 {
-  requires static org.osgi.annotation.bundle;
-  requires static org.osgi.annotation.versioning;
+  /**
+   * The login command.
+   *
+   * @param userName The username
+   * @param password The password
+   */
 
-  requires transitive com.io7m.eigion.client.database.api;
-
-  requires com.io7m.anethum.common;
-  requires com.io7m.trasco.api;
-  requires com.io7m.trasco.vanilla;
-  requires java.sql;
-  requires org.apache.derby.tools;
-  requires org.jooq;
-  requires org.slf4j;
-
-  exports com.io7m.eigion.client.database;
-
-  exports com.io7m.eigion.client.database.internal.tables to org.jooq;
-  exports com.io7m.eigion.client.database.internal.tables.records to org.jooq;
-  exports com.io7m.eigion.client.database.internal to org.jooq;
+  public EIAJCommandLogin
+  {
+    Objects.requireNonNull(userName, "userName");
+    Objects.requireNonNull(password, "password");
+  }
 }

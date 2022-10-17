@@ -14,28 +14,41 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+package com.io7m.eigion.protocol.api;
+
 /**
- * Eigion platform (Database)
+ * The type of validators that convert between core messages and "wire"
+ * (versioned) messages.
+ *
+ * @param <T> The type of core messages
+ * @param <R> The type of wire messages
  */
 
-module com.io7m.eigion.client.database
+public interface EIProtocolMessageValidatorType<T extends EIProtocolMessageType, R>
 {
-  requires static org.osgi.annotation.bundle;
-  requires static org.osgi.annotation.versioning;
+  /**
+   * Convert a core message to a wire message.
+   *
+   * @param message The core message
+   *
+   * @return The wire message
+   *
+   * @throws EIProtocolException On errors
+   */
 
-  requires transitive com.io7m.eigion.client.database.api;
+  R convertToWire(T message)
+    throws EIProtocolException;
 
-  requires com.io7m.anethum.common;
-  requires com.io7m.trasco.api;
-  requires com.io7m.trasco.vanilla;
-  requires java.sql;
-  requires org.apache.derby.tools;
-  requires org.jooq;
-  requires org.slf4j;
+  /**
+   * Convert a wire message to a core message.
+   *
+   * @param message The wire message
+   *
+   * @return The core message
+   *
+   * @throws EIProtocolException On errors
+   */
 
-  exports com.io7m.eigion.client.database;
-
-  exports com.io7m.eigion.client.database.internal.tables to org.jooq;
-  exports com.io7m.eigion.client.database.internal.tables.records to org.jooq;
-  exports com.io7m.eigion.client.database.internal to org.jooq;
+  T convertFromWire(R message)
+    throws EIProtocolException;
 }

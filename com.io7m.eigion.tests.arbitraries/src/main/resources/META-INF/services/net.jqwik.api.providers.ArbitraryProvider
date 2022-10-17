@@ -1,3 +1,4 @@
+com.io7m.eigion.tests.arbitraries.EIArbAmberjackMessageProvider
 com.io7m.eigion.tests.arbitraries.EIArbAuditEventProvider
 com.io7m.eigion.tests.arbitraries.EIArbCreationProvider
 com.io7m.eigion.tests.arbitraries.EIArbGroupCreationRequestProvider
@@ -15,3 +16,4 @@ com.io7m.eigion.tests.arbitraries.EIArbURIProvider
 com.io7m.eigion.tests.arbitraries.EIArbUUIDProvider
 com.io7m.eigion.tests.arbitraries.EIArbUserDisplayNameProvider
 com.io7m.eigion.tests.arbitraries.EIArbUserProvider
+com.io7m.eigion.tests.arbitraries.EIArbErrorCodeProvider

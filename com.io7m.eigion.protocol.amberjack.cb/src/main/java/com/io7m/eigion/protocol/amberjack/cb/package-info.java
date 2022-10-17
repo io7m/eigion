@@ -15,27 +15,12 @@
  */
 
 /**
- * Eigion platform (Database)
+ * Eigion platform (Amberjack protocol [Cedarbridge encoding])
  */
 
-module com.io7m.eigion.client.database
-{
-  requires static org.osgi.annotation.bundle;
-  requires static org.osgi.annotation.versioning;
+@Export
+@Version("1.0.0")
+package com.io7m.eigion.protocol.amberjack.cb;
 
-  requires transitive com.io7m.eigion.client.database.api;
-
-  requires com.io7m.anethum.common;
-  requires com.io7m.trasco.api;
-  requires com.io7m.trasco.vanilla;
-  requires java.sql;
-  requires org.apache.derby.tools;
-  requires org.jooq;
-  requires org.slf4j;
-
-  exports com.io7m.eigion.client.database;
-
-  exports com.io7m.eigion.client.database.internal.tables to org.jooq;
-  exports com.io7m.eigion.client.database.internal.tables.records to org.jooq;
-  exports com.io7m.eigion.client.database.internal to org.jooq;
-}
+import org.osgi.annotation.bundle.Export;
+import org.osgi.annotation.versioning.Version;
