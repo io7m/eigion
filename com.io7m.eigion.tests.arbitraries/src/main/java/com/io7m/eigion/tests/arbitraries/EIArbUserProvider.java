@@ -18,6 +18,7 @@ package com.io7m.eigion.tests.arbitraries;
 
 import com.io7m.eigion.model.EIGroupName;
 import com.io7m.eigion.model.EIGroupRole;
+import com.io7m.eigion.model.EIPermissionSet;
 import com.io7m.eigion.model.EIUser;
 import net.jqwik.api.Arbitraries;
 import net.jqwik.api.Arbitrary;
@@ -57,6 +58,8 @@ public final class EIArbUserProvider extends EIArbAbstractProvider
   {
     final var u =
       Arbitraries.defaultFor(UUID.class);
+    final var p =
+      Arbitraries.defaultFor(EIPermissionSet.class);
     final var g =
       Arbitraries.defaultFor(
         TypeUsage.of(
@@ -67,12 +70,14 @@ public final class EIArbUserProvider extends EIArbAbstractProvider
       );
 
     final Arbitrary<EIUser> a =
-      Combinators.combine(u, g)
+      Combinators.combine(u, p, g)
         .as((
               UUID id,
+              EIPermissionSet permissions,
               Object groups) -> {
           return new EIUser(
             id,
+            permissions,
             (Map<EIGroupName, Set<EIGroupRole>>) groups
           );
         });

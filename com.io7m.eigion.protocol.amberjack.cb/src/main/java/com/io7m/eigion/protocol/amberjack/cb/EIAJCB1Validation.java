@@ -16,7 +16,16 @@
 
 package com.io7m.eigion.protocol.amberjack.cb;
 
+import com.io7m.cedarbridge.runtime.api.CBList;
+import com.io7m.cedarbridge.runtime.api.CBMap;
+import com.io7m.cedarbridge.runtime.api.CBString;
 import com.io7m.eigion.error_codes.EIErrorCode;
+import com.io7m.eigion.model.EIGroupName;
+import com.io7m.eigion.model.EIGroupRole;
+import com.io7m.eigion.model.EIPermission;
+import com.io7m.eigion.model.EIPermissionSet;
+import com.io7m.eigion.model.EIUser;
+import com.io7m.eigion.model.EIValidityException;
 import com.io7m.eigion.protocol.amberjack.EIAJCommandLogin;
 import com.io7m.eigion.protocol.amberjack.EIAJCommandType;
 import com.io7m.eigion.protocol.amberjack.EIAJMessageType;
@@ -26,7 +35,11 @@ import com.io7m.eigion.protocol.amberjack.EIAJResponseType;
 import com.io7m.eigion.protocol.api.EIProtocolException;
 import com.io7m.eigion.protocol.api.EIProtocolMessageValidatorType;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import static com.io7m.cedarbridge.runtime.api.CBCore.string;
 import static com.io7m.cedarbridge.runtime.api.CBCore.unsigned64;
@@ -90,8 +103,68 @@ public final class EIAJCB1Validation
     final EIAJResponseLogin rr)
   {
     return new EIAJ1ResponseLogin(
-      toWireUUID(rr.requestId())
+      toWireUUID(rr.requestId()),
+      toWireUser(rr.user())
     );
+  }
+
+  private static EIAJ1User toWireUser(
+    final EIUser user)
+  {
+    return new EIAJ1User(
+      toWireUUID(user.id()),
+      toWirePermissionSet(user.permissions()),
+      toWireGroupMembership(user.groupMembership())
+    );
+  }
+
+  private static CBMap<CBString, CBList<EIAJ1GroupRole>> toWireGroupMembership(
+    final Map<EIGroupName, Set<EIGroupRole>> groupMembership)
+  {
+    final var r = new HashMap<CBString, CBList<EIAJ1GroupRole>>();
+    for (final var e : groupMembership.entrySet()) {
+      r.put(string(e.getKey().value()), toWireGroupRoleSet(e.getValue()));
+    }
+    return new CBMap<>(r);
+  }
+
+  private static CBList<EIAJ1GroupRole> toWireGroupRoleSet(
+    final Set<EIGroupRole> value)
+  {
+    return new CBList<>(
+      value.stream()
+        .map(EIAJCB1Validation::toWireGroupRole)
+        .toList()
+    );
+  }
+
+  private static EIAJ1GroupRole toWireGroupRole(
+    final EIGroupRole r)
+  {
+    return switch (r) {
+      case USER_INVITE -> new EIAJ1GroupRole.UserInvite();
+      case USER_DISMISS -> new EIAJ1GroupRole.UserDismiss();
+      case FOUNDER -> new EIAJ1GroupRole.Founder();
+    };
+  }
+
+  private static CBList<EIAJ1Permission> toWirePermissionSet(
+    final EIPermissionSet permissions)
+  {
+    return new CBList<>(
+      permissions.permissions()
+        .stream()
+        .map(EIAJCB1Validation::toWirePermission)
+        .toList()
+    );
+  }
+
+  private static EIAJ1Permission toWirePermission(
+    final EIPermission p)
+  {
+    return switch (p) {
+      case AMBERJACK_ACCESS -> new EIAJ1Permission.AmberjackAccess();
+    };
   }
 
   private static ProtocolAmberjackv1Type toWireCommand(
@@ -140,7 +213,81 @@ public final class EIAJCB1Validation
     final EIAJ1ResponseLogin c)
   {
     return new EIAJResponseLogin(
-      fromWireUUID(c.fieldRequestId())
+      fromWireUUID(c.fieldRequestId()),
+      fromWireUser(c.fieldUser())
+    );
+  }
+
+  private static EIUser fromWireUser(
+    final EIAJ1User u)
+  {
+    return new EIUser(
+      fromWireUUID(u.fieldId()),
+      fromWirePermissionSet(u.fieldPermissions()),
+      fromWireGroupMembership(u.fieldGroupMembership())
+    );
+  }
+
+  private static Map<EIGroupName, Set<EIGroupRole>> fromWireGroupMembership(
+    final CBMap<CBString, CBList<EIAJ1GroupRole>> m)
+  {
+    final var r = new HashMap<EIGroupName, Set<EIGroupRole>>();
+    for (final var e : m.values().entrySet()) {
+      r.put(
+        new EIGroupName(e.getKey().value()),
+        fromWireGroupRoleSet(e.getValue())
+      );
+    }
+    return r;
+  }
+
+  private static Set<EIGroupRole> fromWireGroupRoleSet(
+    final CBList<EIAJ1GroupRole> value)
+  {
+    return value.values()
+      .stream()
+      .map(EIAJCB1Validation::fromWireGroupRole)
+      .collect(Collectors.toUnmodifiableSet());
+  }
+
+  private static EIGroupRole fromWireGroupRole(
+    final EIAJ1GroupRole r)
+  {
+    if (r instanceof EIAJ1GroupRole.Founder) {
+      return EIGroupRole.FOUNDER;
+    }
+    if (r instanceof EIAJ1GroupRole.UserDismiss) {
+      return EIGroupRole.USER_DISMISS;
+    }
+    if (r instanceof EIAJ1GroupRole.UserInvite) {
+      return EIGroupRole.USER_INVITE;
+    }
+
+    throw new EIValidityException(
+      "Unrecognized group role: %s".formatted(r)
+    );
+  }
+
+  private static EIPermissionSet fromWirePermissionSet(
+    final CBList<EIAJ1Permission> ps)
+  {
+    return EIPermissionSet.of(
+      ps.values()
+        .stream()
+        .map(EIAJCB1Validation::fromWirePermission)
+        .toList()
+    );
+  }
+
+  private static EIPermission fromWirePermission(
+    final EIAJ1Permission p)
+  {
+    if (p instanceof EIAJ1Permission.AmberjackAccess) {
+      return EIPermission.AMBERJACK_ACCESS;
+    }
+
+    throw new EIValidityException(
+      "Unrecognized permission: %s".formatted(p)
     );
   }
 

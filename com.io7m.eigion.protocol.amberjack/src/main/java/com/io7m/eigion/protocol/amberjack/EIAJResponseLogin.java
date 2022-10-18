@@ -16,6 +16,8 @@
 
 package com.io7m.eigion.protocol.amberjack;
 
+import com.io7m.eigion.model.EIUser;
+
 import java.util.Objects;
 import java.util.UUID;
 
@@ -23,19 +25,24 @@ import java.util.UUID;
  * The response to {@link EIAJCommandLogin}.
  *
  * @param requestId The request that prompted this response
+ * @param user      The user
  */
 
-public record EIAJResponseLogin(UUID requestId)
+public record EIAJResponseLogin(
+  UUID requestId,
+  EIUser user)
   implements EIAJResponseType
 {
   /**
    * The response to {@link EIAJCommandLogin}.
    *
    * @param requestId The request that prompted this response
+   * @param user      The user
    */
 
   public EIAJResponseLogin
   {
     Objects.requireNonNull(requestId, "requestId");
+    Objects.requireNonNull(user, "user");
   }
 }

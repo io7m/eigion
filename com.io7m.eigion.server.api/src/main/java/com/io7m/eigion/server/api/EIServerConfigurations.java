@@ -123,6 +123,7 @@ public final class EIServerConfigurations
       databaseConfiguration,
       file.httpConfiguration().userAPIService(),
       file.httpConfiguration().adminAPIService(),
+      file.idstoreConfiguration(),
       file.openTelemetry()
     );
   }

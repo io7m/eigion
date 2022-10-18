@@ -28,6 +28,32 @@
   [field lsb cb:IntegerUnsigned64]
 ]
 
+[documentation EIAJ1Permission "A permission."]
+[variant EIAJ1Permission
+  [documentation AmberjackAccess "Access to the Amberjack API is allowed."]
+  [case AmberjackAccess]
+]
+
+[documentation EIAJ1GroupRole "A permission."]
+[variant EIAJ1GroupRole
+  [documentation UserInvite "The user may invite users to the group."]
+  [case UserInvite]
+  [documentation UserDismiss "The user may dismiss users from the group."]
+  [case UserDismiss]
+  [documentation Founder "The user is the founder of the group."]
+  [case Founder]
+]
+
+[documentation EIAJ1User "A user."]
+[record EIAJ1User
+  [documentation id "The user's ID."]
+  [field id EIAJ1UUID]
+  [documentation permissions "The set of permissions."]
+  [field permissions [cb:List EIAJ1Permission]]
+  [documentation groupMembership "The groups in which the user is a member."]
+  [field groupMembership [cb:Map cb:String [cb:List EIAJ1GroupRole]]]
+]
+
 [documentation EIAJ1CommandLogin "A request to log in."]
 [record EIAJ1CommandLogin
   [documentation userName "The username."]
@@ -50,6 +76,8 @@
 [record EIAJ1ResponseLogin
   [documentation requestId "The ID of the request that yielded this response."]
   [field requestId EIAJ1UUID]
+  [documentation user "The logged-in user."]
+  [field user EIAJ1User]
 ]
 
 [documentation Amberjack "The Amberjack protocol."]

@@ -18,6 +18,7 @@ package com.io7m.eigion.server.database.postgres.internal;
 
 import com.io7m.eigion.server.database.api.EISDatabaseAuditQueriesType;
 import com.io7m.eigion.server.database.api.EISDatabaseException;
+import com.io7m.eigion.server.database.api.EISDatabaseMaintenanceQueriesType;
 import com.io7m.eigion.server.database.api.EISDatabaseQueriesType;
 import com.io7m.eigion.server.database.api.EISDatabaseRole;
 import com.io7m.eigion.server.database.api.EISDatabaseTransactionType;
@@ -115,6 +116,9 @@ final class EISDatabaseTransaction
     }
     if (Objects.equals(qClass, EISDatabaseUsersQueriesType.class)) {
       return qClass.cast(new EISDatabaseUsersQueries(this));
+    }
+    if (Objects.equals(qClass, EISDatabaseMaintenanceQueriesType.class)) {
+      return qClass.cast(new EISDatabaseMaintenanceQueries(this));
     }
 
     throw new EISDatabaseException(

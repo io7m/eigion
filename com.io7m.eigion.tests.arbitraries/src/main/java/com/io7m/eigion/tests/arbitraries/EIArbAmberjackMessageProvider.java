@@ -18,6 +18,7 @@ package com.io7m.eigion.tests.arbitraries;
 
 import com.io7m.eigion.error_codes.EIErrorCode;
 import com.io7m.eigion.model.EIToken;
+import com.io7m.eigion.model.EIUser;
 import com.io7m.eigion.protocol.amberjack.EIAJCommandLogin;
 import com.io7m.eigion.protocol.amberjack.EIAJMessageType;
 import com.io7m.eigion.protocol.amberjack.EIAJResponseError;
@@ -75,8 +76,10 @@ public final class EIArbAmberjackMessageProvider extends EIArbAbstractProvider
 
   private static Arbitrary<EIAJResponseLogin> responseLogin()
   {
-    return Arbitraries.defaultFor(UUID.class)
-      .map(EIAJResponseLogin::new);
+    return Combinators.combine(
+      Arbitraries.defaultFor(UUID.class),
+      Arbitraries.defaultFor(EIUser.class)
+    ).as(EIAJResponseLogin::new);
   }
 
   private static Arbitrary<EIAJCommandLogin> commandLogin()

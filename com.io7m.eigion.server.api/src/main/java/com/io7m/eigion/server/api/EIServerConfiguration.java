@@ -28,13 +28,14 @@ import java.util.Optional;
 /**
  * The configuration for a server.
  *
- * @param adminApiAddress       The admin API address
+ * @param amberjackApiAddress   The amberjack API address
  * @param clock                 The clock
  * @param databaseConfiguration The database configuration for the server
  * @param databases             The factory of databases that will be used for
  *                              the server
  * @param locale                The locale
- * @param userApiAddress        The user API address
+ * @param pikeApiAddress        The pike API address
+ * @param idstoreConfiguration  The idstore configuration
  * @param openTelemetry         The OpenTelemetry configuration
  */
 
@@ -43,32 +44,35 @@ public record EIServerConfiguration(
   Clock clock,
   EISDatabaseFactoryType databases,
   EISDatabaseConfiguration databaseConfiguration,
-  EIServerHTTPServiceConfiguration userApiAddress,
-  EIServerHTTPServiceConfiguration adminApiAddress,
+  EIServerHTTPServiceConfiguration pikeApiAddress,
+  EIServerHTTPServiceConfiguration amberjackApiAddress,
+  EIServerIdstoreConfiguration idstoreConfiguration,
   Optional<EIServerOpenTelemetryConfiguration> openTelemetry)
 {
   /**
    * The configuration for a server.
    *
-   * @param adminApiAddress       The admin API address
+   * @param amberjackApiAddress   The amberjack API address
    * @param clock                 The clock
    * @param databaseConfiguration The database configuration for the server
    * @param databases             The factory of databases that will be used for
    *                              the server
    * @param locale                The locale
-   * @param userApiAddress        The user API address
+   * @param pikeApiAddress        The pike API address
+   * @param idstoreConfiguration  The idstore configuration
    * @param openTelemetry         The OpenTelemetry configuration
    */
 
   public EIServerConfiguration
   {
-    Objects.requireNonNull(adminApiAddress, "adminApiAddress");
+    Objects.requireNonNull(amberjackApiAddress, "amberjackApiAddress");
     Objects.requireNonNull(clock, "clock");
     Objects.requireNonNull(databaseConfiguration, "databaseConfiguration");
     Objects.requireNonNull(databases, "databases");
+    Objects.requireNonNull(idstoreConfiguration, "idstoreConfiguration");
     Objects.requireNonNull(locale, "locale");
-    Objects.requireNonNull(userApiAddress, "userApiAddress");
     Objects.requireNonNull(openTelemetry, "openTelemetry");
+    Objects.requireNonNull(pikeApiAddress, "pikeApiAddress");
   }
 
   /**

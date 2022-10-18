@@ -25,23 +25,27 @@ import java.util.UUID;
  * Information for a single user.
  *
  * @param id              The user's ID
+ * @param permissions     The set of permissions
  * @param groupMembership The groups in which the user is a member
  */
 
 public record EIUser(
   UUID id,
+  EIPermissionSet permissions,
   Map<EIGroupName, Set<EIGroupRole>> groupMembership)
 {
   /**
    * Information for a single user.
    *
    * @param id              The user's ID
+   * @param permissions     The set of permissions
    * @param groupMembership The groups in which the user is a member
    */
 
   public EIUser
   {
     Objects.requireNonNull(id, "id");
+    Objects.requireNonNull(permissions, "permissions");
     Objects.requireNonNull(groupMembership, "groupMembership");
   }
 }

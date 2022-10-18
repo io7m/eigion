@@ -14,6 +14,9 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+import com.io7m.eigion.server.database.api.EISDatabaseFactoryType;
+import com.io7m.eigion.server.database.postgres.EISDatabases;
+
 /**
  * Eigion platform (Server PostgreSQL database)
  */
@@ -39,6 +42,9 @@ module com.io7m.eigion.server.database.postgres
   requires io.opentelemetry.semconv;
   requires io.opentelemetry.context;
   requires com.io7m.jqpage.core;
+
+  provides EISDatabaseFactoryType
+    with EISDatabases;
 
   exports com.io7m.eigion.server.database.postgres;
   exports com.io7m.eigion.server.database.postgres.internal.tables to org.jooq;

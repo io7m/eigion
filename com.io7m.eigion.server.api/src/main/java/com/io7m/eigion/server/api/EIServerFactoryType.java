@@ -33,4 +33,16 @@ public interface EIServerFactoryType
   EIServerType createServer(
     EIServerConfiguration configuration)
     throws EIServerException;
+
+  /**
+   * Create a new server configurator instance.
+   *
+   * @param configuration The server configuration
+   *
+   * @return A new server
+   */
+
+  EIServerConfiguratorType createServerConfigurator(
+    EIServerConfiguration configuration)
+    throws EIServerException;
 }

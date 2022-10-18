@@ -39,12 +39,14 @@ create table schema_version (
   <Schema versionCurrent="1">
     <Comment>
       The users table stores the current set of users.
+
+      The permissions column is an array of values of com.io7m.eigion.model.EIPermission.
     </Comment>
 
     <Statement><![CDATA[
 create table users (
-  id    uuid  not null primary key,
-  name  text  not null
+  id          uuid      not null primary key,
+  permissions integer[] not null
 )
 ]]></Statement>
 

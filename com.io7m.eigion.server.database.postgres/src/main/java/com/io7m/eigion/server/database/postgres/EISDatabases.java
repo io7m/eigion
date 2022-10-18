@@ -160,7 +160,7 @@ public final class EISDatabases implements EISDatabaseFactoryType
 
       final TrSchemaRevisionSet revisions;
       try (var stream = EISDatabases.class.getResourceAsStream(
-        "/com/io7m/eigion/database/postgres/internal/database.xml")) {
+        "/com/io7m/eigion/server/database/postgres/internal/database.xml")) {
         revisions = parsers.parse(URI.create("urn:source"), stream);
       }
 

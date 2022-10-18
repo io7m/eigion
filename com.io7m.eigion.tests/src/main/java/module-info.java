@@ -18,12 +18,18 @@ open module com.io7m.eigion.tests
 {
   requires transitive org.slf4j;
 
+  requires com.io7m.idstore.model;
+  requires com.io7m.jmulticlose.core;
   requires org.apache.derby.client;
   requires org.apache.derby.commons;
   requires org.apache.derby.engine;
   requires org.apache.derby.server;
   requires org.apache.derby.tools;
+  requires org.eclipse.jetty.server;
+  requires org.eclipse.jetty.servlet;
 
+  requires transitive com.io7m.eigion.amberjack.api;
+  requires transitive com.io7m.eigion.amberjack;
   requires transitive com.io7m.eigion.client.api;
   requires transitive com.io7m.eigion.client.database.api;
   requires transitive com.io7m.eigion.client.database;
@@ -44,6 +50,7 @@ open module com.io7m.eigion.tests
   requires transitive com.io7m.eigion.server.api;
   requires transitive com.io7m.eigion.server.database.api;
   requires transitive com.io7m.eigion.server.database.postgres;
+  requires transitive com.io7m.eigion.server;
   requires transitive com.io7m.eigion.services.api;
   requires transitive com.io7m.eigion.storage.api;
   requires transitive com.io7m.eigion.storage.derby;

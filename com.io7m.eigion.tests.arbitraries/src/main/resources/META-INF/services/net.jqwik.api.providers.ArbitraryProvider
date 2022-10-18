@@ -17,3 +17,4 @@ com.io7m.eigion.tests.arbitraries.EIArbUUIDProvider
 com.io7m.eigion.tests.arbitraries.EIArbUserDisplayNameProvider
 com.io7m.eigion.tests.arbitraries.EIArbUserProvider
 com.io7m.eigion.tests.arbitraries.EIArbErrorCodeProvider
+com.io7m.eigion.tests.arbitraries.EIArbPermissionSetProvider

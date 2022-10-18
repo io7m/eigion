@@ -16,15 +16,19 @@
 
 package com.io7m.eigion.server.database.postgres.internal;
 
+import com.io7m.eigion.model.EIPermission;
+import com.io7m.eigion.model.EIPermissionSet;
 import com.io7m.eigion.model.EIUser;
 import com.io7m.eigion.server.database.api.EISDatabaseException;
 import com.io7m.eigion.server.database.api.EISDatabaseUsersQueriesType;
 import org.jooq.exception.DataAccessException;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 import static com.io7m.eigion.error_codes.EIStandardErrorCodes.USER_NONEXISTENT;
 import static com.io7m.eigion.server.database.postgres.internal.EISDatabaseExceptions.handleDatabaseException;
@@ -52,6 +56,8 @@ final class EISDatabaseUsersQueries
     final EIUser user)
     throws EISDatabaseException
   {
+    Objects.requireNonNull(user, "user");
+
     final var transaction =
       this.transaction();
     final var context =
@@ -65,6 +71,7 @@ final class EISDatabaseUsersQueries
         userRec = context.newRecord(USERS);
         userRec.set(USERS.ID, user.id());
       }
+      userRec.set(USERS.PERMISSIONS, user.permissions().asIntegers());
       userRec.store();
     } catch (final DataAccessException e) {
       querySpan.recordException(e);
@@ -74,12 +81,13 @@ final class EISDatabaseUsersQueries
     }
   }
 
-
   @Override
   public Optional<EIUser> userGet(
     final UUID id)
     throws EISDatabaseException
   {
+    Objects.requireNonNull(id, "id");
+
     final var transaction =
       this.transaction();
     final var context =
@@ -93,12 +101,14 @@ final class EISDatabaseUsersQueries
         return Optional.empty();
       }
 
-      return Optional.of(
-        new EIUser(
-          id,
-          Map.of()
-        )
-      );
+      final var permissions =
+        EIPermissionSet.of(
+          Stream.of(userRec.getPermissions())
+            .map(EIPermission::ofInteger)
+            .toList()
+        );
+
+      return Optional.of(new EIUser(id, permissions, Map.of()));
     } catch (final DataAccessException e) {
       querySpan.recordException(e);
       throw handleDatabaseException(transaction, e);

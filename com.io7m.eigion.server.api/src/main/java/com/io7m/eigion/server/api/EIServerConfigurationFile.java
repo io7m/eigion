@@ -29,6 +29,7 @@ import java.util.Optional;
  *
  * @param httpConfiguration     The HTTP configuration
  * @param databaseConfiguration The database configuration
+ * @param idstoreConfiguration  The idstore server configuration
  * @param openTelemetry         The OpenTelemetry configuration
  */
 
@@ -39,6 +40,8 @@ public record EIServerConfigurationFile(
   EIServerHTTPConfiguration httpConfiguration,
   @JsonProperty(value = "Database", required = true)
   EIServerDatabaseConfiguration databaseConfiguration,
+  @JsonProperty(value = "Idstore", required = true)
+  EIServerIdstoreConfiguration idstoreConfiguration,
   @JsonProperty(value = "OpenTelemetry")
   Optional<EIServerOpenTelemetryConfiguration> openTelemetry)
   implements EIServerJSONConfigurationElementType
@@ -48,6 +51,7 @@ public record EIServerConfigurationFile(
    *
    * @param httpConfiguration     The HTTP configuration
    * @param databaseConfiguration The database configuration
+   * @param idstoreConfiguration  The idstore server configuration
    * @param openTelemetry         The OpenTelemetry configuration
    */
 
@@ -56,6 +60,7 @@ public record EIServerConfigurationFile(
   {
     Objects.requireNonNull(httpConfiguration, "httpConfiguration");
     Objects.requireNonNull(databaseConfiguration, "databaseConfiguration");
+    Objects.requireNonNull(idstoreConfiguration, "idstoreConfiguration");
     Objects.requireNonNull(openTelemetry, "openTelemetry");
   }
 }
