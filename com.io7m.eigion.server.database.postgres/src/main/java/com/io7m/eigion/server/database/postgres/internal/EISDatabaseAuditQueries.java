@@ -38,6 +38,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
+import static com.io7m.eigion.server.database.postgres.internal.EISDatabaseExceptions.DEFAULT_HANDLER;
 import static com.io7m.eigion.server.database.postgres.internal.EISDatabaseExceptions.handleDatabaseException;
 import static com.io7m.eigion.server.database.postgres.internal.Tables.AUDIT;
 import static io.opentelemetry.semconv.trace.attributes.SemanticAttributes.DB_STATEMENT;
@@ -118,7 +119,7 @@ final class EISDatabaseAuditQueries
           List.of(new JQField(AUDIT.ID, JQOrder.ASCENDING)),
           List.of(allConditions),
           List.of(),
-          Integer.toUnsignedLong(parameters.limit()),
+          parameters.limit(),
           statement -> {
             querySpan.setAttribute(DB_STATEMENT, statement.toString());
           }
@@ -127,7 +128,7 @@ final class EISDatabaseAuditQueries
       return new AuditEventsSearch(baseTable, pages);
     } catch (final DataAccessException e) {
       querySpan.recordException(e);
-      throw handleDatabaseException(this.transaction(), e);
+      throw handleDatabaseException(this.transaction(), e, DEFAULT_HANDLER);
     } finally {
       querySpan.end();
     }
@@ -161,7 +162,7 @@ final class EISDatabaseAuditQueries
         .execute();
     } catch (final DataAccessException e) {
       querySpan.recordException(e);
-      throw handleDatabaseException(transaction, e);
+      throw handleDatabaseException(transaction, e, DEFAULT_HANDLER);
     } finally {
       querySpan.end();
     }
@@ -230,7 +231,7 @@ final class EISDatabaseAuditQueries
         );
       } catch (final DataAccessException e) {
         querySpan.recordException(e);
-        throw handleDatabaseException(transaction, e);
+        throw handleDatabaseException(transaction, e, DEFAULT_HANDLER);
       } finally {
         querySpan.end();
       }

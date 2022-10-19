@@ -14,23 +14,36 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+package com.io7m.eigion.protocol.amberjack;
 
-package com.io7m.eigion.server.database.api;
+import com.io7m.eigion.model.EIAuditEvent;
+import com.io7m.eigion.model.EIPage;
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.util.Objects;
+import java.util.UUID;
 
 /**
- * An annotation indicating that a method requires a user ID to be set.
+ * The response to {@link EIAJCommandAuditSearchBegin}.
+ *
+ * @param requestId The request that prompted this response
+ * @param page      The results
  */
 
-@Documented
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.METHOD)
-public @interface EISDatabaseRequiresUser
+public record EIAJResponseAuditSearch(
+  UUID requestId,
+  EIPage<EIAuditEvent> page)
+  implements EIAJResponseType
 {
+  /**
+   * The response to {@link EIAJCommandAuditSearchBegin}.
+   *
+   * @param requestId The request that prompted this response
+   * @param page      The results
+   */
 
+  public EIAJResponseAuditSearch
+  {
+    Objects.requireNonNull(requestId, "requestId");
+    Objects.requireNonNull(page, "page");
+  }
 }

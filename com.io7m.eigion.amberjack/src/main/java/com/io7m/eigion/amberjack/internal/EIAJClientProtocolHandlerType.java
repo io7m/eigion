@@ -16,7 +16,9 @@
 
 package com.io7m.eigion.amberjack.internal;
 
+import com.io7m.eigion.amberjack.api.EIAJClientAuditType;
 import com.io7m.eigion.amberjack.api.EIAJClientException;
+import com.io7m.eigion.amberjack.api.EIAJClientGroupsType;
 
 import java.net.URI;
 
@@ -25,6 +27,7 @@ import java.net.URI;
  */
 
 public interface EIAJClientProtocolHandlerType
+  extends EIAJClientGroupsType, EIAJClientAuditType
 {
   /**
    * Attempt to log in.
@@ -35,7 +38,7 @@ public interface EIAJClientProtocolHandlerType
    *
    * @return A new protocol handler
    *
-   * @throws EIAJClientException   On errors
+   * @throws EIAJClientException  On errors
    * @throws InterruptedException On interruption
    */
 

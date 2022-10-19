@@ -17,6 +17,7 @@
 package com.io7m.eigion.server.database.api;
 
 import com.io7m.eigion.model.EIUser;
+import com.io7m.eigion.model.EIUserLogin;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -60,4 +61,16 @@ public non-sealed interface EISDatabaseUsersQueriesType
 
   EIUser userGetRequire(UUID id)
     throws EISDatabaseException;
+
+  /**
+   * The given user logged in.
+   *
+   * @param login The login
+   *
+   * @throws EISDatabaseException On errors
+   */
+
+  void userLogin(EIUserLogin login)
+    throws EISDatabaseException;
+
 }

@@ -25,7 +25,11 @@ package com.io7m.eigion.protocol.amberjack;
 
 public sealed interface EIAJCommandType<R extends EIAJResponseType>
   extends EIAJMessageType
-  permits EIAJCommandLogin
+  permits EIAJCommandAuditSearchBegin,
+  EIAJCommandAuditSearchNext,
+  EIAJCommandAuditSearchPrevious,
+  EIAJCommandGroupCreate,
+  EIAJCommandLogin
 {
 
 }

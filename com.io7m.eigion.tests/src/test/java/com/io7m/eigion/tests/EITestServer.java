@@ -24,6 +24,7 @@ import com.io7m.eigion.server.api.EIServerIdstoreConfiguration;
 import com.io7m.eigion.server.api.EIServerType;
 import com.io7m.eigion.server.database.api.EISDatabaseConfiguration;
 import com.io7m.eigion.server.database.api.EISDatabaseCreate;
+import com.io7m.eigion.server.database.api.EISDatabaseType;
 import com.io7m.eigion.server.database.api.EISDatabaseUpgrade;
 import com.io7m.eigion.server.database.postgres.EISDatabases;
 import com.io7m.jmulticlose.core.CloseableCollection;
@@ -182,5 +183,10 @@ public final class EITestServer implements AutoCloseable
   public EIServerConfiguratorType configurator()
   {
     return this.configurator;
+  }
+
+  public EISDatabaseType database()
+  {
+    return this.server.database();
   }
 }

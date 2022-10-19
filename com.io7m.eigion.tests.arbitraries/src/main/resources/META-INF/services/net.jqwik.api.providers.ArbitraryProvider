@@ -1,6 +1,7 @@
 com.io7m.eigion.tests.arbitraries.EIArbAmberjackMessageProvider
 com.io7m.eigion.tests.arbitraries.EIArbAuditEventProvider
 com.io7m.eigion.tests.arbitraries.EIArbCreationProvider
+com.io7m.eigion.tests.arbitraries.EIArbErrorCodeProvider
 com.io7m.eigion.tests.arbitraries.EIArbGroupCreationRequestProvider
 com.io7m.eigion.tests.arbitraries.EIArbGroupCreationRequestStatusProvider
 com.io7m.eigion.tests.arbitraries.EIArbGroupInviteProvider
@@ -9,12 +10,12 @@ com.io7m.eigion.tests.arbitraries.EIArbGroupPrefixProvider
 com.io7m.eigion.tests.arbitraries.EIArbGroupRolesProvider
 com.io7m.eigion.tests.arbitraries.EIArbHashProvider
 com.io7m.eigion.tests.arbitraries.EIArbOffsetDateTimeProvider
+com.io7m.eigion.tests.arbitraries.EIArbPermissionSetProvider
 com.io7m.eigion.tests.arbitraries.EIArbRedactionProvider
 com.io7m.eigion.tests.arbitraries.EIArbRedactionRequestProvider
+com.io7m.eigion.tests.arbitraries.EIArbTimeRangeProvider
 com.io7m.eigion.tests.arbitraries.EIArbTokenProvider
 com.io7m.eigion.tests.arbitraries.EIArbURIProvider
 com.io7m.eigion.tests.arbitraries.EIArbUUIDProvider
 com.io7m.eigion.tests.arbitraries.EIArbUserDisplayNameProvider
 com.io7m.eigion.tests.arbitraries.EIArbUserProvider
-com.io7m.eigion.tests.arbitraries.EIArbErrorCodeProvider
-com.io7m.eigion.tests.arbitraries.EIArbPermissionSetProvider

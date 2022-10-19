@@ -20,6 +20,7 @@ package com.io7m.eigion.server.internal.amberjack_v1;
 import com.io7m.eigion.error_codes.EIErrorCode;
 import com.io7m.eigion.error_codes.EIStandardErrorCodes;
 import com.io7m.eigion.model.EIUser;
+import com.io7m.eigion.model.EIUserLogin;
 import com.io7m.eigion.protocol.amberjack.EIAJCommandLogin;
 import com.io7m.eigion.protocol.amberjack.EIAJResponseLogin;
 import com.io7m.eigion.protocol.amberjack.cb.EIAJCB1Messages;
@@ -28,9 +29,11 @@ import com.io7m.eigion.server.database.api.EISDatabaseException;
 import com.io7m.eigion.server.database.api.EISDatabaseType;
 import com.io7m.eigion.server.database.api.EISDatabaseUsersQueriesType;
 import com.io7m.eigion.server.internal.EIHTTPErrorStatusException;
+import com.io7m.eigion.server.internal.EISClock;
 import com.io7m.eigion.server.internal.EISIdstoreClients;
 import com.io7m.eigion.server.internal.EISRequestDecoration;
 import com.io7m.eigion.server.internal.EISRequestLimits;
+import com.io7m.eigion.server.internal.EISRequests;
 import com.io7m.eigion.server.internal.EISStrings;
 import com.io7m.eigion.server.internal.common.EICommonInstrumentedServlet;
 import com.io7m.eigion.server.internal.sessions.EISUserSessionService;
@@ -66,6 +69,7 @@ public final class EISAJ1Login extends EICommonInstrumentedServlet
   private final EISUserSessionService sessions;
   private final EISAJ1Sends sends;
   private final EISIdstoreClients idClients;
+  private final EISClock clock;
 
   /**
    * A servlet that handles user logins.
@@ -92,6 +96,8 @@ public final class EISAJ1Login extends EICommonInstrumentedServlet
       inServices.requireService(EISUserSessionService.class);
     this.database =
       inServices.requireService(EISDatabaseType.class);
+    this.clock =
+      inServices.requireService(EISClock.class);
   }
 
   @Override
@@ -128,7 +134,13 @@ public final class EISAJ1Login extends EICommonInstrumentedServlet
           )
         );
 
-      final var eiUser = this.checkUser(idUser.id());
+      final var eiUser =
+        this.checkUser(
+          idUser.id(),
+          request.getRemoteAddr(),
+          EISRequests.requestUserAgent(request)
+        );
+
       final var httpSession = request.getSession(true);
       this.sessions.create(eiUser, httpSession, client);
       httpSession.setAttribute("UserID", idUser.id());
@@ -170,7 +182,9 @@ public final class EISAJ1Login extends EICommonInstrumentedServlet
   }
 
   private EIUser checkUser(
-    final UUID userId)
+    final UUID userId,
+    final String address,
+    final String userAgent)
     throws EIHTTPErrorStatusException, EISDatabaseException
   {
     try (var connection = this.database.openConnection(EIGION)) {
@@ -188,6 +202,17 @@ public final class EISAJ1Login extends EICommonInstrumentedServlet
         if (!user.permissions().implies(AMBERJACK_ACCESS)) {
           throw this.operationNotPermitted();
         }
+
+        users.userLogin(
+          new EIUserLogin(
+            userId,
+            this.clock.now(),
+            address,
+            userAgent
+          )
+        );
+
+        transaction.commit();
         return user;
       }
     }

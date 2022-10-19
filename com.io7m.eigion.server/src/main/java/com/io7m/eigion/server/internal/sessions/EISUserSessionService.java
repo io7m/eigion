@@ -77,7 +77,7 @@ public final class EISUserSessionService
   }
 
   /**
-   * Create or get an existing user controller.
+   * Create or policy an existing user controller.
    *
    * @param user        The user
    * @param httpSession The session ID

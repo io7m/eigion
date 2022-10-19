@@ -97,7 +97,7 @@ public final class EIDomainCheckerTest
   }
 
   /**
-   * If the server returns the right token, the check succeeds.
+   * If the server returns the right token, the evaluate succeeds.
    *
    * @throws Exception On errors
    */
@@ -134,7 +134,7 @@ public final class EIDomainCheckerTest
   }
 
   /**
-   * If the server returns the wrong token, the check fails.
+   * If the server returns the wrong token, the evaluate fails.
    *
    * @throws Exception On errors
    */
@@ -174,7 +174,7 @@ public final class EIDomainCheckerTest
   }
 
   /**
-   * If the server doesn't return a token, the check fails.
+   * If the server doesn't return a token, the evaluate fails.
    *
    * @throws Exception On errors
    */
@@ -210,7 +210,7 @@ public final class EIDomainCheckerTest
   }
 
   /**
-   * If the server connection fails, the check fails.
+   * If the server connection fails, the evaluate fails.
    *
    * @throws Exception On errors
    */

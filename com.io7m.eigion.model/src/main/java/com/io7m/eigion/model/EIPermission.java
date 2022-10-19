@@ -32,30 +32,61 @@ public enum EIPermission
    * Access to the Amberjack API is allowed.
    */
 
-  AMBERJACK_ACCESS(0);
+  AMBERJACK_ACCESS {
+    @Override
+    public int value()
+    {
+      return 0;
+    }
+  },
+
+  /**
+   * Access to the audit log is allowed.
+   */
+
+  AUDIT_READ {
+    @Override
+    public int value()
+    {
+      return 1;
+    }
+  },
+
+  /**
+   * Group creation is allowed.
+   */
+
+  GROUP_CREATE {
+    @Override
+    public int value()
+    {
+      return 2;
+    }
+  },
+
+  /**
+   * Group modification is allowed.
+   */
+
+  GROUP_MODIFY {
+    @Override
+    public int value()
+    {
+      return 3;
+    }
+  };
 
   private static final Map<Integer, EIPermission> VALUES =
     Stream.of(values())
       .collect(Collectors.toMap(
-        v -> Integer.valueOf(v.value), Function.identity())
+        v -> Integer.valueOf(v.value()), Function.identity())
       );
-
-  private int value;
-
-  EIPermission(
-    final int i)
-  {
-    this.value = i;
-  }
 
   /**
    * @return The integer permission value
    */
 
-  public int value()
-  {
-    return this.value;
-  }
+  public abstract int value();
 
   /**
    * @param x The integer value

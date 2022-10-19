@@ -14,23 +14,11 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-
-package com.io7m.eigion.server.database.api;
-
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-
 /**
- * An annotation indicating that a method requires an admin ID to be set.
+ * Eigion platform (Server implementation [internals])
  */
 
-@Documented
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.METHOD)
-public @interface EISDatabaseRequiresAdmin
-{
+@Version("1.0.0")
+package com.io7m.eigion.server.internal.amberjack.security;
 
-}
+import org.osgi.annotation.versioning.Version;

@@ -69,6 +69,45 @@ create table audit (
 ]]></Statement>
 
     <Statement>grant insert, select on audit to eigion</Statement>
+
+    <Comment>
+      The groups table holds groups. A product is produced by exactly one group, and users may be in one or more
+      groups. Although users cannot create groups directly, they may have groups created automatically by the system
+      on their behalf.
+    </Comment>
+
+    <Statement><![CDATA[
+create table groups (
+  id       bigint                    not null primary key generated always as identity,
+  name     varchar(256)              not null unique,
+  creator  uuid                      not null,
+  created  timestamp with time zone  not null,
+
+  foreign key (creator) references users (id)
+)
+]]></Statement>
+
+    <Statement>grant insert, select on groups to eigion</Statement>
+
+    <Comment>
+      The group_roles table associates users with groups. The roles field is an array of
+      com.io7m.eigion.model.EIGroupRole values.
+    </Comment>
+
+    <Statement><![CDATA[
+create table group_roles (
+  group_id  bigint    not null,
+  user_id   uuid      not null,
+  roles     integer[] not null,
+
+  foreign key (group_id) references groups (id),
+  foreign key (user_id) references users (id),
+  primary key (group_id, user_id)
+)
+]]></Statement>
+
+    <Statement>grant insert, select on group_roles to eigion</Statement>
+    <Statement>grant update (roles) on group_roles to eigion</Statement>
   </Schema>
 
 </Schemas>

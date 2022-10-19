@@ -19,11 +19,11 @@ package com.io7m.eigion.server.database.postgres.internal;
 import com.io7m.eigion.model.EIPermission;
 import com.io7m.eigion.model.EIPermissionSet;
 import com.io7m.eigion.model.EIUser;
+import com.io7m.eigion.model.EIUserLogin;
 import com.io7m.eigion.server.database.api.EISDatabaseException;
 import com.io7m.eigion.server.database.api.EISDatabaseUsersQueriesType;
 import org.jooq.exception.DataAccessException;
 
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
@@ -31,7 +31,9 @@ import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import static com.io7m.eigion.error_codes.EIStandardErrorCodes.USER_NONEXISTENT;
+import static com.io7m.eigion.server.database.postgres.internal.EISDatabaseExceptions.DEFAULT_HANDLER;
 import static com.io7m.eigion.server.database.postgres.internal.EISDatabaseExceptions.handleDatabaseException;
+import static com.io7m.eigion.server.database.postgres.internal.Tables.AUDIT;
 import static com.io7m.eigion.server.database.postgres.internal.Tables.USERS;
 
 final class EISDatabaseUsersQueries
@@ -75,7 +77,7 @@ final class EISDatabaseUsersQueries
       userRec.store();
     } catch (final DataAccessException e) {
       querySpan.recordException(e);
-      throw handleDatabaseException(transaction, e);
+      throw handleDatabaseException(transaction, e, DEFAULT_HANDLER);
     } finally {
       querySpan.end();
     }
@@ -108,10 +110,10 @@ final class EISDatabaseUsersQueries
             .toList()
         );
 
-      return Optional.of(new EIUser(id, permissions, Map.of()));
+      return Optional.of(new EIUser(id, permissions));
     } catch (final DataAccessException e) {
       querySpan.recordException(e);
-      throw handleDatabaseException(transaction, e);
+      throw handleDatabaseException(transaction, e, DEFAULT_HANDLER);
     } finally {
       querySpan.end();
     }
@@ -123,5 +125,35 @@ final class EISDatabaseUsersQueries
     throws EISDatabaseException
   {
     return this.userGet(id).orElseThrow(USER_DOES_NOT_EXIST);
+  }
+
+  @Override
+  public void userLogin(
+    final EIUserLogin login)
+    throws EISDatabaseException
+  {
+    Objects.requireNonNull(login, "login");
+
+    final var transaction =
+      this.transaction();
+    final var context =
+      transaction.createContext();
+    final var querySpan =
+      transaction.createQuerySpan("IdDatabaseUsersQueries.userLogin");
+
+    try {
+      context.insertInto(AUDIT)
+        .set(AUDIT.USER_ID, login.userId())
+        .set(AUDIT.TYPE, "USER_LOGGED_IN")
+        .set(AUDIT.MESSAGE, "%s|%s".formatted(login.host(), login.userAgent()))
+        .set(AUDIT.TIME, login.time())
+        .execute();
+
+    } catch (final DataAccessException e) {
+      querySpan.recordException(e);
+      throw handleDatabaseException(transaction, e, DEFAULT_HANDLER);
+    } finally {
+      querySpan.end();
+    }
   }
 }

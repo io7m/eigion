@@ -25,6 +25,7 @@ import com.io7m.eigion.protocol.api.EIProtocolMessageType;
 import com.io7m.eigion.server.database.api.EISDatabaseException;
 import com.io7m.eigion.server.internal.command_exec.EISCommandExecutionFailure;
 import com.io7m.eigion.server.internal.command_exec.EISCommandExecutorType;
+import com.io7m.eigion.server.internal.security.EISecurityException;
 
 import java.io.IOException;
 import java.util.Objects;
@@ -60,6 +61,8 @@ public abstract class EISAJCmdAbstract<C extends EIProtocolMessageType> implemen
       throw context.failDatabase(e);
     } catch (final EIProtocolException e) {
       throw context.failProtocol(e);
+    } catch (final EISecurityException e) {
+      throw context.failSecurity(e);
     } catch (final EIException e) {
       throw context.fail(500, e.errorCode(), e.getMessage());
     }
@@ -68,5 +71,9 @@ public abstract class EISAJCmdAbstract<C extends EIProtocolMessageType> implemen
   protected abstract EIAJResponseType executeActual(
     EISAJCommandContext context,
     C command)
-    throws EIValidityException, EIException, EISCommandExecutionFailure;
+    throws
+    EIValidityException,
+    EIException,
+    EISCommandExecutionFailure,
+    EISecurityException;
 }

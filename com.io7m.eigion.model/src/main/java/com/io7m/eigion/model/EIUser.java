@@ -16,36 +16,30 @@
 
 package com.io7m.eigion.model;
 
-import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 import java.util.UUID;
 
 /**
  * Information for a single user.
  *
- * @param id              The user's ID
- * @param permissions     The set of permissions
- * @param groupMembership The groups in which the user is a member
+ * @param id          The user's ID
+ * @param permissions The set of permissions
  */
 
 public record EIUser(
   UUID id,
-  EIPermissionSet permissions,
-  Map<EIGroupName, Set<EIGroupRole>> groupMembership)
+  EIPermissionSet permissions)
 {
   /**
    * Information for a single user.
    *
-   * @param id              The user's ID
-   * @param permissions     The set of permissions
-   * @param groupMembership The groups in which the user is a member
+   * @param id          The user's ID
+   * @param permissions The set of permissions
    */
 
   public EIUser
   {
     Objects.requireNonNull(id, "id");
     Objects.requireNonNull(permissions, "permissions");
-    Objects.requireNonNull(groupMembership, "groupMembership");
   }
 }

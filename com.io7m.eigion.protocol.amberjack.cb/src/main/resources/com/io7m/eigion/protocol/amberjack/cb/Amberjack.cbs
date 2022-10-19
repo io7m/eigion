@@ -28,10 +28,56 @@
   [field lsb cb:IntegerUnsigned64]
 ]
 
+[documentation EIAJ1TimestampUTC "A UTC timestamp value."]
+[record EIAJ1TimestampUTC
+  [documentation year "The year."]
+  [field year cb:IntegerUnsigned32]
+  [documentation month "The month in the range [1, 12]."]
+  [field month cb:IntegerUnsigned8]
+  [documentation day "The day of the month in the range [1, 31]."]
+  [field day cb:IntegerUnsigned8]
+  [documentation hour "The hour in the range [0, 23]."]
+  [field hour cb:IntegerUnsigned8]
+  [documentation minute "The minute in the range [0, 59]."]
+  [field minute cb:IntegerUnsigned8]
+  [documentation second "The second in the range [0, 59]."]
+  [field second cb:IntegerUnsigned8]
+  [documentation millisecond "The millisecond in the range [0, 999]."]
+  [field millisecond cb:IntegerUnsigned32]
+]
+
+[documentation EIAJ1TimeRange "A UTC time range."]
+[record EIAJ1TimeRange
+  [documentation lower "The lower bound."]
+  [field lower EIAJ1TimestampUTC]
+  [documentation upper "The upper bound."]
+  [field upper EIAJ1TimestampUTC]
+]
+
+[documentation EIAJ1AuditEvent "An audit event."]
+[record EIAJ1AuditEvent
+  [documentation id "The audit event ID."]
+  [field id cb:IntegerUnsigned64]
+  [documentation owner "The audit event owner."]
+  [field owner EIAJ1UUID]
+  [documentation time "The audit event time."]
+  [field time EIAJ1TimestampUTC]
+  [documentation type "The audit event type."]
+  [field type cb:String]
+  [documentation message "The audit event message."]
+  [field message cb:String]
+]
+
 [documentation EIAJ1Permission "A permission."]
 [variant EIAJ1Permission
   [documentation AmberjackAccess "Access to the Amberjack API is allowed."]
   [case AmberjackAccess]
+  [documentation AuditRead "Access to the audit log is allowed."]
+  [case AuditRead]
+  [documentation GroupCreate "Groups can be created."]
+  [case GroupCreate]
+  [documentation GroupModify "Groups can be modified."]
+  [case GroupModify]
 ]
 
 [documentation EIAJ1GroupRole "A permission."]
@@ -42,6 +88,8 @@
   [case UserDismiss]
   [documentation Founder "The user is the founder of the group."]
   [case Founder]
+  [documentation Member "The user is a member of the group."]
+  [case Member]
 ]
 
 [documentation EIAJ1User "A user."]
@@ -50,8 +98,34 @@
   [field id EIAJ1UUID]
   [documentation permissions "The set of permissions."]
   [field permissions [cb:List EIAJ1Permission]]
-  [documentation groupMembership "The groups in which the user is a member."]
-  [field groupMembership [cb:Map cb:String [cb:List EIAJ1GroupRole]]]
+]
+
+[documentation EIAJ1AuditSearchParameters "Search parameters for audit records."]
+[record EIAJ1AuditSearchParameters
+  [documentation timeRange "The range of time to include."]
+  [field timeRange EIAJ1TimeRange]
+  [documentation owner "All records contain this owner, if specified."]
+  [field owner [cb:Option cb:String]]
+  [documentation message "All records contain this message, if specified."]
+  [field message [cb:Option cb:String]]
+  [documentation type "All records contain this type, if specified."]
+  [field type [cb:Option cb:String]]
+  [documentation limit "The limit on the number of results."]
+  [field limit cb:IntegerUnsigned16]
+]
+
+[documentation EIAJ1Page "A page of results."]
+[record EIAJ1Page
+  [documentation T "The type of result values."]
+  [parameter T]
+  [documentation items "The list of results."]
+  [field items [cb:List T]]
+  [documentation pageIndex "The page index."]
+  [field pageIndex cb:IntegerUnsigned32]
+  [documentation pageCount "The page count."]
+  [field pageCount cb:IntegerUnsigned32]
+  [documentation pageFirstOffset "The offset of the first item in the page."]
+  [field pageFirstOffset cb:IntegerUnsigned64]
 ]
 
 [documentation EIAJ1CommandLogin "A request to log in."]
@@ -61,6 +135,24 @@
   [documentation password "The password."]
   [field password cb:String]
 ]
+
+[documentation EIAJ1CommandGroupCreate "A request to create a group."]
+[record EIAJ1CommandGroupCreate
+  [documentation name "The group name."]
+  [field name cb:String]
+]
+
+[documentation EIAJ1CommandAuditSearchBegin "Start searching/listing audit records."]
+[record EIAJ1CommandAuditSearchBegin
+  [documentation parameters "The search parameters."]
+  [field parameters EIAJ1AuditSearchParameters]
+]
+
+[documentation EIAJ1CommandAuditSearchNext "Get the next page of audit search results."]
+[record EIAJ1CommandAuditSearchNext]
+
+[documentation EIAJ1CommandAuditSearchPrevious "Get the previous page of audit search results."]
+[record EIAJ1CommandAuditSearchPrevious]
 
 [documentation EIAJ1ResponseError "An error response."]
 [record EIAJ1ResponseError
@@ -80,12 +172,32 @@
   [field user EIAJ1User]
 ]
 
+[documentation EIAJ1ResponseGroupCreate "A response to EIAJ1CommandGroupCreate."]
+[record EIAJ1ResponseGroupCreate
+  [documentation requestId "The ID of the request that yielded this response."]
+  [field requestId EIAJ1UUID]
+]
+
+[documentation EIAJ1ResponseAuditSearch "A response to EIAJ1CommandAuditSearch*."]
+[record EIAJ1ResponseAuditSearch
+  [documentation requestId "The ID of the request that yielded this response."]
+  [field requestId EIAJ1UUID]
+  [documentation page "The first page of results."]
+  [field page [EIAJ1Page EIAJ1AuditEvent]]
+]
+
 [documentation Amberjack "The Amberjack protocol."]
 [protocol Amberjack
   [version 1
     [types-added
+      EIAJ1CommandAuditSearchBegin
+      EIAJ1CommandAuditSearchNext
+      EIAJ1CommandAuditSearchPrevious
+      EIAJ1CommandGroupCreate
       EIAJ1CommandLogin
+      EIAJ1ResponseAuditSearch
       EIAJ1ResponseError
+      EIAJ1ResponseGroupCreate
       EIAJ1ResponseLogin
     ]
   ]

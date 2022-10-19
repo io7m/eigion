@@ -29,6 +29,7 @@ import com.io7m.eigion.tests.arbitraries.EIArbOffsetDateTimeProvider;
 import com.io7m.eigion.tests.arbitraries.EIArbPermissionSetProvider;
 import com.io7m.eigion.tests.arbitraries.EIArbRedactionProvider;
 import com.io7m.eigion.tests.arbitraries.EIArbRedactionRequestProvider;
+import com.io7m.eigion.tests.arbitraries.EIArbTimeRangeProvider;
 import com.io7m.eigion.tests.arbitraries.EIArbTokenProvider;
 import com.io7m.eigion.tests.arbitraries.EIArbURIProvider;
 import com.io7m.eigion.tests.arbitraries.EIArbUUIDProvider;
@@ -70,7 +71,8 @@ module com.io7m.eigion.tests.arbitraries
       EIArbUserDisplayNameProvider,
       EIArbUserProvider,
       EIArbErrorCodeProvider,
-      EIArbPermissionSetProvider
+      EIArbPermissionSetProvider,
+      EIArbTimeRangeProvider
     ;
 
   exports com.io7m.eigion.tests.arbitraries;

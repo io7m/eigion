@@ -27,6 +27,7 @@ import static java.time.ZoneOffset.UTC;
 
 public sealed interface EISDatabaseQueriesType
   permits EISDatabaseAuditQueriesType,
+  EISDatabaseGroupsQueriesType,
   EISDatabaseMaintenanceQueriesType,
   EISDatabaseUsersQueriesType
 {

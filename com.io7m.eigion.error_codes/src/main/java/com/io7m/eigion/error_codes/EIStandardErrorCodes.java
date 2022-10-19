@@ -355,6 +355,20 @@ public final class EIStandardErrorCodes
   public static final EIErrorCode HTTP_SIZE_LIMIT =
     new EIErrorCode("error-http-size-limit");
 
+  /**
+   * The client is not logged in.
+   */
+
+  public static final EIErrorCode NOT_LOGGED_IN =
+    new EIErrorCode("error-not-logged-in");
+
+  /**
+   * An API was misused.
+   */
+
+  public static final EIErrorCode USAGE_ERROR =
+    new EIErrorCode("error-usage");
+
   private EIStandardErrorCodes()
   {
 

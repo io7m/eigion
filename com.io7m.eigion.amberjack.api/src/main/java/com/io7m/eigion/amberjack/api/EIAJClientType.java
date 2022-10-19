@@ -26,7 +26,7 @@ import java.net.URI;
  */
 
 public interface EIAJClientType
-  extends Closeable
+  extends Closeable, EIAJClientGroupsType, EIAJClientAuditType
 {
   /**
    * Log in.

@@ -14,7 +14,6 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-
 package com.io7m.eigion.model;
 
 import java.util.Objects;
@@ -35,7 +34,7 @@ public record EIAuditSearchParameters(
   Optional<String> owner,
   Optional<String> type,
   Optional<String> message,
-  int limit)
+  long limit)
 {
   /**
    * The immutable parameters required to list events.
@@ -56,28 +55,12 @@ public record EIAuditSearchParameters(
   }
 
   /**
-   * @return Sensible default values
-   */
-
-  public static EIAuditSearchParameters defaults()
-  {
-    return new EIAuditSearchParameters(
-      EITimeRange.largest(),
-      Optional.empty(),
-      Optional.empty(),
-      Optional.empty(),
-      100
-    );
-  }
-
-  /**
    * @return The limit on the number of returned events
    */
 
   @Override
-  public int limit()
+  public long limit()
   {
-    return Math.max(1, this.limit);
+    return Math.min(1000L, Math.max(1L, this.limit));
   }
-
 }

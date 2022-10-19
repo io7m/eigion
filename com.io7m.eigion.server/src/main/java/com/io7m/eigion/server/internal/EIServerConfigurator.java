@@ -28,7 +28,6 @@ import com.io7m.eigion.server.database.api.EISDatabaseUsersQueriesType;
 import com.io7m.jmulticlose.core.CloseableCollection;
 import com.io7m.jmulticlose.core.CloseableCollectionType;
 
-import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -123,15 +122,9 @@ public final class EIServerConfigurator implements EIServerConfiguratorType
 
         final var originalUser =
           u.userGet(userId)
-            .orElseGet(() -> new EIUser(userId, permissions, Map.of()));
+            .orElseGet(() -> new EIUser(userId, permissions));
 
-        final var newUser =
-          new EIUser(
-            originalUser.id(),
-            permissions,
-            originalUser.groupMembership()
-          );
-
+        final var newUser = new EIUser(originalUser.id(), permissions);
         u.userPut(newUser);
         t.commit();
       }

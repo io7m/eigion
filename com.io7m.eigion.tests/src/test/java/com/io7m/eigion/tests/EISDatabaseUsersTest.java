@@ -78,8 +78,7 @@ public final class EISDatabaseUsersTest
       final var user0 =
         new EIUser(
           UUID.randomUUID(),
-          EIPermissionSet.empty(),
-          Map.of()
+          EIPermissionSet.empty()
         );
 
       q.userPut(user0);

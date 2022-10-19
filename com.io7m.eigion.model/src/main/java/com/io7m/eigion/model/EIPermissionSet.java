@@ -120,6 +120,12 @@ public final class EIPermissionSet
     return Set.copyOf(this.permissions);
   }
 
+  @Override
+  public String toString()
+  {
+    return this.permissions.toString();
+  }
+
   /**
    * @param p The permission
    *

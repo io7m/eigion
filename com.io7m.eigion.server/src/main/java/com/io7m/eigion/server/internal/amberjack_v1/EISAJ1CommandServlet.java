@@ -40,7 +40,9 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Objects;
+import java.util.Optional;
 
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.IO_ERROR;
 import static com.io7m.eigion.error_codes.EIStandardErrorCodes.PROTOCOL_ERROR;
 import static com.io7m.eigion.server.database.api.EISDatabaseRole.EIGION;
 import static org.eclipse.jetty.http.HttpStatus.BAD_REQUEST_400;
@@ -145,37 +147,49 @@ public final class EISAJ1CommandServlet extends EISAJ1AuthenticatedServlet
     final HttpServletResponse servletResponse,
     final EIAJCommandType<?> command,
     final EISDatabaseTransactionType transaction)
-    throws IOException, EISDatabaseException
+    throws IOException
   {
+    final var userSession =
+      this.userSession();
+    final var requestId =
+      EISRequestDecoration.requestIdFor(request);
+
     final var context =
-      EISAJCommandContext.create(
+      new EISAJCommandContext(
         this.services,
+        this.strings(),
+        requestId,
         transaction,
-        request,
-        this.userSession()
+        this.clock(),
+        userSession,
+        request.getRemoteHost(),
+        Optional.ofNullable(request.getHeader("User-Agent"))
+          .orElse("<unavailable>")
       );
 
-    final var sends =
-      this.sends();
+    final var sends = this.sends();
 
     try {
       final EIAJResponseType result = this.executor.execute(context, command);
       sends.send(servletResponse, 200, result);
       if (result instanceof EIAJResponseError error) {
-        Span.current().setAttribute("eigion.errorCode", error.errorCode().id());
+        Span.current()
+          .setAttribute("idstore.errorCode", error.errorCode().id());
       } else {
         transaction.commit();
       }
     } catch (final EISCommandExecutionFailure e) {
-      Span.current().setAttribute("eigion.errorCode", e.errorCode().id());
       sends.send(
         servletResponse,
         e.httpStatusCode(),
-        new EIAJResponseError(
-          e.requestId(),
-          e.errorCode(),
-          e.getMessage()
-        ));
+        new EIAJResponseError(e.requestId(), e.errorCode(), e.getMessage())
+      );
+    } catch (final Exception e) {
+      sends.send(
+        servletResponse,
+        500,
+        new EIAJResponseError(requestId, IO_ERROR, e.getMessage())
+      );
     }
   }
 }

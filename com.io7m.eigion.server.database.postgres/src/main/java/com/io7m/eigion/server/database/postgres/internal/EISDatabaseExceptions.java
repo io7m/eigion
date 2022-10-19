@@ -23,6 +23,7 @@ import org.jooq.exception.DataAccessException;
 import org.postgresql.util.PSQLState;
 
 import java.util.Objects;
+import java.util.Optional;
 
 import static com.io7m.eigion.error_codes.EIStandardErrorCodes.OPERATION_NOT_PERMITTED;
 import static com.io7m.eigion.error_codes.EIStandardErrorCodes.SQL_ERROR;
@@ -41,23 +42,63 @@ public final class EISDatabaseExceptions
   }
 
   /**
-   * Handle a data access exception.
+   * The default handler for exceptions.
+   */
+
+  public static final DataAccessExceptionHandlerType DEFAULT_HANDLER =
+    e -> Optional.empty();
+
+  /**
+   * An exception handler.
+   */
+
+  public interface DataAccessExceptionHandlerType
+  {
+    /**
+     * @param e The exception
+     *
+     * @return The given data access exception as a database exception
+     */
+
+    Optional<EISDatabaseException> handle(DataAccessException e);
+  }
+
+  /**
+   * Handle a data access exception. The given exception is mapped to a database
+   * exception using the given handler, falling back to the default handler if
+   * no exception is returned. The given transaction is rolled back.
    *
    * @param transaction The transaction
    * @param e           The exception
+   * @param handler     The handler
    *
    * @return The resulting exception
    */
 
   public static EISDatabaseException handleDatabaseException(
     final EISDatabaseTransactionType transaction,
+    final DataAccessException e,
+    final DataAccessExceptionHandlerType handler)
+  {
+    final var result =
+      handler.handle(e)
+        .orElseGet(() -> defaultHandler(e));
+
+    try {
+      transaction.rollback();
+    } catch (final EISDatabaseException ex) {
+      result.addSuppressed(ex);
+    }
+    return result;
+  }
+
+  private static EISDatabaseException defaultHandler(
     final DataAccessException e)
   {
-    final var m = e.getMessage();
-
-    final EISDatabaseException result = switch (e.sqlState()) {
+    final var message = e.getMessage();
+    return switch (e.sqlState()) {
       case "42501" -> {
-        yield new EISDatabaseException(m, e, OPERATION_NOT_PERMITTED);
+        yield new EISDatabaseException(message, e, OPERATION_NOT_PERMITTED);
       }
 
       default -> {
@@ -72,24 +113,17 @@ public final class EISDatabaseExceptions
         if (actual != null) {
           yield switch (actual) {
             case FOREIGN_KEY_VIOLATION -> {
-              yield new EISDatabaseException(m, e, SQL_ERROR_FOREIGN_KEY);
+              yield new EISDatabaseException(message, e, SQL_ERROR_FOREIGN_KEY);
             }
             case UNIQUE_VIOLATION -> {
-              yield new EISDatabaseException(m, e, SQL_ERROR_UNIQUE);
+              yield new EISDatabaseException(message, e, SQL_ERROR_UNIQUE);
             }
-            default -> new EISDatabaseException(m, e, SQL_ERROR);
+            default -> new EISDatabaseException(message, e, SQL_ERROR);
           };
         }
 
-        yield new EISDatabaseException(m, e, SQL_ERROR);
+        yield new EISDatabaseException(message, e, SQL_ERROR);
       }
     };
-
-    try {
-      transaction.rollback();
-    } catch (final EISDatabaseException ex) {
-      result.addSuppressed(ex);
-    }
-    return result;
   }
 }

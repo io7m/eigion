@@ -24,7 +24,10 @@ import java.util.UUID;
  */
 
 public sealed interface EIAJResponseType extends EIAJMessageType
-  permits EIAJResponseError, EIAJResponseLogin
+  permits EIAJResponseAuditSearch,
+  EIAJResponseError,
+  EIAJResponseGroupCreate,
+  EIAJResponseLogin
 {
   /**
    * @return The request that prompted the response

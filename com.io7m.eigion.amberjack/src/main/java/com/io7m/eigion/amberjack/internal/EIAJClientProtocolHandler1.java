@@ -17,9 +17,20 @@
 package com.io7m.eigion.amberjack.internal;
 
 import com.io7m.eigion.amberjack.api.EIAJClientException;
+import com.io7m.eigion.amberjack.api.EIAJClientPagedType;
+import com.io7m.eigion.model.EIAuditEvent;
+import com.io7m.eigion.model.EIAuditSearchParameters;
+import com.io7m.eigion.model.EIGroupName;
+import com.io7m.eigion.model.EIPage;
+import com.io7m.eigion.protocol.amberjack.EIAJCommandAuditSearchBegin;
+import com.io7m.eigion.protocol.amberjack.EIAJCommandAuditSearchNext;
+import com.io7m.eigion.protocol.amberjack.EIAJCommandAuditSearchPrevious;
+import com.io7m.eigion.protocol.amberjack.EIAJCommandGroupCreate;
 import com.io7m.eigion.protocol.amberjack.EIAJCommandLogin;
 import com.io7m.eigion.protocol.amberjack.EIAJCommandType;
+import com.io7m.eigion.protocol.amberjack.EIAJResponseAuditSearch;
 import com.io7m.eigion.protocol.amberjack.EIAJResponseError;
+import com.io7m.eigion.protocol.amberjack.EIAJResponseGroupCreate;
 import com.io7m.eigion.protocol.amberjack.EIAJResponseLogin;
 import com.io7m.eigion.protocol.amberjack.EIAJResponseType;
 import com.io7m.eigion.protocol.amberjack.cb.EIAJCB1Messages;
@@ -32,6 +43,7 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.util.Objects;
+import java.util.function.Function;
 
 import static com.io7m.eigion.amberjack.internal.EIAJCompression.decompressResponse;
 import static com.io7m.eigion.error_codes.EIStandardErrorCodes.IO_ERROR;
@@ -235,5 +247,95 @@ public final class EIAJClientProtocolHandler1
       version = "0.0.0";
     }
     return "com.io7m.eigion.amberjack/%s".formatted(version);
+  }
+
+  @Override
+  public void groupCreate(
+    final EIGroupName name)
+    throws EIAJClientException, InterruptedException
+  {
+    this.sendCommand(
+      EIAJResponseGroupCreate.class,
+      new EIAJCommandGroupCreate(name)
+    );
+  }
+
+  @Override
+  public EIAJClientPagedType<EIAuditEvent> auditSearch(
+    final EIAuditSearchParameters parameters)
+  {
+    return new GenericPaged<>(
+      this,
+      EIAJResponseAuditSearch.class,
+      new EIAJCommandAuditSearchBegin(parameters),
+      new EIAJCommandAuditSearchNext(),
+      new EIAJCommandAuditSearchPrevious(),
+      EIAJResponseAuditSearch::page
+    );
+  }
+
+  private static final class GenericPaged<
+    T,
+    R extends EIAJResponseType,
+    CC extends EIAJCommandType<R>,
+    CN extends EIAJCommandType<R>,
+    CP extends EIAJCommandType<R>>
+    implements EIAJClientPagedType<T>
+  {
+    private final Class<R> responseClass;
+    private final CC cmdCurrent;
+    private final CN cmdNext;
+    private final CP cmdPrevious;
+    private final Function<R, EIPage<T>> extractor;
+    private final EIAJClientProtocolHandler1 handler;
+
+    private GenericPaged(
+      final EIAJClientProtocolHandler1 inHandler,
+      final Class<R> inResponseClass,
+      final CC inCmdCurrent,
+      final CN inCmdNext,
+      final CP inCmdPrevious,
+      final Function<R, EIPage<T>> inExtractor)
+    {
+      this.handler =
+        Objects.requireNonNull(inHandler, "handler");
+      this.responseClass =
+        Objects.requireNonNull(inResponseClass, "responseClass");
+      this.cmdCurrent =
+        Objects.requireNonNull(inCmdCurrent, "cmdCurrent");
+      this.cmdNext =
+        Objects.requireNonNull(inCmdNext, "cmdNext");
+      this.cmdPrevious =
+        Objects.requireNonNull(inCmdPrevious, "cmdPrevious");
+      this.extractor =
+        Objects.requireNonNull(inExtractor, "extractor");
+    }
+
+    @Override
+    public EIPage<T> current()
+      throws EIAJClientException, InterruptedException
+    {
+      return this.extractor.apply(
+        this.handler.sendCommand(this.responseClass, this.cmdCurrent)
+      );
+    }
+
+    @Override
+    public EIPage<T> next()
+      throws EIAJClientException, InterruptedException
+    {
+      return this.extractor.apply(
+        this.handler.sendCommand(this.responseClass, this.cmdNext)
+      );
+    }
+
+    @Override
+    public EIPage<T> previous()
+      throws EIAJClientException, InterruptedException
+    {
+      return this.extractor.apply(
+        this.handler.sendCommand(this.responseClass, this.cmdPrevious)
+      );
+    }
   }
 }

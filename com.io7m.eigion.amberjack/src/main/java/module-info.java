@@ -24,6 +24,7 @@ module com.io7m.eigion.amberjack
   requires static org.osgi.annotation.bundle;
 
   requires com.io7m.eigion.amberjack.api;
+  requires com.io7m.eigion.error_codes;
   requires com.io7m.eigion.protocol.amberjack.cb;
   requires com.io7m.eigion.protocol.amberjack;
 

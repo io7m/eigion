@@ -17,11 +17,13 @@
 package com.io7m.eigion.server.internal.sessions;
 
 import com.io7m.eigion.model.EIUser;
+import com.io7m.eigion.server.database.api.EISDatabaseAuditEventsSearchType;
 import com.io7m.idstore.user_client.api.IdUClientType;
 import com.io7m.jaffirm.core.Preconditions;
 import jakarta.servlet.http.HttpSession;
 
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * A controller for a single user session.
@@ -33,6 +35,7 @@ public final class EISUserSession
   private final HttpSession httpSession;
   private final IdUClientType idClient;
   private final EIUser user;
+  private Optional<EISDatabaseAuditEventsSearchType> auditSearch;
 
   /**
    * A controller for a single user session.
@@ -53,6 +56,8 @@ public final class EISUserSession
       Objects.requireNonNull(inHttpSession, "inHttpSession");
     this.idClient =
       Objects.requireNonNull(inIdClient, "inIdClient");
+    this.auditSearch =
+      Optional.empty();
   }
 
   @Override
@@ -84,5 +89,25 @@ public final class EISUserSession
       Objects.equals(this.user.id(), inUser.id()),
       "Session user ID must match."
     );
+  }
+
+  /**
+   * @return The current audit search
+   */
+
+  public Optional<EISDatabaseAuditEventsSearchType> auditSearch()
+  {
+    return this.auditSearch;
+  }
+
+  /**
+   * Set the current audit search.
+   * @param search The search
+   */
+
+  public void setAuditSearch(
+    final EISDatabaseAuditEventsSearchType search)
+  {
+    this.auditSearch = Optional.of(search);
   }
 }

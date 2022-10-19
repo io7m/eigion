@@ -18,6 +18,7 @@
 package com.io7m.eigion.server.internal.command_exec;
 
 import com.io7m.eigion.error_codes.EIErrorCode;
+import com.io7m.eigion.model.EIUser;
 import com.io7m.eigion.model.EIValidityException;
 import com.io7m.eigion.protocol.api.EIProtocolException;
 import com.io7m.eigion.protocol.api.EIProtocolMessageType;
@@ -26,6 +27,7 @@ import com.io7m.eigion.server.database.api.EISDatabaseTransactionType;
 import com.io7m.eigion.server.internal.EISClock;
 import com.io7m.eigion.server.internal.EISStrings;
 import com.io7m.eigion.server.internal.EISTelemetryService;
+import com.io7m.eigion.server.internal.security.EISecurityException;
 import com.io7m.eigion.server.internal.sessions.EISUserSession;
 import com.io7m.eigion.services.api.EIServiceDirectoryType;
 import io.opentelemetry.api.trace.Tracer;
@@ -36,6 +38,7 @@ import java.util.UUID;
 
 import static com.io7m.eigion.error_codes.EIStandardErrorCodes.HTTP_PARAMETER_INVALID;
 import static com.io7m.eigion.error_codes.EIStandardErrorCodes.PROTOCOL_ERROR;
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.SECURITY_POLICY_DENIED;
 
 /**
  * The context for execution of a command (or set of commands in a
@@ -284,5 +287,34 @@ public abstract class EISCommandContext<E extends EIProtocolMessageType>
       400,
       PROTOCOL_ERROR
     );
+  }
+
+  /**
+   * Produce an exception indicating a security policy error.
+   *
+   * @param e The security exception
+   *
+   * @return An execution failure
+   */
+
+  public EISCommandExecutionFailure failSecurity(
+    final EISecurityException e)
+  {
+    return new EISCommandExecutionFailure(
+      e.getMessage(),
+      e,
+      this.requestId,
+      403,
+      SECURITY_POLICY_DENIED
+    );
+  }
+
+  /**
+   * @return The current user session's user
+   */
+
+  public final EIUser user()
+  {
+    return this.userSession.user();
   }
 }

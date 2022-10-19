@@ -17,7 +17,11 @@
 package com.io7m.eigion.amberjack.internal;
 
 import com.io7m.eigion.amberjack.api.EIAJClientException;
+import com.io7m.eigion.amberjack.api.EIAJClientPagedType;
 import com.io7m.eigion.amberjack.api.EIAJClientType;
+import com.io7m.eigion.model.EIAuditEvent;
+import com.io7m.eigion.model.EIAuditSearchParameters;
+import com.io7m.eigion.model.EIGroupName;
 import com.io7m.eigion.model.EIUser;
 
 import java.io.IOException;
@@ -98,4 +102,19 @@ public final class EIAJClient implements EIAJClientType
     );
   }
 
+  @Override
+  public void groupCreate(
+    final EIGroupName name)
+    throws EIAJClientException, InterruptedException
+  {
+    this.handler.groupCreate(name);
+  }
+
+  @Override
+  public EIAJClientPagedType<EIAuditEvent> auditSearch(
+    final EIAuditSearchParameters parameters)
+    throws EIAJClientException, InterruptedException
+  {
+    return this.handler.auditSearch(parameters);
+  }
 }

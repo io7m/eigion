@@ -17,11 +17,17 @@
 package com.io7m.eigion.amberjack.internal;
 
 import com.io7m.eigion.amberjack.api.EIAJClientException;
+import com.io7m.eigion.amberjack.api.EIAJClientPagedType;
+import com.io7m.eigion.model.EIAuditEvent;
+import com.io7m.eigion.model.EIAuditSearchParameters;
+import com.io7m.eigion.model.EIGroupName;
 
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.util.Locale;
 import java.util.Objects;
+
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.NOT_LOGGED_IN;
 
 /**
  * The "disconnected" protocol handler.
@@ -71,5 +77,29 @@ public final class EIAJClientProtocolHandlerDisconnected
       );
 
     return handler.login(admin, password, base);
+  }
+
+  @Override
+  public void groupCreate(
+    final EIGroupName name)
+    throws EIAJClientException
+  {
+    throw this.notLoggedIn();
+  }
+
+  private EIAJClientException notLoggedIn()
+  {
+    return new EIAJClientException(
+      NOT_LOGGED_IN,
+      this.strings.format("notLoggedIn")
+    );
+  }
+
+  @Override
+  public EIAJClientPagedType<EIAuditEvent> auditSearch(
+    final EIAuditSearchParameters parameters)
+    throws EIAJClientException
+  {
+    throw this.notLoggedIn();
   }
 }

@@ -17,11 +17,22 @@
 package com.io7m.eigion.tests.arbitraries;
 
 import com.io7m.eigion.error_codes.EIErrorCode;
+import com.io7m.eigion.model.EIAuditEvent;
+import com.io7m.eigion.model.EIAuditSearchParameters;
+import com.io7m.eigion.model.EIGroupName;
+import com.io7m.eigion.model.EIPage;
+import com.io7m.eigion.model.EITimeRange;
 import com.io7m.eigion.model.EIToken;
 import com.io7m.eigion.model.EIUser;
+import com.io7m.eigion.protocol.amberjack.EIAJCommandAuditSearchBegin;
+import com.io7m.eigion.protocol.amberjack.EIAJCommandAuditSearchNext;
+import com.io7m.eigion.protocol.amberjack.EIAJCommandAuditSearchPrevious;
+import com.io7m.eigion.protocol.amberjack.EIAJCommandGroupCreate;
 import com.io7m.eigion.protocol.amberjack.EIAJCommandLogin;
 import com.io7m.eigion.protocol.amberjack.EIAJMessageType;
+import com.io7m.eigion.protocol.amberjack.EIAJResponseAuditSearch;
 import com.io7m.eigion.protocol.amberjack.EIAJResponseError;
+import com.io7m.eigion.protocol.amberjack.EIAJResponseGroupCreate;
 import com.io7m.eigion.protocol.amberjack.EIAJResponseLogin;
 import net.jqwik.api.Arbitraries;
 import net.jqwik.api.Arbitrary;
@@ -60,9 +71,67 @@ public final class EIArbAmberjackMessageProvider extends EIArbAbstractProvider
   {
     return Set.of(
       commandLogin(),
+      commandGroupCreate(),
+      commandAuditSearchBegin(),
+      commandAuditSearchNext(),
+      commandAuditSearchPrevious(),
       responseLogin(),
-      responseError()
+      responseError(),
+      responseGroupCreate(),
+      responseAuditSearch()
     );
+  }
+
+  private static Arbitrary<EIAJResponseAuditSearch> responseAuditSearch()
+  {
+    final var events =
+      Arbitraries.defaultFor(EIAuditEvent.class)
+        .list();
+
+    return Combinators.combine(
+      Arbitraries.defaultFor(UUID.class),
+      events,
+      Arbitraries.integers().between(0, 100),
+      Arbitraries.integers().between(0, 100),
+      Arbitraries.integers().between(0, 100)
+    ).as((uuid, aEvents, index, count, offset) -> {
+      return new EIAJResponseAuditSearch(uuid, new EIPage<>(
+        aEvents,
+        index.intValue(),
+        count.intValue(),
+        offset.longValue()
+      ));
+    });
+  }
+
+  private static Arbitrary<EIAJCommandAuditSearchNext> commandAuditSearchNext()
+  {
+    return Arbitraries.of(new EIAJCommandAuditSearchNext());
+  }
+
+  private static Arbitrary<EIAJCommandAuditSearchPrevious> commandAuditSearchPrevious()
+  {
+    return Arbitraries.of(new EIAJCommandAuditSearchPrevious());
+  }
+
+  private static Arbitrary<EIAJCommandAuditSearchBegin> commandAuditSearchBegin()
+  {
+    final var parameters =
+      Combinators.combine(
+        Arbitraries.defaultFor(EITimeRange.class),
+        Arbitraries.strings().optional(),
+        Arbitraries.strings().optional(),
+        Arbitraries.strings().optional(),
+        Arbitraries.longs().between(1L, 999L)
+      ).as(EIAuditSearchParameters::new);
+
+    return parameters.map(EIAJCommandAuditSearchBegin::new);
+  }
+
+  private static Arbitrary<EIAJResponseGroupCreate> responseGroupCreate()
+  {
+    return Arbitraries.defaultFor(UUID.class)
+      .map(EIAJResponseGroupCreate::new);
   }
 
   private static Arbitrary<EIAJResponseError> responseError()
@@ -88,5 +157,11 @@ public final class EIArbAmberjackMessageProvider extends EIArbAbstractProvider
       Arbitraries.strings(),
       Arbitraries.strings()
     ).as(EIAJCommandLogin::new);
+  }
+
+  private static Arbitrary<EIAJCommandGroupCreate> commandGroupCreate()
+  {
+    return Arbitraries.defaultFor(EIGroupName.class)
+      .map(EIAJCommandGroupCreate::new);
   }
 }

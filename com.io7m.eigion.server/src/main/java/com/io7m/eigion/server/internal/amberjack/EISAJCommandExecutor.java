@@ -16,6 +16,10 @@
 
 package com.io7m.eigion.server.internal.amberjack;
 
+import com.io7m.eigion.protocol.amberjack.EIAJCommandAuditSearchBegin;
+import com.io7m.eigion.protocol.amberjack.EIAJCommandAuditSearchNext;
+import com.io7m.eigion.protocol.amberjack.EIAJCommandAuditSearchPrevious;
+import com.io7m.eigion.protocol.amberjack.EIAJCommandGroupCreate;
 import com.io7m.eigion.protocol.amberjack.EIAJCommandType;
 import com.io7m.eigion.protocol.amberjack.EIAJResponseType;
 import com.io7m.eigion.server.internal.command_exec.EISCommandExecutionFailure;
@@ -46,7 +50,7 @@ public final class EISAJCommandExecutor
   public EIAJResponseType execute(
     final EISAJCommandContext context,
     final EIAJCommandType<? extends EIAJResponseType> command)
-    throws IOException, EISCommandExecutionFailure
+    throws IOException, EISCommandExecutionFailure, InterruptedException
   {
     final var span =
       context.tracer()
@@ -66,8 +70,23 @@ public final class EISAJCommandExecutor
   private EIAJResponseType executeCommand(
     final EISAJCommandContext context,
     final EIAJCommandType<? extends EIAJResponseType> command)
-    throws IOException
+    throws IOException, EISCommandExecutionFailure, InterruptedException
   {
-    throw new IOException("Unimplemented!");
+    if (command instanceof EIAJCommandGroupCreate c) {
+      return new EISAJCmdGroupCreate().execute(context, c);
+    }
+    if (command instanceof EIAJCommandAuditSearchBegin c) {
+      return new EISAJCmdAuditSearchBegin().execute(context, c);
+    }
+    if (command instanceof EIAJCommandAuditSearchNext c) {
+      return new EISAJCmdAuditSearchNext().execute(context, c);
+    }
+    if (command instanceof EIAJCommandAuditSearchPrevious c) {
+      return new EISAJCmdAuditSearchPrevious().execute(context, c);
+    }
+
+    throw new IllegalStateException(
+      "Unrecognized command: %s".formatted(command.getClass())
+    );
   }
 }
