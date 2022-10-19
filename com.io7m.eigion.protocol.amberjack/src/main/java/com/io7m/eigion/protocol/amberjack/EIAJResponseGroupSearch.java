@@ -14,20 +14,36 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-package com.io7m.eigion.server.internal.amberjack.security;
+package com.io7m.eigion.protocol.amberjack;
 
-import com.io7m.eigion.server.internal.security.EISecActionType;
+import com.io7m.eigion.model.EIGroupName;
+import com.io7m.eigion.model.EIPage;
+
+import java.util.Objects;
+import java.util.UUID;
 
 /**
- * A view of an action within the security policy. An <i>action</i> may (or may
- * not) be performed by an <i>admin</i> according to the security policy.
+ * The response to {@link EIAJCommandGroupSearchByNameBegin}.
+ *
+ * @param requestId The request that prompted this response
+ * @param page      The results
  */
 
-public sealed interface EISecAJActionType
-  extends EISecActionType
-  permits EISecAJActionAuditRead,
-  EISecAJActionGroupCreate,
-  EISecAJActionGroupSearch
+public record EIAJResponseGroupSearch(
+  UUID requestId,
+  EIPage<EIGroupName> page)
+  implements EIAJResponseType
 {
+  /**
+   * The response to {@link EIAJCommandGroupSearchByNameBegin}.
+   *
+   * @param requestId The request that prompted this response
+   * @param page      The results
+   */
 
+  public EIAJResponseGroupSearch
+  {
+    Objects.requireNonNull(requestId, "requestId");
+    Objects.requireNonNull(page, "page");
+  }
 }

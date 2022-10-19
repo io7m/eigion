@@ -68,11 +68,23 @@ public enum EIPermission
    * Group modification is allowed.
    */
 
-  GROUP_MODIFY {
+  GROUP_WRITE {
     @Override
     public int value()
     {
       return 3;
+    }
+  },
+
+  /**
+   * Group reading/searching is allowed.
+   */
+
+  GROUP_READ {
+    @Override
+    public int value()
+    {
+      return 4;
     }
   };
 

@@ -76,8 +76,10 @@
   [case AuditRead]
   [documentation GroupCreate "Groups can be created."]
   [case GroupCreate]
-  [documentation GroupModify "Groups can be modified."]
-  [case GroupModify]
+  [documentation GroupWrite "Groups can be modified."]
+  [case GroupWrite]
+  [documentation GroupRead "Groups can be read/searched."]
+  [case GroupRead]
 ]
 
 [documentation EIAJ1GroupRole "A permission."]
@@ -110,6 +112,14 @@
   [field message [cb:Option cb:String]]
   [documentation type "All records contain this type, if specified."]
   [field type [cb:Option cb:String]]
+  [documentation limit "The limit on the number of results."]
+  [field limit cb:IntegerUnsigned16]
+]
+
+[documentation EIAJ1GroupSearchByNameParameters "Search parameters for groups."]
+[record EIAJ1GroupSearchByNameParameters
+  [documentation query "All group names match this query, if specified."]
+  [field query [cb:Option cb:String]]
   [documentation limit "The limit on the number of results."]
   [field limit cb:IntegerUnsigned16]
 ]
@@ -154,6 +164,18 @@
 [documentation EIAJ1CommandAuditSearchPrevious "Get the previous page of audit search results."]
 [record EIAJ1CommandAuditSearchPrevious]
 
+[documentation EIAJ1CommandGroupSearchByNameBegin "Start searching/listing groups."]
+[record EIAJ1CommandGroupSearchByNameBegin
+  [documentation parameters "The search parameters."]
+  [field parameters EIAJ1GroupSearchByNameParameters]
+]
+
+[documentation EIAJ1CommandGroupSearchByNameNext "Get the next page of group search results."]
+[record EIAJ1CommandGroupSearchByNameNext]
+
+[documentation EIAJ1CommandGroupSearchByNamePrevious "Get the previous page of group search results."]
+[record EIAJ1CommandGroupSearchByNamePrevious]
+
 [documentation EIAJ1ResponseError "An error response."]
 [record EIAJ1ResponseError
   [documentation requestId "The ID of the request that yielded this response."]
@@ -186,6 +208,14 @@
   [field page [EIAJ1Page EIAJ1AuditEvent]]
 ]
 
+[documentation EIAJ1ResponseGroupSearch "A response to EIAJ1CommandGroupSearch*."]
+[record EIAJ1ResponseGroupSearch
+  [documentation requestId "The ID of the request that yielded this response."]
+  [field requestId EIAJ1UUID]
+  [documentation page "The first page of results."]
+  [field page [EIAJ1Page cb:String]]
+]
+
 [documentation Amberjack "The Amberjack protocol."]
 [protocol Amberjack
   [version 1
@@ -194,10 +224,14 @@
       EIAJ1CommandAuditSearchNext
       EIAJ1CommandAuditSearchPrevious
       EIAJ1CommandGroupCreate
+      EIAJ1CommandGroupSearchByNameBegin
+      EIAJ1CommandGroupSearchByNameNext
+      EIAJ1CommandGroupSearchByNamePrevious
       EIAJ1CommandLogin
       EIAJ1ResponseAuditSearch
       EIAJ1ResponseError
       EIAJ1ResponseGroupCreate
+      EIAJ1ResponseGroupSearch
       EIAJ1ResponseLogin
     ]
   ]

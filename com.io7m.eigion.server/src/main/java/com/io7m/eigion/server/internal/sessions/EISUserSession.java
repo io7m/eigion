@@ -16,8 +16,11 @@
 
 package com.io7m.eigion.server.internal.sessions;
 
+import com.io7m.eigion.model.EIGroupName;
 import com.io7m.eigion.model.EIUser;
 import com.io7m.eigion.server.database.api.EISDatabaseAuditEventsSearchType;
+import com.io7m.eigion.server.database.api.EISDatabaseGroupsQueriesType;
+import com.io7m.eigion.server.database.api.EISDatabasePagedQueryType;
 import com.io7m.idstore.user_client.api.IdUClientType;
 import com.io7m.jaffirm.core.Preconditions;
 import jakarta.servlet.http.HttpSession;
@@ -36,6 +39,7 @@ public final class EISUserSession
   private final IdUClientType idClient;
   private final EIUser user;
   private Optional<EISDatabaseAuditEventsSearchType> auditSearch;
+  private Optional<EISDatabasePagedQueryType<EISDatabaseGroupsQueriesType, EIGroupName>> groupSearchByName;
 
   /**
    * A controller for a single user session.
@@ -57,6 +61,8 @@ public final class EISUserSession
     this.idClient =
       Objects.requireNonNull(inIdClient, "inIdClient");
     this.auditSearch =
+      Optional.empty();
+    this.groupSearchByName =
       Optional.empty();
   }
 
@@ -101,7 +107,17 @@ public final class EISUserSession
   }
 
   /**
+   * @return The current group by name search
+   */
+
+  public Optional<EISDatabasePagedQueryType<EISDatabaseGroupsQueriesType, EIGroupName>> groupSearchByName()
+  {
+    return this.groupSearchByName;
+  }
+
+  /**
    * Set the current audit search.
+   *
    * @param search The search
    */
 
@@ -109,5 +125,17 @@ public final class EISUserSession
     final EISDatabaseAuditEventsSearchType search)
   {
     this.auditSearch = Optional.of(search);
+  }
+
+  /**
+   * Set the current group by name search.
+   *
+   * @param search The search
+   */
+
+  public void setGroupSearchByName(
+    final EISDatabasePagedQueryType<EISDatabaseGroupsQueriesType, EIGroupName> search)
+  {
+    this.groupSearchByName = Optional.of(search);
   }
 }

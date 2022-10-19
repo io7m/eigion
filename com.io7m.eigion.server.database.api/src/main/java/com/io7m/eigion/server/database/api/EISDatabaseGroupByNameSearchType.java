@@ -14,20 +14,17 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-package com.io7m.eigion.server.internal.amberjack.security;
 
-import com.io7m.eigion.server.internal.security.EISecActionType;
+package com.io7m.eigion.server.database.api;
+
+import com.io7m.eigion.model.EIGroupName;
 
 /**
- * A view of an action within the security policy. An <i>action</i> may (or may
- * not) be performed by an <i>admin</i> according to the security policy.
+ * The type of group searches.
  */
 
-public sealed interface EISecAJActionType
-  extends EISecActionType
-  permits EISecAJActionAuditRead,
-  EISecAJActionGroupCreate,
-  EISecAJActionGroupSearch
+public interface EISDatabaseGroupByNameSearchType
+  extends EISDatabasePagedQueryType<EISDatabaseGroupsQueriesType, EIGroupName>
 {
 
 }

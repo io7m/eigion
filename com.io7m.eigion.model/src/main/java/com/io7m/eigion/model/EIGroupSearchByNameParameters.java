@@ -14,20 +14,41 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-package com.io7m.eigion.server.internal.amberjack.security;
+package com.io7m.eigion.model;
 
-import com.io7m.eigion.server.internal.security.EISecActionType;
+import java.util.Objects;
+import java.util.Optional;
 
 /**
- * A view of an action within the security policy. An <i>action</i> may (or may
- * not) be performed by an <i>admin</i> according to the security policy.
+ * Parameters to search for groups by name.
+ *
+ * @param name  The name query
+ * @param limit The limit on the number of returned values
  */
 
-public sealed interface EISecAJActionType
-  extends EISecActionType
-  permits EISecAJActionAuditRead,
-  EISecAJActionGroupCreate,
-  EISecAJActionGroupSearch
+public record EIGroupSearchByNameParameters(
+  Optional<String> name,
+  long limit)
 {
+  /**
+   * Parameters to search for groups by name.
+   *
+   * @param name  The name query
+   * @param limit The limit on the number of returned values
+   */
 
+  public EIGroupSearchByNameParameters
+  {
+    Objects.requireNonNull(name, "name");
+  }
+
+  /**
+   * @return The limit on the number of returned values
+   */
+
+  @Override
+  public long limit()
+  {
+    return Math.min(1000L, Math.max(1L, this.limit));
+  }
 }

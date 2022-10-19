@@ -29,6 +29,9 @@ public sealed interface EIAJCommandType<R extends EIAJResponseType>
   EIAJCommandAuditSearchNext,
   EIAJCommandAuditSearchPrevious,
   EIAJCommandGroupCreate,
+  EIAJCommandGroupSearchByNameBegin,
+  EIAJCommandGroupSearchByNameNext,
+  EIAJCommandGroupSearchByNamePrevious,
   EIAJCommandLogin
 {
 

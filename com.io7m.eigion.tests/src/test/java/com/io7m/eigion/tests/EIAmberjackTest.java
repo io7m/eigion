@@ -22,6 +22,7 @@ import com.io7m.eigion.amberjack.api.EIAJClientType;
 import com.io7m.eigion.model.EIAuditEvent;
 import com.io7m.eigion.model.EIAuditSearchParameters;
 import com.io7m.eigion.model.EIGroupName;
+import com.io7m.eigion.model.EIGroupSearchByNameParameters;
 import com.io7m.eigion.model.EIPermission;
 import com.io7m.eigion.model.EIPermissionSet;
 import com.io7m.eigion.model.EITimeRange;
@@ -47,6 +48,7 @@ import static com.io7m.eigion.error_codes.EIStandardErrorCodes.SECURITY_POLICY_D
 import static com.io7m.eigion.model.EIPermission.AMBERJACK_ACCESS;
 import static com.io7m.eigion.model.EIPermission.AUDIT_READ;
 import static com.io7m.eigion.model.EIPermission.GROUP_CREATE;
+import static com.io7m.eigion.model.EIPermission.GROUP_READ;
 import static com.io7m.eigion.server.database.api.EISDatabaseRole.EIGION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -190,13 +192,51 @@ public final class EIAmberjackTest extends EIWithServerContract
   public void testGroupCreateOK()
     throws Exception
   {
-    this.setupStandardUserAndLogIn(AMBERJACK_ACCESS, GROUP_CREATE);
+    this.setupStandardUserAndLogIn(AMBERJACK_ACCESS, GROUP_CREATE, GROUP_READ);
 
-    this.client.groupCreate(new EIGroupName("com.io7m.example"));
+    this.client.groupCreate(new EIGroupName("com.io7m.example0"));
+    this.client.groupCreate(new EIGroupName("com.io7m.example1"));
+    this.client.groupCreate(new EIGroupName("com.io7m.example2"));
+
+    final var search =
+      this.client.groupSearchByName(
+        new EIGroupSearchByNameParameters(Optional.empty(), 2L)
+      );
+
+    {
+      final var p = search.current();
+      assertEquals(1, p.pageIndex());
+      assertEquals(2, p.pageCount());
+      final var i = p.items();
+      assertEquals("com.io7m.example0", i.get(0).value());
+      assertEquals("com.io7m.example1", i.get(1).value());
+      assertEquals(2, i.size());
+    }
+
+    {
+      final var p = search.next();
+      assertEquals(2, p.pageIndex());
+      assertEquals(2, p.pageCount());
+      final var i = p.items();
+      assertEquals("com.io7m.example2", i.get(0).value());
+      assertEquals(1, i.size());
+    }
+
+    {
+      final var p = search.previous();
+      assertEquals(1, p.pageIndex());
+      assertEquals(2, p.pageCount());
+      final var i = p.items();
+      assertEquals("com.io7m.example0", i.get(0).value());
+      assertEquals("com.io7m.example1", i.get(1).value());
+      assertEquals(2, i.size());
+    }
 
     this.checkAuditLog(
       check("USER_LOGGED_IN", null),
-      check("GROUP_CREATED", "com.io7m.example")
+      check("GROUP_CREATED", "com.io7m.example0"),
+      check("GROUP_CREATED", "com.io7m.example1"),
+      check("GROUP_CREATED", "com.io7m.example2")
     );
   }
 

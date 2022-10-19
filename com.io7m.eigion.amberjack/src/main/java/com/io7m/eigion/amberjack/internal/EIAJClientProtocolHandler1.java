@@ -21,16 +21,21 @@ import com.io7m.eigion.amberjack.api.EIAJClientPagedType;
 import com.io7m.eigion.model.EIAuditEvent;
 import com.io7m.eigion.model.EIAuditSearchParameters;
 import com.io7m.eigion.model.EIGroupName;
+import com.io7m.eigion.model.EIGroupSearchByNameParameters;
 import com.io7m.eigion.model.EIPage;
 import com.io7m.eigion.protocol.amberjack.EIAJCommandAuditSearchBegin;
 import com.io7m.eigion.protocol.amberjack.EIAJCommandAuditSearchNext;
 import com.io7m.eigion.protocol.amberjack.EIAJCommandAuditSearchPrevious;
 import com.io7m.eigion.protocol.amberjack.EIAJCommandGroupCreate;
+import com.io7m.eigion.protocol.amberjack.EIAJCommandGroupSearchByNameBegin;
+import com.io7m.eigion.protocol.amberjack.EIAJCommandGroupSearchByNameNext;
+import com.io7m.eigion.protocol.amberjack.EIAJCommandGroupSearchByNamePrevious;
 import com.io7m.eigion.protocol.amberjack.EIAJCommandLogin;
 import com.io7m.eigion.protocol.amberjack.EIAJCommandType;
 import com.io7m.eigion.protocol.amberjack.EIAJResponseAuditSearch;
 import com.io7m.eigion.protocol.amberjack.EIAJResponseError;
 import com.io7m.eigion.protocol.amberjack.EIAJResponseGroupCreate;
+import com.io7m.eigion.protocol.amberjack.EIAJResponseGroupSearch;
 import com.io7m.eigion.protocol.amberjack.EIAJResponseLogin;
 import com.io7m.eigion.protocol.amberjack.EIAJResponseType;
 import com.io7m.eigion.protocol.amberjack.cb.EIAJCB1Messages;
@@ -257,6 +262,20 @@ public final class EIAJClientProtocolHandler1
     this.sendCommand(
       EIAJResponseGroupCreate.class,
       new EIAJCommandGroupCreate(name)
+    );
+  }
+
+  @Override
+  public EIAJClientPagedType<EIGroupName> groupSearchByName(
+    final EIGroupSearchByNameParameters parameters)
+  {
+    return new GenericPaged<>(
+      this,
+      EIAJResponseGroupSearch.class,
+      new EIAJCommandGroupSearchByNameBegin(parameters),
+      new EIAJCommandGroupSearchByNameNext(),
+      new EIAJCommandGroupSearchByNamePrevious(),
+      EIAJResponseGroupSearch::page
     );
   }
 

@@ -14,20 +14,14 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-package com.io7m.eigion.server.internal.amberjack.security;
-
-import com.io7m.eigion.server.internal.security.EISecActionType;
+package com.io7m.eigion.protocol.amberjack;
 
 /**
- * A view of an action within the security policy. An <i>action</i> may (or may
- * not) be performed by an <i>admin</i> according to the security policy.
+ * A command to continue searching groups.
  */
 
-public sealed interface EISecAJActionType
-  extends EISecActionType
-  permits EISecAJActionAuditRead,
-  EISecAJActionGroupCreate,
-  EISecAJActionGroupSearch
+public record EIAJCommandGroupSearchByNameNext()
+  implements EIAJCommandType<EIAJResponseGroupSearch>
 {
 
 }

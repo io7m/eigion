@@ -14,20 +14,30 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-package com.io7m.eigion.server.internal.amberjack.security;
+package com.io7m.eigion.protocol.amberjack;
 
-import com.io7m.eigion.server.internal.security.EISecActionType;
+import com.io7m.eigion.model.EIGroupSearchByNameParameters;
+
+import java.util.Objects;
 
 /**
- * A view of an action within the security policy. An <i>action</i> may (or may
- * not) be performed by an <i>admin</i> according to the security policy.
+ * A command to search groups.
+ *
+ * @param parameters The parameters
  */
 
-public sealed interface EISecAJActionType
-  extends EISecActionType
-  permits EISecAJActionAuditRead,
-  EISecAJActionGroupCreate,
-  EISecAJActionGroupSearch
+public record EIAJCommandGroupSearchByNameBegin(
+  EIGroupSearchByNameParameters parameters)
+  implements EIAJCommandType<EIAJResponseGroupSearch>
 {
+  /**
+   * A command to search groups.
+   *
+   * @param parameters The parameters
+   */
 
+  public EIAJCommandGroupSearchByNameBegin
+  {
+    Objects.requireNonNull(parameters, "name");
+  }
 }

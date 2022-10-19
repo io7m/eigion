@@ -21,6 +21,7 @@ import com.io7m.eigion.amberjack.api.EIAJClientPagedType;
 import com.io7m.eigion.model.EIAuditEvent;
 import com.io7m.eigion.model.EIAuditSearchParameters;
 import com.io7m.eigion.model.EIGroupName;
+import com.io7m.eigion.model.EIGroupSearchByNameParameters;
 
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -82,6 +83,14 @@ public final class EIAJClientProtocolHandlerDisconnected
   @Override
   public void groupCreate(
     final EIGroupName name)
+    throws EIAJClientException
+  {
+    throw this.notLoggedIn();
+  }
+
+  @Override
+  public EIAJClientPagedType<EIGroupName> groupSearchByName(
+    final EIGroupSearchByNameParameters parameters)
     throws EIAJClientException
   {
     throw this.notLoggedIn();

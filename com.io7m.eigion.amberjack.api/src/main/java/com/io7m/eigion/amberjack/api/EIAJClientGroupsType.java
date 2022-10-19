@@ -18,6 +18,7 @@
 package com.io7m.eigion.amberjack.api;
 
 import com.io7m.eigion.model.EIGroupName;
+import com.io7m.eigion.model.EIGroupSearchByNameParameters;
 
 /**
  * Commands to manipulate groups.
@@ -35,5 +36,20 @@ public interface EIAJClientGroupsType
    */
 
   void groupCreate(EIGroupName name)
+    throws EIAJClientException, InterruptedException;
+
+  /**
+   * Start searching groups by name.
+   *
+   * @param parameters The parameters
+   *
+   * @return The paged query
+   *
+   * @throws EIAJClientException  On errors
+   * @throws InterruptedException On interruption
+   */
+
+  EIAJClientPagedType<EIGroupName> groupSearchByName(
+    EIGroupSearchByNameParameters parameters)
     throws EIAJClientException, InterruptedException;
 }

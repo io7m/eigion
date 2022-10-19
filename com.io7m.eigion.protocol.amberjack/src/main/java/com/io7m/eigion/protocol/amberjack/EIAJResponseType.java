@@ -27,6 +27,7 @@ public sealed interface EIAJResponseType extends EIAJMessageType
   permits EIAJResponseAuditSearch,
   EIAJResponseError,
   EIAJResponseGroupCreate,
+  EIAJResponseGroupSearch,
   EIAJResponseLogin
 {
   /**

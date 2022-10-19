@@ -16,18 +16,27 @@
 
 package com.io7m.eigion.server.internal.amberjack.security;
 
-import com.io7m.eigion.server.internal.security.EISecActionType;
+import com.io7m.eigion.model.EIUser;
+
+import java.util.Objects;
 
 /**
- * A view of an action within the security policy. An <i>action</i> may (or may
- * not) be performed by an <i>admin</i> according to the security policy.
+ * A user wants to search groups.
+ *
+ * @param user The user
  */
 
-public sealed interface EISecAJActionType
-  extends EISecActionType
-  permits EISecAJActionAuditRead,
-  EISecAJActionGroupCreate,
-  EISecAJActionGroupSearch
+public record EISecAJActionGroupSearch(EIUser user)
+  implements EISecAJActionType
 {
+  /**
+   * A user wants to search groups.
+   *
+   * @param user The user
+   */
 
+  public EISecAJActionGroupSearch
+  {
+    Objects.requireNonNull(user, "user");
+  }
 }

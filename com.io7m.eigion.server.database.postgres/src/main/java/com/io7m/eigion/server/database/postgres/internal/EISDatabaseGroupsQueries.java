@@ -20,8 +20,10 @@ import com.io7m.eigion.model.EIGroupMembership;
 import com.io7m.eigion.model.EIGroupName;
 import com.io7m.eigion.model.EIGroupRole;
 import com.io7m.eigion.model.EIGroupRoleSet;
+import com.io7m.eigion.model.EIGroupSearchByNameParameters;
 import com.io7m.eigion.model.EIPage;
 import com.io7m.eigion.server.database.api.EISDatabaseException;
+import com.io7m.eigion.server.database.api.EISDatabaseGroupByNameSearchType;
 import com.io7m.eigion.server.database.api.EISDatabaseGroupRolesSearchType;
 import com.io7m.eigion.server.database.api.EISDatabaseGroupsQueriesType;
 import com.io7m.eigion.server.database.api.EISDatabasePagedQueryType;
@@ -29,7 +31,9 @@ import com.io7m.jqpage.core.JQField;
 import com.io7m.jqpage.core.JQKeysetRandomAccessPageDefinition;
 import com.io7m.jqpage.core.JQKeysetRandomAccessPagination;
 import com.io7m.jqpage.core.JQOrder;
+import org.jooq.Condition;
 import org.jooq.exception.DataAccessException;
+import org.jooq.impl.DSL;
 
 import java.util.List;
 import java.util.Objects;
@@ -259,6 +263,52 @@ final class EISDatabaseGroupsQueries
     }
   }
 
+  @Override
+  public EISDatabasePagedQueryType<EISDatabaseGroupsQueriesType, EIGroupName>
+  groupSearchByName(
+    final EIGroupSearchByNameParameters parameters)
+    throws EISDatabaseException
+  {
+    Objects.requireNonNull(parameters, "parameters");
+
+    final var transaction =
+      this.transaction();
+    final var context =
+      transaction.createContext();
+    final var querySpan =
+      transaction.createQuerySpan(
+        "EISDatabaseGroupsQueries.groupSearchByName.create");
+
+    try {
+      final var allConditions =
+        parameters.name()
+          .map(n -> (Condition) GROUPS.NAME.like(n.toLowerCase()))
+          .orElse(DSL.trueCondition());
+
+      final var pages =
+        JQKeysetRandomAccessPagination.createPageDefinitions(
+          context,
+          GROUPS,
+          List.of(
+            new JQField(GROUPS.NAME, JQOrder.ASCENDING)
+          ),
+          List.of(allConditions),
+          List.of(),
+          parameters.limit(),
+          statement -> {
+            querySpan.setAttribute(DB_STATEMENT, statement.toString());
+          }
+        );
+
+      return new GroupByNameSearch(pages);
+    } catch (final DataAccessException e) {
+      querySpan.recordException(e);
+      throw handleDatabaseException(this.transaction(), e, DEFAULT_HANDLER);
+    } finally {
+      querySpan.end();
+    }
+  }
+
   private static final class GroupRolesSearch
     extends EISAbstractSearch<EISDatabaseGroupsQueries, EISDatabaseGroupsQueriesType, EIGroupMembership>
     implements EISDatabaseGroupRolesSearchType
@@ -301,6 +351,57 @@ final class EISDatabaseGroupsQueries
               new EIGroupName(record.get(GROUPS.NAME)),
               groupRolesFromIntegers(record.get(GROUP_ROLES.ROLES))
             );
+          });
+
+        return new EIPage<>(
+          items,
+          (int) page.index(),
+          this.pageCount(),
+          page.firstOffset()
+        );
+      } catch (final DataAccessException e) {
+        querySpan.recordException(e);
+        throw handleDatabaseException(transaction, e, DEFAULT_HANDLER);
+      } finally {
+        querySpan.end();
+      }
+    }
+  }
+
+  private static final class GroupByNameSearch
+    extends EISAbstractSearch<EISDatabaseGroupsQueries, EISDatabaseGroupsQueriesType, EIGroupName>
+    implements EISDatabaseGroupByNameSearchType
+  {
+    GroupByNameSearch(
+      final List<JQKeysetRandomAccessPageDefinition> inPages)
+    {
+      super(inPages);
+    }
+
+    @Override
+    protected EIPage<EIGroupName> page(
+      final EISDatabaseGroupsQueries queries,
+      final JQKeysetRandomAccessPageDefinition page)
+      throws EISDatabaseException
+    {
+      final var transaction =
+        queries.transaction();
+      final var context =
+        transaction.createContext();
+
+      final var querySpan =
+        transaction.createQuerySpan(
+          "EISDatabaseGroupsQueries.groupSearchByName.page");
+
+      try {
+        final var select =
+          page.queryFields(context, List.of(GROUPS.NAME));
+
+        querySpan.setAttribute(DB_STATEMENT, select.toString());
+
+        final var items =
+          select.fetch().map(record -> {
+            return new EIGroupName(record.get(GROUPS.NAME));
           });
 
         return new EIPage<>(

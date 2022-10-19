@@ -19,6 +19,7 @@ package com.io7m.eigion.server.database.api;
 import com.io7m.eigion.model.EIGroupMembership;
 import com.io7m.eigion.model.EIGroupName;
 import com.io7m.eigion.model.EIGroupRole;
+import com.io7m.eigion.model.EIGroupSearchByNameParameters;
 
 import java.util.Set;
 import java.util.UUID;
@@ -74,5 +75,19 @@ public non-sealed interface EISDatabaseGroupsQueriesType
   EISDatabasePagedQueryType<EISDatabaseGroupsQueriesType, EIGroupMembership> groupRoles(
     EIGroupName name,
     long limit)
+    throws EISDatabaseException;
+
+  /**
+   * Search groups by name.
+   *
+   * @param parameters The parameters
+   *
+   * @return A paged search query
+   *
+   * @throws EISDatabaseException On errors
+   */
+
+  EISDatabasePagedQueryType<EISDatabaseGroupsQueriesType, EIGroupName> groupSearchByName(
+    EIGroupSearchByNameParameters parameters)
     throws EISDatabaseException;
 }

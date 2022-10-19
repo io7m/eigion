@@ -20,6 +20,9 @@ import com.io7m.eigion.protocol.amberjack.EIAJCommandAuditSearchBegin;
 import com.io7m.eigion.protocol.amberjack.EIAJCommandAuditSearchNext;
 import com.io7m.eigion.protocol.amberjack.EIAJCommandAuditSearchPrevious;
 import com.io7m.eigion.protocol.amberjack.EIAJCommandGroupCreate;
+import com.io7m.eigion.protocol.amberjack.EIAJCommandGroupSearchByNameBegin;
+import com.io7m.eigion.protocol.amberjack.EIAJCommandGroupSearchByNameNext;
+import com.io7m.eigion.protocol.amberjack.EIAJCommandGroupSearchByNamePrevious;
 import com.io7m.eigion.protocol.amberjack.EIAJCommandType;
 import com.io7m.eigion.protocol.amberjack.EIAJResponseType;
 import com.io7m.eigion.server.internal.command_exec.EISCommandExecutionFailure;
@@ -83,6 +86,15 @@ public final class EISAJCommandExecutor
     }
     if (command instanceof EIAJCommandAuditSearchPrevious c) {
       return new EISAJCmdAuditSearchPrevious().execute(context, c);
+    }
+    if (command instanceof EIAJCommandGroupSearchByNameBegin c) {
+      return new EISAJCmdGroupSearchByNameBegin().execute(context, c);
+    }
+    if (command instanceof EIAJCommandGroupSearchByNameNext c) {
+      return new EISAJCmdGroupSearchByNameNext().execute(context, c);
+    }
+    if (command instanceof EIAJCommandGroupSearchByNamePrevious c) {
+      return new EISAJCmdGroupSearchByNamePrevious().execute(context, c);
     }
 
     throw new IllegalStateException(

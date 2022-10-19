@@ -28,6 +28,7 @@ import java.util.Objects;
 
 import static com.io7m.eigion.model.EIPermission.AUDIT_READ;
 import static com.io7m.eigion.model.EIPermission.GROUP_CREATE;
+import static com.io7m.eigion.model.EIPermission.GROUP_READ;
 
 /**
  * The Amberjack security policy.
@@ -80,6 +81,12 @@ public final class EISecAJPolicy implements EISecPolicyType<EISecAJActionType>
     return checkOwnedPermission(a.user().permissions(), GROUP_CREATE);
   }
 
+  private static EISecPolicyResultType checkGroupSearch(
+    final EISecAJActionGroupSearch a)
+  {
+    return checkOwnedPermission(a.user().permissions(), GROUP_READ);
+  }
+
   @Override
   public EISecPolicyResultType evaluate(
     final EISecAJActionType action)
@@ -91,6 +98,9 @@ public final class EISecAJPolicy implements EISecPolicyType<EISecAJActionType>
     }
     if (action instanceof EISecAJActionGroupCreate a) {
       return checkGroupCreate(a);
+    }
+    if (action instanceof EISecAJActionGroupSearch a) {
+      return checkGroupSearch(a);
     }
 
     return new EISecPolicyResultDenied("Operation not permitted.");

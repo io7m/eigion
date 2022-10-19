@@ -22,6 +22,7 @@ import com.io7m.eigion.amberjack.api.EIAJClientType;
 import com.io7m.eigion.model.EIAuditEvent;
 import com.io7m.eigion.model.EIAuditSearchParameters;
 import com.io7m.eigion.model.EIGroupName;
+import com.io7m.eigion.model.EIGroupSearchByNameParameters;
 import com.io7m.eigion.model.EIUser;
 
 import java.io.IOException;
@@ -108,6 +109,14 @@ public final class EIAJClient implements EIAJClientType
     throws EIAJClientException, InterruptedException
   {
     this.handler.groupCreate(name);
+  }
+
+  @Override
+  public EIAJClientPagedType<EIGroupName> groupSearchByName(
+    final EIGroupSearchByNameParameters parameters)
+    throws EIAJClientException, InterruptedException
+  {
+    return this.handler.groupSearchByName(parameters);
   }
 
   @Override

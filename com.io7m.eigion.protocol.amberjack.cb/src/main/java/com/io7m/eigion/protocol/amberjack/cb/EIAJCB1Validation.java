@@ -25,6 +25,7 @@ import com.io7m.eigion.error_codes.EIErrorCode;
 import com.io7m.eigion.model.EIAuditSearchParameters;
 import com.io7m.eigion.model.EIGroupName;
 import com.io7m.eigion.model.EIGroupRole;
+import com.io7m.eigion.model.EIGroupSearchByNameParameters;
 import com.io7m.eigion.model.EIPermission;
 import com.io7m.eigion.model.EIPermissionSet;
 import com.io7m.eigion.model.EIUser;
@@ -33,12 +34,16 @@ import com.io7m.eigion.protocol.amberjack.EIAJCommandAuditSearchBegin;
 import com.io7m.eigion.protocol.amberjack.EIAJCommandAuditSearchNext;
 import com.io7m.eigion.protocol.amberjack.EIAJCommandAuditSearchPrevious;
 import com.io7m.eigion.protocol.amberjack.EIAJCommandGroupCreate;
+import com.io7m.eigion.protocol.amberjack.EIAJCommandGroupSearchByNameBegin;
+import com.io7m.eigion.protocol.amberjack.EIAJCommandGroupSearchByNameNext;
+import com.io7m.eigion.protocol.amberjack.EIAJCommandGroupSearchByNamePrevious;
 import com.io7m.eigion.protocol.amberjack.EIAJCommandLogin;
 import com.io7m.eigion.protocol.amberjack.EIAJCommandType;
 import com.io7m.eigion.protocol.amberjack.EIAJMessageType;
 import com.io7m.eigion.protocol.amberjack.EIAJResponseAuditSearch;
 import com.io7m.eigion.protocol.amberjack.EIAJResponseError;
 import com.io7m.eigion.protocol.amberjack.EIAJResponseGroupCreate;
+import com.io7m.eigion.protocol.amberjack.EIAJResponseGroupSearch;
 import com.io7m.eigion.protocol.amberjack.EIAJResponseLogin;
 import com.io7m.eigion.protocol.amberjack.EIAJResponseType;
 import com.io7m.eigion.protocol.amberjack.cb.internal.EIAJCB1ValidationGeneral;
@@ -95,10 +100,22 @@ public final class EIAJCB1Validation
     if (r instanceof EIAJResponseAuditSearch rr) {
       return toWireResponseAuditSearch(rr);
     }
+    if (r instanceof EIAJResponseGroupSearch rr) {
+      return toWireResponseGroupSearch(rr);
+    }
 
     throw new EIProtocolException(
       PROTOCOL_ERROR,
       "Unrecognized message: %s".formatted(r)
+    );
+  }
+
+  private static ProtocolAmberjackv1Type toWireResponseGroupSearch(
+    final EIAJResponseGroupSearch rr)
+  {
+    return new EIAJ1ResponseGroupSearch(
+      toWireUUID(rr.requestId()),
+      toWirePage(rr.page(), name -> string(name.value()))
     );
   }
 
@@ -196,7 +213,8 @@ public final class EIAJCB1Validation
       case AMBERJACK_ACCESS -> new EIAJ1Permission.AmberjackAccess();
       case AUDIT_READ -> new EIAJ1Permission.AuditRead();
       case GROUP_CREATE -> new EIAJ1Permission.GroupCreate();
-      case GROUP_MODIFY -> new EIAJ1Permission.GroupModify();
+      case GROUP_READ -> new EIAJ1Permission.GroupRead();
+      case GROUP_WRITE -> new EIAJ1Permission.GroupWrite();
     };
   }
 
@@ -219,10 +237,48 @@ public final class EIAJCB1Validation
     if (c instanceof EIAJCommandAuditSearchPrevious cc) {
       return toWireCommandAuditSearchPrevious(cc);
     }
+    if (c instanceof EIAJCommandGroupSearchByNameBegin cc) {
+      return toWireCommandGroupSearchByNameBegin(cc);
+    }
+    if (c instanceof EIAJCommandGroupSearchByNameNext cc) {
+      return toWireCommandGroupSearchByNameNext(cc);
+    }
+    if (c instanceof EIAJCommandGroupSearchByNamePrevious cc) {
+      return toWireCommandGroupSearchByNamePrevious(cc);
+    }
 
     throw new EIProtocolException(
       PROTOCOL_ERROR,
       "Unrecognized message: %s".formatted(c)
+    );
+  }
+
+  private static ProtocolAmberjackv1Type toWireCommandGroupSearchByNamePrevious(
+    final EIAJCommandGroupSearchByNamePrevious cc)
+  {
+    return new EIAJ1CommandGroupSearchByNamePrevious();
+  }
+
+  private static ProtocolAmberjackv1Type toWireCommandGroupSearchByNameNext(
+    final EIAJCommandGroupSearchByNameNext cc)
+  {
+    return new EIAJ1CommandGroupSearchByNameNext();
+  }
+
+  private static ProtocolAmberjackv1Type toWireCommandGroupSearchByNameBegin(
+    final EIAJCommandGroupSearchByNameBegin cc)
+  {
+    return new EIAJ1CommandGroupSearchByNameBegin(
+      toWireGroupSearchByNameParameters(cc.parameters())
+    );
+  }
+
+  private static EIAJ1GroupSearchByNameParameters toWireGroupSearchByNameParameters(
+    final EIGroupSearchByNameParameters parameters)
+  {
+    return new EIAJ1GroupSearchByNameParameters(
+      CBOptionType.fromOptional(parameters.name().map(CBCore::string)),
+      unsigned16(parameters.limit())
     );
   }
 
@@ -372,8 +428,11 @@ public final class EIAJCB1Validation
     if (p instanceof EIAJ1Permission.GroupCreate) {
       return EIPermission.GROUP_CREATE;
     }
-    if (p instanceof EIAJ1Permission.GroupModify) {
-      return EIPermission.GROUP_MODIFY;
+    if (p instanceof EIAJ1Permission.GroupWrite) {
+      return EIPermission.GROUP_WRITE;
+    }
+    if (p instanceof EIAJ1Permission.GroupRead) {
+      return EIPermission.GROUP_READ;
     }
 
     throw new EIValidityException(
@@ -444,6 +503,53 @@ public final class EIAJCB1Validation
     return f.asOptional().map(CBString::value);
   }
 
+  private static EIAJMessageType fromWireCommandGroupSearchByNameBegin(
+    final EIAJ1CommandGroupSearchByNameBegin c)
+  {
+    return new EIAJCommandGroupSearchByNameBegin(
+      fromWireGroupSearchByNameParameters(c.fieldParameters())
+    );
+  }
+
+  private static EIGroupSearchByNameParameters fromWireGroupSearchByNameParameters(
+    final EIAJ1GroupSearchByNameParameters p)
+  {
+    return new EIGroupSearchByNameParameters(
+      p.fieldQuery().asOptional().map(CBString::value),
+      Integer.toUnsignedLong(p.fieldLimit().value())
+    );
+  }
+
+  private static EIAJMessageType fromWireCommandGroupSearchByNameNext(
+    final EIAJ1CommandGroupSearchByNameNext c)
+  {
+    return new EIAJCommandGroupSearchByNameNext();
+  }
+
+  private static EIAJMessageType fromWireCommandGroupSearchByNamePrevious(
+    final EIAJ1CommandGroupSearchByNamePrevious c)
+  {
+    return new EIAJCommandGroupSearchByNamePrevious();
+  }
+
+  private static EIAJMessageType fromWireResponseGroupSearch(
+    final EIAJ1ResponseGroupSearch c)
+  {
+    return new EIAJResponseGroupSearch(
+      fromWireUUID(c.fieldRequestId()),
+      fromWirePage(c.fieldPage(), name -> new EIGroupName(name.value()))
+    );
+  }
+
+  private static EIAJMessageType fromWireResponseAuditSearch(
+    final EIAJ1ResponseAuditSearch c)
+  {
+    return new EIAJResponseAuditSearch(
+      fromWireUUID(c.fieldRequestId()),
+      fromWirePage(c.fieldPage(), EIAJCB1ValidationGeneral::fromWireAuditEvent)
+    );
+  }
+
   @Override
   public ProtocolAmberjackv1Type convertToWire(
     final EIAJMessageType message)
@@ -487,6 +593,15 @@ public final class EIAJCB1Validation
       if (message instanceof EIAJ1CommandAuditSearchPrevious c) {
         return fromWireCommandAuditSearchPrevious(c);
       }
+      if (message instanceof EIAJ1CommandGroupSearchByNameBegin c) {
+        return fromWireCommandGroupSearchByNameBegin(c);
+      }
+      if (message instanceof EIAJ1CommandGroupSearchByNameNext c) {
+        return fromWireCommandGroupSearchByNameNext(c);
+      }
+      if (message instanceof EIAJ1CommandGroupSearchByNamePrevious c) {
+        return fromWireCommandGroupSearchByNamePrevious(c);
+      }
       if (message instanceof EIAJ1ResponseLogin c) {
         return fromWireResponseLogin(c);
       }
@@ -499,6 +614,9 @@ public final class EIAJCB1Validation
       if (message instanceof EIAJ1ResponseAuditSearch c) {
         return fromWireResponseAuditSearch(c);
       }
+      if (message instanceof EIAJ1ResponseGroupSearch c) {
+        return fromWireResponseGroupSearch(c);
+      }
     } catch (final Exception e) {
       throw new EIProtocolException(PROTOCOL_ERROR, e.getMessage(), e);
     }
@@ -506,15 +624,6 @@ public final class EIAJCB1Validation
     throw new EIProtocolException(
       PROTOCOL_ERROR,
       "Unrecognized message: %s".formatted(message)
-    );
-  }
-
-  private static EIAJMessageType fromWireResponseAuditSearch(
-    final EIAJ1ResponseAuditSearch c)
-  {
-    return new EIAJResponseAuditSearch(
-      fromWireUUID(c.fieldRequestId()),
-      fromWirePage(c.fieldPage(), EIAJCB1ValidationGeneral::fromWireAuditEvent)
     );
   }
 }

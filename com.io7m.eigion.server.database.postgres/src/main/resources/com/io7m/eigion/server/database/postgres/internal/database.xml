@@ -38,6 +38,17 @@ create table schema_version (
 
   <Schema versionCurrent="1">
     <Comment>
+      The pg_trgm extension adds support for indexing columns in a manner that will improve the performance of
+      "like" queries.
+    </Comment>
+
+    <Statement>
+-- [jooq ignore start]
+create extension pg_trgm;
+-- [jooq ignore stop]
+    </Statement>
+
+    <Comment>
       The users table stores the current set of users.
 
       The permissions column is an array of values of com.io7m.eigion.model.EIPermission.
@@ -88,6 +99,17 @@ create table groups (
 ]]></Statement>
 
     <Statement>grant insert, select on groups to eigion</Statement>
+
+    <Comment>
+      The groups_name_gin index attempts to speed up queries made on group name "like" queries.
+      Group names are always lowercase, so case sensitivity doesn't matter.
+    </Comment>
+
+    <Statement>
+-- [jooq ignore start]
+create index groups_name_gin on groups using gin (name gin_trgm_ops);
+-- [jooq ignore stop]
+    </Statement>
 
     <Comment>
       The group_roles table associates users with groups. The roles field is an array of
