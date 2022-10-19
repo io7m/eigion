@@ -18,6 +18,7 @@ package com.io7m.eigion.server.database.api;
 
 import com.io7m.eigion.model.EIGroupMembership;
 import com.io7m.eigion.model.EIGroupName;
+import com.io7m.eigion.model.EIGroupPrefix;
 import com.io7m.eigion.model.EIGroupRole;
 import com.io7m.eigion.model.EIGroupSearchByNameParameters;
 
@@ -43,6 +44,22 @@ public non-sealed interface EISDatabaseGroupsQueriesType
   void groupCreate(
     UUID userId,
     EIGroupName name)
+    throws EISDatabaseException;
+
+  /**
+   * Create a new personal group.
+   *
+   * @param userId The founder of the group
+   * @param prefix The group prefix
+   *
+   * @return The new group name
+   *
+   * @throws EISDatabaseException On errors
+   */
+
+  EIGroupName groupCreatePersonal(
+    UUID userId,
+    EIGroupPrefix prefix)
     throws EISDatabaseException;
 
   /**

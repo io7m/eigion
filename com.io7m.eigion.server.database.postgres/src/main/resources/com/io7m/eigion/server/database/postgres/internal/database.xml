@@ -93,12 +93,14 @@ create table groups (
   name     varchar(256)              not null unique,
   creator  uuid                      not null,
   created  timestamp with time zone  not null,
+  personal boolean                   not null,
 
   foreign key (creator) references users (id)
 )
 ]]></Statement>
 
     <Statement>grant insert, select on groups to eigion</Statement>
+    <Statement>grant update (name) on groups to eigion</Statement>
 
     <Comment>
       The groups_name_gin index attempts to speed up queries made on group name "like" queries.

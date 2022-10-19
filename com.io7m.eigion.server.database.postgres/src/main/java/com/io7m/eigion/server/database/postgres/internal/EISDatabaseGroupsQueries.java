@@ -18,6 +18,7 @@ package com.io7m.eigion.server.database.postgres.internal;
 
 import com.io7m.eigion.model.EIGroupMembership;
 import com.io7m.eigion.model.EIGroupName;
+import com.io7m.eigion.model.EIGroupPrefix;
 import com.io7m.eigion.model.EIGroupRole;
 import com.io7m.eigion.model.EIGroupRoleSet;
 import com.io7m.eigion.model.EIGroupSearchByNameParameters;
@@ -52,6 +53,8 @@ import static com.io7m.eigion.server.database.postgres.internal.Tables.AUDIT;
 import static com.io7m.eigion.server.database.postgres.internal.Tables.GROUPS;
 import static com.io7m.eigion.server.database.postgres.internal.Tables.GROUP_ROLES;
 import static io.opentelemetry.semconv.trace.attributes.SemanticAttributes.DB_STATEMENT;
+import static java.lang.Boolean.FALSE;
+import static java.lang.Boolean.TRUE;
 import static org.postgresql.util.PSQLState.FOREIGN_KEY_VIOLATION;
 import static org.postgresql.util.PSQLState.NOT_NULL_VIOLATION;
 import static org.postgresql.util.PSQLState.UNIQUE_VIOLATION;
@@ -143,6 +146,7 @@ final class EISDatabaseGroupsQueries
         .set(GROUPS.NAME, name.value())
         .set(GROUPS.CREATOR, userId)
         .set(GROUPS.CREATED, time)
+        .set(GROUPS.PERSONAL, FALSE)
         .execute();
 
       context.insertInto(AUDIT)
@@ -152,6 +156,63 @@ final class EISDatabaseGroupsQueries
         .set(AUDIT.MESSAGE, name.value())
         .execute();
 
+    } catch (final DataAccessException e) {
+      querySpan.recordException(e);
+      throw handleDatabaseException(
+        this.transaction(),
+        e,
+        EISDatabaseGroupsQueries::handleGroupCreationFailure
+      );
+    } finally {
+      querySpan.end();
+    }
+  }
+
+  @Override
+  public EIGroupName groupCreatePersonal(
+    final UUID userId,
+    final EIGroupPrefix prefix)
+    throws EISDatabaseException
+  {
+    Objects.requireNonNull(userId, "userId");
+    Objects.requireNonNull(prefix, "prefix");
+
+    final var transaction =
+      this.transaction();
+    final var context =
+      transaction.createContext();
+    final var querySpan =
+      transaction.createQuerySpan(
+        "EISDatabaseGroupsQueries.groupCreatePersonal");
+
+    try {
+      final var time = this.currentTime();
+
+      final var id =
+        context.insertInto(GROUPS)
+          .set(GROUPS.NAME, "undefined")
+          .set(GROUPS.CREATED, time)
+          .set(GROUPS.CREATOR, userId)
+          .set(GROUPS.PERSONAL, TRUE)
+          .returning(GROUPS.ID)
+          .fetchOne(GROUPS.ID);
+
+      final var groupName =
+        prefix.toGroupName(id.longValue());
+
+      context.update(GROUPS)
+        .set(GROUPS.NAME, groupName.value())
+        .where(GROUPS.ID.eq(id))
+        .execute();
+
+      context.insertInto(AUDIT)
+        .set(AUDIT.TIME, time)
+        .set(AUDIT.TYPE, "GROUP_CREATED")
+        .set(AUDIT.USER_ID, userId)
+        .set(AUDIT.MESSAGE, groupName.value())
+        .execute();
+
+      return groupName;
     } catch (final DataAccessException e) {
       querySpan.recordException(e);
       throw handleDatabaseException(

@@ -18,6 +18,7 @@
 package com.io7m.eigion.tests;
 
 import com.io7m.eigion.model.EIGroupName;
+import com.io7m.eigion.model.EIGroupPrefix;
 import com.io7m.eigion.model.EIGroupRole;
 import com.io7m.eigion.model.EIPermissionSet;
 import com.io7m.eigion.model.EIUser;
@@ -239,6 +240,33 @@ public final class EISDatabaseGroupsTest
         });
 
       assertEquals(USER_NONEXISTENT, ex.errorCode());
+      return null;
+    });
+  }
+
+  /**
+   * Creating a personal group succeeds.
+   *
+   * @throws Exception On errors
+   */
+
+  @Test
+  public void testGroupCreatePersonal()
+    throws Exception
+  {
+    this.database.withTransaction(t -> {
+      final var users =
+        t.queries(EISDatabaseUsersQueriesType.class);
+      final var groups =
+        t.queries(EISDatabaseGroupsQueriesType.class);
+
+      final var u0 = new EIUser(UUID.randomUUID(), empty());
+      users.userPut(u0);
+
+      final var name =
+        groups.groupCreatePersonal(u0.id(), new EIGroupPrefix("com.io7m."));
+
+      assertEquals("com.io7m.u1", name.value());
       return null;
     });
   }
