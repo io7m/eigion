@@ -1,0 +1,140 @@
+;
+; Copyright © 2022 Mark Raynsford <code@io7m.com> https://www.io7m.com
+;
+; Permission to use, copy, modify, and/or distribute this software for any
+; purpose with or without fee is hereby granted, provided that the above
+; copyright notice and this permission notice appear in all copies.
+;
+; THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+; WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+; MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
+; SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+; WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+; ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR
+; IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+;
+
+[language cedarbridge 1 0]
+
+[package com.io7m.eigion.protocol.pike.cb]
+
+[import com.io7m.cedarbridge cb]
+
+[documentation EIP1UUID "A 128-bit UUID value."]
+[record EIP1UUID
+  [documentation msb "The most significant bits of the UUID."]
+  [field msb cb:IntegerUnsigned64]
+  [documentation lsb "The least significant bits of the UUID."]
+  [field lsb cb:IntegerUnsigned64]
+]
+
+[documentation EIP1TimestampUTC "A UTC timestamp value."]
+[record EIP1TimestampUTC
+  [documentation year "The year."]
+  [field year cb:IntegerUnsigned32]
+  [documentation month "The month in the range [1, 12]."]
+  [field month cb:IntegerUnsigned8]
+  [documentation day "The day of the month in the range [1, 31]."]
+  [field day cb:IntegerUnsigned8]
+  [documentation hour "The hour in the range [0, 23]."]
+  [field hour cb:IntegerUnsigned8]
+  [documentation minute "The minute in the range [0, 59]."]
+  [field minute cb:IntegerUnsigned8]
+  [documentation second "The second in the range [0, 59]."]
+  [field second cb:IntegerUnsigned8]
+  [documentation millisecond "The millisecond in the range [0, 999]."]
+  [field millisecond cb:IntegerUnsigned32]
+]
+
+[documentation EIP1TimeRange "A UTC time range."]
+[record EIP1TimeRange
+  [documentation lower "The lower bound."]
+  [field lower EIP1TimestampUTC]
+  [documentation upper "The upper bound."]
+  [field upper EIP1TimestampUTC]
+]
+
+[documentation EIP1Permission "A permission."]
+[variant EIP1Permission
+  [documentation AmberjackAccess "Access to the Amberjack API is allowed."]
+  [case AmberjackAccess]
+  [documentation AuditRead "Access to the audit log is allowed."]
+  [case AuditRead]
+  [documentation GroupCreate "Groups can be created."]
+  [case GroupCreate]
+  [documentation GroupWrite "Groups can be modified."]
+  [case GroupWrite]
+  [documentation GroupRead "Groups can be read/searched."]
+  [case GroupRead]
+]
+
+[documentation EIP1GroupRole "A permission."]
+[variant EIP1GroupRole
+  [documentation UserInvite "The user may invite users to the group."]
+  [case UserInvite]
+  [documentation UserDismiss "The user may dismiss users from the group."]
+  [case UserDismiss]
+  [documentation Founder "The user is the founder of the group."]
+  [case Founder]
+  [documentation Member "The user is a member of the group."]
+  [case Member]
+]
+
+[documentation EIP1User "A user."]
+[record EIP1User
+  [documentation id "The user's ID."]
+  [field id EIP1UUID]
+  [documentation permissions "The set of permissions."]
+  [field permissions [cb:List EIP1Permission]]
+]
+
+[documentation EIP1Page "A page of results."]
+[record EIP1Page
+  [documentation T "The type of result values."]
+  [parameter T]
+  [documentation items "The list of results."]
+  [field items [cb:List T]]
+  [documentation pageIndex "The page index."]
+  [field pageIndex cb:IntegerUnsigned32]
+  [documentation pageCount "The page count."]
+  [field pageCount cb:IntegerUnsigned32]
+  [documentation pageFirstOffset "The offset of the first item in the page."]
+  [field pageFirstOffset cb:IntegerUnsigned64]
+]
+
+[documentation EIP1CommandLogin "A request to log in."]
+[record EIP1CommandLogin
+  [documentation userName "The username."]
+  [field userName cb:String]
+  [documentation password "The password."]
+  [field password cb:String]
+]
+
+[documentation EIP1ResponseError "An error response."]
+[record EIP1ResponseError
+  [documentation requestId "The ID of the request that yielded this response."]
+  [field requestId EIP1UUID]
+  [documentation errorCode "The error code."]
+  [field errorCode cb:String]
+  [documentation message "The error message."]
+  [field message cb:String]
+]
+
+[documentation EIP1ResponseLogin "A response to EIP1CommandLogin."]
+[record EIP1ResponseLogin
+  [documentation requestId "The ID of the request that yielded this response."]
+  [field requestId EIP1UUID]
+  [documentation user "The logged-in user."]
+  [field user EIP1User]
+]
+
+[documentation Pike "The Pike protocol."]
+[protocol Pike
+  [version 1
+    [types-added
+      EIP1CommandLogin
+      EIP1ResponseError
+      EIP1ResponseLogin
+    ]
+  ]
+]

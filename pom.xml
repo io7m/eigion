@@ -40,10 +40,14 @@
     <module>com.io7m.eigion.launcher.main</module>
     <module>com.io7m.eigion.model</module>
     <module>com.io7m.eigion.news.xml</module>
+    <module>com.io7m.eigion.pike.api</module>
+    <module>com.io7m.eigion.pike</module>
     <module>com.io7m.eigion.preferences</module>
     <module>com.io7m.eigion.protocol.amberjack.cb</module>
     <module>com.io7m.eigion.protocol.amberjack</module>
     <module>com.io7m.eigion.protocol.api</module>
+    <module>com.io7m.eigion.protocol.pike.cb</module>
+    <module>com.io7m.eigion.protocol.pike</module>
     <module>com.io7m.eigion.server.api</module>
     <module>com.io7m.eigion.server.database.api</module>
     <module>com.io7m.eigion.server.database.postgres</module>

@@ -18,6 +18,7 @@
 package com.io7m.eigion.server.internal;
 
 import com.io7m.eigion.protocol.amberjack.cb.EIAJCB1Messages;
+import com.io7m.eigion.protocol.pike.cb.EIPCB1Messages;
 import com.io7m.eigion.server.api.EIServerConfiguration;
 import com.io7m.eigion.server.api.EIServerException;
 import com.io7m.eigion.server.api.EIServerType;
@@ -27,6 +28,10 @@ import com.io7m.eigion.server.internal.amberjack_v1.EISAJ1CommandServlet;
 import com.io7m.eigion.server.internal.amberjack_v1.EISAJ1Login;
 import com.io7m.eigion.server.internal.amberjack_v1.EISAJ1Sends;
 import com.io7m.eigion.server.internal.amberjack_v1.EISAJ1Versions;
+import com.io7m.eigion.server.internal.pike_v1.EISP1CommandServlet;
+import com.io7m.eigion.server.internal.pike_v1.EISP1Login;
+import com.io7m.eigion.server.internal.pike_v1.EISP1Sends;
+import com.io7m.eigion.server.internal.pike_v1.EISP1Versions;
 import com.io7m.eigion.server.internal.sessions.EISUserSessionService;
 import com.io7m.eigion.services.api.EIServiceDirectory;
 import com.io7m.jmulticlose.core.CloseableCollection;
@@ -122,6 +127,8 @@ public final class EIServer implements EIServerType
 
       final var amberjackServer = this.createAmberjackServer();
       this.resources.add(amberjackServer::stop);
+      final var pikeServer = this.createPikeServer();
+      this.resources.add(pikeServer::stop);
 
     } catch (final EISDatabaseException e) {
       startupSpan.recordException(e);
@@ -216,6 +223,90 @@ public final class EIServer implements EIServerType
     return server;
   }
 
+
+  private Server createPikeServer()
+    throws Exception
+  {
+    final var httpConfig =
+      this.configuration.pikeApiAddress();
+    final var address =
+      InetSocketAddress.createUnresolved(
+        httpConfig.listenAddress(),
+        httpConfig.listenPort()
+      );
+
+    final var server =
+      new Server(address);
+
+    /*
+     * Configure all the servlets.
+     */
+
+    final var servletHolders =
+      new EISServletHolders(this.services);
+    final var servlets =
+      new ServletContextHandler();
+
+    servlets.addServlet(
+      servletHolders.create(EISP1Versions.class, EISP1Versions::new),
+      "/"
+    );
+    servlets.addServlet(
+      servletHolders.create(EISP1Login.class, EISP1Login::new),
+      "/pike/1/0/login"
+    );
+    servlets.addServlet(
+      servletHolders.create(
+        EISP1CommandServlet.class,
+        EISP1CommandServlet::new),
+      "/pike/1/0/command"
+    );
+
+    servlets.addEventListener(
+      this.services.requireService(EISUserSessionService.class)
+    );
+
+    /*
+     * Set up a session handler.
+     */
+
+    final var sessionIds = new DefaultSessionIdManager(server);
+    server.setSessionIdManager(sessionIds);
+
+    final var sessionHandler = new SessionHandler();
+    sessionHandler.setSessionCookie("EIGION_PIKE_SESSION");
+
+    final var sessionStore = new NullSessionDataStore();
+    final var sessionCache = new DefaultSessionCache(sessionHandler);
+    sessionCache.setSessionDataStore(sessionStore);
+
+    sessionHandler.setSessionCache(sessionCache);
+    sessionHandler.setSessionIdManager(sessionIds);
+    sessionHandler.setHandler(servlets);
+
+    /*
+     * Enable gzip.
+     */
+
+    final var gzip = new GzipHandler();
+    gzip.setHandler(sessionHandler);
+
+    /*
+     * Add a connector listener that adds unique identifiers to all requests.
+     */
+
+    Arrays.stream(server.getConnectors()).forEach(
+      connector -> connector.addBean(new EISRequestDecoration(this.services))
+    );
+
+    server.setErrorHandler(new EISErrorHandler());
+    server.setHandler(gzip);
+    server.start();
+    LOG.info("[{}] pike server started", address);
+    return server;
+  }
+
+
   private EIServiceDirectory createServiceDirectory(
     final EISDatabaseType inDatabase)
     throws IOException
@@ -239,9 +330,14 @@ public final class EIServer implements EIServerType
     final var userSessions = new EISUserSessionService(this.telemetry);
     newServices.register(EISUserSessionService.class, userSessions);
 
-    final var messages = new EIAJCB1Messages();
-    newServices.register(EIAJCB1Messages.class, messages);
-    newServices.register(EISAJ1Sends.class, new EISAJ1Sends(messages));
+    final var ajcb1Messages = new EIAJCB1Messages();
+    newServices.register(EIAJCB1Messages.class, ajcb1Messages);
+    newServices.register(EISAJ1Sends.class, new EISAJ1Sends(ajcb1Messages));
+
+    final var pcb1Messages = new EIPCB1Messages();
+    newServices.register(EIPCB1Messages.class, pcb1Messages);
+    newServices.register(EISP1Sends.class, new EISP1Sends(pcb1Messages));
+
     newServices.register(EISRequestLimits.class, new EISRequestLimits(strings));
 
     final var idstoreClients =

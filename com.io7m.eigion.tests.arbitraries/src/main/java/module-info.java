@@ -27,6 +27,7 @@ import com.io7m.eigion.tests.arbitraries.EIArbGroupRolesProvider;
 import com.io7m.eigion.tests.arbitraries.EIArbHashProvider;
 import com.io7m.eigion.tests.arbitraries.EIArbOffsetDateTimeProvider;
 import com.io7m.eigion.tests.arbitraries.EIArbPermissionSetProvider;
+import com.io7m.eigion.tests.arbitraries.EIArbPikeMessageProvider;
 import com.io7m.eigion.tests.arbitraries.EIArbRedactionProvider;
 import com.io7m.eigion.tests.arbitraries.EIArbRedactionRequestProvider;
 import com.io7m.eigion.tests.arbitraries.EIArbTimeRangeProvider;
@@ -46,6 +47,7 @@ module com.io7m.eigion.tests.arbitraries
   requires static org.osgi.annotation.bundle;
   requires static org.osgi.annotation.versioning;
 
+  requires transitive com.io7m.eigion.protocol.pike;
   requires transitive com.io7m.eigion.protocol.amberjack;
   requires transitive com.io7m.eigion.model;
   requires transitive net.jqwik.api;
@@ -55,6 +57,7 @@ module com.io7m.eigion.tests.arbitraries
       EIArbAmberjackMessageProvider,
       EIArbAuditEventProvider,
       EIArbCreationProvider,
+      EIArbErrorCodeProvider,
       EIArbGroupCreationRequestProvider,
       EIArbGroupCreationRequestStatusProvider,
       EIArbGroupInviteProvider,
@@ -63,16 +66,16 @@ module com.io7m.eigion.tests.arbitraries
       EIArbGroupRolesProvider,
       EIArbHashProvider,
       EIArbOffsetDateTimeProvider,
+      EIArbPermissionSetProvider,
+      EIArbPikeMessageProvider,
       EIArbRedactionProvider,
       EIArbRedactionRequestProvider,
+      EIArbTimeRangeProvider,
       EIArbTokenProvider,
       EIArbURIProvider,
       EIArbUUIDProvider,
       EIArbUserDisplayNameProvider,
-      EIArbUserProvider,
-      EIArbErrorCodeProvider,
-      EIArbPermissionSetProvider,
-      EIArbTimeRangeProvider
+      EIArbUserProvider
     ;
 
   exports com.io7m.eigion.tests.arbitraries;

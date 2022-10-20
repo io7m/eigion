@@ -43,10 +43,14 @@ open module com.io7m.eigion.tests
   requires transitive com.io7m.eigion.launcher.main;
   requires transitive com.io7m.eigion.model;
   requires transitive com.io7m.eigion.news.xml;
+  requires transitive com.io7m.eigion.pike.api;
+  requires transitive com.io7m.eigion.pike;
   requires transitive com.io7m.eigion.preferences;
   requires transitive com.io7m.eigion.protocol.amberjack.cb;
   requires transitive com.io7m.eigion.protocol.amberjack;
   requires transitive com.io7m.eigion.protocol.api;
+  requires transitive com.io7m.eigion.protocol.pike.cb;
+  requires transitive com.io7m.eigion.protocol.pike;
   requires transitive com.io7m.eigion.server.api;
   requires transitive com.io7m.eigion.server.database.api;
   requires transitive com.io7m.eigion.server.database.postgres;

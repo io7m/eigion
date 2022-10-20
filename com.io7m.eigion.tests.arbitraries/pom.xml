@@ -39,6 +39,11 @@
       <artifactId>com.io7m.eigion.protocol.amberjack</artifactId>
       <version>${project.version}</version>
     </dependency>
+    <dependency>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>com.io7m.eigion.protocol.pike</artifactId>
+      <version>${project.version}</version>
+    </dependency>
 
     <dependency>
       <groupId>org.osgi</groupId>

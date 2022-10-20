@@ -175,6 +175,11 @@ public final class EITestServer implements AutoCloseable
     return URI.create("http://localhost:61000/");
   }
 
+  public URI basePikeURI()
+  {
+    return URI.create("http://localhost:60000/");
+  }
+
   public EIServerType server()
   {
     return this.server;

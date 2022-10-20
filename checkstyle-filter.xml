@@ -36,4 +36,9 @@
   <suppress files="EIAJCB1Validation\.java"
             checks="ClassDataAbstractionCoupling"/>
 
+  <suppress files="EIPCB1ValidationGeneral\.java"
+            checks="MissingJavadocMethod"/>
+  <suppress files="EIPCB1Validation\.java"
+            checks="ClassDataAbstractionCoupling"/>
+
 </suppressions>

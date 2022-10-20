@@ -115,7 +115,7 @@ public final class EISAJ1Sends implements EIServiceType
   @Override
   public String toString()
   {
-    return "[EISAJ1Sends 0x%s]"
+    return "[EISP1Sends 0x%s]"
       .formatted(Long.toUnsignedString(this.hashCode(), 16));
   }
 }

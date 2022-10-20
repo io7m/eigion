@@ -26,6 +26,8 @@ module com.io7m.eigion.server
   requires static org.osgi.annotation.bundle;
   requires static org.osgi.annotation.versioning;
 
+  requires com.io7m.eigion.protocol.pike;
+  requires com.io7m.eigion.protocol.pike.cb;
   requires com.io7m.eigion.protocol.amberjack;
   requires com.io7m.eigion.protocol.amberjack.cb;
 

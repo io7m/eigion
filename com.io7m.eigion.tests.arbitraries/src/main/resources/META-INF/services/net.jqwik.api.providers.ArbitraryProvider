@@ -11,6 +11,7 @@ com.io7m.eigion.tests.arbitraries.EIArbGroupRolesProvider
 com.io7m.eigion.tests.arbitraries.EIArbHashProvider
 com.io7m.eigion.tests.arbitraries.EIArbOffsetDateTimeProvider
 com.io7m.eigion.tests.arbitraries.EIArbPermissionSetProvider
+com.io7m.eigion.tests.arbitraries.EIArbPikeMessageProvider
 com.io7m.eigion.tests.arbitraries.EIArbRedactionProvider
 com.io7m.eigion.tests.arbitraries.EIArbRedactionRequestProvider
 com.io7m.eigion.tests.arbitraries.EIArbTimeRangeProvider
