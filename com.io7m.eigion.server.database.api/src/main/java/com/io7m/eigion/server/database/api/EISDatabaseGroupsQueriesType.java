@@ -16,12 +16,18 @@
 
 package com.io7m.eigion.server.database.api;
 
+import com.io7m.eigion.model.EIGroupCreationRequest;
+import com.io7m.eigion.model.EIGroupCreationRequestSearchParameters;
 import com.io7m.eigion.model.EIGroupMembership;
+import com.io7m.eigion.model.EIGroupMembershipWithUser;
 import com.io7m.eigion.model.EIGroupName;
 import com.io7m.eigion.model.EIGroupPrefix;
 import com.io7m.eigion.model.EIGroupRole;
 import com.io7m.eigion.model.EIGroupSearchByNameParameters;
+import com.io7m.eigion.model.EIToken;
 
+import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -89,7 +95,7 @@ public non-sealed interface EISDatabaseGroupsQueriesType
    * @throws EISDatabaseException On errors
    */
 
-  EISDatabasePagedQueryType<EISDatabaseGroupsQueriesType, EIGroupMembership> groupRoles(
+  EISDatabaseGroupsPagedQueryType<EIGroupMembershipWithUser> groupRoles(
     EIGroupName name,
     long limit)
     throws EISDatabaseException;
@@ -104,7 +110,109 @@ public non-sealed interface EISDatabaseGroupsQueriesType
    * @throws EISDatabaseException On errors
    */
 
-  EISDatabasePagedQueryType<EISDatabaseGroupsQueriesType, EIGroupName> groupSearchByName(
+  EISDatabaseGroupsPagedQueryType<EIGroupName> groupSearchByName(
     EIGroupSearchByNameParameters parameters)
+    throws EISDatabaseException;
+
+  /**
+   * Start a group creation request.
+   *
+   * @param request The request
+   *
+   * @throws EISDatabaseException On errors
+   */
+
+  void groupCreationRequestStart(
+    EIGroupCreationRequest request)
+    throws EISDatabaseException;
+
+  /**
+   * @param userId The user ID
+   *
+   * @return A history of the group creation requests for the given user.
+   *
+   * @throws EISDatabaseException On errors
+   * @deprecated Use
+   * {@link
+   * #groupCreationRequestsSearch(EIGroupCreationRequestSearchParameters)}
+   */
+
+  @Deprecated
+  List<EIGroupCreationRequest> groupCreationRequestsForUser(
+    UUID userId)
+    throws EISDatabaseException;
+
+  /**
+   * @param parameters The parameters
+   *
+   * @return A list of matching group creation requests
+   *
+   * @throws EISDatabaseException On errors
+   */
+
+  EISDatabaseGroupsPagedQueryType<EIGroupCreationRequest> groupCreationRequestsSearch(
+    EIGroupCreationRequestSearchParameters parameters)
+    throws EISDatabaseException;
+
+  /**
+   * A group creation request can become obsolete if a group is created before
+   * the request is completed. This method returns all the group requests that
+   * are obsolete for any reason.
+   *
+   * @return All the obsolete group creation requests
+   *
+   * @throws EISDatabaseException On errors
+   */
+
+  List<EIGroupCreationRequest> groupCreationRequestsObsolete()
+    throws EISDatabaseException;
+
+  /**
+   * @return The group creation requests that refer to nonexistent groups, and
+   * that have not yet completed
+   *
+   * @throws EISDatabaseException On errors
+   */
+
+  List<EIGroupCreationRequest> groupCreationRequestsActive()
+    throws EISDatabaseException;
+
+  /**
+   * @param token The token
+   *
+   * @return The request associated with the given token, if any
+   *
+   * @throws EISDatabaseException On errors
+   */
+
+  Optional<EIGroupCreationRequest> groupCreationRequest(
+    EIToken token)
+    throws EISDatabaseException;
+
+  /**
+   * Finish a group creation request. This checks the supplied request and then,
+   * on success, acts as {@link #groupCreate(UUID, EIGroupName)}.
+   *
+   * @param request The request
+   *
+   * @throws EISDatabaseException On errors
+   */
+
+  void groupCreationRequestComplete(
+    EIGroupCreationRequest request)
+    throws EISDatabaseException;
+
+  /**
+   * List the groups in which the given user is a member.
+   *
+   * @param userId The user ID
+   *
+   * @return The groups
+   *
+   * @throws EISDatabaseException On errors
+   */
+
+  EISDatabaseGroupsPagedQueryType<EIGroupMembership>
+  groupUserRoles(UUID userId)
     throws EISDatabaseException;
 }

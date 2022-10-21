@@ -21,9 +21,9 @@ import com.io7m.eigion.tests.arbitraries.EIArbErrorCodeProvider;
 import com.io7m.eigion.tests.arbitraries.EIArbGroupCreationRequestProvider;
 import com.io7m.eigion.tests.arbitraries.EIArbGroupCreationRequestStatusProvider;
 import com.io7m.eigion.tests.arbitraries.EIArbGroupInviteProvider;
+import com.io7m.eigion.tests.arbitraries.EIArbGroupMembershipProvider;
 import com.io7m.eigion.tests.arbitraries.EIArbGroupNameProvider;
 import com.io7m.eigion.tests.arbitraries.EIArbGroupPrefixProvider;
-import com.io7m.eigion.tests.arbitraries.EIArbGroupRolesProvider;
 import com.io7m.eigion.tests.arbitraries.EIArbHashProvider;
 import com.io7m.eigion.tests.arbitraries.EIArbOffsetDateTimeProvider;
 import com.io7m.eigion.tests.arbitraries.EIArbPermissionSetProvider;
@@ -61,9 +61,9 @@ module com.io7m.eigion.tests.arbitraries
       EIArbGroupCreationRequestProvider,
       EIArbGroupCreationRequestStatusProvider,
       EIArbGroupInviteProvider,
+      EIArbGroupMembershipProvider,
       EIArbGroupNameProvider,
       EIArbGroupPrefixProvider,
-      EIArbGroupRolesProvider,
       EIArbHashProvider,
       EIArbOffsetDateTimeProvider,
       EIArbPermissionSetProvider,

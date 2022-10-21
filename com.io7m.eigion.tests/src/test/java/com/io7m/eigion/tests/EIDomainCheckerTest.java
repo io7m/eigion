@@ -25,6 +25,7 @@ import com.io7m.eigion.model.EIGroupCreationRequestStatusType;
 import com.io7m.eigion.model.EIGroupCreationRequestStatusType.InProgress;
 import com.io7m.eigion.model.EIGroupName;
 import com.io7m.eigion.model.EIToken;
+import io.opentelemetry.api.OpenTelemetry;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -66,7 +67,11 @@ public final class EIDomainCheckerTest
 
     this.checkers = new EIDomainCheckers();
     this.checker = this.checkers.createChecker(
-      new EIDomainCheckerConfiguration(this.clock, this.httpClient)
+      new EIDomainCheckerConfiguration(
+        OpenTelemetry.noop(),
+        this.clock,
+        this.httpClient
+      )
     );
   }
 

@@ -19,17 +19,20 @@ package com.io7m.eigion.server.api;
 import com.io7m.eigion.server.database.api.EISDatabaseConfiguration;
 import com.io7m.eigion.server.database.api.EISDatabaseFactoryType;
 
+import java.net.http.HttpClient;
 import java.time.Clock;
 import java.time.OffsetDateTime;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Supplier;
 
 /**
  * The configuration for a server.
  *
  * @param amberjackApiAddress   The amberjack API address
  * @param clock                 The clock
+ * @param httpClients           A supplier of HTTP clients
  * @param databaseConfiguration The database configuration for the server
  * @param databases             The factory of databases that will be used for
  *                              the server
@@ -42,6 +45,7 @@ import java.util.Optional;
 public record EIServerConfiguration(
   Locale locale,
   Clock clock,
+  Supplier<HttpClient> httpClients,
   EISDatabaseFactoryType databases,
   EISDatabaseConfiguration databaseConfiguration,
   EIServerHTTPServiceConfiguration pikeApiAddress,
@@ -54,6 +58,7 @@ public record EIServerConfiguration(
    *
    * @param amberjackApiAddress   The amberjack API address
    * @param clock                 The clock
+   * @param httpClients           A supplier of HTTP clients
    * @param databaseConfiguration The database configuration for the server
    * @param databases             The factory of databases that will be used for
    *                              the server
@@ -67,6 +72,7 @@ public record EIServerConfiguration(
   {
     Objects.requireNonNull(amberjackApiAddress, "amberjackApiAddress");
     Objects.requireNonNull(clock, "clock");
+    Objects.requireNonNull(httpClients, "httpClients");
     Objects.requireNonNull(databaseConfiguration, "databaseConfiguration");
     Objects.requireNonNull(databases, "databases");
     Objects.requireNonNull(idstoreConfiguration, "idstoreConfiguration");

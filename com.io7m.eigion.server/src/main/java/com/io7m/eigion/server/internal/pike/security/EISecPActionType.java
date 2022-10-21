@@ -23,8 +23,11 @@ import com.io7m.eigion.server.internal.security.EISecActionType;
  * not) be performed by an <i>admin</i> according to the security policy.
  */
 
-public interface EISecPActionType
+public sealed interface EISecPActionType
   extends EISecActionType
+  permits EISecPActionGroupCreateBegin,
+  EISecPActionGroupCreateCancel,
+  EISecPActionGroupCreateReady
 {
 
 }

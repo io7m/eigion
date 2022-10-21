@@ -16,6 +16,15 @@
 
 package com.io7m.eigion.server.internal.pike;
 
+import com.io7m.eigion.protocol.pike.EIPCommandGroupCreateBegin;
+import com.io7m.eigion.protocol.pike.EIPCommandGroupCreateCancel;
+import com.io7m.eigion.protocol.pike.EIPCommandGroupCreateReady;
+import com.io7m.eigion.protocol.pike.EIPCommandGroupCreateRequestsBegin;
+import com.io7m.eigion.protocol.pike.EIPCommandGroupCreateRequestsNext;
+import com.io7m.eigion.protocol.pike.EIPCommandGroupCreateRequestsPrevious;
+import com.io7m.eigion.protocol.pike.EIPCommandGroupsBegin;
+import com.io7m.eigion.protocol.pike.EIPCommandGroupsNext;
+import com.io7m.eigion.protocol.pike.EIPCommandGroupsPrevious;
 import com.io7m.eigion.protocol.pike.EIPCommandType;
 import com.io7m.eigion.protocol.pike.EIPResponseType;
 import com.io7m.eigion.server.internal.command_exec.EISCommandExecutionFailure;
@@ -54,7 +63,7 @@ public final class EISPCommandExecutor
         .startSpan();
 
     try (var ignored = span.makeCurrent()) {
-      return this.executeCommand(context, command);
+      return executeCommand(context, command);
     } catch (final Throwable e) {
       span.recordException(e);
       throw e;
@@ -63,11 +72,39 @@ public final class EISPCommandExecutor
     }
   }
 
-  private EIPResponseType executeCommand(
+  private static EIPResponseType executeCommand(
     final EISPCommandContext context,
     final EIPCommandType<? extends EIPResponseType> command)
     throws IOException, EISCommandExecutionFailure, InterruptedException
   {
+    if (command instanceof EIPCommandGroupCreateBegin c) {
+      return new EISPCmdGroupCreateBegin().execute(context, c);
+    }
+    if (command instanceof EIPCommandGroupCreateReady c) {
+      return new EISPCmdGroupCreateReady().execute(context, c);
+    }
+    if (command instanceof EIPCommandGroupCreateCancel c) {
+      return new EISPCmdGroupCreateCancel().execute(context, c);
+    }
+    if (command instanceof EIPCommandGroupsBegin c) {
+      return new EISPCmdGroupsBegin().execute(context, c);
+    }
+    if (command instanceof EIPCommandGroupsNext c) {
+      return new EISPCmdGroupsNext().execute(context, c);
+    }
+    if (command instanceof EIPCommandGroupsPrevious c) {
+      return new EISPCmdGroupsPrevious().execute(context, c);
+    }
+    if (command instanceof EIPCommandGroupCreateRequestsBegin c) {
+      return new EISPCmdGroupCreateRequestsBegin().execute(context, c);
+    }
+    if (command instanceof EIPCommandGroupCreateRequestsNext c) {
+      return new EISPCmdGroupCreateRequestsNext().execute(context, c);
+    }
+    if (command instanceof EIPCommandGroupCreateRequestsPrevious c) {
+      return new EISPCmdGroupCreateRequestsPrevious().execute(context, c);
+    }
+
     throw new IllegalStateException(
       "Unrecognized command: %s".formatted(command.getClass())
     );

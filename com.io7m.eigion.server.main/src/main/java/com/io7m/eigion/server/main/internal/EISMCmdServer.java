@@ -23,6 +23,7 @@ import com.io7m.claypot.core.CLPCommandContextType;
 import com.io7m.eigion.server.api.EIServerConfigurations;
 import com.io7m.eigion.server.api.EIServerFactoryType;
 
+import java.net.http.HttpClient;
 import java.nio.file.Path;
 import java.time.Clock;
 import java.util.Locale;
@@ -67,6 +68,7 @@ public final class EISMCmdServer extends CLPAbstractCommand
       EIServerConfigurations.ofFile(
         Locale.getDefault(),
         Clock.systemUTC(),
+        HttpClient::newHttpClient,
         this.configurationFile
       );
 

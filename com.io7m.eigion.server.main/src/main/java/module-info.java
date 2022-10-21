@@ -27,6 +27,7 @@ open module com.io7m.eigion.server.main
 
   requires com.io7m.claypot.core;
   requires com.io7m.eigion.server.api;
+  requires java.net.http;
   requires jcommander;
   requires org.slf4j;
 

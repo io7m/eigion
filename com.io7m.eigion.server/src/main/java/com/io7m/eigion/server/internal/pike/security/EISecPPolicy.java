@@ -16,8 +16,6 @@
 
 package com.io7m.eigion.server.internal.pike.security;
 
-import com.io7m.eigion.model.EIPermission;
-import com.io7m.eigion.model.EIPermissionSet;
 import com.io7m.eigion.server.internal.security.EISecPolicyResultDenied;
 import com.io7m.eigion.server.internal.security.EISecPolicyResultPermitted;
 import com.io7m.eigion.server.internal.security.EISecPolicyResultType;
@@ -52,24 +50,76 @@ public final class EISecPPolicy implements EISecPolicyType<EISecPActionType>
     return POLICY;
   }
 
-  private static EISecPolicyResultType checkOwnedPermission(
-    final EIPermissionSet ownedPermissions,
-    final EIPermission userRead)
-  {
-    if (ownedPermissions.implies(userRead)) {
-      return new EISecPolicyResultPermitted();
-    }
-    return new EISecPolicyResultDenied(
-      "You do not have the %s permission.".formatted(userRead)
-    );
-  }
-
   @Override
   public EISecPolicyResultType evaluate(
     final EISecPActionType action)
   {
     Objects.requireNonNull(action, "action");
 
+    if (action instanceof EISecPActionGroupCreateBegin a) {
+      return evaluateGroupCreateBegin(a);
+    }
+    if (action instanceof EISecPActionGroupCreateReady a) {
+      return evaluateGroupCreateReady(a);
+    }
+    if (action instanceof EISecPActionGroupCreateCancel a) {
+      return evaluateGroupCreateCancel(a);
+    }
+
     return new EISecPolicyResultDenied("Operation not permitted.");
+  }
+
+  private static EISecPolicyResultType evaluateGroupCreateReady(
+    final EISecPActionGroupCreateReady c)
+  {
+    if (!Objects.equals(c.user().id(), c.request().userFounder())) {
+      return new EISecPolicyResultDenied(
+        "Users may only ready their own group creation requests."
+      );
+    }
+
+    return new EISecPolicyResultPermitted();
+  }
+
+  private static EISecPolicyResultType evaluateGroupCreateCancel(
+    final EISecPActionGroupCreateCancel c)
+  {
+    if (!Objects.equals(c.user().id(), c.request().userFounder())) {
+      return new EISecPolicyResultDenied(
+        "Users may only cancel their own group creation requests."
+      );
+    }
+
+    return new EISecPolicyResultPermitted();
+  }
+
+  private static EISecPolicyResultType evaluateGroupCreateBegin(
+    final EISecPActionGroupCreateBegin c)
+  {
+    /*
+     * Group creation requests are rate-limited.
+     */
+
+    final var existingRequests =
+      c.existingRequests();
+    final var lastHour =
+      c.timeNow().minusHours(1L);
+
+    final var recentRequests =
+      existingRequests.stream()
+        .filter(r -> r.status().timeStarted().isAfter(lastHour))
+        .count();
+
+    if (recentRequests >= 5L) {
+      final var nextHour =
+        c.timeNow().plusHours(1L);
+
+      return new EISecPolicyResultDenied(
+        "Too many requests have been made recently. Please wait until %s before making another request."
+          .formatted(nextHour)
+      );
+    }
+
+    return new EISecPolicyResultPermitted();
   }
 }

@@ -16,12 +16,20 @@
 
 package com.io7m.eigion.pike.internal;
 
+import com.io7m.eigion.model.EIGroupCreationChallenge;
+import com.io7m.eigion.model.EIGroupCreationRequest;
+import com.io7m.eigion.model.EIGroupMembership;
+import com.io7m.eigion.model.EIGroupName;
+import com.io7m.eigion.model.EIToken;
 import com.io7m.eigion.pike.api.EIPClientException;
+import com.io7m.eigion.pike.api.EIPClientPagedType;
 
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.util.Locale;
 import java.util.Objects;
+
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.NOT_LOGGED_IN;
 
 /**
  * The "disconnected" protocol handler.
@@ -71,5 +79,51 @@ public final class EIPClientProtocolHandlerDisconnected
       );
 
     return handler.login(admin, password, base);
+  }
+
+  @Override
+  public EIGroupCreationChallenge groupCreateBegin(
+    final EIGroupName groupName)
+    throws EIPClientException
+  {
+    throw this.notLoggedIn();
+  }
+
+  @Override
+  public void groupCreateReady(
+    final EIToken token)
+    throws EIPClientException
+  {
+    throw this.notLoggedIn();
+  }
+
+  @Override
+  public void groupCreateCancel(
+    final EIToken token)
+    throws EIPClientException
+  {
+    throw this.notLoggedIn();
+  }
+
+  @Override
+  public EIPClientPagedType<EIGroupMembership> groups()
+    throws EIPClientException
+  {
+    throw this.notLoggedIn();
+  }
+
+  @Override
+  public EIPClientPagedType<EIGroupCreationRequest> groupCreateRequests()
+    throws EIPClientException
+  {
+    throw this.notLoggedIn();
+  }
+
+  private EIPClientException notLoggedIn()
+  {
+    return new EIPClientException(
+      NOT_LOGGED_IN,
+      this.strings.format("notLoggedIn")
+    );
   }
 }

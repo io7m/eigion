@@ -26,10 +26,13 @@ module com.io7m.eigion.server
   requires static org.osgi.annotation.bundle;
   requires static org.osgi.annotation.versioning;
 
-  requires com.io7m.eigion.protocol.pike;
-  requires com.io7m.eigion.protocol.pike.cb;
-  requires com.io7m.eigion.protocol.amberjack;
+  requires com.io7m.eigion.domaincheck.api;
+  requires com.io7m.eigion.domaincheck;
   requires com.io7m.eigion.protocol.amberjack.cb;
+  requires com.io7m.eigion.protocol.amberjack;
+  requires com.io7m.eigion.protocol.pike.cb;
+  requires com.io7m.eigion.protocol.pike;
+  requires java.net.http;
 
   requires transitive com.io7m.eigion.server.api;
 
@@ -59,5 +62,14 @@ module com.io7m.eigion.server
     with EIServerFactory;
 
   exports com.io7m.eigion.server;
-  opens com.io7m.eigion.server.internal.sessions to com.io7m.jxtrand.vanilla;
+
+  opens com.io7m.eigion.server.internal.sessions
+    to com.io7m.jxtrand.vanilla;
+
+  exports com.io7m.eigion.server.internal.security
+    to com.io7m.eigion.tests;
+  exports com.io7m.eigion.server.internal.pike.security
+    to com.io7m.eigion.tests;
+  exports com.io7m.eigion.server.internal.amberjack.security
+    to com.io7m.eigion.tests;
 }

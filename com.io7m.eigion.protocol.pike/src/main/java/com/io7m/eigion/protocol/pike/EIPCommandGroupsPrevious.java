@@ -14,32 +14,14 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-package com.io7m.eigion.model;
-
-import java.util.Objects;
-import java.util.Set;
+package com.io7m.eigion.protocol.pike;
 
 /**
- * The roles a user holds within a group.
- *
- * @param group The group
- * @param roles The roles
+ * The command to continue listing groups.
  */
 
-public record EIGroupRoles(
-  EIGroupName group,
-  Set<EIGroupRole> roles)
+public record EIPCommandGroupsPrevious()
+  implements EIPCommandType<EIPResponseGroups>
 {
-  /**
-   * The roles a user holds within a group.
-   *
-   * @param group The group
-   * @param roles The roles
-   */
 
-  public EIGroupRoles
-  {
-    Objects.requireNonNull(group, "group");
-    Objects.requireNonNull(roles, "roles");
-  }
 }

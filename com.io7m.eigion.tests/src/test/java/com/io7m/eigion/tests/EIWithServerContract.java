@@ -23,6 +23,9 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import java.net.http.HttpClient;
+import java.util.function.Supplier;
+
 @Testcontainers(disabledWithoutDocker = true)
 public abstract class EIWithServerContract
 {
@@ -52,6 +55,8 @@ public abstract class EIWithServerContract
     return this.server;
   }
 
+  protected abstract Supplier<HttpClient> httpClients();
+
   @BeforeEach
   public final void serverSetup()
     throws Exception
@@ -64,7 +69,7 @@ public abstract class EIWithServerContract
       .start();
 
     this.server =
-      EITestServer.create(this.container, this.clock);
+      EITestServer.create(this.container, this.httpClients(), this.clock);
     this.server.server()
       .start();
   }

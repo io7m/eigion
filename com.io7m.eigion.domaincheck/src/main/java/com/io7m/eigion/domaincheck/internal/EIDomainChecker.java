@@ -19,6 +19,7 @@ package com.io7m.eigion.domaincheck.internal;
 import com.io7m.eigion.domaincheck.api.EIDomainCheckerConfiguration;
 import com.io7m.eigion.domaincheck.api.EIDomainCheckerType;
 import com.io7m.eigion.model.EIGroupCreationRequest;
+import io.opentelemetry.api.trace.Tracer;
 
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
@@ -34,6 +35,7 @@ public final class EIDomainChecker implements EIDomainCheckerType
 {
   private final EIDomainCheckerConfiguration configuration;
   private final ExecutorService executor;
+  private final Tracer tracer;
 
   private EIDomainChecker(
     final EIDomainCheckerConfiguration inConfiguration,
@@ -43,6 +45,9 @@ public final class EIDomainChecker implements EIDomainCheckerType
       Objects.requireNonNull(inConfiguration, "configuration");
     this.executor =
       Objects.requireNonNull(inExecutor, "executor");
+    this.tracer =
+      inConfiguration.openTelemetry()
+        .getTracer("com.io7m.eigion.domaincheck", version());
   }
 
   /**
@@ -71,7 +76,9 @@ public final class EIDomainChecker implements EIDomainCheckerType
   {
     Objects.requireNonNull(request, "request");
     final var future = new CompletableFuture<EIGroupCreationRequest>();
-    this.executor.execute(new EIDomainCheck(this.configuration, request, future));
+    this.executor.execute(
+      new EIDomainCheck(this.configuration, request, this.tracer, future)
+    );
     return future;
   }
 
@@ -81,5 +88,18 @@ public final class EIDomainChecker implements EIDomainCheckerType
   {
     this.executor.shutdown();
     this.executor.awaitTermination(5L, TimeUnit.SECONDS);
+  }
+
+  private static String version()
+  {
+    final var p =
+      EIDomainChecker.class.getPackage();
+    final var v =
+      p.getImplementationVersion();
+
+    if (v == null) {
+      return "0.0.0";
+    }
+    return v;
   }
 }

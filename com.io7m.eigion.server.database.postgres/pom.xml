@@ -67,6 +67,10 @@
       <groupId>com.io7m.jqpage</groupId>
       <artifactId>com.io7m.jqpage.core</artifactId>
     </dependency>
+    <dependency>
+      <groupId>com.io7m.jdeferthrow</groupId>
+      <artifactId>com.io7m.jdeferthrow.core</artifactId>
+    </dependency>
 
     <dependency>
       <groupId>io.opentelemetry</groupId>

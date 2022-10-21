@@ -14,17 +14,30 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+package com.io7m.eigion.protocol.pike;
 
-package com.io7m.eigion.server.database.api;
+import com.io7m.eigion.model.EIGroupName;
 
-import com.io7m.eigion.model.EIGroupMembership;
+import java.util.Objects;
 
 /**
- * The type of group role searches.
+ * The command to start creating a group.
+ *
+ * @param groupName The group name
  */
 
-public interface EISDatabaseGroupRolesSearchType
-  extends EISDatabasePagedQueryType<EISDatabaseGroupsQueriesType, EIGroupMembership>
+public record EIPCommandGroupCreateBegin(
+  EIGroupName groupName)
+  implements EIPCommandType<EIPResponseGroupCreateBegin>
 {
+  /**
+   * The command to start creating a group.
+   *
+   * @param groupName The group name
+   */
 
+  public EIPCommandGroupCreateBegin
+  {
+    Objects.requireNonNull(groupName, "groupName");
+  }
 }

@@ -16,9 +16,12 @@
 
 package com.io7m.eigion.server.internal.sessions;
 
+import com.io7m.eigion.model.EIGroupCreationRequest;
+import com.io7m.eigion.model.EIGroupMembership;
 import com.io7m.eigion.model.EIGroupName;
 import com.io7m.eigion.model.EIUser;
 import com.io7m.eigion.server.database.api.EISDatabaseAuditEventsSearchType;
+import com.io7m.eigion.server.database.api.EISDatabaseGroupsPagedQueryType;
 import com.io7m.eigion.server.database.api.EISDatabaseGroupsQueriesType;
 import com.io7m.eigion.server.database.api.EISDatabasePagedQueryType;
 import com.io7m.idstore.user_client.api.IdUClientType;
@@ -40,6 +43,8 @@ public final class EISUserSession
   private final EIUser user;
   private Optional<EISDatabaseAuditEventsSearchType> auditSearch;
   private Optional<EISDatabasePagedQueryType<EISDatabaseGroupsQueriesType, EIGroupName>> groupSearchByName;
+  private Optional<EISDatabasePagedQueryType<EISDatabaseGroupsQueriesType, EIGroupMembership>> groupRolesOwnSearch;
+  private Optional<EISDatabaseGroupsPagedQueryType<EIGroupCreationRequest>> groupCreationRequestsSearch;
 
   /**
    * A controller for a single user session.
@@ -63,6 +68,10 @@ public final class EISUserSession
     this.auditSearch =
       Optional.empty();
     this.groupSearchByName =
+      Optional.empty();
+    this.groupRolesOwnSearch =
+      Optional.empty();
+    this.groupCreationRequestsSearch =
       Optional.empty();
   }
 
@@ -137,5 +146,47 @@ public final class EISUserSession
     final EISDatabasePagedQueryType<EISDatabaseGroupsQueriesType, EIGroupName> search)
   {
     this.groupSearchByName = Optional.of(search);
+  }
+
+  /**
+   * Set the current group roles search.
+   *
+   * @param search The search
+   */
+
+  public void setGroupRolesOwnSearch(
+    final EISDatabasePagedQueryType<EISDatabaseGroupsQueriesType, EIGroupMembership> search)
+  {
+    this.groupRolesOwnSearch = Optional.of(search);
+  }
+
+  /**
+   * @return The current group roles search.
+   */
+
+  public Optional<EISDatabasePagedQueryType<EISDatabaseGroupsQueriesType, EIGroupMembership>> groupRolesOwnSearch()
+  {
+    return this.groupRolesOwnSearch;
+  }
+
+  /**
+   * Set the current group creation requests search.
+   *
+   * @param search The search
+   */
+
+  public void setGroupCreationRequestsSearch(
+    final EISDatabaseGroupsPagedQueryType<EIGroupCreationRequest> search)
+  {
+    this.groupCreationRequestsSearch = Optional.of(search);
+  }
+
+  /**
+   * @return The current group creation requests search.
+   */
+
+  public Optional<EISDatabaseGroupsPagedQueryType<EIGroupCreationRequest>> groupCreationRequestsSearch()
+  {
+    return this.groupCreationRequestsSearch;
   }
 }

@@ -16,8 +16,14 @@
 
 package com.io7m.eigion.pike.internal;
 
+import com.io7m.eigion.model.EIGroupCreationChallenge;
+import com.io7m.eigion.model.EIGroupCreationRequest;
+import com.io7m.eigion.model.EIGroupMembership;
+import com.io7m.eigion.model.EIGroupName;
+import com.io7m.eigion.model.EIToken;
 import com.io7m.eigion.model.EIUser;
 import com.io7m.eigion.pike.api.EIPClientException;
+import com.io7m.eigion.pike.api.EIPClientPagedType;
 import com.io7m.eigion.pike.api.EIPClientType;
 
 import java.io.IOException;
@@ -96,5 +102,43 @@ public final class EIPClient implements EIPClientType
       "[EIPClient 0x%s",
       Integer.toUnsignedString(this.hashCode())
     );
+  }
+
+  @Override
+  public EIGroupCreationChallenge groupCreateBegin(
+    final EIGroupName groupName)
+    throws EIPClientException, InterruptedException
+  {
+    return this.handler.groupCreateBegin(groupName);
+  }
+
+  @Override
+  public void groupCreateReady(
+    final EIToken token)
+    throws EIPClientException, InterruptedException
+  {
+    this.handler.groupCreateReady(token);
+  }
+
+  @Override
+  public void groupCreateCancel(
+    final EIToken token)
+    throws EIPClientException, InterruptedException
+  {
+    this.handler.groupCreateCancel(token);
+  }
+
+  @Override
+  public EIPClientPagedType<EIGroupMembership> groups()
+    throws EIPClientException, InterruptedException
+  {
+    return this.handler.groups();
+  }
+
+  @Override
+  public EIPClientPagedType<EIGroupCreationRequest> groupCreateRequests()
+    throws EIPClientException, InterruptedException
+  {
+    return this.handler.groupCreateRequests();
   }
 }

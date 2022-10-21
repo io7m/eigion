@@ -14,31 +14,14 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+package com.io7m.eigion.protocol.pike;
 
-package com.io7m.eigion.tests;
+/**
+ * The command to continue listing group creation requests.
+ */
 
-import com.io7m.eigion.protocol.pike.EIPMessageType;
-import com.io7m.eigion.protocol.pike.cb.EIPCB1Messages;
-import net.jqwik.api.ForAll;
-import net.jqwik.api.Property;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
-public final class EIP1CBMessagesTest
+public record EIPCommandGroupCreateRequestsNext()
+  implements EIPCommandType<EIPResponseGroupCreateRequests>
 {
-  private static final EIPCB1Messages MESSAGES =
-    new EIPCB1Messages();
 
-  @Property(tries = 2000)
-  public void testSerialization(
-    final @ForAll EIPMessageType message)
-    throws Exception
-  {
-    final var data =
-      MESSAGES.serialize(message);
-    final var m =
-      MESSAGES.parse(data);
-
-    assertEquals(message, m);
-  }
 }

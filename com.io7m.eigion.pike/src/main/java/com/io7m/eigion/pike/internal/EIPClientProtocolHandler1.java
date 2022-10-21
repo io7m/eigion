@@ -16,13 +16,32 @@
 
 package com.io7m.eigion.pike.internal;
 
+import com.io7m.eigion.model.EIGroupCreationChallenge;
+import com.io7m.eigion.model.EIGroupCreationRequest;
+import com.io7m.eigion.model.EIGroupMembership;
+import com.io7m.eigion.model.EIGroupName;
 import com.io7m.eigion.model.EIPage;
+import com.io7m.eigion.model.EIToken;
 import com.io7m.eigion.pike.api.EIPClientException;
 import com.io7m.eigion.pike.api.EIPClientPagedType;
 import com.io7m.eigion.protocol.api.EIProtocolException;
+import com.io7m.eigion.protocol.pike.EIPCommandGroupCreateBegin;
+import com.io7m.eigion.protocol.pike.EIPCommandGroupCreateCancel;
+import com.io7m.eigion.protocol.pike.EIPCommandGroupCreateReady;
+import com.io7m.eigion.protocol.pike.EIPCommandGroupCreateRequestsBegin;
+import com.io7m.eigion.protocol.pike.EIPCommandGroupCreateRequestsNext;
+import com.io7m.eigion.protocol.pike.EIPCommandGroupCreateRequestsPrevious;
+import com.io7m.eigion.protocol.pike.EIPCommandGroupsBegin;
+import com.io7m.eigion.protocol.pike.EIPCommandGroupsNext;
+import com.io7m.eigion.protocol.pike.EIPCommandGroupsPrevious;
 import com.io7m.eigion.protocol.pike.EIPCommandLogin;
 import com.io7m.eigion.protocol.pike.EIPCommandType;
 import com.io7m.eigion.protocol.pike.EIPResponseError;
+import com.io7m.eigion.protocol.pike.EIPResponseGroupCreateBegin;
+import com.io7m.eigion.protocol.pike.EIPResponseGroupCreateCancel;
+import com.io7m.eigion.protocol.pike.EIPResponseGroupCreateReady;
+import com.io7m.eigion.protocol.pike.EIPResponseGroupCreateRequests;
+import com.io7m.eigion.protocol.pike.EIPResponseGroups;
 import com.io7m.eigion.protocol.pike.EIPResponseLogin;
 import com.io7m.eigion.protocol.pike.EIPResponseType;
 import com.io7m.eigion.protocol.pike.cb.EIPCB1Messages;
@@ -238,6 +257,72 @@ public final class EIPClientProtocolHandler1
       version = "0.0.0";
     }
     return "com.io7m.eigion.pike/%s".formatted(version);
+  }
+
+  @Override
+  public EIGroupCreationChallenge groupCreateBegin(
+    final EIGroupName groupName)
+    throws EIPClientException, InterruptedException
+  {
+    final var response =
+      this.sendCommand(
+        EIPResponseGroupCreateBegin.class,
+        new EIPCommandGroupCreateBegin(groupName)
+      );
+
+    return new EIGroupCreationChallenge(
+      response.groupName(),
+      response.token(),
+      response.location()
+    );
+  }
+
+  @Override
+  public void groupCreateReady(
+    final EIToken token)
+    throws EIPClientException, InterruptedException
+  {
+    this.sendCommand(
+      EIPResponseGroupCreateReady.class,
+      new EIPCommandGroupCreateReady(token)
+    );
+  }
+
+  @Override
+  public void groupCreateCancel(
+    final EIToken token)
+    throws EIPClientException, InterruptedException
+  {
+    this.sendCommand(
+      EIPResponseGroupCreateCancel.class,
+      new EIPCommandGroupCreateCancel(token)
+    );
+  }
+
+  @Override
+  public EIPClientPagedType<EIGroupMembership> groups()
+  {
+    return new GenericPaged<>(
+      this,
+      EIPResponseGroups.class,
+      new EIPCommandGroupsBegin(1000L),
+      new EIPCommandGroupsNext(),
+      new EIPCommandGroupsPrevious(),
+      EIPResponseGroups::groups
+    );
+  }
+
+  @Override
+  public EIPClientPagedType<EIGroupCreationRequest> groupCreateRequests()
+  {
+    return new GenericPaged<>(
+      this,
+      EIPResponseGroupCreateRequests.class,
+      new EIPCommandGroupCreateRequestsBegin(1000L),
+      new EIPCommandGroupCreateRequestsNext(),
+      new EIPCommandGroupCreateRequestsPrevious(),
+      EIPResponseGroupCreateRequests::requests
+    );
   }
 
   private static final class GenericPaged<

@@ -17,10 +17,12 @@
 
 package com.io7m.eigion.tests;
 
+import com.io7m.eigion.model.EIGroupCreationRequest;
+import com.io7m.eigion.model.EIGroupCreationRequestStatusType;
 import com.io7m.eigion.model.EIGroupName;
 import com.io7m.eigion.model.EIGroupPrefix;
-import com.io7m.eigion.model.EIGroupRole;
-import com.io7m.eigion.model.EIPermissionSet;
+import com.io7m.eigion.model.EIGroupSearchByNameParameters;
+import com.io7m.eigion.model.EIToken;
 import com.io7m.eigion.model.EIUser;
 import com.io7m.eigion.server.database.api.EISDatabaseException;
 import com.io7m.eigion.server.database.api.EISDatabaseGroupsQueriesType;
@@ -32,19 +34,22 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
 import static com.io7m.eigion.error_codes.EIStandardErrorCodes.GROUP_DUPLICATE;
 import static com.io7m.eigion.error_codes.EIStandardErrorCodes.GROUP_NONEXISTENT;
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.GROUP_REQUEST_DUPLICATE;
 import static com.io7m.eigion.error_codes.EIStandardErrorCodes.USER_NONEXISTENT;
 import static com.io7m.eigion.model.EIGroupRole.FOUNDER;
 import static com.io7m.eigion.model.EIGroupRole.USER_DISMISS;
 import static com.io7m.eigion.model.EIGroupRole.USER_INVITE;
 import static com.io7m.eigion.model.EIPermissionSet.empty;
+import static java.time.OffsetDateTime.now;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Testcontainers(disabledWithoutDocker = true)
 public final class EISDatabaseGroupsTest
@@ -267,6 +272,313 @@ public final class EISDatabaseGroupsTest
         groups.groupCreatePersonal(u0.id(), new EIGroupPrefix("com.io7m."));
 
       assertEquals("com.io7m.u1", name.value());
+      return null;
+    });
+  }
+
+  /**
+   * Nonexistent users cannot create group requests.
+   *
+   * @throws Exception On errors
+   */
+
+  @Test
+  public void testGroupCreationRequestNonexistentUser()
+    throws Exception
+  {
+    this.database.withTransaction(t -> {
+      final var groups =
+        t.queries(EISDatabaseGroupsQueriesType.class);
+
+      final var ex =
+        assertThrows(EISDatabaseException.class, () -> {
+          groups.groupCreationRequestStart(new EIGroupCreationRequest(
+            new EIGroupName("com.io7m.ex"),
+            UUID.randomUUID(),
+            EIToken.generate(),
+            new EIGroupCreationRequestStatusType.InProgress(now())
+          ));
+        });
+
+      assertEquals(USER_NONEXISTENT, ex.errorCode());
+      return null;
+    });
+  }
+
+  /**
+   * Duplicate group requests (same token) cannot be created.
+   *
+   * @throws Exception On errors
+   */
+
+  @Test
+  public void testGroupCreationRequestDuplicate()
+    throws Exception
+  {
+    this.database.withTransaction(t -> {
+      final var users =
+        t.queries(EISDatabaseUsersQueriesType.class);
+      final var groups =
+        t.queries(EISDatabaseGroupsQueriesType.class);
+
+      final var u0 = new EIUser(UUID.randomUUID(), empty());
+      users.userPut(u0);
+
+      final var token = EIToken.generate();
+
+      groups.groupCreationRequestStart(new EIGroupCreationRequest(
+        new EIGroupName("com.io7m.ex1"),
+        u0.id(),
+        token,
+        new EIGroupCreationRequestStatusType.InProgress(now())
+      ));
+
+      final var ex =
+        assertThrows(EISDatabaseException.class, () -> {
+          groups.groupCreationRequestStart(new EIGroupCreationRequest(
+            new EIGroupName("com.io7m.ex2"),
+            u0.id(),
+            token,
+            new EIGroupCreationRequestStatusType.InProgress(now())
+          ));
+        });
+
+      assertEquals(GROUP_REQUEST_DUPLICATE, ex.errorCode());
+      return null;
+    });
+  }
+
+  /**
+   * Group requests can be created.
+   *
+   * @throws Exception On errors
+   */
+
+  @Test
+  public void testGroupCreationRequestList()
+    throws Exception
+  {
+    this.database.withTransaction(t -> {
+      final var users =
+        t.queries(EISDatabaseUsersQueriesType.class);
+      final var groups =
+        t.queries(EISDatabaseGroupsQueriesType.class);
+
+      final var u0 = new EIUser(UUID.randomUUID(), empty());
+      users.userPut(u0);
+
+      groups.groupCreationRequestStart(new EIGroupCreationRequest(
+        new EIGroupName("com.io7m.ex0"),
+        u0.id(),
+        EIToken.generate(),
+        new EIGroupCreationRequestStatusType.InProgress(now())
+      ));
+
+      groups.groupCreationRequestStart(new EIGroupCreationRequest(
+        new EIGroupName("com.io7m.ex1"),
+        u0.id(),
+        EIToken.generate(),
+        new EIGroupCreationRequestStatusType.InProgress(now())
+      ));
+
+      groups.groupCreationRequestStart(new EIGroupCreationRequest(
+        new EIGroupName("com.io7m.ex2"),
+        u0.id(),
+        EIToken.generate(),
+        new EIGroupCreationRequestStatusType.InProgress(now())
+      ));
+
+      final var rs =
+        groups.groupCreationRequestsForUser(u0.id());
+
+      assertEquals(3, rs.size());
+      assertEquals("com.io7m.ex0", rs.get(0).groupName().value());
+      assertEquals("com.io7m.ex1", rs.get(1).groupName().value());
+      assertEquals("com.io7m.ex2", rs.get(2).groupName().value());
+      return null;
+    });
+  }
+
+  /**
+   * Nonexistent users cannot have group requests.
+   *
+   * @throws Exception On errors
+   */
+
+  @Test
+  public void testGroupCreationRequestListNonexistentUser()
+    throws Exception
+  {
+    this.database.withTransaction(t -> {
+      final var groups =
+        t.queries(EISDatabaseGroupsQueriesType.class);
+
+      final var rs =
+        groups.groupCreationRequestsForUser(UUID.randomUUID());
+
+      assertEquals(0, rs.size());
+      return null;
+    });
+  }
+
+  /**
+   * Group requests can be completed.
+   *
+   * @throws Exception On errors
+   */
+
+  @Test
+  public void testGroupCreationCompleteSuccess()
+    throws Exception
+  {
+    this.database.withTransaction(t -> {
+      final var users =
+        t.queries(EISDatabaseUsersQueriesType.class);
+      final var groups =
+        t.queries(EISDatabaseGroupsQueriesType.class);
+
+      final var u0 = new EIUser(UUID.randomUUID(), empty());
+      users.userPut(u0);
+
+      final var token = EIToken.generate();
+      final var request0 =
+        new EIGroupCreationRequest(
+          new EIGroupName("com.io7m.ex0"),
+          u0.id(),
+          token,
+          new EIGroupCreationRequestStatusType.InProgress(now())
+        );
+
+      groups.groupCreationRequestStart(request0);
+
+      final var request1 =
+        new EIGroupCreationRequest(
+          new EIGroupName("com.io7m.ex0"),
+          u0.id(),
+          token,
+          new EIGroupCreationRequestStatusType.Succeeded(
+            request0.status().timeStarted(), now())
+        );
+
+      groups.groupCreationRequestComplete(request1);
+
+      final var membership =
+        groups.groupRoles(new EIGroupName("com.io7m.ex0"), 1L)
+          .pageCurrent(groups)
+          .items();
+
+      assertEquals(1, membership.size());
+      assertEquals(u0.id(), membership.get(0).userId());
+      assertTrue(membership.get(0).roles().implies(FOUNDER));
+      return null;
+    });
+  }
+
+  /**
+   * Group requests can be failed.
+   *
+   * @throws Exception On errors
+   */
+
+  @Test
+  public void testGroupCreationCompleteFailed()
+    throws Exception
+  {
+    this.database.withTransaction(t -> {
+      final var users =
+        t.queries(EISDatabaseUsersQueriesType.class);
+      final var groups =
+        t.queries(EISDatabaseGroupsQueriesType.class);
+
+      final var u0 = new EIUser(UUID.randomUUID(), empty());
+      users.userPut(u0);
+
+      final var token = EIToken.generate();
+      final var request0 =
+        new EIGroupCreationRequest(
+          new EIGroupName("com.io7m.ex0"),
+          u0.id(),
+          token,
+          new EIGroupCreationRequestStatusType.InProgress(now())
+        );
+
+      groups.groupCreationRequestStart(request0);
+
+      final var request1 =
+        new EIGroupCreationRequest(
+          new EIGroupName("com.io7m.ex0"),
+          u0.id(),
+          token,
+          new EIGroupCreationRequestStatusType.Failed(
+            request0.status().timeStarted(),
+            now(),
+            "FAILED!"
+          )
+        );
+
+      groups.groupCreationRequestComplete(request1);
+
+      final var page =
+        groups.groupSearchByName(new EIGroupSearchByNameParameters(
+          Optional.of("com.io7m.ex0"),
+          1L
+        )).pageCurrent(groups);
+
+      assertEquals(0, page.items().size());
+      return null;
+    });
+  }
+
+  /**
+   * Group requests can be cancelled.
+   *
+   * @throws Exception On errors
+   */
+
+  @Test
+  public void testGroupCreationCompleteCancelled()
+    throws Exception
+  {
+    this.database.withTransaction(t -> {
+      final var users =
+        t.queries(EISDatabaseUsersQueriesType.class);
+      final var groups =
+        t.queries(EISDatabaseGroupsQueriesType.class);
+
+      final var u0 = new EIUser(UUID.randomUUID(), empty());
+      users.userPut(u0);
+
+      final var token = EIToken.generate();
+      final var request0 =
+        new EIGroupCreationRequest(
+          new EIGroupName("com.io7m.ex0"),
+          u0.id(),
+          token,
+          new EIGroupCreationRequestStatusType.InProgress(now())
+        );
+
+      groups.groupCreationRequestStart(request0);
+
+      final var request1 =
+        new EIGroupCreationRequest(
+          new EIGroupName("com.io7m.ex0"),
+          u0.id(),
+          token,
+          new EIGroupCreationRequestStatusType.Cancelled(
+            request0.status().timeStarted(),
+            now()
+          )
+        );
+
+      groups.groupCreationRequestComplete(request1);
+
+      final var page =
+        groups.groupSearchByName(new EIGroupSearchByNameParameters(
+          Optional.of("com.io7m.ex0"),
+          1L
+        )).pageCurrent(groups);
+
+      assertEquals(0, page.items().size());
       return null;
     });
   }

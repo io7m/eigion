@@ -18,8 +18,8 @@
 package com.io7m.eigion.client.database;
 
 import com.io7m.anethum.common.ParseException;
-import com.io7m.eigion.client.database.api.EIDatabaseCreate;
 import com.io7m.eigion.client.database.api.EIDatabaseConfiguration;
+import com.io7m.eigion.client.database.api.EIDatabaseCreate;
 import com.io7m.eigion.client.database.api.EIDatabaseFactoryType;
 import com.io7m.eigion.client.database.api.EIDatabaseType;
 import com.io7m.eigion.client.database.internal.EIDatabase;

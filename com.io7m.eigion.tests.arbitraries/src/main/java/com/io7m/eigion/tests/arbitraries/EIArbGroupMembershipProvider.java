@@ -16,9 +16,10 @@
 
 package com.io7m.eigion.tests.arbitraries;
 
+import com.io7m.eigion.model.EIGroupMembership;
 import com.io7m.eigion.model.EIGroupName;
 import com.io7m.eigion.model.EIGroupRole;
-import com.io7m.eigion.model.EIGroupRoles;
+import com.io7m.eigion.model.EIGroupRoleSet;
 import net.jqwik.api.Arbitraries;
 import net.jqwik.api.Arbitrary;
 import net.jqwik.api.Combinators;
@@ -27,16 +28,16 @@ import net.jqwik.api.providers.TypeUsage;
 import java.util.Set;
 
 /**
- * A provider of {@link EIGroupRoles} values.
+ * A provider of {@link EIGroupMembership} values.
  */
 
-public final class EIArbGroupRolesProvider extends EIArbAbstractProvider
+public final class EIArbGroupMembershipProvider extends EIArbAbstractProvider
 {
   /**
    * A provider of values.
    */
 
-  public EIArbGroupRolesProvider()
+  public EIArbGroupMembershipProvider()
   {
 
   }
@@ -45,7 +46,7 @@ public final class EIArbGroupRolesProvider extends EIArbAbstractProvider
   public boolean canProvideFor(
     final TypeUsage targetType)
   {
-    return targetType.isOfType(EIGroupRoles.class);
+    return targetType.isOfType(EIGroupMembership.class);
   }
 
   @Override
@@ -53,13 +54,13 @@ public final class EIArbGroupRolesProvider extends EIArbAbstractProvider
     final TypeUsage targetType,
     final SubtypeProvider subtypeProvider)
   {
-    final var n =
-      Arbitraries.defaultFor(EIGroupName.class);
-    final var s =
-      Arbitraries.defaultFor(Set.class, EIGroupRole.class);
-
     return Set.of(
-      Combinators.combine(n, s).as(EIGroupRoles::new)
+      Combinators.combine(
+        Arbitraries.defaultFor(EIGroupName.class),
+        Arbitraries.defaultFor(EIGroupRole.class).set()
+      ).as((groupName, roles) -> {
+        return new EIGroupMembership(groupName, EIGroupRoleSet.of(roles));
+      })
     );
   }
 }

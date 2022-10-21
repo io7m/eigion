@@ -19,7 +19,6 @@ package com.io7m.eigion.tests;
 import com.io7m.eigion.amberjack.EIAJClients;
 import com.io7m.eigion.amberjack.api.EIAJClientException;
 import com.io7m.eigion.amberjack.api.EIAJClientType;
-import com.io7m.eigion.model.EIAuditEvent;
 import com.io7m.eigion.model.EIAuditSearchParameters;
 import com.io7m.eigion.model.EIGroupName;
 import com.io7m.eigion.model.EIGroupSearchByNameParameters;
@@ -27,20 +26,19 @@ import com.io7m.eigion.model.EIPermission;
 import com.io7m.eigion.model.EIPermissionSet;
 import com.io7m.eigion.model.EITimeRange;
 import com.io7m.eigion.server.database.api.EISDatabaseAuditQueriesType;
-import com.io7m.eigion.server.database.api.EISDatabaseRole;
-import com.io7m.eigion.server.database.api.EISDatabaseType;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
+import java.net.http.HttpClient;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
-import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Supplier;
 
 import static com.io7m.eigion.error_codes.EIStandardErrorCodes.AUTHENTICATION_ERROR;
 import static com.io7m.eigion.error_codes.EIStandardErrorCodes.OPERATION_NOT_PERMITTED;
@@ -438,6 +436,12 @@ public final class EIAmberjackTest extends EIWithServerContract
     final String message)
   {
     return new AuditCheck(type, message);
+  }
+
+  @Override
+  protected Supplier<HttpClient> httpClients()
+  {
+    return HttpClient::newHttpClient;
   }
 
   private record AuditCheck(

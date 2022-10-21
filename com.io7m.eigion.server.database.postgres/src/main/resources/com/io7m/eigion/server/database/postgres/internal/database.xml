@@ -132,6 +132,38 @@ create table group_roles (
 
     <Statement>grant insert, select on group_roles to eigion</Statement>
     <Statement>grant update (roles) on group_roles to eigion</Statement>
+
+    <Comment>
+      The groups_creation_requests table holds the set of groups that are in the process of being created but
+      have not yet actually been created.
+    </Comment>
+
+    <Statement><![CDATA[
+create type group_creation_request_status_t as enum ('IN_PROGRESS', 'SUCCEEDED', 'FAILED', 'CANCELLED')
+]]></Statement>
+
+    <Statement><![CDATA[
+create table groups_creation_requests (
+  group_token    varchar(64)                not null primary key,
+  group_name     varchar(256)               not null,
+  creator_user   uuid                       not null,
+  created        timestamp with time zone   not null,
+  completed      timestamp with time zone,
+  status         varchar(16)                not null,
+  message        text                       not null,
+
+  constraint group_creation_in_progress_or_completed check (
+    case when (status != 'IN_PROGRESS') then
+      (completed is not null)
+    end
+  ),
+
+  foreign key (creator_user) references users (id)
+)
+]]></Statement>
+
+    <Statement>grant select, insert on groups_creation_requests to eigion</Statement>
+    <Statement>grant update (status, message, completed) on groups_creation_requests to eigion</Statement>
   </Schema>
 
 </Schemas>

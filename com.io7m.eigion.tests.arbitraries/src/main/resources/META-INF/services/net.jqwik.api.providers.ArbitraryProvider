@@ -5,9 +5,9 @@ com.io7m.eigion.tests.arbitraries.EIArbErrorCodeProvider
 com.io7m.eigion.tests.arbitraries.EIArbGroupCreationRequestProvider
 com.io7m.eigion.tests.arbitraries.EIArbGroupCreationRequestStatusProvider
 com.io7m.eigion.tests.arbitraries.EIArbGroupInviteProvider
+com.io7m.eigion.tests.arbitraries.EIArbGroupMembershipProvider
 com.io7m.eigion.tests.arbitraries.EIArbGroupNameProvider
 com.io7m.eigion.tests.arbitraries.EIArbGroupPrefixProvider
-com.io7m.eigion.tests.arbitraries.EIArbGroupRolesProvider
 com.io7m.eigion.tests.arbitraries.EIArbHashProvider
 com.io7m.eigion.tests.arbitraries.EIArbOffsetDateTimeProvider
 com.io7m.eigion.tests.arbitraries.EIArbPermissionSetProvider

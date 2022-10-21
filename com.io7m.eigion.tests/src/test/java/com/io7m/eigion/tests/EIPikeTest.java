@@ -17,6 +17,8 @@
 package com.io7m.eigion.tests;
 
 import com.io7m.eigion.model.EIAuditSearchParameters;
+import com.io7m.eigion.model.EIGroupCreationRequestStatusType;
+import com.io7m.eigion.model.EIGroupName;
 import com.io7m.eigion.model.EIPermission;
 import com.io7m.eigion.model.EIPermissionSet;
 import com.io7m.eigion.model.EITimeRange;
@@ -28,34 +30,73 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.http.HttpClient;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Supplier;
 
 import static com.io7m.eigion.error_codes.EIStandardErrorCodes.AUTHENTICATION_ERROR;
-import static com.io7m.eigion.error_codes.EIStandardErrorCodes.OPERATION_NOT_PERMITTED;
+import static com.io7m.eigion.model.EIGroupRole.FOUNDER;
 import static com.io7m.eigion.server.database.api.EISDatabaseRole.EIGION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public final class EIPikeTest extends EIWithServerContract
 {
   private EIPClients clients;
   private EIPClientType client;
+  private EIInterceptHttpClient httpClient;
+  private EIFakeServerDomainCheck domainCheckServer;
 
   @BeforeEach
   public void setup()
+    throws Exception
   {
     this.clients = new EIPClients();
     this.client = this.clients.create(Locale.ROOT);
+    this.domainCheckServer = EIFakeServerDomainCheck.create(20000);
+    EIFakeServerDomainCheckServlet.RETURN_TOKEN = Optional.empty();
   }
 
   @AfterEach
   public void tearDown()
-    throws IOException
+    throws Exception
   {
     this.client.close();
+    this.domainCheckServer.close();
+  }
+
+  private static URI replaceURI(
+    final URI u)
+  {
+    try {
+      return new URI(
+        "http",
+        u.getUserInfo(),
+        "localhost",
+        20000,
+        u.getPath(),
+        u.getQuery(),
+        u.getFragment()
+      );
+    } catch (final URISyntaxException e) {
+      throw new IllegalStateException(e);
+    }
+  }
+
+  @Override
+  protected Supplier<HttpClient> httpClients()
+  {
+    this.httpClient = new EIInterceptHttpClient(
+      EIPikeTest::replaceURI,
+      HttpClient.newHttpClient()
+    );
+
+    return () -> this.httpClient;
   }
 
   /**
@@ -91,6 +132,112 @@ public final class EIPikeTest extends EIWithServerContract
     throws Exception
   {
     this.setupStandardUserAndLogIn();
+  }
+
+  /**
+   * Creating a group works.
+   *
+   * @throws Exception On errors
+   */
+
+  @Test
+  public void testGroupCreationOK()
+    throws Exception
+  {
+    this.setupStandardUserAndLogIn();
+
+    final var groupName =
+      new EIGroupName("com.example");
+    final var challenge =
+      this.client.groupCreateBegin(groupName);
+
+    assertEquals(groupName, challenge.groupName());
+
+    EIFakeServerDomainCheckServlet.RETURN_TOKEN =
+      Optional.of(challenge.token().value());
+
+    this.client.groupCreateReady(challenge.token());
+
+    /*
+     * Wait for everything to settle.
+     */
+
+    Thread.sleep(1_00L);
+
+    final var groups =
+      this.client.groups()
+        .current()
+        .items();
+
+    assertEquals(groupName, groups.get(0).group());
+    assertTrue(groups.get(0).roles().implies(FOUNDER));
+
+    final var requests =
+      this.client.groupCreateRequests()
+        .current()
+        .items();
+
+    assertEquals(1, requests.size());
+    assertEquals(EIGroupCreationRequestStatusType.Succeeded.class, requests.get(0).status().getClass());
+
+    this.checkAuditLog(
+      new AuditCheck("USER_LOGGED_IN", null),
+      new AuditCheck("GROUP_CREATION_REQUESTED", null),
+      new AuditCheck("GROUP_CREATION_REQUEST_SUCCEEDED", null),
+      new AuditCheck("GROUP_CREATED", "com.example")
+    );
+  }
+
+  /**
+   * Cancelling a group creation works.
+   *
+   * @throws Exception On errors
+   */
+
+  @Test
+  public void testGroupCreationCancel()
+    throws Exception
+  {
+    this.setupStandardUserAndLogIn();
+
+    final var groupName =
+      new EIGroupName("com.example");
+    final var challenge =
+      this.client.groupCreateBegin(groupName);
+
+    assertEquals(groupName, challenge.groupName());
+
+    EIFakeServerDomainCheckServlet.RETURN_TOKEN =
+      Optional.of(challenge.token().value());
+
+    this.client.groupCreateCancel(challenge.token());
+
+    /*
+     * Wait a second for everything to settle.
+     */
+
+    Thread.sleep(1_00L);
+
+    final var groups =
+      this.client.groups()
+        .current()
+        .items();
+
+    assertEquals(0, groups.size());
+
+    final var requests =
+      this.client.groupCreateRequests()
+        .current()
+        .items();
+
+    assertEquals(1, requests.size());
+    assertEquals(EIGroupCreationRequestStatusType.Cancelled.class, requests.get(0).status().getClass());
+
+    this.checkAuditLog(
+      new AuditCheck("USER_LOGGED_IN", null),
+      new AuditCheck("GROUP_CREATION_REQUESTED", null),
+      new AuditCheck("GROUP_CREATION_REQUEST_CANCELLED", null)
+    );
   }
 
   private void checkAuditLog(
@@ -129,7 +276,10 @@ public final class EIPikeTest extends EIWithServerContract
               check.message,
               event.message(),
               "[%d] message %s == event message %s"
-                .formatted(Integer.valueOf(index), check.message, event.message())
+                .formatted(
+                  Integer.valueOf(index),
+                  check.message,
+                  event.message())
             );
           }
         }

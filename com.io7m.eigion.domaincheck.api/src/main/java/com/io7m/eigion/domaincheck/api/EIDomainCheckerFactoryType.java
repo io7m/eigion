@@ -16,9 +16,6 @@
 
 package com.io7m.eigion.domaincheck.api;
 
-import java.net.http.HttpClient;
-import java.time.Clock;
-
 /**
  * A factory of domain checkers.
  */
@@ -26,23 +23,12 @@ import java.time.Clock;
 public interface EIDomainCheckerFactoryType
 {
   /**
-   * @return A new domain checker
-   */
-
-  default EIDomainCheckerType createChecker()
-  {
-    return this.createChecker(new EIDomainCheckerConfiguration(
-      Clock.systemUTC(),
-      HttpClient.newHttpClient()
-    ));
-  }
-
-  /**
    * @param configuration The configuration
    *
    * @return A new domain checker
    */
 
   EIDomainCheckerType createChecker(
-    EIDomainCheckerConfiguration configuration);
+    EIDomainCheckerConfiguration configuration
+  );
 }

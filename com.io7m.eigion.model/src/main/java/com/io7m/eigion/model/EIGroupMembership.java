@@ -17,32 +17,27 @@
 package com.io7m.eigion.model;
 
 import java.util.Objects;
-import java.util.UUID;
 
 /**
- * The given user has the given roles within a group.
+ * A set of roles within a group.
  *
- * @param userId The user ID
- * @param group  The group name
- * @param roles  The group roles
+ * @param group The group name
+ * @param roles The group roles
  */
 
 public record EIGroupMembership(
-  UUID userId,
   EIGroupName group,
   EIGroupRoleSet roles)
 {
   /**
-   * The given user has the given roles within a group.
+   * A set of roles within a group.
    *
-   * @param userId The user ID
-   * @param group  The group name
-   * @param roles  The group roles
+   * @param group The group name
+   * @param roles The group roles
    */
 
   public EIGroupMembership
   {
-    Objects.requireNonNull(userId, "userId");
     Objects.requireNonNull(group, "group");
     Objects.requireNonNull(roles, "roles");
   }

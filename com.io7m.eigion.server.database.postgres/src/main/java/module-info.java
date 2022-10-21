@@ -33,15 +33,16 @@ module com.io7m.eigion.server.database.postgres
 
   requires com.io7m.anethum.common;
   requires com.io7m.eigion.server.database.api;
+  requires com.io7m.jdeferthrow.core;
+  requires com.io7m.jqpage.core;
   requires com.io7m.trasco.api;
   requires com.io7m.trasco.vanilla;
   requires com.zaxxer.hikari;
+  requires io.opentelemetry.context;
+  requires io.opentelemetry.semconv;
   requires org.jooq;
   requires org.postgresql.jdbc;
   requires org.slf4j;
-  requires io.opentelemetry.semconv;
-  requires io.opentelemetry.context;
-  requires com.io7m.jqpage.core;
 
   provides EISDatabaseFactoryType
     with EISDatabases;

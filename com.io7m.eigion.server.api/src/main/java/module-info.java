@@ -25,6 +25,7 @@ module com.io7m.eigion.server.api
 
   requires transitive com.io7m.eigion.server.database.api;
 
+  requires java.net.http;
   requires com.fasterxml.jackson.databind;
   requires com.fasterxml.jackson.datatype.jsr310;
   requires com.fasterxml.jackson.datatype.jdk8;

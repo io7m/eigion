@@ -23,6 +23,7 @@ module com.io7m.eigion.domaincheck.api
   requires static org.osgi.annotation.bundle;
   requires static org.osgi.annotation.versioning;
 
+  requires transitive io.opentelemetry.api;
   requires transitive com.io7m.eigion.model;
   requires transitive java.net.http;
 

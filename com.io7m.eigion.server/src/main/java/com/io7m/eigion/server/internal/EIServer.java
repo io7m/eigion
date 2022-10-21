@@ -17,6 +17,8 @@
 
 package com.io7m.eigion.server.internal;
 
+import com.io7m.eigion.domaincheck.EIDomainCheckers;
+import com.io7m.eigion.domaincheck.api.EIDomainCheckerConfiguration;
 import com.io7m.eigion.protocol.amberjack.cb.EIAJCB1Messages;
 import com.io7m.eigion.protocol.pike.cb.EIPCB1Messages;
 import com.io7m.eigion.server.api.EIServerConfiguration;
@@ -339,6 +341,17 @@ public final class EIServer implements EIServerType
     newServices.register(EISP1Sends.class, new EISP1Sends(pcb1Messages));
 
     newServices.register(EISRequestLimits.class, new EISRequestLimits(strings));
+
+    final var checkers = new EIDomainCheckers();
+    final var checker =
+      checkers.createChecker(new EIDomainCheckerConfiguration(
+        this.telemetry.openTelemetry(),
+        this.configuration.clock(),
+        this.configuration.httpClients().get()
+      ));
+
+    final var domainChecking = new EISDomainChecking(this.database, checker);
+    newServices.register(EISDomainChecking.class, domainChecking);
 
     final var idstoreClients =
       EISIdstoreClients.create(

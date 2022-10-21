@@ -16,42 +16,60 @@
 
 package com.io7m.eigion.server.database.postgres.internal;
 
+import com.io7m.eigion.model.EIGroupCreationRequest;
+import com.io7m.eigion.model.EIGroupCreationRequestSearchParameters;
+import com.io7m.eigion.model.EIGroupCreationRequestStatusType;
 import com.io7m.eigion.model.EIGroupMembership;
+import com.io7m.eigion.model.EIGroupMembershipWithUser;
 import com.io7m.eigion.model.EIGroupName;
 import com.io7m.eigion.model.EIGroupPrefix;
 import com.io7m.eigion.model.EIGroupRole;
-import com.io7m.eigion.model.EIGroupRoleSet;
 import com.io7m.eigion.model.EIGroupSearchByNameParameters;
-import com.io7m.eigion.model.EIPage;
+import com.io7m.eigion.model.EIToken;
 import com.io7m.eigion.server.database.api.EISDatabaseException;
-import com.io7m.eigion.server.database.api.EISDatabaseGroupByNameSearchType;
-import com.io7m.eigion.server.database.api.EISDatabaseGroupRolesSearchType;
+import com.io7m.eigion.server.database.api.EISDatabaseGroupsPagedQueryType;
 import com.io7m.eigion.server.database.api.EISDatabaseGroupsQueriesType;
-import com.io7m.eigion.server.database.api.EISDatabasePagedQueryType;
+import com.io7m.eigion.server.database.postgres.internal.tables.records.GroupsCreationRequestsRecord;
 import com.io7m.jqpage.core.JQField;
-import com.io7m.jqpage.core.JQKeysetRandomAccessPageDefinition;
 import com.io7m.jqpage.core.JQKeysetRandomAccessPagination;
 import com.io7m.jqpage.core.JQOrder;
 import org.jooq.Condition;
+import org.jooq.Record;
 import org.jooq.exception.DataAccessException;
 import org.jooq.impl.DSL;
 
+import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static com.io7m.eigion.error_codes.EIStandardErrorCodes.GROUP_DUPLICATE;
 import static com.io7m.eigion.error_codes.EIStandardErrorCodes.GROUP_NONEXISTENT;
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.GROUP_REQUEST_DUPLICATE;
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.GROUP_REQUEST_NONEXISTENT;
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.GROUP_REQUEST_WRONG_USER;
+import static com.io7m.eigion.model.EIGroupCreationRequestStatusType.Cancelled;
+import static com.io7m.eigion.model.EIGroupCreationRequestStatusType.Failed;
+import static com.io7m.eigion.model.EIGroupCreationRequestStatusType.InProgress;
+import static com.io7m.eigion.model.EIGroupCreationRequestStatusType.NAME_CANCELLED;
+import static com.io7m.eigion.model.EIGroupCreationRequestStatusType.NAME_FAILED;
+import static com.io7m.eigion.model.EIGroupCreationRequestStatusType.NAME_IN_PROGRESS;
+import static com.io7m.eigion.model.EIGroupCreationRequestStatusType.NAME_SUCCEEDED;
+import static com.io7m.eigion.model.EIGroupCreationRequestStatusType.Succeeded;
 import static com.io7m.eigion.server.database.postgres.internal.EISDatabaseExceptions.DEFAULT_HANDLER;
 import static com.io7m.eigion.server.database.postgres.internal.EISDatabaseExceptions.handleDatabaseException;
 import static com.io7m.eigion.server.database.postgres.internal.EISDatabaseUsersQueries.USER_DOES_NOT_EXIST;
 import static com.io7m.eigion.server.database.postgres.internal.Tables.AUDIT;
 import static com.io7m.eigion.server.database.postgres.internal.Tables.GROUPS;
+import static com.io7m.eigion.server.database.postgres.internal.Tables.GROUPS_CREATION_REQUESTS;
 import static com.io7m.eigion.server.database.postgres.internal.Tables.GROUP_ROLES;
+import static com.io7m.eigion.server.database.postgres.internal.enums.GroupCreationRequestStatusT.CANCELLED;
+import static com.io7m.eigion.server.database.postgres.internal.enums.GroupCreationRequestStatusT.FAILED;
+import static com.io7m.eigion.server.database.postgres.internal.enums.GroupCreationRequestStatusT.IN_PROGRESS;
+import static com.io7m.eigion.server.database.postgres.internal.enums.GroupCreationRequestStatusT.SUCCEEDED;
 import static io.opentelemetry.semconv.trace.attributes.SemanticAttributes.DB_STATEMENT;
 import static java.lang.Boolean.FALSE;
 import static java.lang.Boolean.TRUE;
@@ -79,16 +97,6 @@ final class EISDatabaseGroupsQueries
       ++index;
     }
     return results;
-  }
-
-  private static EIGroupRoleSet groupRolesFromIntegers(
-    final Integer[] integers)
-  {
-    return EIGroupRoleSet.of(
-      Stream.of(integers)
-        .map(i -> EIGroupRole.ofIndex(i.intValue()))
-        .collect(Collectors.toUnmodifiableSet())
-    );
   }
 
   private static Optional<EISDatabaseException> handleGroupCreationFailure(
@@ -277,7 +285,7 @@ final class EISDatabaseGroupsQueries
   }
 
   @Override
-  public EISDatabasePagedQueryType<EISDatabaseGroupsQueriesType, EIGroupMembership> groupRoles(
+  public EISDatabaseGroupsPagedQueryType<EIGroupMembershipWithUser> groupRoles(
     final EIGroupName name,
     final long limit)
     throws EISDatabaseException
@@ -315,7 +323,7 @@ final class EISDatabaseGroupsQueries
           }
         );
 
-      return new GroupRolesSearch(pages);
+      return new EISGroupRolesSearch(pages);
     } catch (final DataAccessException e) {
       querySpan.recordException(e);
       throw handleDatabaseException(this.transaction(), e, DEFAULT_HANDLER);
@@ -325,7 +333,7 @@ final class EISDatabaseGroupsQueries
   }
 
   @Override
-  public EISDatabasePagedQueryType<EISDatabaseGroupsQueriesType, EIGroupName>
+  public EISDatabaseGroupsPagedQueryType<EIGroupName>
   groupSearchByName(
     final EIGroupSearchByNameParameters parameters)
     throws EISDatabaseException
@@ -361,7 +369,7 @@ final class EISDatabaseGroupsQueries
           }
         );
 
-      return new GroupByNameSearch(pages);
+      return new EISGroupByNameSearch(pages);
     } catch (final DataAccessException e) {
       querySpan.recordException(e);
       throw handleDatabaseException(this.transaction(), e, DEFAULT_HANDLER);
@@ -370,113 +378,454 @@ final class EISDatabaseGroupsQueries
     }
   }
 
-  private static final class GroupRolesSearch
-    extends EISAbstractSearch<EISDatabaseGroupsQueries, EISDatabaseGroupsQueriesType, EIGroupMembership>
-    implements EISDatabaseGroupRolesSearchType
+  @Override
+  public void groupCreationRequestStart(
+    final EIGroupCreationRequest request)
+    throws EISDatabaseException
   {
-    GroupRolesSearch(
-      final List<JQKeysetRandomAccessPageDefinition> inPages)
-    {
-      super(inPages);
-    }
+    Objects.requireNonNull(request, "request");
 
-    @Override
-    protected EIPage<EIGroupMembership> page(
-      final EISDatabaseGroupsQueries queries,
-      final JQKeysetRandomAccessPageDefinition page)
-      throws EISDatabaseException
-    {
-      final var transaction =
-        queries.transaction();
-      final var context =
-        transaction.createContext();
+    final var transaction =
+      this.transaction();
+    final var context =
+      transaction.createContext();
+    final var querySpan =
+      transaction.createQuerySpan(
+        "EISDatabaseGroupsQueries.groupCreationRequestStart");
 
-      final var querySpan =
-        transaction.createQuerySpan(
-          "EISDatabaseGroupsQueries.groupRoles.page");
+    try {
+      final var userId =
+        request.userFounder();
+      final var groupName =
+        request.groupName();
+      final var token =
+        request.token();
 
-      try {
-        final var select =
-          page.queryFields(context, List.of(
-            GROUPS.NAME,
-            GROUP_ROLES.ROLES,
-            GROUP_ROLES.USER_ID
-          ));
+      final var timeNow = this.currentTime();
+      context.insertInto(GROUPS_CREATION_REQUESTS)
+        .set(GROUPS_CREATION_REQUESTS.CREATED, timeNow)
+        .set(GROUPS_CREATION_REQUESTS.CREATOR_USER, userId)
+        .set(GROUPS_CREATION_REQUESTS.GROUP_NAME, groupName.value())
+        .set(GROUPS_CREATION_REQUESTS.GROUP_TOKEN, token.value())
+        .set(GROUPS_CREATION_REQUESTS.STATUS, IN_PROGRESS.getLiteral())
+        .set(GROUPS_CREATION_REQUESTS.MESSAGE, "")
+        .execute();
 
-        querySpan.setAttribute(DB_STATEMENT, select.toString());
+      context.insertInto(AUDIT)
+        .set(AUDIT.TIME, timeNow)
+        .set(AUDIT.TYPE, "GROUP_CREATION_REQUESTED")
+        .set(AUDIT.USER_ID, userId)
+        .set(AUDIT.MESSAGE, "%s|%s".formatted(groupName, token))
+        .execute();
 
-        final var items =
-          select.fetch().map(record -> {
-            return new EIGroupMembership(
-              record.get(GROUP_ROLES.USER_ID),
-              new EIGroupName(record.get(GROUPS.NAME)),
-              groupRolesFromIntegers(record.get(GROUP_ROLES.ROLES))
-            );
-          });
-
-        return new EIPage<>(
-          items,
-          (int) page.index(),
-          this.pageCount(),
-          page.firstOffset()
-        );
-      } catch (final DataAccessException e) {
-        querySpan.recordException(e);
-        throw handleDatabaseException(transaction, e, DEFAULT_HANDLER);
-      } finally {
-        querySpan.end();
-      }
+    } catch (final DataAccessException e) {
+      querySpan.recordException(e);
+      throw handleDatabaseException(
+        this.transaction(),
+        e,
+        EISDatabaseGroupsQueries::handleGroupCreationRequestStartFailure
+      );
+    } finally {
+      querySpan.end();
     }
   }
 
-  private static final class GroupByNameSearch
-    extends EISAbstractSearch<EISDatabaseGroupsQueries, EISDatabaseGroupsQueriesType, EIGroupName>
-    implements EISDatabaseGroupByNameSearchType
+  private static Optional<EISDatabaseException>
+  handleGroupCreationRequestStartFailure(
+    final DataAccessException ex)
   {
-    GroupByNameSearch(
-      final List<JQKeysetRandomAccessPageDefinition> inPages)
-    {
-      super(inPages);
+    final var state = ex.sqlState();
+    if (Objects.equals(state, FOREIGN_KEY_VIOLATION.getState())) {
+      if (ex.getMessage().contains("groups_creation_requests_creator_user_fkey")) {
+        return Optional.of(USER_DOES_NOT_EXIST.get());
+      }
     }
 
-    @Override
-    protected EIPage<EIGroupName> page(
-      final EISDatabaseGroupsQueries queries,
-      final JQKeysetRandomAccessPageDefinition page)
-      throws EISDatabaseException
-    {
-      final var transaction =
-        queries.transaction();
-      final var context =
-        transaction.createContext();
-
-      final var querySpan =
-        transaction.createQuerySpan(
-          "EISDatabaseGroupsQueries.groupSearchByName.page");
-
-      try {
-        final var select =
-          page.queryFields(context, List.of(GROUPS.NAME));
-
-        querySpan.setAttribute(DB_STATEMENT, select.toString());
-
-        final var items =
-          select.fetch().map(record -> {
-            return new EIGroupName(record.get(GROUPS.NAME));
-          });
-
-        return new EIPage<>(
-          items,
-          (int) page.index(),
-          this.pageCount(),
-          page.firstOffset()
+    if (Objects.equals(state, UNIQUE_VIOLATION.getState())) {
+      if (ex.getMessage().contains("groups_creation_requests_pkey")) {
+        return Optional.of(
+          new EISDatabaseException(
+            "Duplicate group request.", ex, GROUP_REQUEST_DUPLICATE)
         );
-      } catch (final DataAccessException e) {
-        querySpan.recordException(e);
-        throw handleDatabaseException(transaction, e, DEFAULT_HANDLER);
-      } finally {
-        querySpan.end();
       }
+    }
+
+    return Optional.empty();
+  }
+
+  @Override
+  public List<EIGroupCreationRequest> groupCreationRequestsForUser(
+    final UUID userId)
+    throws EISDatabaseException
+  {
+    Objects.requireNonNull(userId, "userId");
+
+    final var transaction =
+      this.transaction();
+    final var context =
+      transaction.createContext();
+    final var querySpan =
+      transaction.createQuerySpan(
+        "EISDatabaseGroupsQueries.groupCreationRequestsForUser");
+
+    try {
+      return context.selectFrom(GROUPS_CREATION_REQUESTS)
+        .where(GROUPS_CREATION_REQUESTS.CREATOR_USER.eq(userId))
+        .orderBy(GROUPS_CREATION_REQUESTS.CREATED)
+        .stream()
+        .map(EISDatabaseGroupsQueries::mapCreationRequestRecord)
+        .toList();
+    } catch (final DataAccessException e) {
+      querySpan.recordException(e);
+      throw handleDatabaseException(this.transaction(), e, DEFAULT_HANDLER);
+    } finally {
+      querySpan.end();
+    }
+  }
+
+  @Override
+  public EISDatabaseGroupsPagedQueryType<EIGroupCreationRequest> groupCreationRequestsSearch(
+    final EIGroupCreationRequestSearchParameters parameters)
+    throws EISDatabaseException
+  {
+    Objects.requireNonNull(parameters, "parameters");
+
+    final var transaction =
+      this.transaction();
+    final var context =
+      transaction.createContext();
+    final var querySpan =
+      transaction.createQuerySpan(
+        "EISDatabaseGroupsQueries.groupCreationRequestsSearch.create");
+
+    try {
+      final var conditions = new ArrayList<Condition>();
+      parameters.owner().ifPresent(GROUPS_CREATION_REQUESTS.CREATOR_USER::eq);
+
+      final var pages =
+        JQKeysetRandomAccessPagination.createPageDefinitions(
+          context,
+          GROUPS_CREATION_REQUESTS,
+          List.of(
+            new JQField(GROUPS_CREATION_REQUESTS.CREATED, JQOrder.ASCENDING)
+          ),
+          conditions,
+          List.of(),
+          1000L,
+          statement -> {
+            querySpan.setAttribute(DB_STATEMENT, statement.toString());
+          }
+        );
+
+      return new EISGroupCreationRequestsForUserSearch(pages);
+    } catch (final DataAccessException e) {
+      querySpan.recordException(e);
+      throw handleDatabaseException(this.transaction(), e, DEFAULT_HANDLER);
+    } finally {
+      querySpan.end();
+    }
+  }
+
+  static EIGroupCreationRequestStatusType mapStatus(
+    final Record rec)
+  {
+    final var started =
+      rec.get(GROUPS_CREATION_REQUESTS.CREATED);
+
+    final var statusName = rec.get(GROUPS_CREATION_REQUESTS.STATUS);
+    return switch (statusName) {
+      case NAME_FAILED -> {
+        yield new Failed(
+          started,
+          rec.get(GROUPS_CREATION_REQUESTS.COMPLETED),
+          rec.get(GROUPS_CREATION_REQUESTS.MESSAGE)
+        );
+      }
+      case NAME_SUCCEEDED -> {
+        yield new Succeeded(
+          started,
+          rec.get(GROUPS_CREATION_REQUESTS.COMPLETED)
+        );
+      }
+      case NAME_IN_PROGRESS -> {
+        yield new InProgress(
+          started
+        );
+      }
+      case NAME_CANCELLED -> {
+        yield new Cancelled(
+          started,
+          rec.get(GROUPS_CREATION_REQUESTS.COMPLETED)
+        );
+      }
+      default -> throw new IllegalStateException(
+        "Unrecognized status: %s".formatted(statusName)
+      );
+    };
+  }
+
+  private static EIGroupCreationRequest mapCreationRequestRecord(
+    final Record rec)
+  {
+    return new EIGroupCreationRequest(
+      new EIGroupName(rec.get(GROUPS_CREATION_REQUESTS.GROUP_NAME)),
+      rec.get(GROUPS_CREATION_REQUESTS.CREATOR_USER),
+      new EIToken(rec.get(GROUPS_CREATION_REQUESTS.GROUP_TOKEN)),
+      mapStatus(rec)
+    );
+  }
+
+  @Override
+  public List<EIGroupCreationRequest> groupCreationRequestsObsolete()
+    throws EISDatabaseException
+  {
+    final var transaction =
+      this.transaction();
+    final var context =
+      transaction.createContext();
+    final var querySpan =
+      transaction.createQuerySpan(
+        "EISDatabaseGroupsQueries.groupCreationRequestsObsolete");
+
+    try {
+      return context.selectFrom(
+          GROUPS_CREATION_REQUESTS.join(GROUPS)
+            .on(GROUPS_CREATION_REQUESTS.GROUP_NAME.eq(GROUPS.NAME)))
+        .where(GROUPS_CREATION_REQUESTS.COMPLETED.isNull())
+        .orderBy(GROUPS_CREATION_REQUESTS.CREATED)
+        .stream()
+        .map(EISDatabaseGroupsQueries::mapCreationRequestRecord)
+        .toList();
+    } catch (final DataAccessException e) {
+      querySpan.recordException(e);
+      throw handleDatabaseException(this.transaction(), e, DEFAULT_HANDLER);
+    } finally {
+      querySpan.end();
+    }
+  }
+
+  @Override
+  public List<EIGroupCreationRequest> groupCreationRequestsActive()
+    throws EISDatabaseException
+  {
+    final var transaction =
+      this.transaction();
+    final var context =
+      transaction.createContext();
+    final var querySpan =
+      transaction.createQuerySpan(
+        "EISDatabaseGroupsQueries.groupCreationRequestsActive");
+
+    try {
+      return context.selectFrom(
+          GROUPS_CREATION_REQUESTS
+            .leftAntiJoin(GROUPS)
+            .on(GROUPS_CREATION_REQUESTS.GROUP_NAME.eq(GROUPS.NAME))
+        ).where(GROUPS_CREATION_REQUESTS.COMPLETED.isNull())
+        .orderBy(GROUPS_CREATION_REQUESTS.CREATED)
+        .stream()
+        .map(EISDatabaseGroupsQueries::mapCreationRequestRecord)
+        .toList();
+    } catch (final DataAccessException e) {
+      querySpan.recordException(e);
+      throw handleDatabaseException(this.transaction(), e, DEFAULT_HANDLER);
+    } finally {
+      querySpan.end();
+    }
+  }
+
+  @Override
+  public Optional<EIGroupCreationRequest> groupCreationRequest(
+    final EIToken token)
+    throws EISDatabaseException
+  {
+    final var transaction =
+      this.transaction();
+    final var context =
+      transaction.createContext();
+    final var querySpan =
+      transaction.createQuerySpan(
+        "EISDatabaseGroupsQueries.groupCreationRequest");
+
+    try {
+      return context.selectFrom(GROUPS_CREATION_REQUESTS)
+        .where(GROUPS_CREATION_REQUESTS.GROUP_TOKEN.eq(token.value()))
+        .fetchOptional()
+        .map(EISDatabaseGroupsQueries::mapCreationRequestRecord);
+    } catch (final DataAccessException e) {
+      querySpan.recordException(e);
+      throw handleDatabaseException(this.transaction(), e, DEFAULT_HANDLER);
+    } finally {
+      querySpan.end();
+    }
+  }
+
+  private static void checkUserForRequest(
+    final UUID userId,
+    final GroupsCreationRequestsRecord existing)
+    throws EISDatabaseException
+  {
+    final var requestUser =
+      existing.get(GROUPS_CREATION_REQUESTS.CREATOR_USER);
+
+    if (!Objects.equals(requestUser, userId)) {
+      throw new EISDatabaseException(
+        "Group request not owned by this user",
+        GROUP_REQUEST_WRONG_USER
+      );
+    }
+  }
+
+  @Override
+  public void groupCreationRequestComplete(
+    final EIGroupCreationRequest request)
+    throws EISDatabaseException
+  {
+    final var transaction =
+      this.transaction();
+    final var context =
+      transaction.createContext();
+    final var querySpan =
+      transaction.createQuerySpan(
+        "EISDatabaseGroupsQueries.groupCreationRequestComplete");
+
+    try {
+      final var userId = request.userFounder();
+      final var groupName = request.groupName();
+      final var token = request.token();
+
+      final var existing =
+        context.fetchOptional(
+            GROUPS_CREATION_REQUESTS,
+            GROUPS_CREATION_REQUESTS.GROUP_TOKEN.eq(token.value())
+              .and(GROUPS_CREATION_REQUESTS.GROUP_NAME.eq(groupName.value())))
+          .orElseThrow(() -> new EISDatabaseException(
+            "Group request does not exist",
+            GROUP_REQUEST_NONEXISTENT
+          ));
+
+      checkUserForRequest(userId, existing);
+
+      final var status = request.status();
+      if (status instanceof InProgress) {
+        existing.set(
+          GROUPS_CREATION_REQUESTS.STATUS,
+          IN_PROGRESS.getLiteral());
+        existing.store();
+        return;
+      }
+
+      if (status instanceof Cancelled cancelled) {
+        existing.set(GROUPS_CREATION_REQUESTS.STATUS, CANCELLED.getLiteral());
+        existing.set(
+          GROUPS_CREATION_REQUESTS.COMPLETED,
+          cancelled.timeCompletedValue());
+        existing.set(GROUPS_CREATION_REQUESTS.MESSAGE, "");
+        existing.store();
+
+        context.insertInto(AUDIT)
+          .set(AUDIT.TIME, this.currentTime())
+          .set(AUDIT.TYPE, "GROUP_CREATION_REQUEST_CANCELLED")
+          .set(AUDIT.USER_ID, userId)
+          .set(AUDIT.MESSAGE, "%s|%s".formatted(groupName, token))
+          .execute();
+        return;
+      }
+
+      if (status instanceof Failed failed) {
+        existing.set(GROUPS_CREATION_REQUESTS.STATUS, FAILED.getLiteral());
+        existing.set(
+          GROUPS_CREATION_REQUESTS.COMPLETED,
+          failed.timeCompletedValue());
+        existing.set(GROUPS_CREATION_REQUESTS.MESSAGE, failed.message());
+        existing.store();
+
+        context.insertInto(AUDIT)
+          .set(AUDIT.TIME, this.currentTime())
+          .set(AUDIT.TYPE, "GROUP_CREATION_REQUEST_FAILED")
+          .set(AUDIT.USER_ID, userId)
+          .set(AUDIT.MESSAGE, "%s|%s".formatted(groupName, token))
+          .execute();
+        return;
+      }
+
+      if (status instanceof Succeeded succeeded) {
+        existing.set(GROUPS_CREATION_REQUESTS.STATUS, SUCCEEDED.getLiteral());
+        existing.set(
+          GROUPS_CREATION_REQUESTS.COMPLETED,
+          succeeded.timeCompletedValue());
+        existing.set(GROUPS_CREATION_REQUESTS.MESSAGE, "");
+        existing.store();
+
+        context.insertInto(AUDIT)
+          .set(AUDIT.TIME, this.currentTime())
+          .set(AUDIT.TYPE, "GROUP_CREATION_REQUEST_SUCCEEDED")
+          .set(AUDIT.USER_ID, userId)
+          .set(AUDIT.MESSAGE, "%s|%s".formatted(groupName, token))
+          .execute();
+
+        final var groupOpt =
+          context.selectFrom(GROUPS)
+            .where(GROUPS.NAME.eq(groupName.value()))
+            .fetchOptional();
+
+        if (groupOpt.isEmpty()) {
+          this.groupCreate(
+            userId, groupName);
+          this.groupUserUpdate(
+            groupName, userId, EnumSet.allOf(EIGroupRole.class));
+        }
+      }
+    } catch (final DataAccessException e) {
+      querySpan.recordException(e);
+      throw handleDatabaseException(this.transaction(), e, DEFAULT_HANDLER);
+    } finally {
+      querySpan.end();
+    }
+  }
+
+  @Override
+  public EISDatabaseGroupsPagedQueryType<EIGroupMembership> groupUserRoles(
+    final UUID userId)
+    throws EISDatabaseException
+  {
+    Objects.requireNonNull(userId, "userId");
+
+    final var transaction =
+      this.transaction();
+    final var context =
+      transaction.createContext();
+    final var querySpan =
+      transaction.createQuerySpan(
+        "EISDatabaseGroupsQueries.groupUserRoles.create");
+
+    try {
+      final var table =
+        GROUPS.join(GROUP_ROLES).on(GROUPS.ID.eq(GROUP_ROLES.GROUP_ID));
+
+      final var pages =
+        JQKeysetRandomAccessPagination.createPageDefinitions(
+          context,
+          table,
+          List.of(
+            new JQField(GROUPS.NAME, JQOrder.ASCENDING)
+          ),
+          List.of(
+            DSL.condition(GROUP_ROLES.USER_ID.eq(userId))
+          ),
+          List.of(),
+          1000L,
+          statement -> {
+            querySpan.setAttribute(DB_STATEMENT, statement.toString());
+          }
+        );
+
+      return new EISGroupUserRolesSearch(pages);
+    } catch (final DataAccessException e) {
+      querySpan.recordException(e);
+      throw handleDatabaseException(this.transaction(), e, DEFAULT_HANDLER);
+    } finally {
+      querySpan.end();
     }
   }
 }

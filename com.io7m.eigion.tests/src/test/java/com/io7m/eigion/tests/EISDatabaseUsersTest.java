@@ -20,7 +20,6 @@ package com.io7m.eigion.tests;
 import com.io7m.eigion.model.EIPermissionSet;
 import com.io7m.eigion.model.EIUser;
 import com.io7m.eigion.server.database.api.EISDatabaseUsersQueriesType;
-import org.checkerframework.checker.units.qual.A;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -28,7 +27,6 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-import java.util.Map;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;

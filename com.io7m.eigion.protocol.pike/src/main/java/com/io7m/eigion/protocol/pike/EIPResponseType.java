@@ -25,6 +25,11 @@ import java.util.UUID;
 
 public sealed interface EIPResponseType extends EIPMessageType
   permits EIPResponseError,
+  EIPResponseGroupCreateBegin,
+  EIPResponseGroupCreateCancel,
+  EIPResponseGroupCreateReady,
+  EIPResponseGroupCreateRequests,
+  EIPResponseGroups,
   EIPResponseLogin
 {
   /**

@@ -16,6 +16,8 @@
 
 package com.io7m.eigion.domaincheck.api;
 
+import io.opentelemetry.api.OpenTelemetry;
+
 import java.net.http.HttpClient;
 import java.time.Clock;
 import java.util.Objects;
@@ -23,23 +25,27 @@ import java.util.Objects;
 /**
  * The domain checker configuration.
  *
- * @param clock      A clock used for time-based operations
- * @param httpClient The HTTP client used for requests
+ * @param openTelemetry A tracer for telemetry
+ * @param clock         A clock used for time-based operations
+ * @param httpClient    The HTTP client used for requests
  */
 
 public record EIDomainCheckerConfiguration(
+  OpenTelemetry openTelemetry,
   Clock clock,
   HttpClient httpClient)
 {
   /**
    * The domain checker configuration.
    *
-   * @param clock      A clock used for time-based operations
-   * @param httpClient The HTTP client used for requests
+   * @param openTelemetry A tracer for telemetry
+   * @param clock         A clock used for time-based operations
+   * @param httpClient    The HTTP client used for requests
    */
 
   public EIDomainCheckerConfiguration
   {
+    Objects.requireNonNull(openTelemetry, "openTelemetry");
     Objects.requireNonNull(clock, "clock");
     Objects.requireNonNull(httpClient, "client");
   }

@@ -25,7 +25,16 @@ package com.io7m.eigion.protocol.pike;
 
 public sealed interface EIPCommandType<R extends EIPResponseType>
   extends EIPMessageType
-  permits EIPCommandLogin
+  permits EIPCommandGroupCreateBegin,
+  EIPCommandGroupCreateCancel,
+  EIPCommandGroupCreateReady,
+  EIPCommandGroupCreateRequestsBegin,
+  EIPCommandGroupCreateRequestsNext,
+  EIPCommandGroupCreateRequestsPrevious,
+  EIPCommandGroupsBegin,
+  EIPCommandGroupsNext,
+  EIPCommandGroupsPrevious,
+  EIPCommandLogin
 {
 
 }

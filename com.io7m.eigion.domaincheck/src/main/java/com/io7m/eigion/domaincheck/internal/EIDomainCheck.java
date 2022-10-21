@@ -21,6 +21,9 @@ import com.io7m.eigion.model.EIGroupCreationRequest;
 import com.io7m.eigion.model.EIGroupCreationRequestStatusType.Failed;
 import com.io7m.eigion.model.EIGroupCreationRequestStatusType.Succeeded;
 import com.io7m.jdeferthrow.core.ExceptionTracker;
+import io.opentelemetry.api.trace.Span;
+import io.opentelemetry.api.trace.SpanKind;
+import io.opentelemetry.api.trace.Tracer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -28,6 +31,8 @@ import org.slf4j.MDC;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.net.URI;
+import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.OffsetDateTime;
@@ -48,6 +53,7 @@ public final class EIDomainCheck implements Runnable
 
   private final EIDomainCheckerConfiguration configuration;
   private final EIGroupCreationRequest request;
+  private final Tracer tracer;
   private final CompletableFuture<EIGroupCreationRequest> future;
 
   /**
@@ -55,18 +61,22 @@ public final class EIDomainCheck implements Runnable
    *
    * @param inConfiguration The configuration
    * @param inRequest       The request
+   * @param inTracer        The telemetry tracer
    * @param inFuture        The future representing the operation in progress
    */
 
   public EIDomainCheck(
     final EIDomainCheckerConfiguration inConfiguration,
     final EIGroupCreationRequest inRequest,
+    final Tracer inTracer,
     final CompletableFuture<EIGroupCreationRequest> inFuture)
   {
     this.configuration =
       Objects.requireNonNull(inConfiguration, "inConfiguration");
     this.request =
       Objects.requireNonNull(inRequest, "request");
+    this.tracer =
+      Objects.requireNonNull(inTracer, "tracer");
     this.future =
       Objects.requireNonNull(inFuture, "future");
   }
@@ -84,13 +94,30 @@ public final class EIDomainCheck implements Runnable
   private EIGroupCreationRequest check()
     throws InterruptedException
   {
+    final var span =
+      this.tracer.spanBuilder("DomainCheck")
+        .setSpanKind(SpanKind.CLIENT)
+        .setAttribute("DOMAIN_CHECK_GROUP", this.request.groupName().value())
+        .setAttribute("DOMAIN_CHECK_TOKEN", this.request.token().value())
+        .startSpan();
+
+    try (var ignored = span.makeCurrent()) {
+      return this.checkAll(span);
+    } finally {
+      span.end();
+    }
+  }
+
+  private EIGroupCreationRequest checkAll(
+    final Span span)
+    throws InterruptedException
+  {
     try {
       MDC.put("group-check-group", this.request.groupName().value());
       MDC.put("group-check-token", this.request.token().value());
 
       final var client =
         this.configuration.httpClient();
-
       final var tokenExpected =
         this.request.token().value().getBytes(UTF_8);
       final var tokenReceived =
@@ -98,42 +125,23 @@ public final class EIDomainCheck implements Runnable
 
       final var exceptions = new ExceptionTracker<Exception>();
       for (final var requestURI : this.request.verificationURIs()) {
-        try {
-          MDC.put("group-check-domain", requestURI.toString());
-
-          final var httpRequest =
-            HttpRequest.newBuilder(requestURI)
-              .GET()
-              .build();
-
-          LOG.debug("sending request");
-          final var response =
-            client.send(httpRequest, HttpResponse.BodyHandlers.ofInputStream());
-
-          final var statusCode = response.statusCode();
-          LOG.debug("status {}", Integer.valueOf(statusCode));
-          if (statusCode >= 400) {
-            throw new IOException("%s: %d".formatted(requestURI, statusCode));
-          }
-
-          try (var stream = response.body()) {
-            stream.readNBytes(tokenReceived, 0, tokenReceived.length);
-          }
-
-          LOG.debug("checking");
-          if (Arrays.equals(tokenExpected, tokenReceived)) {
-            return this.success();
-          }
-
-          return this.failedDueToTokenMismatch(tokenExpected, tokenReceived);
-        } catch (final IOException e) {
-          exceptions.addException(e);
+        final var success =
+          this.checkOneURI(
+            client,
+            tokenExpected,
+            tokenReceived,
+            exceptions,
+            requestURI
+          );
+        if (success != null) {
+          return success;
         }
       }
 
       try {
         exceptions.throwIfNecessary();
       } catch (final Exception e) {
+        span.recordException(e);
         return this.failedDueToException(e);
       }
 
@@ -142,6 +150,59 @@ public final class EIDomainCheck implements Runnable
       MDC.remove("group-check-domain");
       MDC.remove("group-check-domain");
       MDC.remove("group-check-token");
+    }
+  }
+
+  private EIGroupCreationRequest checkOneURI(
+    final HttpClient client,
+    final byte[] tokenExpected,
+    final byte[] tokenReceived,
+    final ExceptionTracker<Exception> exceptions,
+    final URI requestURI)
+    throws InterruptedException
+  {
+    final var span =
+      this.tracer.spanBuilder("DomainCheck.URI")
+        .setSpanKind(SpanKind.CLIENT)
+        .setAttribute("DOMAIN_CHECK_URI", requestURI.toString())
+        .startSpan();
+
+    try (var ignored = span.makeCurrent()) {
+      try {
+        MDC.put("group-check-domain", requestURI.toString());
+
+        final var httpRequest =
+          HttpRequest.newBuilder(requestURI)
+            .GET()
+            .build();
+
+        LOG.debug("sending request");
+        final var response =
+          client.send(httpRequest, HttpResponse.BodyHandlers.ofInputStream());
+
+        final var statusCode = response.statusCode();
+        LOG.debug("status {}", Integer.valueOf(statusCode));
+        if (statusCode >= 400) {
+          throw new IOException("%s: %d".formatted(requestURI, statusCode));
+        }
+
+        try (var stream = response.body()) {
+          stream.readNBytes(tokenReceived, 0, tokenReceived.length);
+        }
+
+        LOG.debug("checking");
+        if (Arrays.equals(tokenExpected, tokenReceived)) {
+          return this.success();
+        }
+
+        return this.failedDueToTokenMismatch(tokenExpected, tokenReceived);
+      } catch (final IOException e) {
+        span.recordException(e);
+        exceptions.addException(e);
+      }
+      return null;
+    } finally {
+      span.end();
     }
   }
 

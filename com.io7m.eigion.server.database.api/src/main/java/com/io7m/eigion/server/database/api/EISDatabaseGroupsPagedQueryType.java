@@ -17,14 +17,14 @@
 
 package com.io7m.eigion.server.database.api;
 
-import com.io7m.eigion.model.EIGroupName;
-
 /**
- * The type of group searches.
+ * The type of pages queries involving groups.
+ *
+ * @param <T> The type of values
  */
 
-public interface EISDatabaseGroupByNameSearchType
-  extends EISDatabasePagedQueryType<EISDatabaseGroupsQueriesType, EIGroupName>
+public interface EISDatabaseGroupsPagedQueryType<T>
+  extends EISDatabasePagedQueryType<EISDatabaseGroupsQueriesType, T>
 {
 
 }

@@ -35,12 +35,14 @@ import org.slf4j.LoggerFactory;
 import org.testcontainers.containers.PostgreSQLContainer;
 
 import java.net.URI;
+import java.net.http.HttpClient;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.TimeoutException;
+import java.util.function.Supplier;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -72,6 +74,7 @@ public final class EITestServer implements AutoCloseable
 
   private static EIServerConfiguration createConfiguration(
     final EIFakeClock clock,
+    final Supplier<HttpClient> httpClients,
     final PostgreSQLContainer<?> inContainer)
   {
     final var databaseConfiguration =
@@ -104,6 +107,7 @@ public final class EITestServer implements AutoCloseable
     return new EIServerConfiguration(
       Locale.getDefault(),
       clock,
+      httpClients,
       new EISDatabases(),
       databaseConfiguration,
       pikeService,
@@ -118,6 +122,7 @@ public final class EITestServer implements AutoCloseable
 
   public static EITestServer create(
     final PostgreSQLContainer<?> container,
+    final Supplier<HttpClient> httpClients,
     final EIFakeClock clock)
     throws Exception
   {
@@ -134,7 +139,7 @@ public final class EITestServer implements AutoCloseable
     assertEquals(0, r.getExitCode());
 
     final var configuration =
-      createConfiguration(clock, container);
+      createConfiguration(clock, httpClients, container);
     final var servers =
       new EIServerFactory();
     final var server =
