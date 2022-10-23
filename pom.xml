@@ -600,6 +600,17 @@
         <artifactId>com.io7m.genevan.core</artifactId>
         <version>${com.io7m.genevan.version}</version>
       </dependency>
+
+      <dependency>
+        <groupId>jakarta.xml.bind</groupId>
+        <artifactId>jakarta.xml.bind-api</artifactId>
+        <version>4.0.0</version>
+      </dependency>
+      <dependency>
+        <groupId>com.sun.xml.bind</groupId>
+        <artifactId>jaxb-impl</artifactId>
+        <version>4.0.1</version>
+      </dependency>
     </dependencies>
   </dependencyManagement>
 
@@ -612,6 +623,12 @@
           <configuration>
             <suppressionsLocation>checkstyle-filter.xml</suppressionsLocation>
           </configuration>
+        </plugin>
+
+        <plugin>
+          <groupId>org.codehaus.mojo</groupId>
+          <artifactId>jaxb2-maven-plugin</artifactId>
+          <version>3.1.0</version>
         </plugin>
       </plugins>
     </pluginManagement>

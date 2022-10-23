@@ -25,15 +25,14 @@ module com.io7m.eigion.server.api
 
   requires transitive com.io7m.eigion.server.database.api;
 
+  requires jakarta.xml.bind;
   requires java.net.http;
-  requires com.fasterxml.jackson.databind;
-  requires com.fasterxml.jackson.datatype.jsr310;
-  requires com.fasterxml.jackson.datatype.jdk8;
+  requires org.slf4j;
+
+  opens com.io7m.eigion.server.api.xml
+    to jakarta.xml.bind;
 
   uses com.io7m.eigion.server.database.api.EISDatabaseFactoryType;
-
-  opens com.io7m.eigion.server.api
-    to com.fasterxml.jackson.databind;
 
   exports com.io7m.eigion.server.api;
 }

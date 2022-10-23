@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<schema xmlns="http://www.w3.org/2001/XMLSchema"
+        targetNamespace="com.io7m.eigion:configuration:1"
+        xmlns:c="com.io7m.eigion:configuration:1">
+
+  <simpleType name="DatabaseKind">
+    <restriction base="string">
+      <enumeration value="POSTGRESQL"/>
+    </restriction>
+  </simpleType>
+
+  <element name="IdStore">
+    <complexType>
+      <attribute name="baseURI"
+                 type="anyURI"
+                 use="required"/>
+      <attribute name="passwordResetURI"
+                 type="anyURI"
+                 use="required"/>
+    </complexType>
+  </element>
+
+  <element name="OpenTelemetry">
+    <complexType>
+      <attribute name="logicalServiceName"
+                 type="string"
+                 use="required"/>
+      <attribute name="collectorAddress"
+                 type="anyURI"
+                 use="required"/>
+    </complexType>
+  </element>
+
+  <element name="Database">
+    <complexType>
+      <attribute name="kind"
+                 type="c:DatabaseKind"
+                 use="required"/>
+      <attribute name="user"
+                 type="string"
+                 use="required"/>
+      <attribute name="password"
+                 type="string"
+                 use="required"/>
+      <attribute name="databaseAddress"
+                 type="string"
+                 use="required"/>
+      <attribute name="databasePort"
+                 type="integer"
+                 use="required"/>
+      <attribute name="databaseName"
+                 type="string"
+                 use="required"/>
+      <attribute name="create"
+                 type="boolean"
+                 use="required"/>
+      <attribute name="upgrade"
+                 type="boolean"
+                 use="required"/>
+    </complexType>
+  </element>
+
+  <complexType name="HTTPService">
+    <attribute name="listenAddress"
+               type="string"
+               use="required"/>
+    <attribute name="listenPort"
+               type="integer"
+               use="required"/>
+    <attribute name="externalAddress"
+               type="anyURI"
+               use="required"/>
+    <attribute name="sessionExpiration"
+               type="duration"
+               use="optional"/>
+  </complexType>
+
+  <element name="AmberjackService"
+           type="c:HTTPService"/>
+
+  <element name="PikeService"
+           type="c:HTTPService"/>
+
+  <element name="Configuration">
+    <complexType>
+      <sequence>
+        <element ref="c:AmberjackService"/>
+        <element ref="c:PikeService"/>
+        <element ref="c:Database"/>
+        <element ref="c:IdStore"/>
+        <element ref="c:OpenTelemetry" minOccurs="0" maxOccurs="1"/>
+      </sequence>
+    </complexType>
+  </element>
+
+</schema>

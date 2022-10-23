@@ -16,45 +16,36 @@
 
 package com.io7m.eigion.server.api;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-
 import java.util.Objects;
 import java.util.Set;
 
 /**
  * Configuration for the parts of the server that serve over HTTP.
  *
- * @param adminAPIService  The admin API service
- * @param userAPIService   The user API service
+ * @param amberjackService The amberjack API service
+ * @param pikeService      The pike API service
  */
 
-@JsonDeserialize
-@JsonSerialize
 public record EIServerHTTPConfiguration(
-  @JsonProperty(value = "AdminAPIService", required = true)
-  EIServerHTTPServiceConfiguration adminAPIService,
-  @JsonProperty(value = "UserAPIService", required = true)
-  EIServerHTTPServiceConfiguration userAPIService)
-  implements EIServerJSONConfigurationElementType
+  EIServerHTTPServiceConfiguration amberjackService,
+  EIServerHTTPServiceConfiguration pikeService)
 {
   /**
    * Configuration for the parts of the server that serve over HTTP.
    *
-   * @param adminAPIService  The admin API service
-   * @param userAPIService   The user API service
+   * @param amberjackService The amberjack API service
+   * @param pikeService      The pike API service
    */
 
   public EIServerHTTPConfiguration
   {
-    Objects.requireNonNull(adminAPIService, "adminAPIService");
-    Objects.requireNonNull(userAPIService, "userAPIService");
+    Objects.requireNonNull(amberjackService, "adminAPIService");
+    Objects.requireNonNull(pikeService, "userAPIService");
 
     try {
       Set.of(
-        Integer.valueOf(adminAPIService.listenPort()),
-        Integer.valueOf(userAPIService.listenPort())
+        Integer.valueOf(amberjackService.listenPort()),
+        Integer.valueOf(pikeService.listenPort())
       );
     } catch (final IllegalArgumentException e) {
       throw new IllegalArgumentException(

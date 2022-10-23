@@ -130,8 +130,8 @@ public final class EIServerConfigurations
       clients,
       database,
       databaseConfiguration,
-      file.httpConfiguration().userAPIService(),
-      file.httpConfiguration().adminAPIService(),
+      file.httpConfiguration().pikeService(),
+      file.httpConfiguration().amberjackService(),
       file.idstoreConfiguration(),
       file.openTelemetry()
     );

@@ -16,11 +16,6 @@
 
 package com.io7m.eigion.server.api;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-
 import java.util.Objects;
 import java.util.Optional;
 
@@ -33,18 +28,11 @@ import java.util.Optional;
  * @param openTelemetry         The OpenTelemetry configuration
  */
 
-@JsonDeserialize
-@JsonSerialize
 public record EIServerConfigurationFile(
-  @JsonProperty(value = "HTTP", required = true)
   EIServerHTTPConfiguration httpConfiguration,
-  @JsonProperty(value = "Database", required = true)
   EIServerDatabaseConfiguration databaseConfiguration,
-  @JsonProperty(value = "Idstore", required = true)
   EIServerIdstoreConfiguration idstoreConfiguration,
-  @JsonProperty(value = "OpenTelemetry")
   Optional<EIServerOpenTelemetryConfiguration> openTelemetry)
-  implements EIServerJSONConfigurationElementType
 {
   /**
    * The server configuration file.
@@ -55,7 +43,6 @@ public record EIServerConfigurationFile(
    * @param openTelemetry         The OpenTelemetry configuration
    */
 
-  @JsonCreator
   public EIServerConfigurationFile
   {
     Objects.requireNonNull(httpConfiguration, "httpConfiguration");

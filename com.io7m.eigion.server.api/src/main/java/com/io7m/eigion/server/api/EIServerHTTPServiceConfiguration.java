@@ -16,11 +16,6 @@
 
 package com.io7m.eigion.server.api;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-
 import java.net.URI;
 import java.time.Duration;
 import java.util.Objects;
@@ -36,19 +31,11 @@ import java.util.Optional;
  *                          expire
  */
 
-@JsonDeserialize
-@JsonSerialize
 public record EIServerHTTPServiceConfiguration(
-  @JsonProperty(value = "ListenAddress", required = true)
   String listenAddress,
-  @JsonProperty(value = "ListenPort", required = true)
   int listenPort,
-  @JsonProperty(value = "ExternalAddress", required = true)
   URI externalAddress,
-  @JsonInclude(JsonInclude.Include.NON_ABSENT)
-  @JsonProperty(value = "SessionExpiration", required = false)
   Optional<Duration> sessionExpiration)
-  implements EIServerJSONConfigurationElementType
 {
   /**
    * Configuration for the part of the server that serves over HTTP.

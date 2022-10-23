@@ -16,10 +16,6 @@
 
 package com.io7m.eigion.server.api;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-
 import java.net.URI;
 import java.util.Objects;
 
@@ -30,12 +26,8 @@ import java.util.Objects;
  * @param passwordResetURI The password reset URI
  */
 
-@JsonDeserialize
-@JsonSerialize
 public record EIServerIdstoreConfiguration(
-  @JsonProperty(value = "BaseURI", required = true)
   URI baseURI,
-  @JsonProperty(value = "PasswordResetURI", required = true)
   URI passwordResetURI)
 {
   /**
