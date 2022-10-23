@@ -162,7 +162,7 @@ create table groups_creation_requests (
 )
 ]]></Statement>
 
-    <Statement>grant select, insert on groups_creation_requests to eigion</Statement>
+    <Statement>grant select, insert, delete on groups_creation_requests to eigion</Statement>
     <Statement>grant update (status, message, completed) on groups_creation_requests to eigion</Statement>
   </Schema>
 
