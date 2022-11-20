@@ -26,8 +26,11 @@ module com.io7m.eigion.domaincheck
   requires static org.osgi.annotation.versioning;
 
   requires com.io7m.jdeferthrow.core;
+  requires io.opentelemetry.api;
+  requires io.opentelemetry.context;
   requires java.net.http;
   requires org.slf4j;
+
   requires transitive com.io7m.eigion.domaincheck.api;
   requires transitive com.io7m.eigion.model;
 

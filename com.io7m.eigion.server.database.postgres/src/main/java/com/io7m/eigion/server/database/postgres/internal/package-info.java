@@ -15,8 +15,7 @@
  */
 
 /**
- * Eigion platform (Server database Postgresql implementation
- * [internals])
+ * Eigion platform (Server PostgreSQL database [internals])
  */
 
 @Version("1.0.0")

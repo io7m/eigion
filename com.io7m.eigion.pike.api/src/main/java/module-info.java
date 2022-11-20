@@ -24,6 +24,7 @@ module com.io7m.eigion.pike.api
   requires static org.osgi.annotation.versioning;
 
   requires transitive com.io7m.eigion.model;
+  requires transitive com.io7m.eigion.error_codes;
 
   exports com.io7m.eigion.pike.api;
 }

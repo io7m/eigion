@@ -15,11 +15,11 @@
  */
 
 /**
- * Eigion platform (Pike client)
+ * Eigion platform (Amberjack)
  */
 
-@Version("1.0.0")
 @Export
+@Version("1.0.0")
 package com.io7m.eigion.pike;
 
 import org.osgi.annotation.bundle.Export;

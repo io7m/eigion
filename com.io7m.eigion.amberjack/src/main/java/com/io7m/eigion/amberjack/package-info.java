@@ -15,7 +15,7 @@
  */
 
 /**
- * Eigion platform (Admin client)
+ * Eigion platform (Amberjack)
  */
 
 @Export

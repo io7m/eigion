@@ -14,25 +14,16 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-
 package com.io7m.eigion.pike.api;
 
+import com.io7m.eigion.model.EIGroupCreationChallenge;
 import com.io7m.eigion.model.EIGroupCreationRequest;
-import com.io7m.eigion.model.EIGroupInvite;
-import com.io7m.eigion.model.EIGroupInviteStatus;
+import com.io7m.eigion.model.EIGroupMembership;
 import com.io7m.eigion.model.EIGroupName;
-import com.io7m.eigion.model.EIGroupRole;
-import com.io7m.eigion.model.EIGroupRoles;
 import com.io7m.eigion.model.EIToken;
-import com.io7m.eigion.model.EIUserDisplayName;
-
-import java.time.OffsetDateTime;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
 
 /**
- * Commands related to groups.
+ * Methods for manipulating groups.
  */
 
 public interface EIPClientGroupsType
@@ -40,177 +31,61 @@ public interface EIPClientGroupsType
   /**
    * Start the creation of a group.
    *
-   * @param name The name
+   * @param groupName The group name
    *
-   * @return The request details
+   * @return The challenge that must be fulfilled to create the group
    *
    * @throws EIPClientException   On errors
    * @throws InterruptedException On interruption
    */
 
-  EIPGroupCreationChallenge groupCreationBegin(
-    EIGroupName name)
+  EIGroupCreationChallenge groupCreateBegin(
+    EIGroupName groupName)
     throws EIPClientException, InterruptedException;
 
   /**
-   * List group creation requests.
+   * Indicate that the challenge associated with the given token is ready for
+   * checking.
    *
-   * @return The request details
+   * @param token The token
    *
    * @throws EIPClientException   On errors
    * @throws InterruptedException On interruption
    */
 
-  List<EIGroupCreationRequest> groupCreationRequests()
+  void groupCreateReady(EIToken token)
     throws EIPClientException, InterruptedException;
 
   /**
-   * Cancel a group creation request.
+   * Indicate that the challenge associated with the given token should be
+   * cancelled.
    *
-   * @param token The creation token
+   * @param token The token
    *
    * @throws EIPClientException   On errors
    * @throws InterruptedException On interruption
    */
 
-  void groupCreationCancel(EIToken token)
+  void groupCreateCancel(EIToken token)
     throws EIPClientException, InterruptedException;
 
   /**
-   * Mark a group creation request as ready.
-   *
-   * @param token The creation token
+   * @return The set of groups in which the current user is a member
    *
    * @throws EIPClientException   On errors
    * @throws InterruptedException On interruption
    */
 
-  void groupCreationReady(EIToken token)
+  EIPClientPagedType<EIGroupMembership> groups()
     throws EIPClientException, InterruptedException;
 
   /**
-   * @return The groups in which the current user is a member
+   * @return The user's group requests
    *
    * @throws EIPClientException   On errors
    * @throws InterruptedException On interruption
    */
 
-  List<EIGroupRoles> groups()
-    throws EIPClientException, InterruptedException;
-
-  /**
-   * Invite a user to the given group.
-   *
-   * @param group The group
-   * @param user  The user
-   *
-   * @throws EIPClientException   On errors
-   * @throws InterruptedException On interruption
-   */
-
-  void groupInvite(
-    EIGroupName group,
-    UUID user)
-    throws EIPClientException, InterruptedException;
-
-  /**
-   * Invite a user to the given group.
-   *
-   * @param group The group
-   * @param user  The user
-   *
-   * @throws EIPClientException   On errors
-   * @throws InterruptedException On interruption
-   */
-
-  void groupInviteByName(
-    EIGroupName group,
-    EIUserDisplayName user)
-    throws EIPClientException, InterruptedException;
-
-  /**
-   * @param since      Only list invites newer than this date
-   * @param withStatus Only list invites with this status
-   *
-   * @return The list of invites the current user has sent
-   *
-   * @throws EIPClientException   On errors
-   * @throws InterruptedException On interruption
-   */
-
-  List<EIGroupInvite> groupInvitesSent(
-    OffsetDateTime since,
-    Optional<EIGroupInviteStatus> withStatus)
-    throws EIPClientException, InterruptedException;
-
-  /**
-   * @param since      Only list invites newer than this date
-   * @param withStatus Only list invites with this status
-   *
-   * @return The list of invites the current user has received
-   *
-   * @throws EIPClientException   On errors
-   * @throws InterruptedException On interruption
-   */
-
-  List<EIGroupInvite> groupInvitesReceived(
-    OffsetDateTime since,
-    Optional<EIGroupInviteStatus> withStatus)
-    throws EIPClientException, InterruptedException;
-
-  /**
-   * Cancel the given invite.
-   *
-   * @param token The invite token
-   *
-   * @throws EIPClientException   On errors
-   * @throws InterruptedException On interruption
-   */
-
-  void groupInviteCancel(EIToken token)
-    throws EIPClientException, InterruptedException;
-
-  /**
-   * Respond to the given invite.
-   *
-   * @param token  The invite token
-   * @param accept {@code true} if the invite is to be accepted
-   *
-   * @throws EIPClientException   On errors
-   * @throws InterruptedException On interruption
-   */
-
-  void groupInviteRespond(
-    EIToken token,
-    boolean accept)
-    throws EIPClientException, InterruptedException;
-
-  /**
-   * Leave a group.
-   *
-   * @param group The group name
-   *
-   * @throws EIPClientException   On errors
-   * @throws InterruptedException On interruption
-   */
-
-  void groupLeave(EIGroupName group)
-    throws EIPClientException, InterruptedException;
-
-  /**
-   * Grant a role to a user within the given group.
-   *
-   * @param group         The group name
-   * @param userReceiving The user that will receive the role
-   * @param role          The role
-   *
-   * @throws EIPClientException   On errors
-   * @throws InterruptedException On interruption
-   */
-
-  void groupGrant(
-    EIGroupName group,
-    UUID userReceiving,
-    EIGroupRole role)
+  EIPClientPagedType<EIGroupCreationRequest> groupCreateRequests()
     throws EIPClientException, InterruptedException;
 }

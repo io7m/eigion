@@ -15,15 +15,10 @@
   <artifactId>com.io7m.eigion.server.database.postgres</artifactId>
 
   <name>com.io7m.eigion.server.database.postgres</name>
-  <description>Eigion platform (Server database Postgresql implementation)</description>
+  <description>Eigion platform (Server PostgreSQL database)</description>
   <url>https://www.io7m.com/software/eigion</url>
 
   <dependencies>
-    <dependency>
-      <groupId>${project.groupId}</groupId>
-      <artifactId>com.io7m.eigion.error_codes</artifactId>
-      <version>${project.version}</version>
-    </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>com.io7m.eigion.server.database.api</artifactId>
@@ -31,7 +26,7 @@
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
-      <artifactId>com.io7m.eigion.product.parser.api</artifactId>
+      <artifactId>com.io7m.eigion.error_codes</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
@@ -39,16 +34,7 @@
       <artifactId>com.io7m.eigion.model</artifactId>
       <version>${project.version}</version>
     </dependency>
-    <dependency>
-      <groupId>${project.groupId}</groupId>
-      <artifactId>com.io7m.eigion.hash</artifactId>
-      <version>${project.version}</version>
-    </dependency>
 
-    <dependency>
-      <groupId>com.io7m.jaffirm</groupId>
-      <artifactId>com.io7m.jaffirm.core</artifactId>
-    </dependency>
     <dependency>
       <groupId>org.postgresql</groupId>
       <artifactId>postgresql</artifactId>
@@ -78,8 +64,25 @@
       <artifactId>com.io7m.anethum.common</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.apache.commons</groupId>
-      <artifactId>commons-math3</artifactId>
+      <groupId>com.io7m.jqpage</groupId>
+      <artifactId>com.io7m.jqpage.core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.io7m.jdeferthrow</groupId>
+      <artifactId>com.io7m.jdeferthrow.core</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>io.opentelemetry</groupId>
+      <artifactId>opentelemetry-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.opentelemetry</groupId>
+      <artifactId>opentelemetry-semconv</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.opentelemetry</groupId>
+      <artifactId>opentelemetry-context</artifactId>
     </dependency>
 
     <dependency>
@@ -134,6 +137,8 @@
                 <argument>${project.build.directory}/database.sql</argument>
                 <argument>ROLES</argument>
                 <argument>GRANTS</argument>
+                <argument>FUNCTIONS</argument>
+                <argument>TRIGGERS</argument>
               </arguments>
             </configuration>
           </execution>
@@ -160,6 +165,11 @@
           <dependency>
             <groupId>org.jooq</groupId>
             <artifactId>jooq-meta-extensions</artifactId>
+            <version>${jooq.version}</version>
+          </dependency>
+          <dependency>
+            <groupId>org.jooq</groupId>
+            <artifactId>jooq-postgres-extensions</artifactId>
             <version>${jooq.version}</version>
           </dependency>
         </dependencies>

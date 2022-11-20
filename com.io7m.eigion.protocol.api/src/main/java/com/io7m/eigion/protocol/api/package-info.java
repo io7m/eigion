@@ -15,7 +15,7 @@
  */
 
 /**
- * Eigion platform (Protocol base types)
+ * Eigion platform (Protocol API)
  */
 
 @Export

@@ -43,8 +43,8 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.ResourceBundle;
 
-import static com.io7m.eigion.gui.internal.main.EIGScreenTransition.WIPE;
 import static com.io7m.eigion.gui.icons.EIIconSemantic.ERROR_24;
+import static com.io7m.eigion.gui.internal.main.EIGScreenTransition.WIPE;
 import static java.util.concurrent.TimeUnit.SECONDS;
 
 /**

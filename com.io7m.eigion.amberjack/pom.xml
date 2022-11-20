@@ -15,10 +15,15 @@
   <artifactId>com.io7m.eigion.amberjack</artifactId>
 
   <name>com.io7m.eigion.amberjack</name>
-  <description>Eigion platform (Admin client)</description>
+  <description>Eigion platform (Amberjack)</description>
   <url>https://www.io7m.com/software/eigion</url>
 
   <dependencies>
+    <dependency>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>com.io7m.eigion.error_codes</artifactId>
+      <version>${project.version}</version>
+    </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>com.io7m.eigion.amberjack.api</artifactId>
@@ -26,12 +31,12 @@
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
-      <artifactId>com.io7m.eigion.protocol.admin_api.v1</artifactId>
+      <artifactId>com.io7m.eigion.protocol.amberjack</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
-      <artifactId>com.io7m.eigion.protocol.versions</artifactId>
+      <artifactId>com.io7m.eigion.protocol.amberjack.cb</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
@@ -46,12 +51,28 @@
     </dependency>
 
     <dependency>
+      <groupId>com.io7m.idstore</groupId>
+      <artifactId>com.io7m.idstore.error_codes</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.io7m.verdant</groupId>
+      <artifactId>com.io7m.verdant.core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.io7m.verdant</groupId>
+      <artifactId>com.io7m.verdant.core.cb</artifactId>
+    </dependency>
+    <dependency>
       <groupId>com.io7m.jxtrand</groupId>
       <artifactId>com.io7m.jxtrand.vanilla</artifactId>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.io7m.genevan</groupId>
+      <artifactId>com.io7m.genevan.core</artifactId>
     </dependency>
 
     <dependency>

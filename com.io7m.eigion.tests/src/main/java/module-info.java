@@ -14,33 +14,51 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/**
- * Eigion platform (Test suite)
- */
-
 open module com.io7m.eigion.tests
 {
-  requires com.io7m.eigion.launcher.felix;
-  requires com.io7m.eigion.product.parser.api;
-  requires com.io7m.eigion.product.parser;
-  requires com.io7m.eigion.protocol.admin_api.v1;
-  requires com.io7m.eigion.protocol.public_api.v1;
-  requires com.io7m.eigion.protocol.versions;
-  requires com.io7m.eigion.server.api;
-  requires com.io7m.eigion.server.database.api;
-  requires com.io7m.eigion.server.database.postgres;
-  requires com.io7m.eigion.server.security;
-  requires com.io7m.eigion.server.vanilla;
+  requires transitive org.slf4j;
 
-  requires com.fasterxml.jackson.databind;
+  requires com.io7m.idstore.model;
   requires com.io7m.jmulticlose.core;
-  requires java.net.http;
-  requires java.sql;
-  requires org.apache.commons.io;
+  requires org.apache.derby.client;
+  requires org.apache.derby.commons;
+  requires org.apache.derby.engine;
+  requires org.apache.derby.server;
+  requires org.apache.derby.tools;
   requires org.eclipse.jetty.server;
   requires org.eclipse.jetty.servlet;
-  requires org.junit.jupiter.api;
-  requires org.slf4j;
 
-  exports com.io7m.eigion.tests;
+  requires transitive com.io7m.eigion.amberjack.api;
+  requires transitive com.io7m.eigion.amberjack;
+  requires transitive com.io7m.eigion.client.api;
+  requires transitive com.io7m.eigion.client.database.api;
+  requires transitive com.io7m.eigion.client.database;
+  requires transitive com.io7m.eigion.client.vanilla;
+  requires transitive com.io7m.eigion.domaincheck.api;
+  requires transitive com.io7m.eigion.domaincheck;
+  requires transitive com.io7m.eigion.error_codes;
+  requires transitive com.io7m.eigion.hash;
+  requires transitive com.io7m.eigion.launcher.api;
+  requires transitive com.io7m.eigion.launcher.felix;
+  requires transitive com.io7m.eigion.launcher.main;
+  requires transitive com.io7m.eigion.model;
+  requires transitive com.io7m.eigion.news.xml;
+  requires transitive com.io7m.eigion.pike.api;
+  requires transitive com.io7m.eigion.pike;
+  requires transitive com.io7m.eigion.preferences;
+  requires transitive com.io7m.eigion.protocol.amberjack.cb;
+  requires transitive com.io7m.eigion.protocol.amberjack;
+  requires transitive com.io7m.eigion.protocol.api;
+  requires transitive com.io7m.eigion.protocol.pike.cb;
+  requires transitive com.io7m.eigion.protocol.pike;
+  requires transitive com.io7m.eigion.server.api;
+  requires transitive com.io7m.eigion.server.database.api;
+  requires transitive com.io7m.eigion.server.database.postgres;
+  requires transitive com.io7m.eigion.server;
+  requires transitive com.io7m.eigion.services.api;
+  requires transitive com.io7m.eigion.storage.api;
+  requires transitive com.io7m.eigion.storage.derby;
+  requires transitive com.io7m.eigion.storage.s3;
+  requires transitive com.io7m.eigion.taskrecorder;
+  requires transitive com.io7m.eigion.tests.arbitraries;
 }

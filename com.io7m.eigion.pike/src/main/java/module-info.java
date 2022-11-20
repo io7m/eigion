@@ -14,31 +14,30 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-import com.io7m.eigion.pike.api.EIPClientFactoryType;
-
 /**
- * Eigion platform (Pike client)
+ * Eigion platform (Amberjack)
  */
 
 module com.io7m.eigion.pike
 {
-  requires static org.osgi.annotation.bundle;
   requires static org.osgi.annotation.versioning;
+  requires static org.osgi.annotation.bundle;
 
-  requires transitive com.io7m.eigion.pike.api;
+  requires com.io7m.eigion.pike.api;
+  requires com.io7m.eigion.error_codes;
+  requires com.io7m.eigion.protocol.pike.cb;
+  requires com.io7m.eigion.protocol.pike;
 
-  requires com.io7m.eigion.protocol.api;
-  requires com.io7m.eigion.protocol.public_api.v1;
-  requires com.io7m.eigion.protocol.versions;
+  requires com.io7m.genevan.core;
+  requires com.io7m.idstore.error_codes;
   requires com.io7m.jxtrand.vanilla;
+  requires com.io7m.verdant.core.cb;
+  requires com.io7m.verdant.core;
   requires java.net.http;
   requires org.slf4j;
 
   opens com.io7m.eigion.pike.internal
     to com.io7m.jxtrand.vanilla;
-
-  provides EIPClientFactoryType
-    with com.io7m.eigion.pike.EIPClients;
 
   exports com.io7m.eigion.pike;
 }

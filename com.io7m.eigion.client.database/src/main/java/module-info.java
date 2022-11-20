@@ -34,4 +34,8 @@ module com.io7m.eigion.client.database
   requires org.slf4j;
 
   exports com.io7m.eigion.client.database;
+
+  exports com.io7m.eigion.client.database.internal.tables to org.jooq;
+  exports com.io7m.eigion.client.database.internal.tables.records to org.jooq;
+  exports com.io7m.eigion.client.database.internal to org.jooq;
 }

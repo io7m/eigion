@@ -16,27 +16,21 @@
 
 package com.io7m.eigion.pike.internal;
 
+import com.io7m.eigion.model.EIGroupCreationChallenge;
 import com.io7m.eigion.model.EIGroupCreationRequest;
-import com.io7m.eigion.model.EIGroupInvite;
-import com.io7m.eigion.model.EIGroupInviteStatus;
+import com.io7m.eigion.model.EIGroupMembership;
 import com.io7m.eigion.model.EIGroupName;
-import com.io7m.eigion.model.EIGroupRole;
-import com.io7m.eigion.model.EIGroupRoles;
 import com.io7m.eigion.model.EIToken;
 import com.io7m.eigion.model.EIUser;
-import com.io7m.eigion.model.EIUserDisplayName;
 import com.io7m.eigion.pike.api.EIPClientException;
+import com.io7m.eigion.pike.api.EIPClientPagedType;
 import com.io7m.eigion.pike.api.EIPClientType;
-import com.io7m.eigion.pike.api.EIPGroupCreationChallenge;
 
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
-import java.time.OffsetDateTime;
-import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
-import java.util.Optional;
-import java.util.UUID;
 
 /**
  * The default client implementation.
@@ -46,21 +40,26 @@ public final class EIPClient implements EIPClientType
 {
   private final EIPStrings strings;
   private final HttpClient httpClient;
+  private final Locale locale;
   private volatile EIPClientProtocolHandlerType handler;
 
   /**
    * The default client implementation.
    *
+   * @param inLocale     The locale
    * @param inStrings    The string resources
    * @param inHttpClient The HTTP client
    * @param inHandler    The versioned handler
    */
 
   public EIPClient(
+    final Locale inLocale,
     final EIPStrings inStrings,
     final HttpClient inHttpClient,
     final EIPClientProtocolHandlerType inHandler)
   {
+    this.locale =
+      Objects.requireNonNull(inLocale, "locale");
     this.strings =
       Objects.requireNonNull(inStrings, "strings");
     this.httpClient =
@@ -77,137 +76,69 @@ public final class EIPClient implements EIPClientType
   }
 
   @Override
-  public void login(
-    final String user,
+  public EIUser login(
+    final String admin,
     final String password,
     final URI base)
     throws EIPClientException, InterruptedException
   {
     final var newHandler =
       EIPProtocolNegotiation.negotiateProtocolHandler(
+        this.locale,
         this.httpClient,
         this.strings,
-        user,
-        password,
         base
       );
 
-    this.handler = newHandler.login(user, password, base);
+    final var result = newHandler.login(admin, password, base);
+    this.handler = result.handler();
+    return result.userLoggedIn();
   }
 
   @Override
-  public EIPGroupCreationChallenge groupCreationBegin(
-    final EIGroupName name)
+  public String toString()
+  {
+    return String.format(
+      "[EIPClient 0x%s",
+      Integer.toUnsignedString(this.hashCode())
+    );
+  }
+
+  @Override
+  public EIGroupCreationChallenge groupCreateBegin(
+    final EIGroupName groupName)
     throws EIPClientException, InterruptedException
   {
-    return this.handler.groupCreationBegin(name);
+    return this.handler.groupCreateBegin(groupName);
   }
 
   @Override
-  public List<EIGroupCreationRequest> groupCreationRequests()
-    throws EIPClientException, InterruptedException
-  {
-    return this.handler.groupCreationRequests();
-  }
-
-  @Override
-  public void groupCreationCancel(
+  public void groupCreateReady(
     final EIToken token)
     throws EIPClientException, InterruptedException
   {
-    this.handler.groupCreationCancel(token);
+    this.handler.groupCreateReady(token);
   }
 
   @Override
-  public void groupCreationReady(
+  public void groupCreateCancel(
     final EIToken token)
     throws EIPClientException, InterruptedException
   {
-    this.handler.groupCreationReady(token);
+    this.handler.groupCreateCancel(token);
   }
 
   @Override
-  public List<EIGroupRoles> groups()
+  public EIPClientPagedType<EIGroupMembership> groups()
     throws EIPClientException, InterruptedException
   {
     return this.handler.groups();
   }
 
   @Override
-  public void groupInvite(
-    final EIGroupName group,
-    final UUID user)
+  public EIPClientPagedType<EIGroupCreationRequest> groupCreateRequests()
     throws EIPClientException, InterruptedException
   {
-    this.handler.groupInvite(group, user);
-  }
-
-  @Override
-  public void groupInviteByName(
-    final EIGroupName group,
-    final EIUserDisplayName user)
-    throws EIPClientException, InterruptedException
-  {
-    this.handler.groupInviteByName(group, user);
-  }
-
-  @Override
-  public List<EIGroupInvite> groupInvitesSent(
-    final OffsetDateTime since,
-    final Optional<EIGroupInviteStatus> withStatus)
-    throws EIPClientException, InterruptedException
-  {
-    return this.handler.groupInvitesSent(since, withStatus);
-  }
-
-  @Override
-  public List<EIGroupInvite> groupInvitesReceived(
-    final OffsetDateTime since,
-    final Optional<EIGroupInviteStatus> withStatus)
-    throws EIPClientException, InterruptedException
-  {
-    return this.handler.groupInvitesReceived(since, withStatus);
-  }
-
-  @Override
-  public void groupInviteCancel(
-    final EIToken token)
-    throws EIPClientException, InterruptedException
-  {
-    this.handler.groupInviteCancel(token);
-  }
-
-  @Override
-  public void groupInviteRespond(
-    final EIToken token,
-    final boolean accept)
-    throws EIPClientException, InterruptedException
-  {
-    this.handler.groupInviteRespond(token, accept);
-  }
-
-  @Override
-  public void groupLeave(
-    final EIGroupName group)
-    throws EIPClientException, InterruptedException
-  {
-    this.handler.groupLeave(group);
-  }
-
-  @Override
-  public void groupGrant(
-    final EIGroupName group,
-    final UUID userReceiving,
-    final EIGroupRole role)
-    throws EIPClientException, InterruptedException
-  {
-    this.handler.groupGrant(group, userReceiving, role);
-  }
-
-  @Override
-  public EIUser userSelf()
-    throws EIPClientException, InterruptedException
-  {
-    return this.handler.userSelf();
+    return this.handler.groupCreateRequests();
   }
 }

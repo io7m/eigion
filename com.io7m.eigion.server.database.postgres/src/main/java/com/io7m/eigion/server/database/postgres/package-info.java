@@ -15,7 +15,7 @@
  */
 
 /**
- * Eigion platform (Server database Postgresql implementation)
+ * Eigion platform (Server PostgreSQL database)
  */
 
 @Export

@@ -14,58 +14,37 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-
 package com.io7m.eigion.pike.internal;
 
+import com.io7m.eigion.model.EIGroupCreationChallenge;
 import com.io7m.eigion.model.EIGroupCreationRequest;
-import com.io7m.eigion.model.EIGroupInvite;
-import com.io7m.eigion.model.EIGroupInviteStatus;
+import com.io7m.eigion.model.EIGroupMembership;
 import com.io7m.eigion.model.EIGroupName;
-import com.io7m.eigion.model.EIGroupRole;
-import com.io7m.eigion.model.EIGroupRoles;
-import com.io7m.eigion.model.EIPasswordException;
+import com.io7m.eigion.model.EIPage;
 import com.io7m.eigion.model.EIToken;
-import com.io7m.eigion.model.EIUser;
-import com.io7m.eigion.model.EIUserDisplayName;
 import com.io7m.eigion.pike.api.EIPClientException;
-import com.io7m.eigion.pike.api.EIPGroupCreationChallenge;
+import com.io7m.eigion.pike.api.EIPClientPagedType;
 import com.io7m.eigion.protocol.api.EIProtocolException;
-import com.io7m.eigion.protocol.public_api.v1.EISP1CommandGroupCreateBegin;
-import com.io7m.eigion.protocol.public_api.v1.EISP1CommandGroupCreateCancel;
-import com.io7m.eigion.protocol.public_api.v1.EISP1CommandGroupCreateReady;
-import com.io7m.eigion.protocol.public_api.v1.EISP1CommandGroupCreateRequests;
-import com.io7m.eigion.protocol.public_api.v1.EISP1CommandGroupGrant;
-import com.io7m.eigion.protocol.public_api.v1.EISP1CommandGroupInvite;
-import com.io7m.eigion.protocol.public_api.v1.EISP1CommandGroupInviteByName;
-import com.io7m.eigion.protocol.public_api.v1.EISP1CommandGroupInviteCancel;
-import com.io7m.eigion.protocol.public_api.v1.EISP1CommandGroupInviteRespond;
-import com.io7m.eigion.protocol.public_api.v1.EISP1CommandGroupInvitesReceived;
-import com.io7m.eigion.protocol.public_api.v1.EISP1CommandGroupInvitesSent;
-import com.io7m.eigion.protocol.public_api.v1.EISP1CommandGroupLeave;
-import com.io7m.eigion.protocol.public_api.v1.EISP1CommandGroups;
-import com.io7m.eigion.protocol.public_api.v1.EISP1CommandLogin;
-import com.io7m.eigion.protocol.public_api.v1.EISP1CommandUserSelf;
-import com.io7m.eigion.protocol.public_api.v1.EISP1GroupCreationRequest;
-import com.io7m.eigion.protocol.public_api.v1.EISP1GroupInvite;
-import com.io7m.eigion.protocol.public_api.v1.EISP1GroupInviteStatus;
-import com.io7m.eigion.protocol.public_api.v1.EISP1GroupRole;
-import com.io7m.eigion.protocol.public_api.v1.EISP1GroupRoles;
-import com.io7m.eigion.protocol.public_api.v1.EISP1MessageType;
-import com.io7m.eigion.protocol.public_api.v1.EISP1Messages;
-import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseError;
-import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseGroupCreateBegin;
-import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseGroupCreateCancel;
-import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseGroupCreateReady;
-import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseGroupCreateRequests;
-import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseGroupGrant;
-import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseGroupInvite;
-import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseGroupInviteRespond;
-import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseGroupInvites;
-import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseGroupLeave;
-import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseGroups;
-import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseLogin;
-import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseType;
-import com.io7m.eigion.protocol.public_api.v1.EISP1ResponseUserSelf;
+import com.io7m.eigion.protocol.pike.EIPCommandGroupCreateBegin;
+import com.io7m.eigion.protocol.pike.EIPCommandGroupCreateCancel;
+import com.io7m.eigion.protocol.pike.EIPCommandGroupCreateReady;
+import com.io7m.eigion.protocol.pike.EIPCommandGroupCreateRequestsBegin;
+import com.io7m.eigion.protocol.pike.EIPCommandGroupCreateRequestsNext;
+import com.io7m.eigion.protocol.pike.EIPCommandGroupCreateRequestsPrevious;
+import com.io7m.eigion.protocol.pike.EIPCommandGroupsBegin;
+import com.io7m.eigion.protocol.pike.EIPCommandGroupsNext;
+import com.io7m.eigion.protocol.pike.EIPCommandGroupsPrevious;
+import com.io7m.eigion.protocol.pike.EIPCommandLogin;
+import com.io7m.eigion.protocol.pike.EIPCommandType;
+import com.io7m.eigion.protocol.pike.EIPResponseError;
+import com.io7m.eigion.protocol.pike.EIPResponseGroupCreateBegin;
+import com.io7m.eigion.protocol.pike.EIPResponseGroupCreateCancel;
+import com.io7m.eigion.protocol.pike.EIPResponseGroupCreateReady;
+import com.io7m.eigion.protocol.pike.EIPResponseGroupCreateRequests;
+import com.io7m.eigion.protocol.pike.EIPResponseGroups;
+import com.io7m.eigion.protocol.pike.EIPResponseLogin;
+import com.io7m.eigion.protocol.pike.EIPResponseType;
+import com.io7m.eigion.protocol.pike.cb.EIPCB1Messages;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -73,12 +52,13 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
-import java.time.OffsetDateTime;
-import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.function.Function;
 
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.IO_ERROR;
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.PROTOCOL_ERROR;
+import static com.io7m.eigion.pike.internal.EIPCompression.decompressResponse;
+import static com.io7m.idstore.error_codes.IdStandardErrorCodes.AUTHENTICATION_ERROR;
 import static java.net.http.HttpResponse.BodyHandlers;
 
 /**
@@ -92,9 +72,9 @@ public final class EIPClientProtocolHandler1
     LoggerFactory.getLogger(EIPClientProtocolHandler1.class);
 
   private final URI commandURI;
-  private final URI transactionURI;
-  private final EISP1Messages messages;
+  private final EIPCB1Messages messages;
   private final URI loginURI;
+  private EIPCommandLogin mostRecentLogin;
 
   /**
    * The version 1 protocol handler.
@@ -112,7 +92,7 @@ public final class EIPClientProtocolHandler1
     super(inHttpClient, inStrings, inBase);
 
     this.messages =
-      new EISP1Messages();
+      new EIPCB1Messages();
 
     this.loginURI =
       inBase.resolve("login")
@@ -120,67 +100,41 @@ public final class EIPClientProtocolHandler1
     this.commandURI =
       inBase.resolve("command")
         .normalize();
-    this.transactionURI =
-      inBase.resolve("transaction")
-        .normalize();
-  }
-
-  private static <A, B, E extends Exception> Optional<B> mapPartial(
-    final Optional<A> o,
-    final FunctionType<A, B, E> f)
-    throws E
-  {
-    if (o.isPresent()) {
-      return Optional.of(f.apply(o.get()));
-    }
-    return Optional.empty();
   }
 
   @Override
-  public EIPClientProtocolHandlerType login(
-    final String user,
+  public EIPNewHandler login(
+    final String admin,
     final String password,
     final URI base)
     throws EIPClientException, InterruptedException
   {
-    this.sendLogin(
-      EISP1ResponseLogin.class,
-      new EISP1CommandLogin(user, password)
-    );
-    return this;
+    this.mostRecentLogin = new EIPCommandLogin(admin, password);
+    final var result = this.sendLogin(this.mostRecentLogin).user();
+    return new EIPNewHandler(result, this);
   }
 
-  private <T extends EISP1ResponseLogin> T sendLogin(
-    final Class<T> responseClass,
-    final EISP1CommandLogin message)
+  private EIPResponseLogin sendLogin(
+    final EIPCommandLogin message)
     throws InterruptedException, EIPClientException
   {
-    return this.send(this.loginURI, responseClass, message, false)
-      .orElseThrow(() -> new IllegalStateException("send() returned empty"));
+    return this.send(1, this.loginURI, EIPResponseLogin.class, true, message);
   }
 
-  private <T extends EISP1ResponseType> T sendCommand(
+  private <T extends EIPResponseType> T sendCommand(
     final Class<T> responseClass,
-    final EISP1MessageType message)
+    final EIPCommandType<T> message)
     throws InterruptedException, EIPClientException
   {
-    return this.send(this.commandURI, responseClass, message, false)
-      .orElseThrow(() -> new IllegalStateException("send() returned empty"));
+    return this.send(1, this.commandURI, responseClass, false, message);
   }
 
-  private <T extends EISP1ResponseType> Optional<T> sendCommandOptional(
-    final Class<T> responseClass,
-    final EISP1MessageType message)
-    throws InterruptedException, EIPClientException
-  {
-    return this.send(this.commandURI, responseClass, message, true);
-  }
-
-  private <T extends EISP1ResponseType> Optional<T> send(
+  private <T extends EIPResponseType> T send(
+    final int attempt,
     final URI uri,
     final Class<T> responseClass,
-    final EISP1MessageType message,
-    final boolean allowNotFound)
+    final boolean isLoggingIn,
+    final EIPCommandType<T> message)
     throws InterruptedException, EIPClientException
   {
     try {
@@ -192,6 +146,7 @@ public final class EIPClientProtocolHandler1
 
       final var request =
         HttpRequest.newBuilder(uri)
+          .header("User-Agent", userAgent())
           .POST(HttpRequest.BodyPublishers.ofByteArray(sendBytes))
           .build();
 
@@ -201,10 +156,6 @@ public final class EIPClientProtocolHandler1
 
       LOG.debug("server: status {}", response.statusCode());
 
-      if (response.statusCode() == 404 && allowNotFound) {
-        return Optional.empty();
-      }
-
       final var responseHeaders =
         response.headers();
 
@@ -212,35 +163,52 @@ public final class EIPClientProtocolHandler1
         responseHeaders.firstValue("content-type")
           .orElse("application/octet-stream");
 
-      if (!contentType.equals(EISP1Messages.contentType())) {
+      final var expectedContentType = EIPCB1Messages.contentType();
+      if (!contentType.equals(expectedContentType)) {
         throw new EIPClientException(
+          PROTOCOL_ERROR,
           this.strings()
             .format(
               "errorContentType",
               commandType,
-              EISP1Messages.contentType(),
+              expectedContentType,
               contentType)
         );
       }
 
       final var responseMessage =
-        this.messages.parse(response.body());
+        this.messages.parse(decompressResponse(response, responseHeaders));
 
-      if (!(responseMessage instanceof EISP1ResponseType)) {
+      if (!(responseMessage instanceof final EIPResponseType responseActual)) {
         throw new EIPClientException(
+          PROTOCOL_ERROR,
           this.strings()
             .format(
               "errorResponseType",
               "(unavailable)",
               commandType,
-              EISP1ResponseType.class,
+              EIPResponseType.class,
               responseMessage.getClass())
         );
       }
 
-      final var responseActual = (EISP1ResponseType) responseMessage;
-      if (responseActual instanceof EISP1ResponseError error) {
+      if (responseActual instanceof EIPResponseError error) {
+        if (attempt < 3) {
+          if (isAuthenticationError(error) && !isLoggingIn) {
+            LOG.debug("attempting re-login");
+            this.sendLogin(this.mostRecentLogin);
+            return this.send(
+              attempt + 1,
+              uri,
+              responseClass,
+              false,
+              message
+            );
+          }
+        }
+
         throw new EIPClientException(
+          error.errorCode(),
           this.strings()
             .format(
               "errorResponse",
@@ -254,6 +222,7 @@ public final class EIPClientProtocolHandler1
 
       if (!Objects.equals(responseActual.getClass(), responseClass)) {
         throw new EIPClientException(
+          PROTOCOL_ERROR,
           this.strings()
             .format(
               "errorResponseType",
@@ -264,228 +233,160 @@ public final class EIPClientProtocolHandler1
         );
       }
 
-      return Optional.of(responseClass.cast(responseMessage));
-    } catch (final EIProtocolException | IOException e) {
-      throw new EIPClientException(e);
+      return responseClass.cast(responseMessage);
+    } catch (final EIProtocolException e) {
+      throw new EIPClientException(PROTOCOL_ERROR, e);
+    } catch (final IOException e) {
+      throw new EIPClientException(IO_ERROR, e);
     }
   }
 
+  private static boolean isAuthenticationError(
+    final EIPResponseError error)
+  {
+    return Objects.equals(error.errorCode(), AUTHENTICATION_ERROR.id());
+  }
+
+  private static String userAgent()
+  {
+    final String version;
+    final var pack = EIPClientProtocolHandler1.class.getPackage();
+    if (pack != null) {
+      version = pack.getImplementationVersion();
+    } else {
+      version = "0.0.0";
+    }
+    return "com.io7m.eigion.pike/%s".formatted(version);
+  }
+
   @Override
-  public EIPGroupCreationChallenge groupCreationBegin(
-    final EIGroupName name)
+  public EIGroupCreationChallenge groupCreateBegin(
+    final EIGroupName groupName)
     throws EIPClientException, InterruptedException
   {
     final var response =
       this.sendCommand(
-        EISP1ResponseGroupCreateBegin.class,
-        new EISP1CommandGroupCreateBegin(name.value())
+        EIPResponseGroupCreateBegin.class,
+        new EIPCommandGroupCreateBegin(groupName)
       );
 
-    return new EIPGroupCreationChallenge(
-      new EIToken(response.token()),
+    return new EIGroupCreationChallenge(
+      response.groupName(),
+      response.token(),
       response.location()
     );
   }
 
   @Override
-  public List<EIGroupCreationRequest> groupCreationRequests()
-    throws EIPClientException, InterruptedException
-  {
-    final var response =
-      this.sendCommand(
-        EISP1ResponseGroupCreateRequests.class,
-        new EISP1CommandGroupCreateRequests()
-      );
-
-    return response.requests()
-      .stream()
-      .map(EISP1GroupCreationRequest::toRequest)
-      .toList();
-  }
-
-  @Override
-  public void groupCreationCancel(
+  public void groupCreateReady(
     final EIToken token)
     throws EIPClientException, InterruptedException
   {
     this.sendCommand(
-      EISP1ResponseGroupCreateCancel.class,
-      new EISP1CommandGroupCreateCancel(token.value())
+      EIPResponseGroupCreateReady.class,
+      new EIPCommandGroupCreateReady(token)
     );
   }
 
   @Override
-  public void groupCreationReady(
+  public void groupCreateCancel(
     final EIToken token)
     throws EIPClientException, InterruptedException
   {
     this.sendCommand(
-      EISP1ResponseGroupCreateReady.class,
-      new EISP1CommandGroupCreateReady(token.value())
+      EIPResponseGroupCreateCancel.class,
+      new EIPCommandGroupCreateCancel(token)
     );
   }
 
   @Override
-  public List<EIGroupRoles> groups()
-    throws EIPClientException, InterruptedException
+  public EIPClientPagedType<EIGroupMembership> groups()
   {
-    final var response =
-      this.sendCommand(
-        EISP1ResponseGroups.class,
-        new EISP1CommandGroups()
-      );
-
-    return response.groupRoles()
-      .stream()
-      .map(EISP1GroupRoles::toRoles)
-      .toList();
-  }
-
-  @Override
-  public void groupInvite(
-    final EIGroupName group,
-    final UUID user)
-    throws EIPClientException, InterruptedException
-  {
-    this.sendCommand(
-      EISP1ResponseGroupInvite.class,
-      new EISP1CommandGroupInvite(group.value(), user)
+    return new GenericPaged<>(
+      this,
+      EIPResponseGroups.class,
+      new EIPCommandGroupsBegin(1000L),
+      new EIPCommandGroupsNext(),
+      new EIPCommandGroupsPrevious(),
+      EIPResponseGroups::groups
     );
   }
 
   @Override
-  public void groupInviteByName(
-    final EIGroupName group,
-    final EIUserDisplayName user)
-    throws EIPClientException, InterruptedException
+  public EIPClientPagedType<EIGroupCreationRequest> groupCreateRequests()
   {
-    this.sendCommand(
-      EISP1ResponseGroupInvite.class,
-      new EISP1CommandGroupInviteByName(group.value(), user.value())
+    return new GenericPaged<>(
+      this,
+      EIPResponseGroupCreateRequests.class,
+      new EIPCommandGroupCreateRequestsBegin(1000L),
+      new EIPCommandGroupCreateRequestsNext(),
+      new EIPCommandGroupCreateRequestsPrevious(),
+      EIPResponseGroupCreateRequests::requests
     );
   }
 
-  @Override
-  public List<EIGroupInvite> groupInvitesSent(
-    final OffsetDateTime since,
-    final Optional<EIGroupInviteStatus> withStatus)
-    throws EIPClientException, InterruptedException
+  private static final class GenericPaged<
+    T,
+    R extends EIPResponseType,
+    CC extends EIPCommandType<R>,
+    CN extends EIPCommandType<R>,
+    CP extends EIPCommandType<R>>
+    implements EIPClientPagedType<T>
   {
-    final var response =
-      this.sendCommand(
-        EISP1ResponseGroupInvites.class,
-        new EISP1CommandGroupInvitesSent(
-          since,
-          withStatus.map(EISP1GroupInviteStatus::ofStatus)
-        )
-      );
+    private final Class<R> responseClass;
+    private final CC cmdCurrent;
+    private final CN cmdNext;
+    private final CP cmdPrevious;
+    private final Function<R, EIPage<T>> extractor;
+    private final EIPClientProtocolHandler1 handler;
 
-    return response.invites()
-      .stream()
-      .map(EISP1GroupInvite::toInvite)
-      .toList();
-  }
-
-  @Override
-  public List<EIGroupInvite> groupInvitesReceived(
-    final OffsetDateTime since,
-    final Optional<EIGroupInviteStatus> withStatus)
-    throws EIPClientException, InterruptedException
-  {
-    final var response =
-      this.sendCommand(
-        EISP1ResponseGroupInvites.class,
-        new EISP1CommandGroupInvitesReceived(
-          since,
-          withStatus.map(EISP1GroupInviteStatus::ofStatus)
-        )
-      );
-
-    return response.invites()
-      .stream()
-      .map(EISP1GroupInvite::toInvite)
-      .toList();
-  }
-
-  @Override
-  public void groupInviteCancel(
-    final EIToken token)
-    throws EIPClientException, InterruptedException
-  {
-    this.sendCommand(
-      EISP1ResponseGroupInvites.class,
-      new EISP1CommandGroupInviteCancel(token.value())
-    );
-  }
-
-  @Override
-  public void groupInviteRespond(
-    final EIToken token,
-    final boolean accept)
-    throws EIPClientException, InterruptedException
-  {
-    this.sendCommand(
-      EISP1ResponseGroupInviteRespond.class,
-      new EISP1CommandGroupInviteRespond(token.value(), accept)
-    );
-  }
-
-  @Override
-  public void groupLeave(
-    final EIGroupName group)
-    throws EIPClientException, InterruptedException
-  {
-    this.sendCommand(
-      EISP1ResponseGroupLeave.class,
-      new EISP1CommandGroupLeave(group.value())
-    );
-  }
-
-  @Override
-  public void groupGrant(
-    final EIGroupName group,
-    final UUID userReceiving,
-    final EIGroupRole role)
-    throws EIPClientException, InterruptedException
-  {
-    this.sendCommand(
-      EISP1ResponseGroupGrant.class,
-      new EISP1CommandGroupGrant(
-        userReceiving,
-        group.value(),
-        EISP1GroupRole.ofRole(role)
-      )
-    );
-  }
-
-  @Override
-  public EIUser userSelf()
-    throws EIPClientException, InterruptedException
-  {
-    try {
-      final var response =
-        this.sendCommand(
-          EISP1ResponseUserSelf.class,
-          new EISP1CommandUserSelf()
-        );
-
-      return response.user().toUser();
-    } catch (final EIPasswordException e) {
-      throw new EIPClientException(e);
-    }
-  }
-
-  interface FunctionType<A, B, E extends Exception>
-  {
-    B apply(A x)
-      throws E;
-  }
-
-  private static final class NotFoundException extends Exception
-  {
-    NotFoundException()
+    private GenericPaged(
+      final EIPClientProtocolHandler1 inHandler,
+      final Class<R> inResponseClass,
+      final CC inCmdCurrent,
+      final CN inCmdNext,
+      final CP inCmdPrevious,
+      final Function<R, EIPage<T>> inExtractor)
     {
+      this.handler =
+        Objects.requireNonNull(inHandler, "handler");
+      this.responseClass =
+        Objects.requireNonNull(inResponseClass, "responseClass");
+      this.cmdCurrent =
+        Objects.requireNonNull(inCmdCurrent, "cmdCurrent");
+      this.cmdNext =
+        Objects.requireNonNull(inCmdNext, "cmdNext");
+      this.cmdPrevious =
+        Objects.requireNonNull(inCmdPrevious, "cmdPrevious");
+      this.extractor =
+        Objects.requireNonNull(inExtractor, "extractor");
+    }
 
+    @Override
+    public EIPage<T> current()
+      throws EIPClientException, InterruptedException
+    {
+      return this.extractor.apply(
+        this.handler.sendCommand(this.responseClass, this.cmdCurrent)
+      );
+    }
+
+    @Override
+    public EIPage<T> next()
+      throws EIPClientException, InterruptedException
+    {
+      return this.extractor.apply(
+        this.handler.sendCommand(this.responseClass, this.cmdNext)
+      );
+    }
+
+    @Override
+    public EIPage<T> previous()
+      throws EIPClientException, InterruptedException
+    {
+      return this.extractor.apply(
+        this.handler.sendCommand(this.responseClass, this.cmdPrevious)
+      );
     }
   }
 }

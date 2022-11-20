@@ -18,7 +18,6 @@ package com.io7m.eigion.pike.internal;
 
 import com.io7m.eigion.pike.api.EIPClientException;
 import com.io7m.eigion.pike.api.EIPClientGroupsType;
-import com.io7m.eigion.pike.api.EIPClientUsersType;
 
 import java.net.URI;
 
@@ -27,12 +26,12 @@ import java.net.URI;
  */
 
 public interface EIPClientProtocolHandlerType
-  extends EIPClientGroupsType, EIPClientUsersType
+  extends EIPClientGroupsType
 {
   /**
    * Attempt to log in.
    *
-   * @param user     The user
+   * @param admin    The admin
    * @param password The password
    * @param base     The base URI
    *
@@ -42,8 +41,8 @@ public interface EIPClientProtocolHandlerType
    * @throws InterruptedException On interruption
    */
 
-  EIPClientProtocolHandlerType login(
-    String user,
+  EIPNewHandler login(
+    String admin,
     String password,
     URI base)
     throws EIPClientException, InterruptedException;

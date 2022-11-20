@@ -14,28 +14,27 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-import com.io7m.eigion.amberjack.EIAClients;
-import com.io7m.eigion.amberjack.api.EIAClientFactoryType;
-
 /**
- * Eigion platform (Admin client)
+ * Eigion platform (Amberjack)
  */
 
 module com.io7m.eigion.amberjack
 {
-  requires static org.osgi.annotation.bundle;
   requires static org.osgi.annotation.versioning;
+  requires static org.osgi.annotation.bundle;
 
   requires com.io7m.eigion.amberjack.api;
-  requires com.io7m.eigion.protocol.admin_api.v1;
-  requires com.io7m.eigion.protocol.versions;
+  requires com.io7m.eigion.error_codes;
+  requires com.io7m.eigion.protocol.amberjack.cb;
+  requires com.io7m.eigion.protocol.amberjack;
 
+  requires com.io7m.genevan.core;
+  requires com.io7m.idstore.error_codes;
   requires com.io7m.jxtrand.vanilla;
+  requires com.io7m.verdant.core.cb;
+  requires com.io7m.verdant.core;
   requires java.net.http;
   requires org.slf4j;
-
-  provides EIAClientFactoryType
-    with EIAClients;
 
   opens com.io7m.eigion.amberjack.internal
     to com.io7m.jxtrand.vanilla;

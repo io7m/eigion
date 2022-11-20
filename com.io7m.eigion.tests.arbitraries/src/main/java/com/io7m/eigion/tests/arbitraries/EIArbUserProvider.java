@@ -16,21 +16,13 @@
 
 package com.io7m.eigion.tests.arbitraries;
 
-import com.io7m.eigion.model.EIGroupName;
-import com.io7m.eigion.model.EIGroupRole;
-import com.io7m.eigion.model.EIPassword;
+import com.io7m.eigion.model.EIPermissionSet;
 import com.io7m.eigion.model.EIUser;
-import com.io7m.eigion.model.EIUserBan;
-import com.io7m.eigion.model.EIUserDisplayName;
-import com.io7m.eigion.model.EIUserEmail;
 import net.jqwik.api.Arbitraries;
 import net.jqwik.api.Arbitrary;
 import net.jqwik.api.Combinators;
 import net.jqwik.api.providers.TypeUsage;
 
-import java.time.OffsetDateTime;
-import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -63,47 +55,11 @@ public final class EIArbUserProvider extends EIArbAbstractProvider
   {
     final var u =
       Arbitraries.defaultFor(UUID.class);
-    final var d =
-      Arbitraries.defaultFor(EIUserDisplayName.class);
-    final var e =
-      Arbitraries.defaultFor(EIUserEmail.class);
-    final var t =
-      Arbitraries.defaultFor(OffsetDateTime.class);
     final var p =
-      Arbitraries.defaultFor(EIPassword.class);
-    final var ub =
-      Arbitraries.defaultFor(Optional.class, EIUserBan.class);
-    final var g =
-      Arbitraries.defaultFor(
-        TypeUsage.of(
-          Map.class,
-          TypeUsage.of(EIGroupName.class),
-          TypeUsage.of(Set.class, TypeUsage.of(EIGroupRole.class))
-        )
-      );
-
-    final Arbitrary<EIUser> a =
-      Combinators.combine(u, d, e, t, t, p, ub, g)
-        .as((
-              UUID id,
-              EIUserDisplayName name,
-              EIUserEmail email,
-              OffsetDateTime t0,
-              OffsetDateTime t1,
-              EIPassword pass,
-              Optional ban,
-              Object groups) -> {
-          return new EIUser(
-            id,
-            name,
-            email,
-            t0,
-            t1,
-            pass,
-            (Optional<EIUserBan>) ban,
-            (Map<EIGroupName, Set<EIGroupRole>>) groups
-          );
-        });
+      Arbitraries.defaultFor(EIPermissionSet.class);
+    final var a =
+      Combinators.combine(u, p)
+        .as(EIUser::new);
 
     return Set.of(a);
   }

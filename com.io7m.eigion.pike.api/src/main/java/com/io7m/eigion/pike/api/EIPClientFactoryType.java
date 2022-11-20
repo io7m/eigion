@@ -31,7 +31,7 @@ public interface EIPClientFactoryType
    *
    * @return A new client
    *
-   * @throws EIPClientException   On errors
+   * @throws EIPClientException    On errors
    * @throws InterruptedException On interruption
    */
 

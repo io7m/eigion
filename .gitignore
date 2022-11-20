@@ -8,6 +8,7 @@
 .project
 .settings
 bin
+dependency-reduced-pom.xml
 out
 pom.xml.versionsBackup
 target

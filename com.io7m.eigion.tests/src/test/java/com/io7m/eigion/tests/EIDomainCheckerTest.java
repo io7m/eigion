@@ -25,6 +25,7 @@ import com.io7m.eigion.model.EIGroupCreationRequestStatusType;
 import com.io7m.eigion.model.EIGroupCreationRequestStatusType.InProgress;
 import com.io7m.eigion.model.EIGroupName;
 import com.io7m.eigion.model.EIToken;
+import io.opentelemetry.api.OpenTelemetry;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -37,7 +38,7 @@ import java.net.http.HttpClient;
 import java.util.Optional;
 import java.util.UUID;
 
-import static com.io7m.eigion.tests.EIServerContract.timeNow;
+import static com.io7m.eigion.tests.EITime.timeNow;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -66,7 +67,11 @@ public final class EIDomainCheckerTest
 
     this.checkers = new EIDomainCheckers();
     this.checker = this.checkers.createChecker(
-      new EIDomainCheckerConfiguration(this.clock, this.httpClient)
+      new EIDomainCheckerConfiguration(
+        OpenTelemetry.noop(),
+        this.clock,
+        this.httpClient
+      )
     );
   }
 
@@ -97,7 +102,7 @@ public final class EIDomainCheckerTest
   }
 
   /**
-   * If the server returns the right token, the check succeeds.
+   * If the server returns the right token, the evaluate succeeds.
    *
    * @throws Exception On errors
    */
@@ -134,7 +139,7 @@ public final class EIDomainCheckerTest
   }
 
   /**
-   * If the server returns the wrong token, the check fails.
+   * If the server returns the wrong token, the evaluate fails.
    *
    * @throws Exception On errors
    */
@@ -174,7 +179,7 @@ public final class EIDomainCheckerTest
   }
 
   /**
-   * If the server doesn't return a token, the check fails.
+   * If the server doesn't return a token, the evaluate fails.
    *
    * @throws Exception On errors
    */
@@ -210,7 +215,7 @@ public final class EIDomainCheckerTest
   }
 
   /**
-   * If the server connection fails, the check fails.
+   * If the server connection fails, the evaluate fails.
    *
    * @throws Exception On errors
    */

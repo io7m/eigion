@@ -15,13 +15,15 @@
  */
 
 /**
- * Eigion platform (Protocol base types)
+ * Eigion platform (Protocol API)
  */
 
 module com.io7m.eigion.protocol.api
 {
   requires static org.osgi.annotation.bundle;
   requires static org.osgi.annotation.versioning;
+
+  requires transitive com.io7m.eigion.error_codes;
 
   exports com.io7m.eigion.protocol.api;
 }

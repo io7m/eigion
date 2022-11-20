@@ -17,9 +17,15 @@
 
 package com.io7m.eigion.pike.internal;
 
-import java.math.BigInteger;
+import com.io7m.eigion.protocol.pike.cb.EIPCB1Messages;
+import com.io7m.genevan.core.GenProtocolIdentifier;
+import com.io7m.genevan.core.GenProtocolVersion;
+
 import java.net.URI;
 import java.net.http.HttpClient;
+
+import static java.math.BigInteger.ONE;
+import static java.math.BigInteger.ZERO;
 
 /**
  * The factory of version 1 protocol handlers.
@@ -38,23 +44,20 @@ public final class EIPClientProtocolHandlers1
   }
 
   @Override
-  public String id()
-  {
-    return "com.io7m.eigion.admin";
-  }
-
-  @Override
-  public BigInteger versionMajor()
-  {
-    return BigInteger.ONE;
-  }
-
-  @Override
   public EIPClientProtocolHandlerType createHandler(
     final HttpClient inHttpClient,
     final EIPStrings inStrings,
     final URI inBase)
   {
     return new EIPClientProtocolHandler1(inHttpClient, inStrings, inBase);
+  }
+
+  @Override
+  public GenProtocolIdentifier supported()
+  {
+    return new GenProtocolIdentifier(
+      EIPCB1Messages.protocolId().toString(),
+      new GenProtocolVersion(ONE, ZERO)
+    );
   }
 }

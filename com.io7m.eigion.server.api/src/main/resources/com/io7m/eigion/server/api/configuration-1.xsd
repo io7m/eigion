@@ -1,0 +1,270 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!--
+  Copyright © 2022 Mark Raynsford <code@io7m.com> https://www.io7m.com
+
+  Permission to use, copy, modify, and/or distribute this software for any
+  purpose with or without fee is hereby granted, provided that the above
+  copyright notice and this permission notice appear in all copies.
+
+  THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+  WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+  MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
+  SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+  WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+  ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR
+  IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+-->
+
+<schema xmlns="http://www.w3.org/2001/XMLSchema"
+        targetNamespace="com.io7m.eigion:configuration:1"
+        xmlns:c="com.io7m.eigion:configuration:1">
+
+  <annotation>
+    <documentation>
+      The schema for server configuration files.
+    </documentation>
+  </annotation>
+
+  <simpleType name="DatabaseKind">
+    <annotation>
+      <documentation>
+        The kind of the target database. Currently, only PostgreSQL is supported.
+      </documentation>
+    </annotation>
+
+    <restriction base="string">
+      <enumeration value="POSTGRESQL">
+        <annotation>
+          <documentation>
+            The database is PostgreSQL.
+          </documentation>
+        </annotation>
+      </enumeration>
+    </restriction>
+  </simpleType>
+
+  <element name="IdStore">
+    <annotation>
+      <documentation>
+        Configuration for the idstore server that will be used for user identity information.
+      </documentation>
+    </annotation>
+
+    <complexType>
+      <attribute name="baseURI"
+                 type="anyURI"
+                 use="required">
+        <annotation>
+          <documentation>
+            The base URI of the idstore user API.
+          </documentation>
+        </annotation>
+      </attribute>
+
+      <attribute name="passwordResetURI"
+                 type="anyURI"
+                 use="required">
+        <annotation>
+          <documentation>
+            The password reset URI to which to redirect users who want to reset their password.
+          </documentation>
+        </annotation>
+      </attribute>
+    </complexType>
+  </element>
+
+  <element name="OpenTelemetry">
+    <annotation>
+      <documentation>
+        Configuration for OpenTelemetry.
+      </documentation>
+    </annotation>
+
+    <complexType>
+      <attribute name="logicalServiceName"
+                 type="string"
+                 use="required">
+        <annotation>
+          <documentation>
+            The service name used for telemetry.
+          </documentation>
+        </annotation>
+      </attribute>
+
+      <attribute name="collectorAddress"
+                 type="anyURI"
+                 use="required">
+        <annotation>
+          <documentation>
+            The address of the OLTP collector that will receive metrics data.
+          </documentation>
+        </annotation>
+      </attribute>
+    </complexType>
+  </element>
+
+  <element name="Database">
+    <annotation>
+      <documentation>
+        Configuration information for the database.
+      </documentation>
+    </annotation>
+
+    <complexType>
+      <attribute name="kind"
+                 type="c:DatabaseKind"
+                 use="required"/>
+      <attribute name="user"
+                 type="string"
+                 use="required">
+        <annotation>
+          <documentation>
+            The username used to connect to the database.
+          </documentation>
+        </annotation>
+      </attribute>
+
+      <attribute name="password"
+                 type="string"
+                 use="required">
+        <annotation>
+          <documentation>
+            The password used to connect to the database.
+          </documentation>
+        </annotation>
+      </attribute>
+
+      <attribute name="databaseAddress"
+                 type="string"
+                 use="required">
+        <annotation>
+          <documentation>
+            The address of the database.
+          </documentation>
+        </annotation>
+      </attribute>
+
+      <attribute name="databasePort"
+                 type="integer"
+                 use="required">
+        <annotation>
+          <documentation>
+            The port used to connect to the database.
+          </documentation>
+        </annotation>
+      </attribute>
+
+      <attribute name="databaseName"
+                 type="string"
+                 use="required">
+        <annotation>
+          <documentation>
+            The name of the database.
+          </documentation>
+        </annotation>
+      </attribute>
+
+      <attribute name="create"
+                 type="boolean"
+                 use="required">
+        <annotation>
+          <documentation>
+            If set to true, the database and tables will be created if they do not already exist.
+          </documentation>
+        </annotation>
+      </attribute>
+      <attribute name="upgrade"
+                 type="boolean"
+                 use="required">
+        <annotation>
+          <documentation>
+            If set to true, the database and tables will be upgraded to the latest supported schema version.
+          </documentation>
+        </annotation>
+      </attribute>
+    </complexType>
+  </element>
+
+  <complexType name="HTTPService">
+    <attribute name="listenAddress"
+               type="string"
+               use="required">
+      <annotation>
+        <documentation>
+          The address upon which this HTTP service will listen.
+        </documentation>
+      </annotation>
+    </attribute>
+
+    <attribute name="listenPort"
+               type="integer"
+               use="required">
+      <annotation>
+        <documentation>
+          The port upon which this HTTP service will listen.
+        </documentation>
+      </annotation>
+    </attribute>
+
+    <attribute name="externalAddress"
+               type="anyURI"
+               use="required">
+      <annotation>
+        <documentation>
+          The address by which this service is accessible to the outside world. The service will typically be configured
+          behind a reverse proxy to provide TLS.
+        </documentation>
+      </annotation>
+    </attribute>
+
+    <attribute name="sessionExpiration"
+               type="duration"
+               use="optional">
+      <annotation>
+        <documentation>
+          The expiration time for sessions.
+        </documentation>
+      </annotation>
+    </attribute>
+  </complexType>
+
+  <element name="AmberjackService"
+           type="c:HTTPService">
+    <annotation>
+      <documentation>
+        Configuration for the Amberjack API service.
+      </documentation>
+    </annotation>
+  </element>
+
+  <element name="PikeService"
+           type="c:HTTPService">
+    <annotation>
+      <documentation>
+        Configuration for the Pike API service.
+      </documentation>
+    </annotation>
+  </element>
+
+  <element name="Configuration">
+    <annotation>
+      <documentation>
+        The top-level configuration element.
+      </documentation>
+    </annotation>
+
+    <complexType>
+      <sequence>
+        <element ref="c:AmberjackService"/>
+        <element ref="c:PikeService"/>
+        <element ref="c:Database"/>
+        <element ref="c:IdStore"/>
+        <element ref="c:OpenTelemetry"
+                 minOccurs="0"
+                 maxOccurs="1"/>
+      </sequence>
+    </complexType>
+  </element>
+
+</schema>

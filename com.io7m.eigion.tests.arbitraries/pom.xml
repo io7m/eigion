@@ -21,12 +21,12 @@
   <dependencies>
     <dependency>
       <groupId>${project.groupId}</groupId>
-      <artifactId>com.io7m.eigion.model</artifactId>
+      <artifactId>com.io7m.eigion.error_codes</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
-      <artifactId>com.io7m.eigion.server.security</artifactId>
+      <artifactId>com.io7m.eigion.model</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
@@ -36,18 +36,13 @@
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
-      <artifactId>com.io7m.eigion.protocol.admin_api.v1</artifactId>
+      <artifactId>com.io7m.eigion.protocol.amberjack</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
-      <artifactId>com.io7m.eigion.protocol.public_api.v1</artifactId>
+      <artifactId>com.io7m.eigion.protocol.pike</artifactId>
       <version>${project.version}</version>
-    </dependency>
-
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-api</artifactId>
     </dependency>
 
     <dependency>

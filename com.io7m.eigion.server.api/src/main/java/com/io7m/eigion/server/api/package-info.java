@@ -15,7 +15,7 @@
  */
 
 /**
- * The server API.
+ * Eigion platform (Server API)
  */
 
 @Export

@@ -14,8 +14,10 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-
 package com.io7m.eigion.pike.api;
+
+import com.io7m.eigion.error_codes.EIErrorCode;
+import com.io7m.eigion.error_codes.EIException;
 
 import java.util.Objects;
 
@@ -23,46 +25,53 @@ import java.util.Objects;
  * The type of client exceptions.
  */
 
-public final class EIPClientException extends Exception
+public final class EIPClientException extends EIException
 {
   /**
    * Construct an exception.
    *
-   * @param message The message
+   * @param errorCode The error code
+   * @param message   The message
    */
 
   public EIPClientException(
+    final EIErrorCode errorCode,
     final String message)
   {
-    super(Objects.requireNonNull(message, "message"));
+    super(Objects.requireNonNull(message, "message"), errorCode);
   }
 
   /**
    * Construct an exception.
    *
-   * @param message The message
-   * @param cause   The cause
+   * @param errorCode The error code
+   * @param message   The message
+   * @param cause     The cause
    */
 
   public EIPClientException(
+    final EIErrorCode errorCode,
     final String message,
     final Throwable cause)
   {
     super(
       Objects.requireNonNull(message, "message"),
-      Objects.requireNonNull(cause, "cause")
+      Objects.requireNonNull(cause, "cause"),
+      errorCode
     );
   }
 
   /**
    * Construct an exception.
    *
-   * @param cause The cause
+   * @param errorCode The error code
+   * @param cause     The cause
    */
 
   public EIPClientException(
+    final EIErrorCode errorCode,
     final Throwable cause)
   {
-    super(Objects.requireNonNull(cause, "cause"));
+    super(Objects.requireNonNull(cause, "cause"), errorCode);
   }
 }

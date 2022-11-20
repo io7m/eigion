@@ -18,10 +18,16 @@
 package com.io7m.eigion.pike.internal;
 
 import com.io7m.eigion.pike.api.EIPClientException;
-import com.io7m.eigion.protocol.api.EIProtocolException;
-import com.io7m.eigion.protocol.versions.EISVMessageType;
-import com.io7m.eigion.protocol.versions.EISVMessages;
-import com.io7m.eigion.protocol.versions.EISVProtocols;
+import com.io7m.eigion.protocol.pike.cb.EIPCB1Messages;
+import com.io7m.genevan.core.GenProtocolException;
+import com.io7m.genevan.core.GenProtocolIdentifier;
+import com.io7m.genevan.core.GenProtocolServerEndpointType;
+import com.io7m.genevan.core.GenProtocolSolved;
+import com.io7m.genevan.core.GenProtocolSolver;
+import com.io7m.genevan.core.GenProtocolVersion;
+import com.io7m.verdant.core.VProtocolException;
+import com.io7m.verdant.core.VProtocols;
+import com.io7m.verdant.core.cb.VProtocolMessages;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,14 +37,16 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.util.Comparator;
-import java.util.Map;
+import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.HTTP_ERROR;
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.IO_ERROR;
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.NO_SUPPORTED_PROTOCOLS;
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.PROTOCOL_ERROR;
+import static com.io7m.eigion.pike.internal.EIPCompression.decompressResponse;
 import static java.net.http.HttpResponse.BodyHandlers.ofByteArray;
-import static java.util.function.Function.identity;
 
 /**
  * Functions to negotiate protocols.
@@ -54,56 +62,13 @@ public final class EIPProtocolNegotiation
 
   }
 
-  private static EIPClientException noProtocolsInCommon(
-    final Map<BigInteger, EIPClientProtocolHandlerFactoryType> handlers,
-    final EIPStrings strings,
-    final EISVProtocols protocols)
-  {
-    final var lineSeparator = System.lineSeparator();
-    final var text = new StringBuilder(128);
-    text.append(strings.format("noSupportedVersions"));
-    text.append(lineSeparator);
-    text.append("  ");
-    text.append(strings.format("serverSupports"));
-    text.append(lineSeparator);
-
-    for (final var candidate : protocols.protocols()) {
-      text.append("    ");
-      text.append(candidate.id());
-      text.append(" ");
-      text.append(candidate.versionMajor());
-      text.append(".");
-      text.append(candidate.versionMinor());
-      text.append(" ");
-      text.append(candidate.endpointPath());
-      text.append(lineSeparator);
-    }
-
-    text.append(strings.format("clientSupports"));
-    text.append(lineSeparator);
-
-    for (final var handler : handlers.values()) {
-      text.append("    ");
-      text.append(handler.id());
-      text.append(" ");
-      text.append(handler.versionMajor());
-      text.append(".*");
-      text.append(lineSeparator);
-    }
-
-    return new EIPClientException(text.toString());
-  }
-
-  private static EISVProtocols fetchSupportedVersions(
+  private static List<IdAServerEndpoint> fetchSupportedVersions(
     final URI base,
     final HttpClient httpClient,
     final EIPStrings strings)
     throws InterruptedException, EIPClientException
   {
     LOG.debug("retrieving supported server protocols");
-
-    final var vMessages =
-      new EISVMessages();
 
     final var request =
       HttpRequest.newBuilder(base)
@@ -114,41 +79,65 @@ public final class EIPProtocolNegotiation
     try {
       response = httpClient.send(request, ofByteArray());
     } catch (final IOException e) {
-      throw new EIPClientException(e);
+      throw new EIPClientException(IO_ERROR, e);
     }
 
     LOG.debug("server: status {}", response.statusCode());
 
     if (response.statusCode() >= 400) {
       throw new EIPClientException(
+        HTTP_ERROR,
         strings.format("httpError", Integer.valueOf(response.statusCode()))
       );
     }
 
-    final EISVMessageType message;
+    final var protocols =
+      VProtocolMessages.create();
+
+    final VProtocols message;
     try {
-      message = vMessages.parse(response.body());
-    } catch (final EIProtocolException e) {
-      throw new EIPClientException(e);
+      final var body = decompressResponse(response, response.headers());
+      message = protocols.parse(base, body);
+    } catch (final VProtocolException e) {
+      throw new EIPClientException(PROTOCOL_ERROR, e);
+    } catch (final IOException e) {
+      throw new EIPClientException(IO_ERROR, e);
     }
 
-    if (message instanceof EISVProtocols protocols) {
-      return protocols;
-    }
+    return message.protocols()
+      .stream()
+      .map(v -> {
+        return new IdAServerEndpoint(
+          new GenProtocolIdentifier(
+            v.id().toString(),
+            new GenProtocolVersion(
+              new BigInteger(Long.toUnsignedString(v.versionMajor())),
+              new BigInteger(Long.toUnsignedString(v.versionMinor()))
+            )
+          ),
+          v.endpointPath()
+        );
+      }).toList();
+  }
 
-    throw new EIPClientException(
-      strings.format(
-        "unexpectedMessage", "EISVProtocols", message.getClass())
-    );
+  private record IdAServerEndpoint(
+    GenProtocolIdentifier supported,
+    String endpoint)
+    implements GenProtocolServerEndpointType
+  {
+    IdAServerEndpoint
+    {
+      Objects.requireNonNull(supported, "supported");
+      Objects.requireNonNull(endpoint, "endpoint");
+    }
   }
 
   /**
    * Negotiate a protocol handler.
    *
+   * @param locale     The locale
    * @param httpClient The HTTP client
    * @param strings    The string resources
-   * @param user       The user
-   * @param password   The password
    * @param base       The base URI
    *
    * @return The protocol handler
@@ -158,69 +147,61 @@ public final class EIPProtocolNegotiation
    */
 
   public static EIPClientProtocolHandlerType negotiateProtocolHandler(
+    final Locale locale,
     final HttpClient httpClient,
     final EIPStrings strings,
-    final String user,
-    final String password,
     final URI base)
     throws EIPClientException, InterruptedException
   {
+    Objects.requireNonNull(locale, "locale");
     Objects.requireNonNull(httpClient, "httpClient");
     Objects.requireNonNull(strings, "strings");
-    Objects.requireNonNull(user, "user");
-    Objects.requireNonNull(password, "password");
     Objects.requireNonNull(base, "base");
 
-    final var handlerFactories =
-      Stream.<EIPClientProtocolHandlerFactoryType>of(new EIPClientProtocolHandlers1())
-        .collect(Collectors.toMap(
-          EIPClientProtocolHandlerFactoryType::versionMajor,
-          identity())
-        );
-
-    final var protocols =
-      fetchSupportedVersions(base, httpClient, strings);
-
-    LOG.debug("server supports {} protocols", protocols.protocols().size());
-
-    final var candidates =
-      protocols.protocols()
-        .stream()
-        .sorted(Comparator.reverseOrder())
-        .toList();
-
-    for (final var candidate : candidates) {
-      final var handlerFactory =
-        handlerFactories.get(candidate.versionMajor());
-
-      LOG.debug(
-        "checking if protocol {} {}.{} is supported",
-        candidate.id(),
-        candidate.versionMajor(),
-        candidate.versionMinor()
+    final var clientSupports =
+      List.of(
+        new EIPClientProtocolHandlers1()
       );
 
-      if (handlerFactory != null) {
-        final var target =
-          base.resolve(candidate.endpointPath())
-            .normalize();
+    final var serverProtocols =
+      fetchSupportedVersions(base, httpClient, strings);
 
-        LOG.debug(
-          "using protocol {} {}.{} at endpoint {}",
-          candidate.id(),
-          candidate.versionMajor(),
-          candidate.versionMinor(),
-          target
-        );
+    LOG.debug("server supports {} protocols", serverProtocols.size());
 
-        return handlerFactory.createHandler(
-          httpClient,
-          strings,
-          target
-        );
-      }
+    final var solver =
+      GenProtocolSolver.<EIPClientProtocolHandlerFactoryType, IdAServerEndpoint>create(
+        locale);
+
+    final GenProtocolSolved<EIPClientProtocolHandlerFactoryType, IdAServerEndpoint> solved;
+    try {
+      solved = solver.solve(
+        serverProtocols,
+        clientSupports,
+        List.of(EIPCB1Messages.protocolId().toString())
+      );
+    } catch (final GenProtocolException e) {
+      throw new EIPClientException(NO_SUPPORTED_PROTOCOLS, e.getMessage(), e);
     }
 
-    throw noProtocolsInCommon(handlerFactories, strings, protocols);
+    final var serverEndpoint =
+      solved.serverEndpoint();
+    final var target =
+      base.resolve(serverEndpoint.endpoint())
+        .normalize();
+
+    final var protocol = serverEndpoint.supported();
+    LOG.debug(
+      "using protocol {} {}.{} at endpoint {}",
+      protocol.identifier(),
+      protocol.version().versionMajor(),
+      protocol.version().versionMinor(),
+      target
+    );
+
+    return solved.clientHandler().createHandler(
+      httpClient,
+      strings,
+      target
+    );
   }
 }

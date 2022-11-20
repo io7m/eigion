@@ -16,6 +16,8 @@
 
 package com.io7m.eigion.pike.api;
 
+import com.io7m.eigion.model.EIUser;
+
 import java.io.Closeable;
 import java.net.URI;
 
@@ -24,7 +26,7 @@ import java.net.URI;
  */
 
 public interface EIPClientType
-  extends Closeable, EIPClientGroupsType, EIPClientUsersType
+  extends Closeable, EIPClientGroupsType
 {
   /**
    * Log in.
@@ -33,11 +35,13 @@ public interface EIPClientType
    * @param password The password
    * @param base     The base URI
    *
+   * @return The logged in admin profile
+   *
    * @throws EIPClientException   On errors
    * @throws InterruptedException On interruption
    */
 
-  void login(
+  EIUser login(
     String user,
     String password,
     URI base)

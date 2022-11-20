@@ -15,7 +15,7 @@
  */
 
 /**
- * Eigion platform (Pike client [internal])
+ * Eigion platform (Amberjack) [internals]
  */
 
 @Version("1.0.0")

@@ -14,10 +14,8 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-
 package com.io7m.eigion.pike;
 
-import com.io7m.eigion.pike.api.EIPClientException;
 import com.io7m.eigion.pike.api.EIPClientFactoryType;
 import com.io7m.eigion.pike.api.EIPClientType;
 import com.io7m.eigion.pike.internal.EIPClient;
@@ -31,13 +29,13 @@ import java.net.http.HttpClient;
 import java.util.Locale;
 
 /**
- * The default factory of {@code pike} clients.
+ * The default client factory.
  */
 
 public final class EIPClients implements EIPClientFactoryType
 {
   /**
-   * The default factory of {@code pike} clients.
+   * The default client factory.
    */
 
   public EIPClients()
@@ -46,9 +44,7 @@ public final class EIPClients implements EIPClientFactoryType
   }
 
   @Override
-  public EIPClientType create(
-    final Locale locale)
-    throws EIPClientException, InterruptedException
+  public EIPClientType create(final Locale locale)
   {
     final var cookieJar =
       new CookieManager();
@@ -66,9 +62,10 @@ public final class EIPClients implements EIPClientFactoryType
         .build();
 
     return new EIPClient(
+      locale,
       strings,
       httpClient,
-      new EIPClientProtocolHandlerDisconnected(strings, httpClient)
+      new EIPClientProtocolHandlerDisconnected(locale, strings, httpClient)
     );
   }
 }

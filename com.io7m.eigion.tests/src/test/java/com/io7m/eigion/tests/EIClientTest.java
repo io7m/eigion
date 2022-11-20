@@ -19,7 +19,6 @@ package com.io7m.eigion.tests;
 import com.io7m.eigion.client.api.EIClientConfiguration;
 import com.io7m.eigion.client.api.EIClientType;
 import com.io7m.eigion.client.vanilla.EIClients;
-import com.io7m.eigion.taskrecorder.EISucceeded;
 import com.io7m.jade.api.ApplicationDirectoriesType;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
@@ -34,7 +33,6 @@ import java.nio.file.Path;
 import static com.io7m.eigion.client.api.EIClientLoggedIn.CLIENT_LOGGED_IN;
 import static com.io7m.eigion.client.api.EIClientLoggedOut.CLIENT_LOGGED_OUT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public final class EIClientTest
 {
@@ -114,25 +112,5 @@ public final class EIClientTest
     assertEquals(CLIENT_LOGGED_OUT, this.client.loginStatus().get());
     this.client.login("user", "pass");
     assertEquals(CLIENT_LOGGED_IN, this.client.loginStatus().get());
-  }
-
-  /**
-   * Fetching news works.
-   *
-   * @throws Exception On errors
-   */
-
-  @Test
-  public void testNews()
-    throws Exception
-  {
-    this.servlets.addServlet(EIV1NewsOK.class, "/v1/news");
-    this.server.start();
-
-    final var news = this.client.news();
-    assertTrue(news.resolution() instanceof EISucceeded);
-
-    final var items = news.result().orElseThrow();
-    assertEquals(5, items.size());
   }
 }

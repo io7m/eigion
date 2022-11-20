@@ -16,83 +16,69 @@
 
 package com.io7m.eigion.server.api;
 
-import com.io7m.eigion.domaincheck.api.EIDomainCheckerFactoryType;
-import com.io7m.eigion.model.EIGroupPrefix;
-import com.io7m.eigion.server.database.api.EIServerDatabaseConfiguration;
-import com.io7m.eigion.server.database.api.EIServerDatabaseFactoryType;
-import com.io7m.eigion.storage.api.EIStorageFactoryType;
-import com.io7m.eigion.storage.api.EIStorageParameters;
+import com.io7m.eigion.server.database.api.EISDatabaseConfiguration;
+import com.io7m.eigion.server.database.api.EISDatabaseFactoryType;
 
-import java.net.InetSocketAddress;
-import java.nio.file.Path;
+import java.net.http.HttpClient;
 import java.time.Clock;
 import java.time.OffsetDateTime;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.function.Supplier;
 
 /**
  * The configuration for a server.
  *
- * @param locale                 The locale
- * @param clock                  The clock
- * @param domainCheckers         A factory of domain checkers
- * @param databases              The factory of databases that will be used for
- *                               the server
- * @param databaseConfiguration  The database configuration for the server
- * @param imageStorageFactory    A factory of storage implementations for
- *                               images
- * @param imageStorageParameters Parameters for the image storage
- * @param adminAddress           The address upon which the admin API listens
- * @param publicAddress          The address upon which the public API listens
- * @param sessionDirectory       The server's persistent session directory
- * @param userGroupPrefix        The prefix used to generate user group names
+ * @param amberjackApiAddress   The amberjack API address
+ * @param clock                 The clock
+ * @param httpClients           A supplier of HTTP clients
+ * @param databaseConfiguration The database configuration for the server
+ * @param databases             The factory of databases that will be used for
+ *                              the server
+ * @param locale                The locale
+ * @param pikeApiAddress        The pike API address
+ * @param idstoreConfiguration  The idstore configuration
+ * @param openTelemetry         The OpenTelemetry configuration
  */
 
 public record EIServerConfiguration(
   Locale locale,
   Clock clock,
-  EIDomainCheckerFactoryType domainCheckers,
-  EIServerDatabaseFactoryType databases,
-  EIServerDatabaseConfiguration databaseConfiguration,
-  EIStorageFactoryType imageStorageFactory,
-  EIStorageParameters imageStorageParameters,
-  InetSocketAddress adminAddress,
-  InetSocketAddress publicAddress,
-  Path sessionDirectory,
-  EIGroupPrefix userGroupPrefix)
+  Supplier<HttpClient> httpClients,
+  EISDatabaseFactoryType databases,
+  EISDatabaseConfiguration databaseConfiguration,
+  EIServerHTTPServiceConfiguration pikeApiAddress,
+  EIServerHTTPServiceConfiguration amberjackApiAddress,
+  EIServerIdstoreConfiguration idstoreConfiguration,
+  Optional<EIServerOpenTelemetryConfiguration> openTelemetry)
 {
   /**
    * The configuration for a server.
    *
-   * @param locale                 The locale
-   * @param clock                  The clock
-   * @param domainCheckers         A factory of domain checkers
-   * @param databases              The factory of databases that will be used
-   *                               for the server
-   * @param databaseConfiguration  The database configuration for the server
-   * @param imageStorageFactory    A factory of storage implementations for
-   *                               images
-   * @param imageStorageParameters Parameters for the image storage
-   * @param adminAddress           The address upon which the admin API listens
-   * @param publicAddress          The address upon which the public API
-   *                               listens
-   * @param sessionDirectory       The server's persistent session directory
-   * @param userGroupPrefix        The prefix used to generate user group names
+   * @param amberjackApiAddress   The amberjack API address
+   * @param clock                 The clock
+   * @param httpClients           A supplier of HTTP clients
+   * @param databaseConfiguration The database configuration for the server
+   * @param databases             The factory of databases that will be used for
+   *                              the server
+   * @param locale                The locale
+   * @param pikeApiAddress        The pike API address
+   * @param idstoreConfiguration  The idstore configuration
+   * @param openTelemetry         The OpenTelemetry configuration
    */
 
   public EIServerConfiguration
   {
-    Objects.requireNonNull(databases, "databases");
-    Objects.requireNonNull(databaseConfiguration, "databaseConfiguration");
-    Objects.requireNonNull(domainCheckers, "domainCheckers");
-    Objects.requireNonNull(adminAddress, "adminAddress");
-    Objects.requireNonNull(publicAddress, "publicAddress");
-    Objects.requireNonNull(sessionDirectory, "sessionDirectory");
-    Objects.requireNonNull(locale, "locale");
+    Objects.requireNonNull(amberjackApiAddress, "amberjackApiAddress");
     Objects.requireNonNull(clock, "clock");
-    Objects.requireNonNull(imageStorageFactory, "imageStorageFactory");
-    Objects.requireNonNull(imageStorageParameters, "imageStorageParameters");
-    Objects.requireNonNull(userGroupPrefix, "userGroupPrefix");
+    Objects.requireNonNull(httpClients, "httpClients");
+    Objects.requireNonNull(databaseConfiguration, "databaseConfiguration");
+    Objects.requireNonNull(databases, "databases");
+    Objects.requireNonNull(idstoreConfiguration, "idstoreConfiguration");
+    Objects.requireNonNull(locale, "locale");
+    Objects.requireNonNull(openTelemetry, "openTelemetry");
+    Objects.requireNonNull(pikeApiAddress, "pikeApiAddress");
   }
 
   /**

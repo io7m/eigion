@@ -16,9 +16,7 @@
 
 package com.io7m.eigion.server.api;
 
-import com.io7m.eigion.server.database.api.EIServerDatabaseType;
-
-import java.util.concurrent.Flow;
+import com.io7m.eigion.server.database.api.EISDatabaseType;
 
 /**
  * A server instance.
@@ -39,13 +37,7 @@ public interface EIServerType extends AutoCloseable
    * @return The server's database instance
    */
 
-  EIServerDatabaseType database();
-
-  /**
-   * @return A stream of server events
-   */
-
-  Flow.Publisher<EIServerEventType> events();
+  EISDatabaseType database();
 
   @Override
   void close()

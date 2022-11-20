@@ -16,418 +16,308 @@
 
 package com.io7m.eigion.tests;
 
-import com.io7m.eigion.model.EIGroupCreationRequest;
-import com.io7m.eigion.model.EIGroupCreationRequestStatusType.Succeeded;
+import com.io7m.eigion.model.EIAuditSearchParameters;
+import com.io7m.eigion.model.EIGroupCreationRequestStatusType;
 import com.io7m.eigion.model.EIGroupName;
-import com.io7m.eigion.model.EIGroupRole;
-import com.io7m.eigion.model.EIToken;
+import com.io7m.eigion.model.EIPermission;
+import com.io7m.eigion.model.EIPermissionSet;
+import com.io7m.eigion.model.EITimeRange;
 import com.io7m.eigion.pike.EIPClients;
 import com.io7m.eigion.pike.api.EIPClientException;
 import com.io7m.eigion.pike.api.EIPClientType;
+import com.io7m.eigion.server.database.api.EISDatabaseAuditQueriesType;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.Timeout;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.net.URI;
-import java.util.EnumSet;
+import java.net.URISyntaxException;
+import java.net.http.HttpClient;
 import java.util.Locale;
-import java.util.Set;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.function.Supplier;
 
-import static com.io7m.eigion.model.EIGroupCreationRequestStatusType.Cancelled;
-import static com.io7m.eigion.model.EIGroupCreationRequestStatusType.InProgress;
-import static com.io7m.eigion.model.EIGroupRole.USER_DISMISS;
-import static com.io7m.eigion.model.EIGroupRole.USER_INVITE;
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.AUTHENTICATION_ERROR;
+import static com.io7m.eigion.model.EIGroupRole.FOUNDER;
+import static com.io7m.eigion.server.database.api.EISDatabaseRole.EIGION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/**
- * Pike client tests.
- */
-
 public final class EIPikeTest extends EIWithServerContract
 {
-  private static final Logger LOG =
-    LoggerFactory.getLogger(EIPikeTest.class);
-
   private EIPClients clients;
   private EIPClientType client;
+  private EIInterceptHttpClient httpClient;
+  private EIFakeServerDomainCheck domainCheckServer;
 
   @BeforeEach
   public void setup()
     throws Exception
   {
-    LOG.debug("setup");
     this.clients = new EIPClients();
-    this.client = this.clients.create(Locale.getDefault());
+    this.client = this.clients.create(Locale.ROOT);
+    this.domainCheckServer = EIFakeServerDomainCheck.create(20000);
+    EIFakeServerDomainCheckServlet.RETURN_TOKEN = Optional.empty();
   }
 
   @AfterEach
   public void tearDown()
     throws Exception
   {
-    LOG.debug("tearDown");
     this.client.close();
+    this.domainCheckServer.close();
+  }
+
+  private static URI replaceURI(
+    final URI u)
+  {
+    try {
+      return new URI(
+        "http",
+        u.getUserInfo(),
+        "localhost",
+        20000,
+        u.getPath(),
+        u.getQuery(),
+        u.getFragment()
+      );
+    } catch (final URISyntaxException e) {
+      throw new IllegalStateException(e);
+    }
+  }
+
+  @Override
+  protected Supplier<HttpClient> httpClients()
+  {
+    this.httpClient = new EIInterceptHttpClient(
+      EIPikeTest::replaceURI,
+      HttpClient.newHttpClient()
+    );
+
+    return () -> this.httpClient;
   }
 
   /**
-   * Logging in works.
+   * It's not possible to log in if the user does not exist.
    *
    * @throws Exception On errors
    */
 
   @Test
-  public void testLogin()
+  public void testLoginNoSuchUser()
     throws Exception
   {
-    this.serverCreateUser(
-      this.serverCreateAdminInitial("someone", "12345678"),
-      "someone");
-    this.client.login("someone", "12345678", this.serverPublicURI());
-  }
-
-  /**
-   * Logging in fails when it should fail.
-   *
-   * @throws Exception On errors
-   */
-
-  @Test
-  public void testLoginFails()
-    throws Exception
-  {
-    this.serverStartIfNecessary();
     final var ex =
       assertThrows(EIPClientException.class, () -> {
-        this.client.login("someone", "12345678", this.serverPublicURI());
+        this.client.login(
+          "nonexistent",
+          "12345678",
+          this.server().basePikeURI()
+        );
       });
-    LOG.debug("", ex);
-    assertTrue(ex.getMessage().contains("Login failed"));
+
+    assertEquals(AUTHENTICATION_ERROR, ex.errorCode());
   }
 
   /**
-   * Logging in fails without usable protocols.
+   * Logging in works if the user has Pike permissions.
    *
    * @throws Exception On errors
    */
 
   @Test
-  public void testLoginFailsWithoutProtocols()
+  public void testLoginUserOK()
     throws Exception
   {
-    try (var ignored = EIFakeServerNonsenseProtocols.create(20000)) {
-      final var ex =
-        assertThrows(EIPClientException.class, () -> {
-          this.client.login(
-            "someone",
-            "12345678",
-            URI.create("http://localhost:20000/"));
-        });
-      LOG.debug("", ex);
-      assertTrue(ex.getMessage().contains("client does not support"));
-    }
+    this.setupStandardUserAndLogIn();
   }
 
   /**
-   * Logging in fails with a broken server.
+   * Creating a group works.
    *
    * @throws Exception On errors
    */
 
   @Test
-  public void testLoginFailsWith500()
+  public void testGroupCreationOK()
     throws Exception
   {
-    try (var ignored = EIFakeServerAlways500.create(20000)) {
-      final var ex =
-        assertThrows(EIPClientException.class, () -> {
-          this.client.login(
-            "someone",
-            "12345678",
-            URI.create("http://localhost:20000/"));
-        });
-      LOG.debug("", ex);
-      assertTrue(ex.getMessage().contains("HTTP server returned an error: 500"));
-    }
-  }
-
-  /**
-   * Logging in fails if the actual admin API sends garbage.
-   *
-   * @throws Exception On errors
-   */
-
-  @Test
-  public void testLoginPublicAPIGarbage()
-    throws Exception
-  {
-    try (var ignored = EIFakeServerPublicButGarbage.create(20000)) {
-      final var ex =
-        assertThrows(EIPClientException.class, () -> {
-          this.client.login(
-            "someone",
-            "12345678",
-            URI.create("http://localhost:20000/"));
-        });
-      LOG.debug("", ex);
-      assertTrue(ex.getMessage().contains("Unrecognized token 'hello'"));
-    }
-  }
-
-  /**
-   * Creating and then cancelling a group creation works.
-   *
-   * @throws Exception On errors
-   */
-
-  @Test
-  public void testGroupCreateCancel()
-    throws Exception
-  {
-    this.serverCreateUser(
-      this.serverCreateAdminInitial("someone", "12345678"),
-      "someone");
-
-    this.client.login("someone", "12345678", this.serverPublicURI());
-
-    final var challenge =
-      this.client.groupCreationBegin(new EIGroupName("com.io7m.ex"));
-
-    final var requestsBefore =
-      this.client.groupCreationRequests();
-
-    assertEquals(InProgress.class, requestsBefore.get(0).status().getClass());
-
-    this.client.groupCreationCancel(challenge.token());
-
-    final var requestsAfter =
-      this.client.groupCreationRequests();
-
-    assertEquals(Cancelled.class, requestsAfter.get(0).status().getClass());
-  }
-
-  /**
-   * Creating too many group requests fails.
-   *
-   * @throws Exception On errors
-   */
-
-  @Test
-  public void testGroupCreateTooMany()
-    throws Exception
-  {
-    this.serverCreateUser(
-      this.serverCreateAdminInitial("someone", "12345678"),
-      "someone");
-
-    this.client.login("someone", "12345678", this.serverPublicURI());
-
-    this.client.groupCreationBegin(new EIGroupName("com.io7m.ex"));
-    this.client.groupCreationBegin(new EIGroupName("com.io7m.ex"));
-    this.client.groupCreationBegin(new EIGroupName("com.io7m.ex"));
-    this.client.groupCreationBegin(new EIGroupName("com.io7m.ex"));
-    this.client.groupCreationBegin(new EIGroupName("com.io7m.ex"));
-
-    final var ex = assertThrows(EIPClientException.class, () -> {
-      this.client.groupCreationBegin(new EIGroupName("com.io7m.ex"));
-    });
-    assertTrue(ex.getMessage().contains("Too many requests"));
-  }
-
-  /**
-   * Trying to cancel a different user's group creation request fails.
-   *
-   * @throws Exception On errors
-   */
-
-  @Test
-  public void testGroupCreateNotMine()
-    throws Exception
-  {
-    final var admin =
-      this.serverCreateAdminInitial("someone", "12345678");
-    this.serverCreateUser(admin, "someone0");
-    this.serverCreateUser(admin, "someone1");
-
-    this.client.login("someone0", "12345678", this.serverPublicURI());
-
-    final var challenge =
-      this.client.groupCreationBegin(new EIGroupName("com.io7m.ex"));
-
-    this.client.login("someone1", "12345678", this.serverPublicURI());
-
-    final var ex = assertThrows(EIPClientException.class, () -> {
-      this.client.groupCreationCancel(challenge.token());
-    });
-    assertTrue(ex.getMessage().contains("may only cancel their own"));
-  }
-
-  /**
-   * Cancelling a nonexistent group creation fails.
-   *
-   * @throws Exception On errors
-   */
-
-  @Test
-  public void testGroupCreateNonexistent()
-    throws Exception
-  {
-    this.serverCreateUser(
-      this.serverCreateAdminInitial("someone", "12345678"),
-      "someone");
-
-    this.client.login("someone", "12345678", this.serverPublicURI());
-
-    final var ex = assertThrows(EIPClientException.class, () -> {
-      this.client.groupCreationCancel(new EIToken(
-        "49F8ACBA8A607A3C39B335A436D4E764"));
-    });
-    assertTrue(ex.getMessage().contains("Not found"));
-  }
-
-  /**
-   * Group creation works.
-   *
-   * @throws Exception On errors
-   */
-
-  @Test
-  @Timeout(value = 5L, unit = TimeUnit.SECONDS)
-  public void testGroupCreate()
-    throws Exception
-  {
-    final var user =
-      this.serverCreateUser(
-        this.serverCreateAdminInitial("someone", "12345678"),
-        "someone");
-
-    this.client.login("someone", "12345678", this.serverPublicURI());
+    this.setupStandardUserAndLogIn();
 
     final var groupName =
-      new EIGroupName("com.io7m.ex");
-    final var c =
-      this.client.groupCreationBegin(groupName);
+      new EIGroupName("com.example");
+    final var challenge =
+      this.client.groupCreateBegin(groupName);
 
-    this.domainCheckers()
-      .enqueue(CompletableFuture.completedFuture(
-        new EIGroupCreationRequest(
-          groupName,
-          user,
-          c.token(),
-          new Succeeded(timeNow(), timeNow())
-        )
-      ));
+    assertEquals(groupName, challenge.groupName());
 
-    this.client.groupCreationReady(c.token());
+    EIFakeServerDomainCheckServlet.RETURN_TOKEN =
+      Optional.of(challenge.token().value());
 
-    while (true) {
-      final var rs =
-        this.client.groupCreationRequests();
-      final var r =
-        rs.get(0);
+    this.client.groupCreateReady(challenge.token());
 
-      if (r.status() instanceof InProgress) {
-        Thread.sleep(100L);
-        continue;
+    /*
+     * Wait for everything to settle.
+     */
+
+    Thread.sleep(1_00L);
+
+    final var groups =
+      this.client.groups()
+        .current()
+        .items();
+
+    assertEquals(groupName, groups.get(0).group());
+    assertTrue(groups.get(0).roles().implies(FOUNDER));
+
+    final var requests =
+      this.client.groupCreateRequests()
+        .current()
+        .items();
+
+    assertEquals(1, requests.size());
+    assertEquals(EIGroupCreationRequestStatusType.Succeeded.class, requests.get(0).status().getClass());
+
+    this.checkAuditLog(
+      new AuditCheck("USER_LOGGED_IN", null),
+      new AuditCheck("GROUP_CREATION_REQUESTED", null),
+      new AuditCheck("GROUP_CREATION_REQUEST_SUCCEEDED", null),
+      new AuditCheck("GROUP_CREATED", "com.example")
+    );
+  }
+
+  /**
+   * Cancelling a group creation works.
+   *
+   * @throws Exception On errors
+   */
+
+  @Test
+  public void testGroupCreationCancel()
+    throws Exception
+  {
+    this.setupStandardUserAndLogIn();
+
+    final var groupName =
+      new EIGroupName("com.example");
+    final var challenge =
+      this.client.groupCreateBegin(groupName);
+
+    assertEquals(groupName, challenge.groupName());
+
+    EIFakeServerDomainCheckServlet.RETURN_TOKEN =
+      Optional.of(challenge.token().value());
+
+    this.client.groupCreateCancel(challenge.token());
+
+    /*
+     * Wait a second for everything to settle.
+     */
+
+    Thread.sleep(1_00L);
+
+    final var groups =
+      this.client.groups()
+        .current()
+        .items();
+
+    assertEquals(0, groups.size());
+
+    final var requests =
+      this.client.groupCreateRequests()
+        .current()
+        .items();
+
+    assertEquals(1, requests.size());
+    assertEquals(EIGroupCreationRequestStatusType.Cancelled.class, requests.get(0).status().getClass());
+
+    this.checkAuditLog(
+      new AuditCheck("USER_LOGGED_IN", null),
+      new AuditCheck("GROUP_CREATION_REQUESTED", null),
+      new AuditCheck("GROUP_CREATION_REQUEST_CANCELLED", null)
+    );
+  }
+
+  private void checkAuditLog(
+    final AuditCheck... auditCheck)
+    throws Exception
+  {
+    final var database = this.server().database();
+    try (var c = database.openConnection(EIGION)) {
+      try (var t = c.openTransaction()) {
+        final var q =
+          t.queries(EISDatabaseAuditQueriesType.class);
+
+        final var search =
+          q.auditEventsSearch(new EIAuditSearchParameters(
+            EITimeRange.largest(),
+            Optional.empty(),
+            Optional.empty(),
+            Optional.empty(),
+            1000L
+          ));
+
+        final var events =
+          search.pageCurrent(q).items();
+
+        for (int index = 0; index < auditCheck.length; ++index) {
+          final var check = auditCheck[index];
+          final var event = events.get(index);
+          assertEquals(
+            check.type,
+            event.type(),
+            "[%d] type %s == event type %s"
+              .formatted(Integer.valueOf(index), check.type, event.type())
+          );
+          if (check.message != null) {
+            assertEquals(
+              check.message,
+              event.message(),
+              "[%d] message %s == event message %s"
+                .formatted(
+                  Integer.valueOf(index),
+                  check.message,
+                  event.message())
+            );
+          }
+        }
       }
-
-      break;
     }
-
-    final var groups = this.client.groups();
-    assertEquals(groups.get(0).group(), groupName);
-    assertEquals(groups.get(0).roles(), EnumSet.allOf(EIGroupRole.class));
-    assertEquals(1, groups.size());
   }
 
-  /**
-   * Granting roles in a group works.
-   *
-   * @throws Exception On errors
-   */
-
-  @Test
-  public void testGroupGrant()
-    throws Exception
+  private static AuditCheck check(
+    final String type,
+    final String message)
   {
-    final var admin =
-      this.serverCreateAdminInitial("someone", "12345678");
-    final var user0 =
-      this.serverCreateUser(admin, "some0");
-    final var user1 =
-      this.serverCreateUser(admin, "some1");
-
-    this.groupCreate(user0, "com.io7m.ex");
-    this.groupAddUser(user1, "com.io7m.ex", Set.of(USER_INVITE));
-
-    this.client.login("some0", "12345678", this.serverPublicURI());
-    this.client.groupGrant(new EIGroupName("com.io7m.ex"), user1, USER_DISMISS);
+    return new AuditCheck(type, message);
   }
 
-  /**
-   * Unowned roles cannot be granted.
-   *
-   * @throws Exception On errors
-   */
-
-  @Test
-  public void testGroupGrantNotOwned()
-    throws Exception
+  private record AuditCheck(
+    String type,
+    String message)
   {
-    final var admin =
-      this.serverCreateAdminInitial("someone", "12345678");
-    final var user0 =
-      this.serverCreateUser(admin, "some0");
-    final var user1 =
-      this.serverCreateUser(admin, "some1");
 
-    this.groupCreate(user0, "com.io7m.ex");
-    this.groupAddUser(user1, "com.io7m.ex", Set.of(USER_INVITE));
-
-    this.client.login("some1", "12345678", this.serverPublicURI());
-
-    final var ex =
-    assertThrows(EIPClientException.class, () -> {
-      this.client.groupGrant(new EIGroupName("com.io7m.ex"), user1, USER_DISMISS);
-    });
-    assertTrue(ex.getMessage().contains("USER_DISMISS role"));
   }
 
-  /**
-   * Leaving a group works.
-   *
-   * @throws Exception On errors
-   */
-
-  @Test
-  public void testGroupLeave()
+  private UUID setupStandardUserAndLogIn(
+    final EIPermission... permissions)
     throws Exception
   {
-    final var admin =
-      this.serverCreateAdminInitial("someone", "12345678");
-    final var user0 =
-      this.serverCreateUser(admin, "some0");
-    final var user1 =
-      this.serverCreateUser(admin, "some1");
+    final var userId =
+      this.idstore()
+        .createUser("noone", "12345678");
 
-    final var groupName = new EIGroupName("com.io7m.ex");
-    this.groupCreate(user0, groupName.value());
-    this.groupAddUser(user1, groupName.value(), Set.of(USER_INVITE));
+    this.server()
+      .configurator()
+      .userSetPermissions(userId, EIPermissionSet.of(permissions));
 
-    this.client.login("some1", "12345678", this.serverPublicURI());
-
-    final var self0 = this.client.userSelf();
-    assertTrue(self0.groupMembership().containsKey(groupName));
-
-    this.client.groupLeave(groupName);
-
-    final var self1 = this.client.userSelf();
-    assertFalse(self1.groupMembership().containsKey(groupName));
+    this.client.login(
+      "noone",
+      "12345678",
+      this.server().basePikeURI()
+    );
+    return userId;
   }
 }

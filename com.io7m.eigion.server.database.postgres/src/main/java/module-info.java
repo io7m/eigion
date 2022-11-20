@@ -14,43 +14,41 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-import com.io7m.eigion.product.parser.api.EIProductReleaseParsersType;
-import com.io7m.eigion.product.parser.api.EIProductReleaseSerializersType;
-import com.io7m.eigion.server.database.api.EIServerDatabaseFactoryType;
-import com.io7m.eigion.server.database.postgres.EIServerDatabases;
+import com.io7m.eigion.server.database.api.EISDatabaseFactoryType;
+import com.io7m.eigion.server.database.postgres.EISDatabases;
 
 /**
- * Eigion platform (Server database Postgresql implementation)
+ * Eigion platform (Server PostgreSQL database)
  */
 
 module com.io7m.eigion.server.database.postgres
 {
-  requires static org.osgi.annotation.bundle;
   requires static org.osgi.annotation.versioning;
+  requires static org.osgi.annotation.bundle;
 
-  requires transitive com.io7m.eigion.server.database.api;
-  requires transitive com.io7m.eigion.product.parser.api;
+  requires transitive com.io7m.eigion.error_codes;
+  requires transitive com.io7m.eigion.model;
+  requires transitive com.io7m.eigion.services.api;
+  requires transitive io.opentelemetry.api;
 
   requires com.io7m.anethum.common;
-  requires com.io7m.jaffirm.core;
+  requires com.io7m.eigion.server.database.api;
+  requires com.io7m.jdeferthrow.core;
+  requires com.io7m.jqpage.core;
   requires com.io7m.trasco.api;
   requires com.io7m.trasco.vanilla;
   requires com.zaxxer.hikari;
-  requires commons.math3;
-  requires java.management;
+  requires io.opentelemetry.context;
+  requires io.opentelemetry.semconv;
   requires org.jooq;
   requires org.postgresql.jdbc;
   requires org.slf4j;
 
-  opens com.io7m.eigion.server.database.postgres.internal to java.management;
+  provides EISDatabaseFactoryType
+    with EISDatabases;
 
   exports com.io7m.eigion.server.database.postgres;
   exports com.io7m.eigion.server.database.postgres.internal.tables to org.jooq;
   exports com.io7m.eigion.server.database.postgres.internal.tables.records to org.jooq;
   exports com.io7m.eigion.server.database.postgres.internal to org.jooq;
-
-  provides EIServerDatabaseFactoryType with EIServerDatabases;
-
-  uses EIProductReleaseSerializersType;
-  uses EIProductReleaseParsersType;
 }

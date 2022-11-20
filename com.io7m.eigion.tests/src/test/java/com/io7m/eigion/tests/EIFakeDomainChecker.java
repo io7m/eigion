@@ -55,7 +55,7 @@ public final class EIFakeDomainChecker implements EIDomainCheckerType
     if (next == null) {
       LOG.debug("checking: no queued future for {}!", request);
       return CompletableFuture.failedFuture(
-        new IllegalStateException("No queued check!")
+        new IllegalStateException("No queued evaluate!")
       );
     }
 

@@ -17,7 +17,12 @@
 package com.io7m.eigion.model;
 
 import java.util.EnumSet;
+import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * The role of a user within a group.
@@ -26,14 +31,38 @@ import java.util.Set;
 public enum EIGroupRole
 {
   /**
+   * A base role that indicates that the user is a member of the group.
+   */
+
+  MEMBER {
+    @Override
+    public int index()
+    {
+      return 3;
+    }
+
+    @Override
+    public Set<EIGroupRole> impliedRoles()
+    {
+      return Set.of(MEMBER);
+    }
+  },
+
+  /**
    * The user may invite users to the group.
    */
 
   USER_INVITE {
     @Override
+    public int index()
+    {
+      return 0;
+    }
+
+    @Override
     public Set<EIGroupRole> impliedRoles()
     {
-      return Set.of(USER_INVITE);
+      return Set.of(USER_INVITE, MEMBER);
     }
   },
 
@@ -43,9 +72,15 @@ public enum EIGroupRole
 
   USER_DISMISS {
     @Override
+    public int index()
+    {
+      return 1;
+    }
+
+    @Override
     public Set<EIGroupRole> impliedRoles()
     {
-      return Set.of(USER_DISMISS);
+      return Set.of(USER_DISMISS, MEMBER);
     }
   },
 
@@ -55,11 +90,50 @@ public enum EIGroupRole
 
   FOUNDER {
     @Override
+    public int index()
+    {
+      return 2;
+    }
+
+    @Override
     public Set<EIGroupRole> impliedRoles()
     {
       return EnumSet.allOf(EIGroupRole.class);
     }
   };
+
+  private static final Map<Integer, EIGroupRole> BY_INDEX =
+    Stream.of(values())
+      .collect(Collectors.toMap(
+        v -> Integer.valueOf(v.index()),
+        Function.identity())
+      );
+
+  /**
+   * @param index The role index
+   *
+   * @return The group role of the given index
+   *
+   * @throws IllegalArgumentException On unrecognized indices
+   */
+
+  public static EIGroupRole ofIndex(
+    final int index)
+    throws IllegalArgumentException
+  {
+    return Optional.ofNullable(BY_INDEX.get(Integer.valueOf(index)))
+      .orElseThrow(() -> {
+        return new IllegalArgumentException(
+          "Unrecognized group role index: " + index
+        );
+      });
+  }
+
+  /**
+   * @return The integer index value
+   */
+
+  public abstract int index();
 
   /**
    * @return The roles implied by this role
@@ -67,31 +141,4 @@ public enum EIGroupRole
 
   public abstract Set<EIGroupRole> impliedRoles();
 
-  /**
-   * @param r The checked role
-   *
-   * @return {@code true} if this role implies {@code r}
-   */
-
-  public boolean implies(
-    final EIGroupRole r)
-  {
-    return this.impliedRoles().contains(r);
-  }
-
-  /**
-   * Determine if any of the set of given roles implies {@code role}.
-   *
-   * @param roles The roles
-   * @param role  The role
-   *
-   * @return {@code true} if any of the roles imply {@code role}
-   */
-
-  public static boolean roleSetImplies(
-    final Set<EIGroupRole> roles,
-    final EIGroupRole role)
-  {
-    return roles.stream().anyMatch(rs -> rs.implies(role));
-  }
 }

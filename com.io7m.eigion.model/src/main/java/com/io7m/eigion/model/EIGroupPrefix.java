@@ -83,7 +83,8 @@ public record EIGroupPrefix(String value)
    * @return A group name
    */
 
-  public EIGroupName toGroupName(final long id)
+  public EIGroupName toGroupName(
+    final long id)
   {
     return new EIGroupName(
       "%su%s".formatted(this.value, Long.toUnsignedString(id))

@@ -15,7 +15,7 @@
  */
 
 /**
- * The server API.
+ * Eigion platform (Server API)
  */
 
 module com.io7m.eigion.server.api
@@ -23,9 +23,16 @@ module com.io7m.eigion.server.api
   requires static org.osgi.annotation.bundle;
   requires static org.osgi.annotation.versioning;
 
-  requires transitive com.io7m.eigion.domaincheck.api;
   requires transitive com.io7m.eigion.server.database.api;
-  requires transitive com.io7m.eigion.storage.api;
+
+  requires jakarta.xml.bind;
+  requires java.net.http;
+  requires org.slf4j;
+
+  opens com.io7m.eigion.server.api.xml
+    to jakarta.xml.bind;
+
+  uses com.io7m.eigion.server.database.api.EISDatabaseFactoryType;
 
   exports com.io7m.eigion.server.api;
 }

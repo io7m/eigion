@@ -14,6 +14,28 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+import com.io7m.eigion.tests.arbitraries.EIArbAmberjackMessageProvider;
+import com.io7m.eigion.tests.arbitraries.EIArbAuditEventProvider;
+import com.io7m.eigion.tests.arbitraries.EIArbCreationProvider;
+import com.io7m.eigion.tests.arbitraries.EIArbErrorCodeProvider;
+import com.io7m.eigion.tests.arbitraries.EIArbGroupCreationRequestProvider;
+import com.io7m.eigion.tests.arbitraries.EIArbGroupCreationRequestStatusProvider;
+import com.io7m.eigion.tests.arbitraries.EIArbGroupInviteProvider;
+import com.io7m.eigion.tests.arbitraries.EIArbGroupMembershipProvider;
+import com.io7m.eigion.tests.arbitraries.EIArbGroupNameProvider;
+import com.io7m.eigion.tests.arbitraries.EIArbGroupPrefixProvider;
+import com.io7m.eigion.tests.arbitraries.EIArbHashProvider;
+import com.io7m.eigion.tests.arbitraries.EIArbOffsetDateTimeProvider;
+import com.io7m.eigion.tests.arbitraries.EIArbPermissionSetProvider;
+import com.io7m.eigion.tests.arbitraries.EIArbPikeMessageProvider;
+import com.io7m.eigion.tests.arbitraries.EIArbRedactionProvider;
+import com.io7m.eigion.tests.arbitraries.EIArbRedactionRequestProvider;
+import com.io7m.eigion.tests.arbitraries.EIArbTimeRangeProvider;
+import com.io7m.eigion.tests.arbitraries.EIArbTokenProvider;
+import com.io7m.eigion.tests.arbitraries.EIArbURIProvider;
+import com.io7m.eigion.tests.arbitraries.EIArbUUIDProvider;
+import com.io7m.eigion.tests.arbitraries.EIArbUserDisplayNameProvider;
+import com.io7m.eigion.tests.arbitraries.EIArbUserProvider;
 import net.jqwik.api.providers.ArbitraryProvider;
 
 /**
@@ -25,61 +47,35 @@ module com.io7m.eigion.tests.arbitraries
   requires static org.osgi.annotation.bundle;
   requires static org.osgi.annotation.versioning;
 
+  requires transitive com.io7m.eigion.protocol.pike;
+  requires transitive com.io7m.eigion.protocol.amberjack;
   requires transitive com.io7m.eigion.model;
-  requires transitive com.io7m.eigion.protocol.admin_api.v1;
-  requires transitive com.io7m.eigion.protocol.public_api.v1;
-  requires transitive com.io7m.eigion.server.security;
   requires transitive net.jqwik.api;
-  requires org.slf4j;
 
   provides ArbitraryProvider
     with
-      com.io7m.eigion.tests.arbitraries.EIArbAdminProvider,
-      com.io7m.eigion.tests.arbitraries.EIArbAdminSummaryProvider,
-      com.io7m.eigion.tests.arbitraries.EIArbAuditEventProvider,
-      com.io7m.eigion.tests.arbitraries.EIArbCreationProvider,
-      com.io7m.eigion.tests.arbitraries.EIArbEISA1AdminProvider,
-      com.io7m.eigion.tests.arbitraries.EIArbEISA1AdminSummaryProvider,
-      com.io7m.eigion.tests.arbitraries.EIArbEISA1AuditEventProvider,
-      com.io7m.eigion.tests.arbitraries.EIArbEISA1GroupInviteProvider,
-      com.io7m.eigion.tests.arbitraries.EIArbEISA1PasswordProvider,
-      com.io7m.eigion.tests.arbitraries.EIArbEISA1ServiceProvider,
-      com.io7m.eigion.tests.arbitraries.EIArbEISA1SubsetMatchProvider,
-      com.io7m.eigion.tests.arbitraries.EIArbEISA1UserBanProvider,
-      com.io7m.eigion.tests.arbitraries.EIArbEISA1UserProvider,
-      com.io7m.eigion.tests.arbitraries.EIArbEISA1UserSummaryProvider,
-      com.io7m.eigion.tests.arbitraries.EIArbEISP1GroupCreationRequestProvider,
-      com.io7m.eigion.tests.arbitraries.EIArbEISP1GroupInviteProvider,
-      com.io7m.eigion.tests.arbitraries.EIArbEISP1GroupRolesProvider,
-      com.io7m.eigion.tests.arbitraries.EIArbEISP1HashProvider,
-      com.io7m.eigion.tests.arbitraries.EIArbEISP1PasswordProvider,
-      com.io7m.eigion.tests.arbitraries.EIArbEISP1ProductSummaryProvider,
-      com.io7m.eigion.tests.arbitraries.EIArbEISP1UserBanProvider,
-      com.io7m.eigion.tests.arbitraries.EIArbEISP1UserProvider,
-      com.io7m.eigion.tests.arbitraries.EIArbEISP1UserSummaryProvider,
-      com.io7m.eigion.tests.arbitraries.EIArbGroupCreationRequestProvider,
-      com.io7m.eigion.tests.arbitraries.EIArbGroupCreationRequestStatusProvider,
-      com.io7m.eigion.tests.arbitraries.EIArbGroupInviteProvider,
-      com.io7m.eigion.tests.arbitraries.EIArbGroupNameProvider,
-      com.io7m.eigion.tests.arbitraries.EIArbGroupPrefixProvider,
-      com.io7m.eigion.tests.arbitraries.EIArbGroupRolesProvider,
-      com.io7m.eigion.tests.arbitraries.EIArbHashProvider,
-      com.io7m.eigion.tests.arbitraries.EIArbOffsetDateTimeProvider,
-      com.io7m.eigion.tests.arbitraries.EIArbPasswordProvider,
-      com.io7m.eigion.tests.arbitraries.EIArbRedactionProvider,
-      com.io7m.eigion.tests.arbitraries.EIArbRedactionRequestProvider,
-      com.io7m.eigion.tests.arbitraries.EIArbSecActionProvider,
-      com.io7m.eigion.tests.arbitraries.EIArbSubsetMatchProvider,
-      com.io7m.eigion.tests.arbitraries.EIArbTokenProvider,
-      com.io7m.eigion.tests.arbitraries.EIArbURIProvider,
-      com.io7m.eigion.tests.arbitraries.EIArbUUIDProvider,
-      com.io7m.eigion.tests.arbitraries.EIArbUserBanProvider,
-      com.io7m.eigion.tests.arbitraries.EIArbUserDisplayNameProvider,
-      com.io7m.eigion.tests.arbitraries.EIArbUserEmailProvider,
-      com.io7m.eigion.tests.arbitraries.EIArbUserProvider,
-      com.io7m.eigion.tests.arbitraries.EIArbUserSummaryProvider,
-      com.io7m.eigion.tests.arbitraries.EIArbUserUserComplaintProvider,
-      com.io7m.eigion.tests.arbitraries.EIArbUserUserComplaintResolutionProvider
+      EIArbAmberjackMessageProvider,
+      EIArbAuditEventProvider,
+      EIArbCreationProvider,
+      EIArbErrorCodeProvider,
+      EIArbGroupCreationRequestProvider,
+      EIArbGroupCreationRequestStatusProvider,
+      EIArbGroupInviteProvider,
+      EIArbGroupMembershipProvider,
+      EIArbGroupNameProvider,
+      EIArbGroupPrefixProvider,
+      EIArbHashProvider,
+      EIArbOffsetDateTimeProvider,
+      EIArbPermissionSetProvider,
+      EIArbPikeMessageProvider,
+      EIArbRedactionProvider,
+      EIArbRedactionRequestProvider,
+      EIArbTimeRangeProvider,
+      EIArbTokenProvider,
+      EIArbURIProvider,
+      EIArbUUIDProvider,
+      EIArbUserDisplayNameProvider,
+      EIArbUserProvider
     ;
 
   exports com.io7m.eigion.tests.arbitraries;

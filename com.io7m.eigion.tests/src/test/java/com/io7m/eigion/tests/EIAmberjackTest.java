@@ -16,370 +16,458 @@
 
 package com.io7m.eigion.tests;
 
-import com.io7m.eigion.amberjack.EIAClients;
-import com.io7m.eigion.amberjack.api.EIAClientException;
-import com.io7m.eigion.amberjack.api.EIAClientType;
+import com.io7m.eigion.amberjack.EIAJClients;
+import com.io7m.eigion.amberjack.api.EIAJClientException;
+import com.io7m.eigion.amberjack.api.EIAJClientType;
+import com.io7m.eigion.model.EIAuditSearchParameters;
 import com.io7m.eigion.model.EIGroupName;
-import com.io7m.eigion.model.EIPasswordAlgorithmPBKDF2HmacSHA256;
-import com.io7m.eigion.model.EIUserDisplayName;
-import com.io7m.eigion.model.EIUserEmail;
-import com.io7m.eigion.pike.EIPClients;
-import com.io7m.eigion.pike.api.EIPClientType;
+import com.io7m.eigion.model.EIGroupSearchByNameParameters;
+import com.io7m.eigion.model.EIPermission;
+import com.io7m.eigion.model.EIPermissionSet;
+import com.io7m.eigion.model.EITimeRange;
+import com.io7m.eigion.server.database.api.EISDatabaseAuditQueriesType;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.net.URI;
-import java.util.List;
+import java.io.IOException;
+import java.net.http.HttpClient;
+import java.time.Instant;
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
 import java.util.Locale;
-import java.util.Objects;
 import java.util.Optional;
+import java.util.UUID;
+import java.util.function.Supplier;
 
-import static com.io7m.eigion.model.EIGroupInviteStatus.CANCELLED;
-import static java.util.Optional.empty;
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.AUTHENTICATION_ERROR;
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.OPERATION_NOT_PERMITTED;
+import static com.io7m.eigion.error_codes.EIStandardErrorCodes.SECURITY_POLICY_DENIED;
+import static com.io7m.eigion.model.EIPermission.AMBERJACK_ACCESS;
+import static com.io7m.eigion.model.EIPermission.AUDIT_READ;
+import static com.io7m.eigion.model.EIPermission.GROUP_CREATE;
+import static com.io7m.eigion.model.EIPermission.GROUP_READ;
+import static com.io7m.eigion.server.database.api.EISDatabaseRole.EIGION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
-/**
- * Amberjack client tests.
- */
 
 public final class EIAmberjackTest extends EIWithServerContract
 {
-  private static final Logger LOG =
-    LoggerFactory.getLogger(EIAmberjackTest.class);
-
-  private EIAClients clients;
-  private EIAClientType client;
-  private EIPClients pikes;
-  private EIPClientType pike;
+  private EIAJClients clients;
+  private EIAJClientType client;
 
   @BeforeEach
   public void setup()
-    throws Exception
   {
-    LOG.debug("setup");
-    this.clients = new EIAClients();
-    this.client = this.clients.create(Locale.getDefault());
-    this.pikes = new EIPClients();
-    this.pike = this.pikes.create(Locale.getDefault());
+    this.clients = new EIAJClients();
+    this.client = this.clients.create(Locale.ROOT);
   }
 
   @AfterEach
   public void tearDown()
-    throws Exception
+    throws IOException
   {
-    LOG.debug("tearDown");
     this.client.close();
-    this.pike.close();
   }
 
   /**
-   * Logging in works.
+   * It's not possible to log in if the user does not exist.
    *
    * @throws Exception On errors
    */
 
   @Test
-  public void testLogin()
-    throws Exception
-  {
-    this.serverCreateAdminInitial("someone", "12345678");
-    this.client.login("someone", "12345678", this.serverAdminURI());
-  }
-
-  /**
-   * Logging in fails when it should fail.
-   *
-   * @throws Exception On errors
-   */
-
-  @Test
-  public void testLoginFails()
-    throws Exception
-  {
-    this.serverStartIfNecessary();
-    final var ex =
-      assertThrows(EIAClientException.class, () -> {
-        this.client.login("someone", "12345678", this.serverAdminURI());
-      });
-    LOG.debug("", ex);
-    assertTrue(ex.getMessage().contains("Login failed"));
-  }
-
-  /**
-   * Logging in fails without usable protocols.
-   *
-   * @throws Exception On errors
-   */
-
-  @Test
-  public void testLoginFailsWithoutProtocols()
-    throws Exception
-  {
-    try (var ignored = EIFakeServerNonsenseProtocols.create(20000)) {
-      final var ex =
-        assertThrows(EIAClientException.class, () -> {
-          this.client.login(
-            "someone",
-            "12345678",
-            URI.create("http://localhost:20000/"));
-        });
-      LOG.debug("", ex);
-      assertTrue(ex.getMessage().contains("client does not support"));
-    }
-  }
-
-  /**
-   * Logging in fails with a broken server.
-   *
-   * @throws Exception On errors
-   */
-
-  @Test
-  public void testLoginFailsWith500()
-    throws Exception
-  {
-    try (var ignored = EIFakeServerAlways500.create(20000)) {
-      final var ex =
-        assertThrows(EIAClientException.class, () -> {
-          this.client.login(
-            "someone",
-            "12345678",
-            URI.create("http://localhost:20000/"));
-        });
-      LOG.debug("", ex);
-      assertTrue(ex.getMessage().contains("HTTP server returned an error: 500"));
-    }
-  }
-
-  /**
-   * Logging in fails if the actual admin API sends garbage.
-   *
-   * @throws Exception On errors
-   */
-
-  @Test
-  public void testLoginAdminAPIGarbage()
-    throws Exception
-  {
-    try (var ignored = EIFakeServerAdminButGarbage.create(20000)) {
-      final var ex =
-        assertThrows(EIAClientException.class, () -> {
-          this.client.login(
-            "someone",
-            "12345678",
-            URI.create("http://localhost:20000/"));
-        });
-      LOG.debug("", ex);
-      assertTrue(ex.getMessage().contains("Unrecognized token 'hello'"));
-    }
-  }
-
-  /**
-   * Services cannot be retrieved without a login.
-   *
-   * @throws Exception On errors
-   */
-
-  @Test
-  public void testServicesNotLoggedIn()
+  public void testLoginNoSuchUser()
     throws Exception
   {
     final var ex =
-      assertThrows(EIAClientException.class, () -> {
-        this.client.services();
+      assertThrows(EIAJClientException.class, () -> {
+        this.client.login(
+          "nonexistent",
+          "12345678",
+          this.server().baseAmberjackURI()
+        );
       });
-    LOG.debug("", ex);
-    assertTrue(ex.getMessage().contains("Not logged in"));
+
+    assertEquals(AUTHENTICATION_ERROR, ex.errorCode());
   }
 
   /**
-   * Services can be retrieved.
+   * It's not possible to log in if the user has no Amberjack permissions.
    *
    * @throws Exception On errors
    */
 
   @Test
-  public void testServices()
+  public void testLoginUserNotPermitted0()
     throws Exception
   {
-    this.serverCreateAdminInitial("someone", "12345678");
-    this.client.login("someone", "12345678", this.serverAdminURI());
+    this.idstore()
+      .createUser("noone", "12345678");
 
-    final var services = this.client.services();
-    assertEquals(13, services.size());
-    assertTrue(
-      services.stream()
-        .anyMatch(s -> Objects.equals(
-          s.name(),
-          "com.io7m.eigion.server.database.postgres.internal.EIServerDatabase"))
+    final var ex =
+      assertThrows(EIAJClientException.class, () -> {
+        this.client.login(
+          "noone",
+          "12345678",
+          this.server().baseAmberjackURI()
+        );
+      });
+
+    assertEquals(OPERATION_NOT_PERMITTED, ex.errorCode());
+  }
+
+  /**
+   * It's not possible to log in if the user has no Amberjack permissions.
+   *
+   * @throws Exception On errors
+   */
+
+  @Test
+  public void testLoginUserNotPermitted1()
+    throws Exception
+  {
+    final var userId =
+      this.idstore()
+        .createUser("noone", "12345678");
+
+    this.server()
+      .configurator()
+      .userSetPermissions(userId, EIPermissionSet.empty());
+
+    final var ex =
+      assertThrows(EIAJClientException.class, () -> {
+        this.client.login(
+          "noone",
+          "12345678",
+          this.server().baseAmberjackURI()
+        );
+      });
+
+    assertEquals(OPERATION_NOT_PERMITTED, ex.errorCode());
+  }
+
+  /**
+   * Logging in works if the user has Amberjack permissions.
+   *
+   * @throws Exception On errors
+   */
+
+  @Test
+  public void testLoginUserOK()
+    throws Exception
+  {
+    this.setupStandardUserAndLogIn(AMBERJACK_ACCESS);
+  }
+
+  /**
+   * Creating groups requires permissions.
+   *
+   * @throws Exception On errors
+   */
+
+  @Test
+  public void testGroupCreateDisallowed()
+    throws Exception
+  {
+    this.setupStandardUserAndLogIn(AMBERJACK_ACCESS);
+
+    final var ex =
+      assertThrows(EIAJClientException.class, () -> {
+        this.client.groupCreate(new EIGroupName("com.io7m.example"));
+      });
+
+    assertEquals(SECURITY_POLICY_DENIED, ex.errorCode());
+  }
+
+  /**
+   * Creating groups works.
+   *
+   * @throws Exception On errors
+   */
+
+  @Test
+  public void testGroupCreateOK()
+    throws Exception
+  {
+    this.setupStandardUserAndLogIn(AMBERJACK_ACCESS, GROUP_CREATE, GROUP_READ);
+
+    this.client.groupCreate(new EIGroupName("com.io7m.example0"));
+    this.client.groupCreate(new EIGroupName("com.io7m.example1"));
+    this.client.groupCreate(new EIGroupName("com.io7m.example2"));
+
+    final var search =
+      this.client.groupSearchByName(
+        new EIGroupSearchByNameParameters(Optional.empty(), 2L)
+      );
+
+    {
+      final var p = search.current();
+      assertEquals(1, p.pageIndex());
+      assertEquals(2, p.pageCount());
+      final var i = p.items();
+      assertEquals("com.io7m.example0", i.get(0).value());
+      assertEquals("com.io7m.example1", i.get(1).value());
+      assertEquals(2, i.size());
+    }
+
+    {
+      final var p = search.next();
+      assertEquals(2, p.pageIndex());
+      assertEquals(2, p.pageCount());
+      final var i = p.items();
+      assertEquals("com.io7m.example2", i.get(0).value());
+      assertEquals(1, i.size());
+    }
+
+    {
+      final var p = search.previous();
+      assertEquals(1, p.pageIndex());
+      assertEquals(2, p.pageCount());
+      final var i = p.items();
+      assertEquals("com.io7m.example0", i.get(0).value());
+      assertEquals("com.io7m.example1", i.get(1).value());
+      assertEquals(2, i.size());
+    }
+
+    this.checkAuditLog(
+      check("USER_LOGGED_IN", null),
+      check("GROUP_CREATED", "com.io7m.example0"),
+      check("GROUP_CREATED", "com.io7m.example1"),
+      check("GROUP_CREATED", "com.io7m.example2")
     );
   }
 
   /**
-   * Nonexistent users are nonexistent.
+   * Searching the audit log works.
    *
    * @throws Exception On errors
    */
 
   @Test
-  public void testUserNonexistent()
+  public void testAuditLogSearch()
     throws Exception
   {
-    this.serverCreateAdminInitial("someone", "12345678");
-    this.client.login("someone", "12345678", this.serverAdminURI());
+    final var userId =
+      this.setupStandardUserAndLogIn(AMBERJACK_ACCESS, AUDIT_READ);
+    final var time =
+      OffsetDateTime.ofInstant(Instant.EPOCH, ZoneId.of("UTC"));
 
-    assertEquals(
-      empty(),
-      this.client.userById("93c719b7-1d5f-41f8-a160-9d46c23fe90f"));
-    assertEquals(
-      empty(),
-      this.client.userByName("x"));
-    assertEquals(
-      empty(),
-      this.client.userByEmail("x"));
-    assertEquals(
-      List.of(),
-      this.client.userSearch("noone"));
+    final var database = this.server().database();
+    try (var c = database.openConnection(EIGION)) {
+      try (var t = c.openTransaction()) {
+        final var q =
+          t.queries(EISDatabaseAuditQueriesType.class);
+        for (int index = 0; index < 100; ++index) {
+          q.auditPut(
+            userId,
+            time,
+            "AUDIT_EVENT_%03d".formatted(Integer.valueOf(index)),
+            "AUDIT_MESSAGE_%03d".formatted(Integer.valueOf(index))
+          );
+        }
+        t.commit();
+      }
+    }
+
+    {
+      final var search =
+        this.client.auditSearch(
+          new EIAuditSearchParameters(
+            EITimeRange.largest(),
+            Optional.empty(),
+            Optional.of("AUDIT_EVENT_"),
+            Optional.empty(),
+            30L));
+
+      {
+        final var p = search.current();
+        assertEquals(1, p.pageIndex());
+        assertEquals(4, p.pageCount());
+
+        final var items = p.items();
+        for (int index = 0; index < 30; ++index) {
+          final var event = items.get(index);
+          final var number = index;
+          assertEquals("AUDIT_EVENT_%03d".formatted(number), event.type());
+          assertEquals("AUDIT_MESSAGE_%03d".formatted(number), event.message());
+        }
+        assertEquals(30, items.size());
+      }
+
+      {
+        final var p = search.next();
+        assertEquals(2, p.pageIndex());
+        assertEquals(4, p.pageCount());
+
+        final var items = p.items();
+        for (int index = 0; index < 30; ++index) {
+          final var event = items.get(index);
+          final var number = 30 + index;
+          assertEquals("AUDIT_EVENT_%03d".formatted(number), event.type());
+          assertEquals("AUDIT_MESSAGE_%03d".formatted(number), event.message());
+        }
+        assertEquals(30, items.size());
+      }
+
+      {
+        final var p = search.next();
+        assertEquals(3, p.pageIndex());
+        assertEquals(4, p.pageCount());
+
+        final var items = p.items();
+        for (int index = 0; index < 30; ++index) {
+          final var event = items.get(index);
+          final var number = 60 + index;
+          assertEquals("AUDIT_EVENT_%03d".formatted(number), event.type());
+          assertEquals("AUDIT_MESSAGE_%03d".formatted(number), event.message());
+        }
+        assertEquals(30, items.size());
+      }
+
+      {
+        final var p = search.next();
+        assertEquals(4, p.pageIndex());
+        assertEquals(4, p.pageCount());
+
+        final var items = p.items();
+        for (int index = 0; index < 10; ++index) {
+          final var event = items.get(index);
+          final var number = 90 + index;
+          assertEquals("AUDIT_EVENT_%03d".formatted(number), event.type());
+          assertEquals("AUDIT_MESSAGE_%03d".formatted(number), event.message());
+        }
+        assertEquals(10, items.size());
+      }
+
+      {
+        final var p = search.previous();
+        assertEquals(3, p.pageIndex());
+        assertEquals(4, p.pageCount());
+
+        final var items = p.items();
+        for (int index = 0; index < 30; ++index) {
+          final var event = items.get(index);
+          final var number = 60 + index;
+          assertEquals("AUDIT_EVENT_%03d".formatted(number), event.type());
+          assertEquals("AUDIT_MESSAGE_%03d".formatted(number), event.message());
+        }
+        assertEquals(30, items.size());
+      }
+
+      {
+        final var p = search.previous();
+        assertEquals(2, p.pageIndex());
+        assertEquals(4, p.pageCount());
+
+        final var items = p.items();
+        for (int index = 0; index < 30; ++index) {
+          final var event = items.get(index);
+          final var number = 30 + index;
+          assertEquals("AUDIT_EVENT_%03d".formatted(number), event.type());
+          assertEquals("AUDIT_MESSAGE_%03d".formatted(number), event.message());
+        }
+        assertEquals(30, items.size());
+      }
+
+      {
+        final var p = search.previous();
+        assertEquals(1, p.pageIndex());
+        assertEquals(4, p.pageCount());
+
+        final var items = p.items();
+        for (int index = 0; index < 30; ++index) {
+          final var event = items.get(index);
+          final var number = index;
+          assertEquals("AUDIT_EVENT_%03d".formatted(number), event.type());
+          assertEquals("AUDIT_MESSAGE_%03d".formatted(number), event.message());
+        }
+        assertEquals(30, items.size());
+      }
+    }
   }
 
-  /**
-   * Nonexistent admins are nonexistent.
-   *
-   * @throws Exception On errors
-   */
-
-  @Test
-  public void testAdminNonexistent()
+  private void checkAuditLog(
+    final AuditCheck... auditCheck)
     throws Exception
   {
-    this.serverCreateAdminInitial("someone", "12345678");
-    this.client.login("someone", "12345678", this.serverAdminURI());
+    final var database = this.server().database();
+    try (var c = database.openConnection(EIGION)) {
+      try (var t = c.openTransaction()) {
+        final var q =
+          t.queries(EISDatabaseAuditQueriesType.class);
 
-    assertEquals(
-      empty(),
-      this.client.adminById("93c719b7-1d5f-41f8-a160-9d46c23fe90f"));
-    assertEquals(
-      empty(),
-      this.client.adminByName("x"));
-    assertEquals(
-      empty(),
-      this.client.adminByEmail("x"));
-    assertEquals(
-      List.of(),
-      this.client.adminSearch("noone"));
+        final var search =
+          q.auditEventsSearch(new EIAuditSearchParameters(
+            EITimeRange.largest(),
+            Optional.empty(),
+            Optional.empty(),
+            Optional.empty(),
+            1000L
+          ));
+
+        final var events =
+          search.pageCurrent(q).items();
+
+        for (int index = 0; index < auditCheck.length; ++index) {
+          final var check = auditCheck[index];
+          final var event = events.get(index);
+          assertEquals(
+            check.type,
+            event.type(),
+            "[%d] type %s == event type %s"
+              .formatted(Integer.valueOf(index), check.type, event.type())
+          );
+          if (check.message != null) {
+            assertEquals(
+              check.message,
+              event.message(),
+              "[%d] message %s == event message %s"
+                .formatted(Integer.valueOf(index), check.message, event.message())
+            );
+          }
+        }
+      }
+    }
   }
 
-  /**
-   * Group invites can be cancelled.
-   *
-   * @throws Exception On errors
-   */
-
-  @Test
-  public void testGroupInviteCancel()
-    throws Exception
+  private static AuditCheck check(
+    final String type,
+    final String message)
   {
-    final var admin =
-      this.serverCreateAdminInitial("someone", "12345678");
-    final var user0 =
-      this.serverCreateUser(admin, "user0");
-    final var user1 =
-      this.serverCreateUser(admin, "user1");
-
-    this.groupCreate(user0, "com.io7m.ex");
-
-    this.client.login("someone", "12345678", this.serverAdminURI());
-
-    this.pike.login("user0", "12345678", this.serverPublicURI());
-    this.pike.groupInvite(new EIGroupName("com.io7m.ex"), user1);
-
-    final var invitesBefore =
-      this.client.groupInvites(
-        timeNow().minusDays(1L),
-        empty(),
-        empty(),
-        empty(),
-        empty()
-      );
-
-    assertEquals(1L, invitesBefore.size());
-    this.client.groupInviteSetStatus(invitesBefore.get(0).token(), CANCELLED);
-
-    final var invitesAfter =
-      this.client.groupInvites(
-        timeNow().minusDays(1L),
-        empty(),
-        empty(),
-        empty(),
-        empty()
-      );
-
-    assertEquals(1L, invitesAfter.size());
-    assertEquals(CANCELLED, invitesAfter.get(0).status());
+    return new AuditCheck(type, message);
   }
 
-  /**
-   * Users can be banned and unbanned.
-   *
-   * @throws Exception On errors
-   */
-
-  @Test
-  public void testUserBanUnban()
-    throws Exception
+  @Override
+  protected Supplier<HttpClient> httpClients()
   {
-    final var admin =
-      this.serverCreateAdminInitial("someone", "12345678");
-    final var user0 =
-      this.serverCreateUser(admin, "user0");
-
-    this.client.login("someone", "12345678", this.serverAdminURI());
-
-    final var ub =
-      this.client.userBan(user0, empty(), "No reason.");
-    assertEquals("No reason.", ub.ban().get().reason());
-
-    final var uub = this.client.userUnban(user0);
-    assertEquals(empty(), uub.ban());
+    return HttpClient::newHttpClient;
   }
 
-  /**
-   * Users can modified.
-   *
-   * @throws Exception On errors
-   */
+  private record AuditCheck(
+    String type,
+    String message)
+  {
 
-  @Test
-  public void testUserUpdate()
+  }
+
+  private UUID setupStandardUserAndLogIn(
+    final EIPermission... permissions)
     throws Exception
   {
-    final var admin =
-      this.serverCreateAdminInitial("someone", "12345678");
-    final var user0 =
-      this.serverCreateUser(admin, "user0");
+    final var userId =
+      this.idstore()
+        .createUser("noone", "12345678");
 
-    this.client.login("someone", "12345678", this.serverAdminURI());
+    this.server()
+      .configurator()
+      .userSetPermissions(userId, EIPermissionSet.of(permissions));
 
-    final var algo =
-      EIPasswordAlgorithmPBKDF2HmacSHA256.create();
-    final var password =
-      algo.createHashed("something_else");
-
-    final var userUpdated =
-      this.client.userUpdate(
-        user0,
-        Optional.of(new EIUserDisplayName("New Name")),
-        Optional.of(new EIUserEmail("other@example.com")),
-        Optional.of(password)
-      );
-
-    assertEquals("New Name", userUpdated.name().value());
-    assertEquals("other@example.com", userUpdated.email().value());
-    assertEquals(password, userUpdated.password());
+    this.client.login(
+      "noone",
+      "12345678",
+      this.server().baseAmberjackURI()
+    );
+    return userId;
   }
 }

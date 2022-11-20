@@ -8,7 +8,7 @@
   <parent>
     <groupId>com.io7m.primogenitor</groupId>
     <artifactId>com.io7m.primogenitor.full</artifactId>
-    <version>7.1.0</version>
+    <version>7.4.0</version>
   </parent>
 
   <groupId>com.io7m.eigion</groupId>
@@ -22,8 +22,6 @@
 
   <modules>
     <module>com.io7m.eigion.amberjack.api</module>
-    <module>com.io7m.eigion.amberjack.cmdline.main</module>
-    <module>com.io7m.eigion.amberjack.cmdline</module>
     <module>com.io7m.eigion.amberjack</module>
     <module>com.io7m.eigion.client.api</module>
     <module>com.io7m.eigion.client.database.api</module>
@@ -43,21 +41,18 @@
     <module>com.io7m.eigion.model</module>
     <module>com.io7m.eigion.news.xml</module>
     <module>com.io7m.eigion.pike.api</module>
-    <module>com.io7m.eigion.pike.cmdline.main</module>
-    <module>com.io7m.eigion.pike.cmdline</module>
     <module>com.io7m.eigion.pike</module>
     <module>com.io7m.eigion.preferences</module>
-    <module>com.io7m.eigion.product.parser.api</module>
-    <module>com.io7m.eigion.product.parser</module>
-    <module>com.io7m.eigion.protocol.admin_api.v1</module>
+    <module>com.io7m.eigion.protocol.amberjack.cb</module>
+    <module>com.io7m.eigion.protocol.amberjack</module>
     <module>com.io7m.eigion.protocol.api</module>
-    <module>com.io7m.eigion.protocol.public_api.v1</module>
-    <module>com.io7m.eigion.protocol.versions</module>
+    <module>com.io7m.eigion.protocol.pike.cb</module>
+    <module>com.io7m.eigion.protocol.pike</module>
     <module>com.io7m.eigion.server.api</module>
     <module>com.io7m.eigion.server.database.api</module>
     <module>com.io7m.eigion.server.database.postgres</module>
-    <module>com.io7m.eigion.server.security</module>
-    <module>com.io7m.eigion.server.vanilla</module>
+    <module>com.io7m.eigion.server.main</module>
+    <module>com.io7m.eigion.server</module>
     <module>com.io7m.eigion.services.api</module>
     <module>com.io7m.eigion.storage.api</module>
     <module>com.io7m.eigion.storage.derby</module>
@@ -69,18 +64,25 @@
 
   <properties>
     <com.io7m.anethum.version>0.0.2</com.io7m.anethum.version>
+    <com.io7m.cedarbridge.version>0.0.11</com.io7m.cedarbridge.version>
+    <com.io7m.genevan.version>0.0.2</com.io7m.genevan.version>
+    <com.io7m.idstore.version>0.0.4</com.io7m.idstore.version>
     <com.io7m.jade.version>1.0.2</com.io7m.jade.version>
+    <com.io7m.jbssio.version>1.1.1</com.io7m.jbssio.version>
+    <com.io7m.jqpage.version>0.0.2</com.io7m.jqpage.version>
     <com.io7m.jxtrand.version>1.1.0</com.io7m.jxtrand.version>
-    <com.io7m.trasco.version>0.0.2</com.io7m.trasco.version>
+    <com.io7m.trasco.version>0.0.6</com.io7m.trasco.version>
+    <com.io7m.verdant.version>0.0.1</com.io7m.verdant.version>
     <io7m.api.previousVersion>0.0.1-SNAPSHOT</io7m.api.previousVersion>
-    <jackson.version>2.13.3</jackson.version>
-    <javafx.version>18.0.1</javafx.version>
-    <jetty.version>11.0.11</jetty.version>
-    <jooq.version>3.17.2</jooq.version>
-    <logback.version>1.3.0-alpha16</logback.version>
+    <jackson.version>2.14.0</jackson.version>
+    <javafx.version>19</javafx.version>
+    <jetty.version>11.0.12</jetty.version>
+    <jooq.version>3.17.5</jooq.version>
+    <logback.version>1.4.5</logback.version>
+    <opentelemetry.version>1.20.1</opentelemetry.version>
     <org.apache.derby.version>10.16.1.1</org.apache.derby.version>
     <org.jline.version>3.21.0</org.jline.version>
-    <testcontainers.version>1.17.3</testcontainers.version>
+    <testcontainers.version>1.17.6</testcontainers.version>
   </properties>
 
   <licenses>
@@ -150,17 +152,17 @@
       <dependency>
         <groupId>org.junit.jupiter</groupId>
         <artifactId>junit-jupiter-api</artifactId>
-        <version>5.8.2</version>
+        <version>5.9.1</version>
       </dependency>
       <dependency>
         <groupId>org.junit.jupiter</groupId>
         <artifactId>junit-jupiter-engine</artifactId>
-        <version>5.8.2</version>
+        <version>5.9.1</version>
       </dependency>
       <dependency>
         <groupId>org.slf4j</groupId>
         <artifactId>slf4j-api</artifactId>
-        <version>2.0.0-alpha7</version>
+        <version>2.0.4</version>
       </dependency>
       <dependency>
         <groupId>ch.qos.logback</groupId>
@@ -175,27 +177,27 @@
       <dependency>
         <groupId>net.jqwik</groupId>
         <artifactId>jqwik-api</artifactId>
-        <version>1.6.5</version>
+        <version>1.7.1</version>
       </dependency>
       <dependency>
         <groupId>net.jqwik</groupId>
         <artifactId>jqwik-engine</artifactId>
-        <version>1.6.5</version>
+        <version>1.7.1</version>
       </dependency>
       <dependency>
         <groupId>biz.aQute.bnd</groupId>
         <artifactId>biz.aQute.bndlib</artifactId>
-        <version>6.2.0</version>
+        <version>6.3.1</version>
       </dependency>
       <dependency>
         <groupId>org.osgi</groupId>
         <artifactId>org.osgi.resource</artifactId>
-        <version>1.0.0</version>
+        <version>1.0.1</version>
       </dependency>
       <dependency>
         <groupId>org.osgi</groupId>
         <artifactId>org.osgi.framework</artifactId>
-        <version>1.8.0</version>
+        <version>1.10.0</version>
       </dependency>
       <dependency>
         <groupId>org.osgi</groupId>
@@ -210,7 +212,7 @@
       <dependency>
         <groupId>org.apache.felix</groupId>
         <artifactId>org.apache.felix.framework</artifactId>
-        <version>7.0.3</version>
+        <version>7.0.5</version>
         <exclusions>
           <exclusion>
             <groupId>org.codehaus.mojo</groupId>
@@ -347,7 +349,7 @@
       <dependency>
         <groupId>com.io7m.dixmont</groupId>
         <artifactId>com.io7m.dixmont.core</artifactId>
-        <version>0.0.1</version>
+        <version>0.0.2</version>
       </dependency>
       <dependency>
         <groupId>com.io7m.jattribute</groupId>
@@ -372,6 +374,11 @@
       <dependency>
         <groupId>org.jooq</groupId>
         <artifactId>jooq</artifactId>
+        <version>${jooq.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.jooq</groupId>
+        <artifactId>jooq-postgres-extensions</artifactId>
         <version>${jooq.version}</version>
       </dependency>
       <dependency>
@@ -402,7 +409,7 @@
       <dependency>
         <groupId>org.mockito</groupId>
         <artifactId>mockito-core</artifactId>
-        <version>4.4.0</version>
+        <version>4.9.0</version>
       </dependency>
       <dependency>
         <groupId>com.io7m.jlexing</groupId>
@@ -417,7 +424,7 @@
       <dependency>
         <groupId>org.postgresql</groupId>
         <artifactId>postgresql</artifactId>
-        <version>42.4.0</version>
+        <version>42.5.0</version>
       </dependency>
       <dependency>
         <groupId>com.zaxxer</groupId>
@@ -469,6 +476,146 @@
         <artifactId>commons-math3</artifactId>
         <version>3.6.1</version>
       </dependency>
+      <dependency>
+        <groupId>io.opentelemetry</groupId>
+        <artifactId>opentelemetry-bom</artifactId>
+        <version>${opentelemetry.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+      <dependency>
+        <groupId>io.opentelemetry</groupId>
+        <artifactId>opentelemetry-semconv</artifactId>
+        <version>1.18.0-alpha</version>
+      </dependency>
+      <dependency>
+        <groupId>org.jetbrains.kotlin</groupId>
+        <artifactId>kotlin-stdlib</artifactId>
+        <version>1.7.21</version>
+      </dependency>
+      <dependency>
+        <groupId>com.io7m.jqpage</groupId>
+        <artifactId>com.io7m.jqpage.core</artifactId>
+        <version>${com.io7m.jqpage.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.io7m.cedarbridge</groupId>
+        <artifactId>com.io7m.cedarbridge.cmdline</artifactId>
+        <version>${com.io7m.cedarbridge.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.io7m.cedarbridge</groupId>
+        <artifactId>com.io7m.cedarbridge.runtime.api</artifactId>
+        <version>${com.io7m.cedarbridge.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.io7m.cedarbridge</groupId>
+        <artifactId>com.io7m.cedarbridge.runtime.bssio</artifactId>
+        <version>${com.io7m.cedarbridge.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.io7m.jbssio</groupId>
+        <artifactId>com.io7m.jbssio.vanilla</artifactId>
+        <version>${com.io7m.jbssio.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.io7m.jbssio</groupId>
+        <artifactId>com.io7m.jbssio.api</artifactId>
+        <version>${com.io7m.jbssio.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.io7m.claypot</groupId>
+        <artifactId>com.io7m.claypot.core</artifactId>
+        <version>0.0.8</version>
+      </dependency>
+
+      <dependency>
+        <groupId>com.io7m.idstore</groupId>
+        <artifactId>com.io7m.idstore.error_codes</artifactId>
+        <version>${com.io7m.idstore.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.io7m.idstore</groupId>
+        <artifactId>com.io7m.idstore.model</artifactId>
+        <version>${com.io7m.idstore.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.io7m.idstore</groupId>
+        <artifactId>com.io7m.idstore.server</artifactId>
+        <version>${com.io7m.idstore.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.io7m.idstore</groupId>
+        <artifactId>com.io7m.idstore.server.api</artifactId>
+        <version>${com.io7m.idstore.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.io7m.idstore</groupId>
+        <artifactId>com.io7m.idstore.admin_client.api</artifactId>
+        <version>${com.io7m.idstore.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.io7m.idstore</groupId>
+        <artifactId>com.io7m.idstore.admin_client</artifactId>
+        <version>${com.io7m.idstore.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.io7m.idstore</groupId>
+        <artifactId>com.io7m.idstore.database.postgres</artifactId>
+        <version>${com.io7m.idstore.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.io7m.idstore</groupId>
+        <artifactId>com.io7m.idstore.database.api</artifactId>
+        <version>${com.io7m.idstore.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.io7m.idstore</groupId>
+        <artifactId>com.io7m.idstore.user_client</artifactId>
+        <version>${com.io7m.idstore.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.io7m.idstore</groupId>
+        <artifactId>com.io7m.idstore.user_client.api</artifactId>
+        <version>${com.io7m.idstore.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>com.github.davidmoten</groupId>
+        <artifactId>subethasmtp</artifactId>
+        <version>6.0.4</version>
+      </dependency>
+      <dependency>
+        <groupId>com.io7m.verdant</groupId>
+        <artifactId>com.io7m.verdant.core</artifactId>
+        <version>${com.io7m.verdant.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.io7m.verdant</groupId>
+        <artifactId>com.io7m.verdant.core.cb</artifactId>
+        <version>${com.io7m.verdant.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.io7m.genevan</groupId>
+        <artifactId>com.io7m.genevan.core</artifactId>
+        <version>${com.io7m.genevan.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>jakarta.xml.bind</groupId>
+        <artifactId>jakarta.xml.bind-api</artifactId>
+        <version>4.0.0</version>
+      </dependency>
+      <dependency>
+        <groupId>com.sun.xml.bind</groupId>
+        <artifactId>jaxb-impl</artifactId>
+        <version>4.0.1</version>
+      </dependency>
+      <dependency>
+        <groupId>com.sun.mail</groupId>
+        <artifactId>jakarta.mail</artifactId>
+        <version>2.0.1</version>
+      </dependency>
     </dependencies>
   </dependencyManagement>
 
@@ -481,6 +628,12 @@
           <configuration>
             <suppressionsLocation>checkstyle-filter.xml</suppressionsLocation>
           </configuration>
+        </plugin>
+
+        <plugin>
+          <groupId>org.codehaus.mojo</groupId>
+          <artifactId>jaxb2-maven-plugin</artifactId>
+          <version>3.1.0</version>
         </plugin>
       </plugins>
     </pluginManagement>

@@ -34,4 +34,8 @@ module com.io7m.eigion.storage.derby
   requires org.slf4j;
 
   exports com.io7m.eigion.storage.derby;
+
+  exports com.io7m.eigion.storage.derby.internal to org.jooq;
+  exports com.io7m.eigion.storage.derby.internal.tables to org.jooq;
+  exports com.io7m.eigion.storage.derby.internal.tables.records to org.jooq;
 }
