@@ -208,7 +208,7 @@ public final class EIGBootServices
       throws Exception;
   }
 
-  private static record EIBootService<T extends EIServiceType>(
+  private record EIBootService<T extends EIServiceType>(
     String message,
     Class<T> clazz,
     EIBootServiceCreatorType<T> creator)
