@@ -244,10 +244,6 @@
       <groupId>net.jqwik</groupId>
       <artifactId>jqwik-engine</artifactId>
     </dependency>
-    <dependency>
-      <groupId>com.sun.mail</groupId>
-      <artifactId>jakarta.mail</artifactId>
-    </dependency>
   </dependencies>
 
   <build>
