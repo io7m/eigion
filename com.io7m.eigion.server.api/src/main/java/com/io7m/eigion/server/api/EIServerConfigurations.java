@@ -19,9 +19,7 @@ package com.io7m.eigion.server.api;
 import com.io7m.eigion.server.database.api.EISDatabaseConfiguration;
 import com.io7m.eigion.server.database.api.EISDatabaseFactoryType;
 
-import java.io.IOException;
 import java.net.http.HttpClient;
-import java.nio.file.Path;
 import java.time.Clock;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -45,39 +43,6 @@ public final class EIServerConfigurations
   private EIServerConfigurations()
   {
 
-  }
-
-  /**
-   * Read a server configuration from the given file.
-   *
-   * @param locale  The locale
-   * @param clients A supplier of HTTP clients
-   * @param clock   The clock
-   * @param file    The file
-   *
-   * @return A server configuration
-   *
-   * @throws IOException On errors
-   */
-
-  public static EIServerConfiguration ofFile(
-    final Locale locale,
-    final Clock clock,
-    final Supplier<HttpClient> clients,
-    final Path file)
-    throws IOException
-  {
-    Objects.requireNonNull(locale, "locale");
-    Objects.requireNonNull(clock, "clock");
-    Objects.requireNonNull(clients, "clients");
-    Objects.requireNonNull(file, "file");
-
-    return ofFile(
-      locale,
-      clock,
-      clients,
-      new EIServerConfigurationFiles().parse(file)
-    );
   }
 
   /**

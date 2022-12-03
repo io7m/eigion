@@ -25,8 +25,10 @@ open module com.io7m.eigion.server.main
 
   uses com.io7m.eigion.server.api.EIServerFactoryType;
 
-  requires com.io7m.claypot.core;
+  requires com.io7m.eigion.server.service.configuration;
   requires com.io7m.eigion.server.api;
+
+  requires com.io7m.claypot.core;
   requires java.net.http;
   requires jcommander;
   requires org.slf4j;

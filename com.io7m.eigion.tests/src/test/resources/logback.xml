@@ -29,6 +29,9 @@
   <logger name="com.io7m.blackthorne"
           level="INFO"/>
 
+  <logger name="org.jooq"
+          level="INFO"/>
+
   <root level="TRACE">
     <appender-ref ref="STDERR"/>
   </root>

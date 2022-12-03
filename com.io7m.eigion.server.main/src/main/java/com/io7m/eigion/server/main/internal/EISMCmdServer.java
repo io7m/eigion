@@ -22,6 +22,7 @@ import com.io7m.claypot.core.CLPAbstractCommand;
 import com.io7m.claypot.core.CLPCommandContextType;
 import com.io7m.eigion.server.api.EIServerConfigurations;
 import com.io7m.eigion.server.api.EIServerFactoryType;
+import com.io7m.eigion.server.service.configuration.EISConfigurationFiles;
 
 import java.net.http.HttpClient;
 import java.nio.file.Path;
@@ -64,12 +65,16 @@ public final class EISMCmdServer extends CLPAbstractCommand
     System.setProperty("org.jooq.no-tips", "true");
     System.setProperty("org.jooq.no-logo", "true");
 
+    final var file =
+      new EISConfigurationFiles()
+        .parse(this.configurationFile);
+
     final var configuration =
       EIServerConfigurations.ofFile(
         Locale.getDefault(),
         Clock.systemUTC(),
         HttpClient::newHttpClient,
-        this.configurationFile
+        file
       );
 
     final var servers =

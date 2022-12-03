@@ -8,12 +8,20 @@
     </Comment>
 
     <Statement><![CDATA[
+drop role if exists eigion;
+]]></Statement>
+
+    <Statement><![CDATA[
 create role eigion with nosuperuser nocreatedb nocreaterole noinherit nologin;
 ]]></Statement>
 
     <Comment>
       The eigion_none role is a no-privilege role that cannot perform any actions.
     </Comment>
+
+    <Statement><![CDATA[
+drop role if exists eigion_none;
+]]></Statement>
 
     <Statement><![CDATA[
 create role eigion_none with nosuperuser nocreatedb nocreaterole noinherit nologin;

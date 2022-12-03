@@ -25,12 +25,7 @@ module com.io7m.eigion.server.api
 
   requires transitive com.io7m.eigion.server.database.api;
 
-  requires jakarta.xml.bind;
   requires java.net.http;
-  requires org.slf4j;
-
-  opens com.io7m.eigion.server.api.xml
-    to jakarta.xml.bind;
 
   uses com.io7m.eigion.server.database.api.EISDatabaseFactoryType;
 

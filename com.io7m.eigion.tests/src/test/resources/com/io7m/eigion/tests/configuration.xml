@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<Configuration xmlns="com.io7m.eigion:configuration:1">
+
+  <AmberjackService listenAddress="localhost"
+                    listenPort="51000"
+                    externalAddress="http://localhost:51000/"/>
+
+  <PikeService listenAddress="localhost"
+               listenPort="50000"
+               externalAddress="http://localhost:50000/"/>
+
+  <Database kind="POSTGRESQL"
+            user="postgres"
+            password="12345678"
+            databaseAddress="localhost"
+            databasePort="54320"
+            databaseName="eigion"
+            create="true"
+            upgrade="true"/>
+
+  <IdStore baseURI="http://127.0.0.1:50000"
+           passwordResetURI="http://127.0.0.1:50001/password-reset"/>
+
+</Configuration>

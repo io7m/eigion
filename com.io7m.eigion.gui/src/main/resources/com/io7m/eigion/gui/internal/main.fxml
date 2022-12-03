@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-
-
-<?import javafx.scene.layout.StackPane?>
-<StackPane xmlns:fx="http://javafx.com/fxml/1"
-           fx:id="mainContainer"
-           alignment="TOP_LEFT"
-           xmlns="http://javafx.com/javafx/18"
-           fx:controller="com.io7m.eigion.gui.internal.main.EIGMainScreenController"/>

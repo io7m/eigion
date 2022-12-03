@@ -23,17 +23,9 @@
   <modules>
     <module>com.io7m.eigion.amberjack.api</module>
     <module>com.io7m.eigion.amberjack</module>
-    <module>com.io7m.eigion.client.api</module>
-    <module>com.io7m.eigion.client.database.api</module>
-    <module>com.io7m.eigion.client.database</module>
-    <module>com.io7m.eigion.client.vanilla</module>
-    <module>com.io7m.eigion.distribution.example</module>
     <module>com.io7m.eigion.domaincheck.api</module>
     <module>com.io7m.eigion.domaincheck</module>
     <module>com.io7m.eigion.error_codes</module>
-    <module>com.io7m.eigion.gui.icons.vanilla</module>
-    <module>com.io7m.eigion.gui.icons</module>
-    <module>com.io7m.eigion.gui</module>
     <module>com.io7m.eigion.hash</module>
     <module>com.io7m.eigion.launcher.api</module>
     <module>com.io7m.eigion.launcher.felix</module>
@@ -48,16 +40,30 @@
     <module>com.io7m.eigion.protocol.api</module>
     <module>com.io7m.eigion.protocol.pike.cb</module>
     <module>com.io7m.eigion.protocol.pike</module>
+    <module>com.io7m.eigion.server.amberjack_v1</module>
     <module>com.io7m.eigion.server.api</module>
+    <module>com.io7m.eigion.server.controller</module>
     <module>com.io7m.eigion.server.database.api</module>
     <module>com.io7m.eigion.server.database.postgres</module>
+    <module>com.io7m.eigion.server.http</module>
     <module>com.io7m.eigion.server.main</module>
-    <module>com.io7m.eigion.server</module>
+    <module>com.io7m.eigion.server.pike_v1</module>
+    <module>com.io7m.eigion.server.security</module>
+    <module>com.io7m.eigion.server.service.clock</module>
+    <module>com.io7m.eigion.server.service.configuration</module>
+    <module>com.io7m.eigion.server.service.domaincheck</module>
+    <module>com.io7m.eigion.server.service.idstore</module>
+    <module>com.io7m.eigion.server.service.limits</module>
+    <module>com.io7m.eigion.server.service.maintenance</module>
+    <module>com.io7m.eigion.server.service.sessions</module>
+    <module>com.io7m.eigion.server.service.telemetry.api</module>
+    <module>com.io7m.eigion.server.service.telemetry.otp</module>
+    <module>com.io7m.eigion.server.service.verdant</module>
+    <module>com.io7m.eigion.server.vanilla</module>
     <module>com.io7m.eigion.services.api</module>
     <module>com.io7m.eigion.storage.api</module>
     <module>com.io7m.eigion.storage.derby</module>
     <module>com.io7m.eigion.storage.s3</module>
-    <module>com.io7m.eigion.taskrecorder</module>
     <module>com.io7m.eigion.tests.arbitraries</module>
     <module>com.io7m.eigion.tests</module>
   </modules>
@@ -66,7 +72,7 @@
     <com.io7m.anethum.version>0.0.2</com.io7m.anethum.version>
     <com.io7m.cedarbridge.version>0.0.11</com.io7m.cedarbridge.version>
     <com.io7m.genevan.version>0.0.2</com.io7m.genevan.version>
-    <com.io7m.idstore.version>0.0.4</com.io7m.idstore.version>
+    <com.io7m.idstore.version>0.0.7</com.io7m.idstore.version>
     <com.io7m.jade.version>1.0.2</com.io7m.jade.version>
     <com.io7m.jbssio.version>1.1.1</com.io7m.jbssio.version>
     <com.io7m.jqpage.version>0.0.2</com.io7m.jqpage.version>
@@ -322,36 +328,6 @@
         <version>5.0.2</version>
       </dependency>
       <dependency>
-        <groupId>com.fasterxml.jackson.core</groupId>
-        <artifactId>jackson-core</artifactId>
-        <version>${jackson.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>com.fasterxml.jackson.core</groupId>
-        <artifactId>jackson-databind</artifactId>
-        <version>${jackson.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>com.fasterxml.jackson.core</groupId>
-        <artifactId>jackson-annotations</artifactId>
-        <version>${jackson.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>com.fasterxml.jackson.datatype</groupId>
-        <artifactId>jackson-datatype-jsr310</artifactId>
-        <version>${jackson.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>com.fasterxml.jackson.datatype</groupId>
-        <artifactId>jackson-datatype-jdk8</artifactId>
-        <version>${jackson.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>com.io7m.dixmont</groupId>
-        <artifactId>com.io7m.dixmont.core</artifactId>
-        <version>0.0.2</version>
-      </dependency>
-      <dependency>
         <groupId>com.io7m.jattribute</groupId>
         <artifactId>com.io7m.jattribute.core</artifactId>
         <version>0.0.1</version>
@@ -541,7 +517,7 @@
       </dependency>
       <dependency>
         <groupId>com.io7m.idstore</groupId>
-        <artifactId>com.io7m.idstore.server</artifactId>
+        <artifactId>com.io7m.idstore.server.vanilla</artifactId>
         <version>${com.io7m.idstore.version}</version>
       </dependency>
       <dependency>
@@ -599,6 +575,22 @@
         <groupId>com.io7m.genevan</groupId>
         <artifactId>com.io7m.genevan.core</artifactId>
         <version>${com.io7m.genevan.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>com.github.ben-manes.caffeine</groupId>
+        <artifactId>caffeine</artifactId>
+        <version>3.1.1</version>
+        <exclusions>
+          <exclusion>
+            <groupId>org.checkerframework</groupId>
+            <artifactId>checker-qual</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>com.google.errorprone</groupId>
+            <artifactId>error_prone_annotations</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
 
       <dependency>

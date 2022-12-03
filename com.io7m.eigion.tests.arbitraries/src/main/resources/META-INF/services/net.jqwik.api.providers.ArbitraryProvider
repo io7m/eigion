@@ -1,5 +1,6 @@
 com.io7m.eigion.tests.arbitraries.EIArbAmberjackMessageProvider
 com.io7m.eigion.tests.arbitraries.EIArbAuditEventProvider
+com.io7m.eigion.tests.arbitraries.EIArbAuditSearchParametersProvider
 com.io7m.eigion.tests.arbitraries.EIArbCreationProvider
 com.io7m.eigion.tests.arbitraries.EIArbErrorCodeProvider
 com.io7m.eigion.tests.arbitraries.EIArbGroupCreationRequestProvider
@@ -8,6 +9,7 @@ com.io7m.eigion.tests.arbitraries.EIArbGroupInviteProvider
 com.io7m.eigion.tests.arbitraries.EIArbGroupMembershipProvider
 com.io7m.eigion.tests.arbitraries.EIArbGroupNameProvider
 com.io7m.eigion.tests.arbitraries.EIArbGroupPrefixProvider
+com.io7m.eigion.tests.arbitraries.EIArbGroupSearchByNameParametersProvider
 com.io7m.eigion.tests.arbitraries.EIArbHashProvider
 com.io7m.eigion.tests.arbitraries.EIArbOffsetDateTimeProvider
 com.io7m.eigion.tests.arbitraries.EIArbPermissionSetProvider

@@ -28,6 +28,6 @@ public final class EITime
 
   public static OffsetDateTime timeNow()
   {
-    return OffsetDateTime.now();
+    return OffsetDateTime.now().withNano(0);
   }
 }

@@ -1,0 +1,60 @@
+/*
+ * Copyright © 2022 Mark Raynsford <code@io7m.com> https://www.io7m.com
+ *
+ * Permission to use, copy, modify, and/or distribute this software for any
+ * purpose with or without fee is hereby granted, provided that the above
+ * copyright notice and this permission notice appear in all copies.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+ * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
+ * SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+ * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+ * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR
+ * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ */
+
+package com.io7m.eigion.server.controller.login;
+
+import com.io7m.eigion.model.EIPermission;
+import com.io7m.eigion.server.controller.command_exec.EISCommandExecutionFailure;
+import com.io7m.eigion.server.database.api.EISDatabaseTransactionType;
+import com.io7m.eigion.server.service.sessions.EISession;
+import com.io7m.eigion.services.api.EIServiceType;
+
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+
+/**
+ * A service that handles the logic for user logins.
+ */
+
+public interface EILoginServiceType extends EIServiceType
+{
+  /**
+   * Try logging in. Create a new session if logging in succeeds, or raise an
+   * exception if the login cannot proceed for any reason (invalid credentials,
+   * banned user, etc).
+   *
+   * @param transaction        A database transaction
+   * @param requestId          The ID of the request
+   * @param username           The username
+   * @param password           The password
+   * @param metadata           The request metadata
+   * @param requirePermissions The permissions required to log in, if any
+   *
+   * @return A login record
+   *
+   * @throws EISCommandExecutionFailure On errors
+   */
+
+  EISession userLogin(
+    EISDatabaseTransactionType transaction,
+    UUID requestId,
+    String username,
+    String password,
+    Map<String, String> metadata,
+    Set<EIPermission> requirePermissions)
+    throws EISCommandExecutionFailure, InterruptedException;
+}

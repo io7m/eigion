@@ -23,6 +23,13 @@ package com.io7m.eigion.error_codes;
 public final class EIStandardErrorCodes
 {
   /**
+   * The idstore server or clients failed.
+   */
+
+  public static final EIErrorCode IDSTORE_ERROR =
+    new EIErrorCode("error-idstore");
+
+  /**
    * The server failed to start.
    */
 
