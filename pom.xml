@@ -27,11 +27,7 @@
     <module>com.io7m.eigion.domaincheck</module>
     <module>com.io7m.eigion.error_codes</module>
     <module>com.io7m.eigion.hash</module>
-    <module>com.io7m.eigion.launcher.api</module>
-    <module>com.io7m.eigion.launcher.felix</module>
-    <module>com.io7m.eigion.launcher.main</module>
     <module>com.io7m.eigion.model</module>
-    <module>com.io7m.eigion.news.xml</module>
     <module>com.io7m.eigion.pike.api</module>
     <module>com.io7m.eigion.pike</module>
     <module>com.io7m.eigion.preferences</module>
