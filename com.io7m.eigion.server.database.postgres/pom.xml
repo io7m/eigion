@@ -71,6 +71,18 @@
       <groupId>com.io7m.jdeferthrow</groupId>
       <artifactId>com.io7m.jdeferthrow.core</artifactId>
     </dependency>
+    <dependency>
+      <groupId>com.io7m.mime2045</groupId>
+      <artifactId>com.io7m.mime2045.core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.io7m.mime2045</groupId>
+      <artifactId>com.io7m.mime2045.parser.api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.io7m.mime2045</groupId>
+      <artifactId>com.io7m.mime2045.parser</artifactId>
+    </dependency>
 
     <dependency>
       <groupId>io.opentelemetry</groupId>
